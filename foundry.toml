@@ -2,7 +2,7 @@
 
 [profile.default]
     auto_detect_solc = false
-    block_timestamp = 1_680_220_800 # March 31, 2023 at 00:00 GMT
+    block_timestamp = 1_680_220_800                           # March 31, 2023 at 00:00 GMT
     bytecode_hash = "none"
     cbor_metadata = false
     evm_version = "paris"
@@ -14,8 +14,11 @@
     out = "out"
     script = "script"
     solc = "0.8.19"
-    src = "src"
+    src = "contracts"
     test = "test"
+    fs_permissions = [{ access = "read-write", path = "./" }]
+    ffi = true
+
 [profile.ci]
     fuzz = { runs = 10_000 }
     verbosity = 4
