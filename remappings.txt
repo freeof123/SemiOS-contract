@@ -1,2 +1,6 @@
 forge-std/=lib/forge-std/src/
 solady/=lib/solady/src
+@openzeppelin/=node_modules/@openzeppelin/
+@solidstate/=node_modules/@solidstate/
+@uniswap/=node_modules/@uniswap/
+@chainlink/=node_modules/@chainlink/
