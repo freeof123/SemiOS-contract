@@ -1,9 +1,2 @@
-@prb/test/=lib/prb-test/src/
 forge-std/=lib/forge-std/src/
-src/=src/
-@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
-@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
-operator-filter-registry/=lib/operator-filter-registry/src/
 solady/=lib/solady/src
-solmate/=lib/solmate/src/
-solidstate/=lib/solidstate-solidity/contracts/
