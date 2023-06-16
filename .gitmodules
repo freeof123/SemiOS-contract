@@ -2,25 +2,6 @@
   branch = "v1"
   path = "lib/forge-std"
   url = "https://github.com/foundry-rs/forge-std"
-[submodule "lib/prb-test"]
-  branch = "release-v0"
-  path = "lib/prb-test"
-  url = "https://github.com/PaulRBerg/prb-test"
 [submodule "lib/solady"]
 	path = lib/solady
 	url = https://github.com/Vectorized/solady
-[submodule "lib/openzeppelin-contracts-upgradeable"]
-	path = lib/openzeppelin-contracts-upgradeable
-	url = https://github.com/Openzeppelin/openzeppelin-contracts-upgradeable
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
-[submodule "lib/solidstate-solidity"]
-	path = lib/solidstate-solidity
-	url = https://github.com/solidstate-network/solidstate-solidity
-[submodule "lib/openzeppelin-contracts"]
-	path = lib/openzeppelin-contracts
-	url = https://github.com/Openzeppelin/openzeppelin-contracts
-[submodule "lib/operator-filter-registry"]
-	path = lib/operator-filter-registry
-	url = https://github.com/ProjectOpenSea/operator-filter-registry
