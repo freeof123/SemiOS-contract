@@ -3,6 +3,9 @@
   "description": "",
   "version": "1.0.0",
   "devDependencies": {
+    "@openzeppelin/contracts": "^4.9.1",
+    "@openzeppelin/contracts-upgradeable": "^4.9.1",
+    "@solidstate/contracts": "^0.0.57",
     "prettier": "^2.8.7",
     "solhint-community": "^3.5.0"
   },
