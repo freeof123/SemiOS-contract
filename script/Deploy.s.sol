@@ -238,7 +238,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         {
             console2.log("Step 5: change floor prices");
-            uint256[] memory floorPrices = new uint256[](13);
+            uint256[] memory floorPrices = new uint256[](14);
             floorPrices[0] = 0.01 ether;
             floorPrices[1] = 0.02 ether;
             floorPrices[2] = 0.03 ether;
@@ -252,6 +252,7 @@ contract Deploy is Script, Test, D4AAddress {
             floorPrices[10] = 3 ether;
             floorPrices[11] = 5 ether;
             floorPrices[12] = 10 ether;
+            floorPrices[13] = 0 ether;
             ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeFloorPrices(floorPrices);
         }
         {

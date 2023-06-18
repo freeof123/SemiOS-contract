@@ -427,7 +427,7 @@ contract DeployHelper is Test {
     }
 
     function _changeFloorPrices() internal {
-        uint256[] memory floorPrices = new uint256[](13);
+        uint256[] memory floorPrices = new uint256[](14);
         floorPrices[0] = 0.01 ether;
         floorPrices[1] = 0.02 ether;
         floorPrices[2] = 0.03 ether;
@@ -441,6 +441,7 @@ contract DeployHelper is Test {
         floorPrices[10] = 3 ether;
         floorPrices[11] = 5 ether;
         floorPrices[12] = 10 ether;
+        floorPrices[13] = 0 ether;
         ID4ASettings(address(protocol)).changeFloorPrices(floorPrices);
     }
 
