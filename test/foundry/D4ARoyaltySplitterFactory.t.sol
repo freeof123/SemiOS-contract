@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {ID4ASettingsReadable, TestERC20, DeployHelper} from "./utils/DeployHelper.sol";
-import {D4ARoyaltySplitter} from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
-import {AggregatorV3Mock} from "./utils/mocks/AggregatorV3Mock.sol";
-import {Denominations} from "@chainlink/contracts/src/v0.8/Denominations.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHelper.sol";
+import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
+import { AggregatorV3Mock } from "./utils/mocks/AggregatorV3Mock.sol";
+import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 
-import {console2} from "forge-std/Console2.sol";
+import { console2 } from "forge-std/Console2.sol";
 
 contract D4ARoyaltySplitterFactoryTest is DeployHelper {
     uint256 public protocolShare;
@@ -91,7 +91,7 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
 
         startHoax(daoCreator.addr);
         _testERC20.approve(address(uniswapV2Router), type(uint256).max);
-        uniswapV2Router.addLiquidityETH{value: 1e6 ether}(
+        uniswapV2Router.addLiquidityETH{ value: 1e6 ether }(
             address(_testERC20),
             1e6 ether * 10 ** tokenPriceDecimal / tokenPrice,
             0,
@@ -100,7 +100,7 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
             type(uint256).max
         );
         _testERC20_1.approve(address(uniswapV2Router), type(uint256).max);
-        uniswapV2Router.addLiquidityETH{value: 1e6 ether}(
+        uniswapV2Router.addLiquidityETH{ value: 1e6 ether }(
             address(_testERC20_1),
             1e6 ether * 10 ** tokenPriceDecimal / tokenPrice,
             0,

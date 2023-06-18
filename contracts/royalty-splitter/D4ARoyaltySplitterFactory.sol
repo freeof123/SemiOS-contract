@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
-import {ID4ARoyaltySplitterFactory} from "../interface/ID4ARoyaltySplitterFactory.sol";
-import {D4ARoyaltySplitter} from "./D4ARoyaltySplitter.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
+import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
+import { D4ARoyaltySplitter } from "./D4ARoyaltySplitter.sol";
+import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 
 contract D4ARoyaltySplitterFactory is ID4ARoyaltySplitterFactory, AutomationCompatibleInterface {
     using Clones for address;
@@ -31,7 +31,10 @@ contract D4ARoyaltySplitterFactory is ID4ARoyaltySplitterFactory, AutomationComp
         uint256 protocolShare,
         address daoFeePool,
         uint256 daoShare
-    ) public returns (address) {
+    )
+        public
+        returns (address)
+    {
         D4ARoyaltySplitter t = D4ARoyaltySplitter(payable(address(impl).clone()));
         t.initialize(protocolFeePool, protocolShare, daoFeePool, daoShare, uniswapV2Router, oracleRegistry);
         t.transferOwnership(msg.sender);

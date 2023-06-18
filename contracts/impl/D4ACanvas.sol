@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "../D4ASettings/D4ASettingsBaseStorage.sol";
 
 library D4ACanvas {
@@ -26,7 +26,10 @@ library D4ACanvas {
         uint256 _project_start_drb,
         uint256 canvas_num,
         string memory _canvas_uri
-    ) public returns (bytes32) {
+    )
+        public
+        returns (bytes32)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         {
             ID4ADrb drb = l.drb;
@@ -59,7 +62,10 @@ library D4ACanvas {
         return canvas_id;
     }
 
-    function getCanvasNFTCount(mapping(bytes32 => canvas_info) storage _allCanvases, bytes32 _canvas_id)
+    function getCanvasNFTCount(
+        mapping(bytes32 => canvas_info) storage _allCanvases,
+        bytes32 _canvas_id
+    )
         internal
         view
         returns (uint256)
@@ -68,7 +74,11 @@ library D4ACanvas {
         return ci.nft_token_number;
     }
 
-    function getTokenIDAt(mapping(bytes32 => canvas_info) storage _allCanvases, bytes32 _canvas_id, uint256 _index)
+    function getTokenIDAt(
+        mapping(bytes32 => canvas_info) storage _allCanvases,
+        bytes32 _canvas_id,
+        uint256 _index
+    )
         internal
         view
         returns (uint256)
@@ -77,7 +87,10 @@ library D4ACanvas {
         return ci.nft_tokens[_index];
     }
 
-    function getCanvasURI(mapping(bytes32 => canvas_info) storage _allCanvases, bytes32 _canvas_id)
+    function getCanvasURI(
+        mapping(bytes32 => canvas_info) storage _allCanvases,
+        bytes32 _canvas_id
+    )
         internal
         view
         returns (string memory)

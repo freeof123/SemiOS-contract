@@ -10,7 +10,10 @@ abstract contract OperatorFiltererUpgradeable is Initializable {
     IOperatorFilterRegistry constant operatorFilterRegistry =
         IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
-    function __OperatorFilterer_init(address subscriptionOrRegistrantToCopy, bool subscribe)
+    function __OperatorFilterer_init(
+        address subscriptionOrRegistrantToCopy,
+        bool subscribe
+    )
         internal
         onlyInitializing
     {

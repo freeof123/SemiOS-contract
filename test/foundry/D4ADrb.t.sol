@@ -2,13 +2,13 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {D4ADrb} from "contracts/D4ADrb.sol";
+import { D4ADrb } from "contracts/D4ADrb.sol";
 
 contract D4ADrbTest is Test {
     D4ADrb public drb;
 
     function setUp() public {
-        uint256 blocksPerDrb = 3_000 * 1e18;
+        uint256 blocksPerDrb = 3000 * 1e18;
         drb = new D4ADrb(1, blocksPerDrb);
     }
 
@@ -147,7 +147,7 @@ contract D4ADrbTest is Test {
         assertEq(drb.getStartBlock(0), 1);
         assertEq(drb.getStartBlock(1), 3001);
         assertEq(drb.getStartBlock(2), 8001);
-        assertEq(drb.getStartBlock(3), 11001);
+        assertEq(drb.getStartBlock(3), 11_001);
 
         assertEq(drb.getDrb(1), 0);
         assertEq(drb.getDrb(3000), 0);
@@ -160,8 +160,8 @@ contract D4ADrbTest is Test {
         assertEq(drb.getDrb(8001), 2);
         assertEq(drb.getDrb(9000), 2);
         assertEq(drb.getDrb(9001), 2);
-        assertEq(drb.getDrb(11000), 2);
-        assertEq(drb.getDrb(11001), 3);
+        assertEq(drb.getDrb(11_000), 2);
+        assertEq(drb.getDrb(11_001), 3);
 
         vm.roll(1);
         assertEq(drb.currentRound(), 0);
@@ -185,9 +185,9 @@ contract D4ADrbTest is Test {
         assertEq(drb.currentRound(), 2);
         vm.roll(9001);
         assertEq(drb.currentRound(), 2);
-        vm.roll(11000);
+        vm.roll(11_000);
         assertEq(drb.currentRound(), 2);
-        vm.roll(11001);
+        vm.roll(11_001);
         assertEq(drb.currentRound(), 3);
     }
 }

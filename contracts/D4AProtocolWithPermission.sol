@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import {DaoMintInfo, UserMintInfo, UserMintCapParam} from "contracts/interface/D4AStructs.sol";
-import {NotDaoOwner} from "contracts/interface/D4AErrors.sol";
+import { DaoMintInfo, UserMintInfo, UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
 
-import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import {ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import {IAccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
-import {IPermissionControl} from "contracts/interface/IPermissionControl.sol";
-import {D4AProtocol} from "contracts/D4AProtocol.sol";
-import {D4ASettingsBaseStorage} from "contracts/D4ASettings/D4ASettingsBaseStorage.sol";
+import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { D4ASettingsBaseStorage } from "contracts/D4ASettings/D4ASettingsBaseStorage.sol";
 
 contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
     bytes32 internal constant MINTNFT_TYPEHASH =
@@ -29,7 +29,11 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         userMintCap = _daoMintInfos[daoId].userMintInfos[account].mintCap;
     }
 
-    function createCanvas(bytes32 daoId, string calldata canvasUri, bytes32[] calldata proof)
+    function createCanvas(
+        bytes32 daoId,
+        string calldata canvasUri,
+        bytes32[] calldata proof
+    )
         external
         payable
         nonReentrant
@@ -62,7 +66,12 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         _;
     }
 
-    function _checkMintEligibility(bytes32 daoId, address account, bytes32[] calldata proof, uint256 amount)
+    function _checkMintEligibility(
+        bytes32 daoId,
+        address account,
+        bytes32[] calldata proof,
+        uint256 amount
+    )
         internal
         view
     {
@@ -76,7 +85,12 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         bytes32[] calldata proof,
         uint256 _flat_price,
         bytes calldata _signature
-    ) external payable nonReentrant returns (uint256) {
+    )
+        external
+        payable
+        nonReentrant
+        returns (uint256)
+    {
         {
             _checkMintEligibility(daoId, msg.sender, proof, 1);
         }
@@ -91,7 +105,12 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         bytes32[] calldata proof,
         MintNftInfo[] calldata mintNftInfos,
         bytes[] calldata signatures
-    ) external payable nonReentrant returns (uint256[] memory) {
+    )
+        external
+        payable
+        nonReentrant
+        returns (uint256[] memory)
+    {
         uint32 length = uint32(mintNftInfos.length);
         {
             _checkMintEligibility(daoId, msg.sender, proof, length);
@@ -115,7 +134,10 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         IPermissionControl.Whitelist memory whitelist,
         IPermissionControl.Blacklist memory blacklist,
         IPermissionControl.Blacklist memory unblacklist
-    ) public override {
+    )
+        public
+        override
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (msg.sender != l.project_proxy && msg.sender != l.owner_proxy.ownerOf(daoId)) {
             revert NotDaoOwner();
@@ -138,7 +160,12 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
     error Blacklisted();
     error NotInWhitelist();
 
-    function _ableToMint(bytes32 daoId, address account, bytes32[] calldata proof, uint256 amount)
+    function _ableToMint(
+        bytes32 daoId,
+        address account,
+        bytes32[] calldata proof,
+        uint256 amount
+    )
         internal
         view
         returns (bool)
@@ -192,7 +219,10 @@ contract D4AProtocolWithPermission is D4AProtocol, EIP712Upgradeable {
         string calldata _token_uri,
         uint256 _flat_price,
         bytes calldata _signature
-    ) internal view {
+    )
+        internal
+        view
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         bytes32 digest = _hashTypedDataV4(
             keccak256(abi.encode(MINTNFT_TYPEHASH, _canvas_id, keccak256(bytes(_token_uri)), _flat_price))

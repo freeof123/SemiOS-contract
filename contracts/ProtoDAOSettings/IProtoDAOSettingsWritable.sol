@@ -16,5 +16,6 @@ interface IProtoDAOSettingsWritable {
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
         uint256 daoFeePoolETHRatioFlatPrice
-    ) external;
+    )
+        external;
 }

@@ -18,7 +18,7 @@ contract D4ADiamond is DiamondBase, D4ADiamondFallback, DiamondReadable, Diamond
         l.initialized = true;
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     function _transferOwnership(address account) internal virtual override(OwnableInternal, SafeOwnable) {
         super._transferOwnership(account);

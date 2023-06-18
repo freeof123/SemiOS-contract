@@ -29,7 +29,11 @@ contract D4AFeePool is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         name = _name;
     }
 
-    function transfer(address erc20_token_addr, address payable to, uint256 tokens)
+    function transfer(
+        address erc20_token_addr,
+        address payable to,
+        uint256 tokens
+    )
         public
         nonReentrant
         returns (bool success)
@@ -40,7 +44,7 @@ contract D4AFeePool is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         );
 
         if (erc20_token_addr == address(0x0)) {
-            (bool succ,) = to.call{value: tokens}("");
+            (bool succ,) = to.call{ value: tokens }("");
             require(succ, "transfer eth failed");
             return true;
         }
@@ -49,7 +53,7 @@ contract D4AFeePool is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         return true;
     }
 
-    receive() external payable {}
+    receive() external payable { }
 
     function changeAdmin(address new_admin) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(msg.sender != new_admin, "new admin cannot be same as old one");

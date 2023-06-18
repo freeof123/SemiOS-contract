@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {PermissionControl} from "contracts/permission-control/PermissionControl.sol";
+import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 contract PermissionControlHarness is PermissionControl {
-    constructor(address protocol_, address daoProxy_) PermissionControl(protocol_, daoProxy_) {}
+    constructor(address protocol_, address daoProxy_) PermissionControl(protocol_, daoProxy_) { }
 
     function exposed_verifySignature(
         bytes32 daoId,
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         bytes calldata signature
-    ) external view {
+    )
+        external
+        view
+    {
         _verifySignature(daoId, whitelist, blacklist, signature);
     }
 
@@ -19,7 +22,11 @@ contract PermissionControlHarness is PermissionControl {
         return _blacklisted[daoId][account];
     }
 
-    function exposed_addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist)
+    function exposed_addPermission(
+        bytes32 daoId,
+        Whitelist calldata whitelist,
+        Blacklist calldata blacklist
+    )
         external
     {
         _addPermission(daoId, whitelist, blacklist);

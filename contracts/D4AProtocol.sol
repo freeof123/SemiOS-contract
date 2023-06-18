@@ -4,13 +4,13 @@ pragma solidity >=0.8.10;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "./impl/D4AProject.sol";
 import "./impl/D4ACanvas.sol";
 import "./impl/D4APrice.sol";
 import "./impl/D4AReward.sol";
 import "./interface/ID4AProtocol.sol";
-import {IProtoDAOSettingsReadable} from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
+import { IProtoDAOSettingsReadable } from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
 
 abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4AProtocol {
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
@@ -142,7 +142,15 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         uint256 _max_nft_rank,
         uint96 _royalty_fee,
         string calldata _project_uri
-    ) public payable override nonReentrant d4aNotPaused uriNotExist(_project_uri) returns (bytes32 project_id) {
+    )
+        public
+        payable
+        override
+        nonReentrant
+        d4aNotPaused
+        uriNotExist(_project_uri)
+        returns (bytes32 project_id)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         _checkCaller(l.project_proxy);
         uri_exists[keccak256(abi.encodePacked(_project_uri))] = true;
@@ -226,7 +234,10 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         if (!_allCanvases[canvasId].exist) revert CanvasNotExist();
     }
 
-    function _createCanvas(bytes32 _project_id, string calldata _canvas_uri)
+    function _createCanvas(
+        bytes32 _project_id,
+        string calldata _canvas_uri
+    )
         internal
         d4aNotPaused
         daoExist(_project_id)
@@ -253,7 +264,11 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     error PriceTooLow();
 
-    function _mintNft(bytes32 canvasId, string calldata _token_uri, uint256 flatPrice)
+    function _mintNft(
+        bytes32 canvasId,
+        string calldata _token_uri,
+        uint256 flatPrice
+    )
         internal
         returns (
             // d4aNotPaused
@@ -306,7 +321,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
             address protocolFeePool = l.protocol_fee_pool;
             address daoFeePool = pi.fee_pool;
             address canvasOwner = l.owner_proxy.ownerOf(getCanvasNextPriceVar.canvasId);
-            // uint256 daoShare = (flatPrice == 0 ? l.mint_project_fee_ratio : l.mint_project_fee_ratio_flat_price) * price;
+            // uint256 daoShare = (flatPrice == 0 ? l.mint_project_fee_ratio : l.mint_project_fee_ratio_flat_price) *
+            // price;
             uint256 daoShare = (
                 flatPrice == 0
                     ? IProtoDAOSettingsReadable(address(this)).getDaoFeePoolETHRatio(daoId)
@@ -347,7 +363,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         uint256 price,
         uint256 flatPrice,
         uint256 nftPriceMultiplyFactor
-    ) internal {
+    )
+        internal
+    {
         if (flatPrice == 0) {
             _allPrices[daoId].updateCanvasPrice(currentRound, canvasId, price, nftPriceMultiplyFactor);
         }
@@ -371,7 +389,11 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         uint256 initialPrice;
     }
 
-    function _mintNft(bytes32 daoId, bytes32 canvasId, MintNftInfo[] calldata mintNftInfos)
+    function _mintNft(
+        bytes32 daoId,
+        bytes32 canvasId,
+        MintNftInfo[] calldata mintNftInfos
+    )
         internal
         returns (
             // d4aNotPaused
@@ -504,7 +526,13 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         }
     }
 
-    function _updateReward(bytes32 _project_id, bytes32 canvasId, uint256 daoFee, uint256 protocolFee, uint256 price)
+    function _updateReward(
+        bytes32 _project_id,
+        bytes32 canvasId,
+        uint256 daoFee,
+        uint256 protocolFee,
+        uint256 price
+    )
         internal
     {
         D4AProject.project_info memory pi = _allProjects[_project_id];
@@ -525,7 +553,10 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         address canvasOwner,
         uint256 price,
         uint256 daoShare
-    ) internal returns (uint256 daoFee, uint256 protocolFee) {
+    )
+        internal
+        returns (uint256 daoFee, uint256 protocolFee)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (msg.value < price) revert NotEnoughEther();
 
@@ -616,7 +647,10 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     event D4AClaimNftMinterReward(bytes32 daoId, address erc20Token, uint256 amount);
 
-    function claimNftMinterReward(bytes32 daoId, address minter)
+    function claimNftMinterReward(
+        bytes32 daoId,
+        address minter
+    )
         public
         nonReentrant
         d4aNotPaused
@@ -643,7 +677,11 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         );
     }
 
-    function exchangeERC20ToETH(bytes32 _project_id, uint256 amount, address _to)
+    function exchangeERC20ToETH(
+        bytes32 _project_id,
+        uint256 amount,
+        address _to
+    )
         public
         nonReentrant
         d4aNotPaused
@@ -659,7 +697,10 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     event DaoNftPriceMultiplyFactorChanged(bytes32 daoId, uint256 newNftPriceMultiplyFactor);
 
-    function changeDaoNftPriceMultiplyFactor(bytes32 daoId, uint256 newNftPriceMultiplyFactor)
+    function changeDaoNftPriceMultiplyFactor(
+        bytes32 daoId,
+        uint256 newNftPriceMultiplyFactor
+    )
         public
         onlyRole(bytes32(0))
     {

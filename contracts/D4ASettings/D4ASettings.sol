@@ -26,7 +26,7 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         _setRoleAdmin(DAO_ROLE, OPERATION_ROLE);
         _setRoleAdmin(SIGNER_ROLE, OPERATION_ROLE);
         //some default value here
-        l.ratio_base = 10000;
+        l.ratio_base = 10_000;
         l.create_project_fee = 0.1 ether;
         l.create_canvas_fee = 0.01 ether;
         l.mint_d4a_fee_ratio = 250;
@@ -71,7 +71,10 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         uint256 _d4a_fee_ratio,
         uint256 _project_fee_ratio,
         uint256 _project_fee_ratio_flat_price
-    ) public onlyRole(PROTOCOL_ROLE) {
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
         l.mint_d4a_fee_ratio = _d4a_fee_ratio;
@@ -100,7 +103,11 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
 
     event ChangeERC20Ratio(uint256 d4a_ratio, uint256 project_ratio, uint256 canvas_ratio);
 
-    function changeERC20Ratio(uint256 _d4a_ratio, uint256 _project_ratio, uint256 _canvas_ratio)
+    function changeERC20Ratio(
+        uint256 _d4a_ratio,
+        uint256 _project_ratio,
+        uint256 _canvas_ratio
+    )
         public
         onlyRole(PROTOCOL_ROLE)
     {
@@ -141,7 +148,10 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         address _owner_proxy,
         address _project_proxy,
         address _permission_control
-    ) public onlyRole(PROTOCOL_ROLE) {
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
         l.drb = ID4ADrb(_prb);

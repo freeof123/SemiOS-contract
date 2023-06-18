@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {DaoMetadataParam, UserMintCapParam} from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import {
     IPermissionControl,
     D4ADiamond,
@@ -16,8 +16,8 @@ import {
 import {
     D4AProtocolWithPermission, D4AProtocolWithPermissionHarness
 } from "./harness/D4AProtocolWithPermissionHarness.sol";
-import {MintNftSigUtils} from "./utils/MintNftSigUtils.sol";
-import {NotDaoOwner} from "contracts/interface/D4AErrors.sol";
+import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
+import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
 
 contract D4AProtocolWithPermissionTest is DeployHelper {
     using stdStorage for StdStorage;
@@ -72,7 +72,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             data: abi.encodeWithSelector(permissionControl.inCanvasCreatorWhitelist.selector),
             count: 1
         });
-        bytes32 canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
         assertTrue(canvasId != bytes32(0));
     }
 
@@ -94,7 +94,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             canvasCreatorAccounts
         );
         vm.expectRevert(D4AProtocolWithPermission.Blacklisted.selector);
-        protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
     }
 
     function test_RevertIf_createCanvas_NotInWhtielist() public {
@@ -116,7 +116,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             new address[](0)
         );
         vm.expectRevert(D4AProtocolWithPermission.NotInWhitelist.selector);
-        protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
     }
 
     function test_initialize() public {
@@ -192,7 +192,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
         string memory tokenUri = "test nft uri";
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, 0);
@@ -204,7 +204,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         }
 
         hoax(nftMinter.addr);
-        protocol.mintNFT{value: 0.1 ether}(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
+        protocol.mintNFT{ value: 0.1 ether }(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
 
         (uint32 userMintNum,) = protocol.getUserMintInfo(daoId, nftMinter.addr);
         assertEq(userMintNum, 1);
@@ -215,7 +215,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
 
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
 
@@ -235,7 +235,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         }
 
         hoax(nftMinter.addr);
-        protocol.batchMint{value: 0.1 ether * (2 ** 10 - 1)}(
+        protocol.batchMint{ value: 0.1 ether * (2 ** 10 - 1) }(
             daoId, canvasId, new bytes32[](0), mintNftInfos, signatures
         );
 
@@ -368,7 +368,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
 
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 100;
@@ -382,7 +382,11 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             data: abi.encodeWithSelector(IAccessControl.hasRole.selector),
             count: 1
         });
-        vm.expectCall({callee: address(naiveOwner), data: abi.encodeWithSelector(NaiveOwner.ownerOf.selector), count: 1});
+        vm.expectCall({
+            callee: address(naiveOwner),
+            data: abi.encodeWithSelector(NaiveOwner.ownerOf.selector),
+            count: 1
+        });
         protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
     }
 
@@ -391,7 +395,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
 
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 100;

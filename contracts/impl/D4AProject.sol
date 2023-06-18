@@ -2,9 +2,9 @@
 pragma solidity >=0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "../interface/ID4AChangeAdmin.sol";
-import {ProtoDAOSettingsBaseStorage} from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
+import { ProtoDAOSettingsBaseStorage } from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
 import "../D4AERC721.sol";
 import "../feepool/D4AFeePool.sol";
 import "../D4AERC20.sol";
@@ -49,7 +49,10 @@ library D4AProject {
         uint96 _royalty_fee,
         uint256 _project_index,
         string memory _project_uri
-    ) public returns (bytes32 project_id) {
+    )
+        public
+        returns (bytes32 project_id)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         require(l.project_max_rounds >= _mintable_rounds, "rounds too long, not support");
         {
@@ -127,7 +130,10 @@ library D4AProject {
     }
 
     // TODO: remove getters from library
-    function getProjectCanvasCount(mapping(bytes32 => project_info) storage _allProjects, bytes32 _project_id)
+    function getProjectCanvasCount(
+        mapping(bytes32 => project_info) storage _allProjects,
+        bytes32 _project_id
+    )
         internal
         view
         returns (uint256)
@@ -140,12 +146,19 @@ library D4AProject {
         mapping(bytes32 => project_info) storage _allProjects,
         bytes32 _project_id,
         uint256 _index
-    ) internal view returns (bytes32) {
+    )
+        internal
+        view
+        returns (bytes32)
+    {
         project_info storage pi = _allProjects[_project_id];
         return pi.canvases[_index];
     }
 
-    function getProjectInfo(mapping(bytes32 => project_info) storage _allProjects, bytes32 _project_id)
+    function getProjectInfo(
+        mapping(bytes32 => project_info) storage _allProjects,
+        bytes32 _project_id
+    )
         internal
         view
         returns (
@@ -172,7 +185,10 @@ library D4AProject {
         erc20_total_supply = pi.erc20_total_supply;
     }
 
-    function getProjectFloorPrice(mapping(bytes32 => project_info) storage _allProjects, bytes32 _project_id)
+    function getProjectFloorPrice(
+        mapping(bytes32 => project_info) storage _allProjects,
+        bytes32 _project_id
+    )
         internal
         view
         returns (uint256)

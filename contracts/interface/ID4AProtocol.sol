@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import {UserMintCapParam} from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
 
 import "../impl/D4AProject.sol";
 import "../impl/D4ACanvas.sol";
@@ -30,7 +30,11 @@ abstract contract ID4AProtocol {
         uint256 _max_nft_rank,
         uint96 _royalty_fee,
         string memory _project_uri
-    ) external payable virtual returns (bytes32 project_id);
+    )
+        external
+        payable
+        virtual
+        returns (bytes32 project_id);
 
     function createOwnerProject(
         uint256 _start_prb,
@@ -40,7 +44,11 @@ abstract contract ID4AProtocol {
         uint96 _royalty_fee,
         string memory _project_uri,
         uint256 _project_index
-    ) external payable virtual returns (bytes32 project_id);
+    )
+        external
+        payable
+        virtual
+        returns (bytes32 project_id);
 
     function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
         return _allProjects.getProjectCanvasAt(_project_id, _index);
@@ -119,5 +127,7 @@ abstract contract ID4AProtocol {
         IPermissionControl.Whitelist memory whitelist,
         IPermissionControl.Blacklist memory blacklist,
         IPermissionControl.Blacklist memory unblacklist
-    ) external virtual;
+    )
+        external
+        virtual;
 }

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {DaoMintInfo} from "contracts/interface/D4AStructs.sol";
+import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
-import {D4AProtocolWithPermission} from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
 
 contract D4AProtocolWithPermissionHarness is D4AProtocolWithPermission {
     function exposed_MINTNFT_TYPEHASH() public pure returns (bytes32) {
@@ -14,14 +14,24 @@ contract D4AProtocolWithPermissionHarness is D4AProtocolWithPermission {
         return _daoMintInfos[daoId].daoMintCap;
     }
 
-    function exposed_checkMintEligibility(bytes32 daoId, address account, bytes32[] calldata proof, uint256 amount)
+    function exposed_checkMintEligibility(
+        bytes32 daoId,
+        address account,
+        bytes32[] calldata proof,
+        uint256 amount
+    )
         public
         view
     {
         _checkMintEligibility(daoId, account, proof, amount);
     }
 
-    function exposed_ableToMint(bytes32 daoId, address account, bytes32[] calldata proof, uint256 amount)
+    function exposed_ableToMint(
+        bytes32 daoId,
+        address account,
+        bytes32[] calldata proof,
+        uint256 amount
+    )
         public
         view
         returns (bool)
@@ -34,7 +44,10 @@ contract D4AProtocolWithPermissionHarness is D4AProtocolWithPermission {
         string calldata tokenUri,
         uint256 flatPrice,
         bytes calldata signature
-    ) public view {
+    )
+        public
+        view
+    {
         _verifySignature(canvasId, tokenUri, flatPrice, signature);
     }
 }

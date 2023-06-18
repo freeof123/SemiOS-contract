@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {PermissionControlSigUtils} from "./utils/PermissionControlSigUtils.sol";
-import {PermissionControlHarness} from "./harness/PermissionControlHarness.sol";
+import { PermissionControlSigUtils } from "./utils/PermissionControlSigUtils.sol";
+import { PermissionControlHarness } from "./harness/PermissionControlHarness.sol";
 import {
     DeployHelper,
     TestERC721,
@@ -11,7 +11,7 @@ import {
     PermissionControl,
     TransparentUpgradeableProxy
 } from "./utils/DeployHelper.sol";
-import {ID4AOwnerProxy} from "contracts/interface/ID4AOwnerProxy.sol";
+import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 contract PermissionControlTest is DeployHelper {
     PermissionControlSigUtils public sigUtils;
@@ -46,7 +46,11 @@ contract PermissionControlTest is DeployHelper {
         bytes32 daoId,
         PermissionControl.Whitelist memory whitelist,
         PermissionControl.Blacklist memory blacklist
-    ) internal view returns (bytes memory signature) {
+    )
+        internal
+        view
+        returns (bytes memory signature)
+    {
         bytes32 digest = sigUtils.getTypedDataHash(daoId, whitelist, blacklist);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signer.key, digest);
         signature = bytes.concat(r, s, bytes1(v));

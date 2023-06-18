@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {D4AProtocolWithPermission} from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
 
 import "forge-std/Test.sol";
 
@@ -28,7 +28,12 @@ contract MintNftSigUtils {
         return _buildDomainSeparator(_TYPE_HASH, _EIP712NameHash(), _EIP712VersionHash(), verifyingContract);
     }
 
-    function _buildDomainSeparator(bytes32 typeHash, bytes32 nameHash, bytes32 versionHash, address verifyingContract)
+    function _buildDomainSeparator(
+        bytes32 typeHash,
+        bytes32 nameHash,
+        bytes32 versionHash,
+        address verifyingContract
+    )
         private
         view
         returns (bytes32)
@@ -56,7 +61,11 @@ contract MintNftSigUtils {
         return _HASHED_VERSION;
     }
 
-    function getStructHash(bytes32 canvasId, string memory tokenUri, uint256 flatPrice)
+    function getStructHash(
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice
+    )
         internal
         pure
         returns (bytes32)
@@ -64,7 +73,11 @@ contract MintNftSigUtils {
         return keccak256(abi.encode(MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), flatPrice));
     }
 
-    function getTypedDataHash(bytes32 canvasId, string memory tokenUri, uint256 flatPrice)
+    function getTypedDataHash(
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice
+    )
         public
         view
         returns (bytes32)

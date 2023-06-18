@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ID4ADrb} from "./interface/ID4ADrb.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ID4ADrb } from "./interface/ID4ADrb.sol";
 
 contract D4ADrb is ID4ADrb, Ownable {
     struct Checkpoint {
@@ -14,7 +14,7 @@ contract D4ADrb is ID4ADrb, Ownable {
     Checkpoint[] public checkpoints;
 
     constructor(uint256 startBlock, uint256 blocksPerDrbE18) {
-        checkpoints.push(Checkpoint({startDrb: 0, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18}));
+        checkpoints.push(Checkpoint({ startDrb: 0, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18 }));
         emit CheckpointSet(0, startBlock, blocksPerDrbE18);
     }
 
@@ -59,13 +59,13 @@ contract D4ADrb is ID4ADrb, Ownable {
     }
 
     function setNewCheckpoint(uint256 startDrb, uint256 startBlock, uint256 blocksPerDrbE18) public onlyOwner {
-        checkpoints.push(Checkpoint({startDrb: startDrb, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18}));
+        checkpoints.push(Checkpoint({ startDrb: startDrb, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18 }));
         emit CheckpointSet(startDrb, startBlock, blocksPerDrbE18);
     }
 
     function modifyLastCheckpoint(uint256 startDrb, uint256 startBlock, uint256 blocksPerDrbE18) public onlyOwner {
         checkpoints[checkpoints.length - 1] =
-            Checkpoint({startDrb: startDrb, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18});
+            Checkpoint({ startDrb: startDrb, startBlock: startBlock, blocksPerDrbE18: blocksPerDrbE18 });
         emit CheckpointSet(startDrb, startBlock, blocksPerDrbE18);
     }
 }

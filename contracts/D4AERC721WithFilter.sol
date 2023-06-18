@@ -19,7 +19,12 @@ contract D4AERC721WithFilter is D4AERC721, DefaultOperatorFiltererUpgradeable {
         super.safeTransferFrom(from, to, tokenId);
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data)
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    )
         public
         override
         onlyAllowedOperator(from)

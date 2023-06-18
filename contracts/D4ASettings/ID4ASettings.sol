@@ -12,7 +12,8 @@ interface ID4ASettings {
         uint256 _d4a_fee_ratio,
         uint256 _project_fee_ratio,
         uint256 _project_fee_ratio_flat_price
-    ) external;
+    )
+        external;
 
     function changeTradeFeeRatio(uint256 _trade_d4a_fee_ratio) external;
 
@@ -30,7 +31,8 @@ interface ID4ASettings {
         address _owner_proxy,
         address _project_proxy,
         address _permission_control
-    ) external;
+    )
+        external;
 
     function changeAssetPoolOwner(address _owner) external;
 

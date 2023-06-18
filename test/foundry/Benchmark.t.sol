@@ -9,14 +9,14 @@ import {
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
-import {DeployHelper} from "./utils/DeployHelper.sol";
-import {D4AProtocol} from "contracts/D4AProtocol.sol";
-import {MintNftSigUtils} from "./utils/MintNftSigUtils.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {ID4ASettingsReadable} from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import {IPermissionControl} from "contracts/interface/IPermissionControl.sol";
-import {D4ACreateProjectProxy} from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { DeployHelper } from "./utils/DeployHelper.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 
 contract Benchmark is DeployHelper {
     using Strings for uint256;
@@ -39,7 +39,7 @@ contract Benchmark is DeployHelper {
 
         hoax(daoCreator.addr, 0.1 ether);
         uint256 startDrb = drb.currentRound();
-        daoId = daoProxy.createProject{value: 0.1 ether}(
+        daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: startDrb,
                 mintableRounds: 30,
@@ -62,7 +62,7 @@ contract Benchmark is DeployHelper {
         nft = IERC721(erc721Token);
 
         hoax(canvasCreator.addr, 0.01 ether);
-        canvasId = protocol.createCanvas{value: 0.01 ether}(daoId, "test canvas", new bytes32[](0));
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas", new bytes32[](0));
         protocolFeePoolBalance = protocolFeePool.addr.balance;
     }
 
@@ -80,7 +80,7 @@ contract Benchmark is DeployHelper {
             signature = bytes.concat(r, s, bytes1(v));
         }
         uint256 value = 0.01 ether;
-        protocol.mintNFT{value: value}(daoId, canvasId, tokenUri, proof, flatPrice, signature);
+        protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature);
         vm.stopPrank();
         protocolFeePoolBalance = protocolFeePool.addr.balance;
     }
@@ -102,10 +102,10 @@ contract Benchmark is DeployHelper {
             signature = bytes.concat(r, s, bytes1(v));
         }
         uint256 value = 0.02 ether;
-        protocol.mintNFT{value: value}(daoId, canvasId, tokenUri, proof, flatPrice, signature);
+        protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature);
         assertEq(nft.balanceOf(nftMinter.addr), 2);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -127,13 +127,13 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -155,7 +155,7 @@ contract Benchmark is DeployHelper {
         uint256 counter = 0;
         for (uint256 i = 0; i < flatPrices.length; i++) {
             uint256 price = flatPrices[i] == 0 ? initialPrice * (2 ** counter++) : flatPrices[i];
-            uint256 ratio = flatPrices[i] == 0 ? 3_000 : 3_500;
+            uint256 ratio = flatPrices[i] == 0 ? 3000 : 3500;
             daoFeePoolShare += price * ratio;
         }
     }
@@ -174,11 +174,11 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = daoFeePoolShare / 10_000;
@@ -205,11 +205,11 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = daoFeePoolShare / 10_000;
@@ -238,11 +238,11 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = daoFeePoolShare / 10_000;
@@ -271,11 +271,11 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = daoFeePoolShare / 10_000;
@@ -305,11 +305,11 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), 5);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = daoFeePoolShare / 10_000;
@@ -335,13 +335,13 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), mintNum);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -364,13 +364,13 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), mintNum);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -393,13 +393,13 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), mintNum);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -422,13 +422,13 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({tokenUri: tokenUri, flatPrice: flatPrices[i]});
+            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
-        protocol.batchMint{value: value}(daoId, canvasId, proof, nftInfos, signatures);
+        protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
         assertEq(nft.balanceOf(nftMinter.addr), mintNum);
         uint256 protocolFee = (value * 250) / 10_000;
-        uint256 daoFee = (value * 3_000) / 10_000;
+        uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
@@ -437,5 +437,5 @@ contract Benchmark is DeployHelper {
         vm.stopPrank();
     }
 
-    receive() external payable {}
+    receive() external payable { }
 }

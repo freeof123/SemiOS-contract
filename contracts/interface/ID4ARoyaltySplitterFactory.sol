@@ -7,5 +7,7 @@ interface ID4ARoyaltySplitterFactory {
         uint256 protocolShare,
         address daoFeePool,
         uint256 daoShare
-    ) external returns (address);
+    )
+        external
+        returns (address);
 }

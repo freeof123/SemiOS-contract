@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {D4APrice} from "contracts/impl/D4APrice.sol";
+import { D4APrice } from "contracts/impl/D4APrice.sol";
 
 contract D4APriceHarness {
     using D4APrice for D4APrice.project_price_info;
 
     mapping(bytes32 daoId => D4APrice.project_price_info) public prices;
 
-    function exposed_getCanvasLastPrice(bytes32 daoId, bytes32 canvasId)
+    function exposed_getCanvasLastPrice(
+        bytes32 daoId,
+        bytes32 canvasId
+    )
         public
         view
         returns (uint256 round, uint256 value)
@@ -24,7 +27,11 @@ contract D4APriceHarness {
         bytes32 daoId,
         bytes32 canvasId,
         uint256 multiplyFactor
-    ) public view returns (uint256 price) {
+    )
+        public
+        view
+        returns (uint256 price)
+    {
         price =
             prices[daoId].getCanvasNextPrice(currentRound, priceSlots, priceRank, startDrb, canvasId, multiplyFactor);
     }
@@ -35,11 +42,17 @@ contract D4APriceHarness {
         bytes32 canvasId,
         uint256 price,
         uint256 multiplyFactor
-    ) public {
+    )
+        public
+    {
         prices[daoId].updateCanvasPrice(currentRound, canvasId, price, multiplyFactor);
     }
 
-    function exposed_getPriceInRound(D4APrice.last_price memory lastPrice, uint256 currentRound, uint256 multiplyFactor)
+    function exposed_getPriceInRound(
+        D4APrice.last_price memory lastPrice,
+        uint256 currentRound,
+        uint256 multiplyFactor
+    )
         public
         pure
         returns (uint256 price)

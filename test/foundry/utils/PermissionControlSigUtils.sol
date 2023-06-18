@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {PermissionControl} from "contracts/permission-control/PermissionControl.sol";
+import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 import "forge-std/Test.sol";
 
@@ -55,7 +55,12 @@ contract PermissionControlSigUtils {
         return _buildDomainSeparator(_TYPE_HASH, _EIP712NameHash(), _EIP712VersionHash(), verifyingContract);
     }
 
-    function _buildDomainSeparator(bytes32 typeHash, bytes32 nameHash, bytes32 versionHash, address verifyingContract)
+    function _buildDomainSeparator(
+        bytes32 typeHash,
+        bytes32 nameHash,
+        bytes32 versionHash,
+        address verifyingContract
+    )
         private
         view
         returns (bytes32)
@@ -87,7 +92,11 @@ contract PermissionControlSigUtils {
         bytes32 daoId,
         PermissionControl.Whitelist memory whitelist,
         PermissionControl.Blacklist memory blacklist
-    ) public pure returns (bytes32) {
+    )
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(
             abi.encode(
                 _ADDPERMISSION_TYPEHASH,
@@ -119,7 +128,11 @@ contract PermissionControlSigUtils {
         bytes32 daoId,
         PermissionControl.Whitelist memory whitelist,
         PermissionControl.Blacklist memory blacklist
-    ) public view returns (bytes32) {
+    )
+        public
+        view
+        returns (bytes32)
+    {
         return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, getStructHash(daoId, whitelist, blacklist)));
     }
 }

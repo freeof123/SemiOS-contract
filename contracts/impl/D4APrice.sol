@@ -16,7 +16,10 @@ library D4APrice {
         mapping(bytes32 => last_price) canvas_price;
     }
 
-    function getCanvasLastPrice(project_price_info storage ppi, bytes32 _canvas_id)
+    function getCanvasLastPrice(
+        project_price_info storage ppi,
+        bytes32 _canvas_id
+    )
         public
         view
         returns (uint256 round, uint256 value)
@@ -34,7 +37,11 @@ library D4APrice {
         uint256 start_prb,
         bytes32 _canvas_id,
         uint256 multiplyFactor
-    ) internal view returns (uint256 price) {
+    )
+        internal
+        view
+        returns (uint256 price)
+    {
         uint256 floor_price = price_slots[price_rank];
         if (ppi.max_price.round == 0) {
             if (currentRound == start_prb) return floor_price;
@@ -65,7 +72,9 @@ library D4APrice {
         bytes32 _canvas_id,
         uint256 price,
         uint256 multiplyFactor
-    ) internal {
+    )
+        internal
+    {
         uint256 cp = 0;
         {
             cp = _get_price_in_round(ppi.max_price, currentRound, multiplyFactor);
@@ -79,7 +88,11 @@ library D4APrice {
         ppi.canvas_price[_canvas_id].value = price;
     }
 
-    function _get_price_in_round(last_price memory lp, uint256 round, uint256 multiplyFactor)
+    function _get_price_in_round(
+        last_price memory lp,
+        uint256 round,
+        uint256 multiplyFactor
+    )
         internal
         pure
         returns (uint256)

@@ -33,7 +33,8 @@ interface IPermissionControl {
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         bytes calldata signature
-    ) external;
+    )
+        external;
 
     function addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist) external;
 
@@ -42,18 +43,27 @@ interface IPermissionControl {
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         Blacklist calldata unblacklist
-    ) external;
+    )
+        external;
 
     function isMinterBlacklisted(bytes32 daoId, address _account) external view returns (bool);
 
     function isCanvasCreatorBlacklisted(bytes32 daoId, address _account) external view returns (bool);
 
-    function inMinterWhitelist(bytes32 daoId, address _account, bytes32[] calldata _proof)
+    function inMinterWhitelist(
+        bytes32 daoId,
+        address _account,
+        bytes32[] calldata _proof
+    )
         external
         view
         returns (bool);
 
-    function inCanvasCreatorWhitelist(bytes32 daoId, address _account, bytes32[] calldata _proof)
+    function inCanvasCreatorWhitelist(
+        bytes32 daoId,
+        address _account,
+        bytes32[] calldata _proof
+    )
         external
         view
         returns (bool);

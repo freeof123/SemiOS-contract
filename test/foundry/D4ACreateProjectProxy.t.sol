@@ -9,14 +9,14 @@ import {
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     IPermissionControl,
     D4ACreateProjectProxy,
     DeployHelper,
     TransparentUpgradeableProxy
 } from "./utils/DeployHelper.sol";
-import {D4ACreateProjectProxyHarness} from "./harness/D4ACreateProjectProxyHarness.sol";
+import { D4ACreateProjectProxyHarness } from "./harness/D4ACreateProjectProxyHarness.sol";
 
 contract D4ACreateProjectProxyTest is DeployHelper {
     using stdStorage for StdStorage;
@@ -138,7 +138,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
                 count: 1
             });
         }
-        bytes32 daoId = daoProxy.createProject{value: 0.1 ether}(
+        bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: 0,
                 mintableRounds: 30,
@@ -150,8 +150,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             }),
             whitelist,
             blacklist,
-            DaoMintCapParam({daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0)}),
-            DaoETHAndERC20SplitRatioParam(5_000, 5_000, 2_000, 2_500),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam(5000, 5000, 2000, 2500),
             actionType
         );
         assertTrue(daoId != bytes32(0));
@@ -162,7 +162,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             _generateTrivialPermission();
 
         vm.expectRevert("only admin can specify project index");
-        daoProxy.createProject{value: 0.1 ether}(
+        daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: 0,
                 mintableRounds: 30,
@@ -174,8 +174,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             }),
             whitelist,
             blacklist,
-            DaoMintCapParam({daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0)}),
-            DaoETHAndERC20SplitRatioParam(5_000, 4_500, 2_000, 2_500),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
             1
         );
     }
@@ -217,7 +217,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
 
     function test_exposed_createSplitter() public {
         hoax(address(daoProxy), 0.1 ether);
-        bytes32 daoId = protocol.createProject{value: 0.1 ether}(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = protocol.createProject{ value: 0.1 ether }(0, 30, 0, 0, 750, "test project uri");
 
         daoProxyHarness.exposed_createSplitter(daoId);
     }
@@ -225,7 +225,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     function test_getSplitterAddress() public {
         (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
             _generateTrivialPermission();
-        bytes32 daoId = daoProxy.createProject{value: 0.1 ether}(
+        bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: 0,
                 mintableRounds: 30,
@@ -237,8 +237,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             }),
             whitelist,
             blacklist,
-            DaoMintCapParam({daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0)}),
-            DaoETHAndERC20SplitRatioParam(5_000, 4_500, 2_000, 2_500),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
             0
         );
         address splitter = daoProxy.getSplitterAddress(daoId);

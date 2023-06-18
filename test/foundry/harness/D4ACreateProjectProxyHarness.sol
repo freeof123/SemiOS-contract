@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {UserMintCapParam} from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
 
-import {D4ACreateProjectProxy} from "contracts/proxy/D4ACreateProjectProxy.sol";
-import {IPermissionControl} from "contracts/interface/IPermissionControl.sol";
+import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 contract D4ACreateProjectProxyHarness is D4ACreateProjectProxy {
-    constructor(address WETH_) D4ACreateProjectProxy(WETH_) {}
+    constructor(address WETH_) D4ACreateProjectProxy(WETH_) { }
 
     function exposed__DEPRECATED_SETTINGS() public view returns (address) {
         return __DEPRECATED_SETTINGS;
@@ -20,7 +20,9 @@ contract D4ACreateProjectProxyHarness is D4ACreateProjectProxy {
         IPermissionControl.Whitelist calldata whitelist,
         IPermissionControl.Blacklist calldata blacklist,
         IPermissionControl.Blacklist memory unblacklist
-    ) public {
+    )
+        public
+    {
         _setMintCapAndPermission(daoId, daoMintCap, userMintCapParams, whitelist, blacklist, unblacklist);
     }
 
@@ -28,7 +30,9 @@ contract D4ACreateProjectProxyHarness is D4ACreateProjectProxy {
         bytes32 daoId,
         IPermissionControl.Whitelist calldata whitelist,
         IPermissionControl.Blacklist calldata blacklist
-    ) public {
+    )
+        public
+    {
         _addPermission(daoId, whitelist, blacklist);
     }
 

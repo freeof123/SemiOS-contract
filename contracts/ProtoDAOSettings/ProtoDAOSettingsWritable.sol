@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {IProtoDAOSettingsWritable} from "./IProtoDAOSettingsWritable.sol";
+import { IProtoDAOSettingsWritable } from "./IProtoDAOSettingsWritable.sol";
 import "./ProtoDAOSettingsBaseStorage.sol";
 import "./ProtoDAOSettingsReadable.sol";
 import "../D4ASettings/D4ASettingsBaseStorage.sol";
-import {NotDaoOwner, InvalidERC20Ratio, InvalidETHRatio} from "contracts/interface/D4AErrors.sol";
+import { NotDaoOwner, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
 
 contract ProtoDAOSettingsWritable is IProtoDAOSettingsWritable {
     function setRatio(
@@ -14,7 +14,9 @@ contract ProtoDAOSettingsWritable is IProtoDAOSettingsWritable {
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
         uint256 daoFeePoolETHRatioFlatPrice
-    ) public {
+    )
+        public
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId) && msg.sender != l.project_proxy) revert NotDaoOwner();
         if (canvasCreatorERC20Ratio + nftMinterERC20Ratio != l.ratio_base) {

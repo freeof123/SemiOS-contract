@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
-import {ID4ASettingsReadable, TestERC20, DeployHelper} from "./utils/DeployHelper.sol";
-import {D4ARoyaltySplitter} from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHelper.sol";
+import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 
 contract D4ARoyaltySplitterTest is DeployHelper {
     D4ARoyaltySplitter public splitter;
@@ -30,11 +30,11 @@ contract D4ARoyaltySplitterTest is DeployHelper {
 
         startHoax(daoCreator.addr);
         _testERC20.approve(address(uniswapV2Router), type(uint256).max);
-        uniswapV2Router.addLiquidityETH{value: 1e6 ether}(
+        uniswapV2Router.addLiquidityETH{ value: 1e6 ether }(
             address(_testERC20), 1e6 ether, 0, 0, daoCreator.addr, type(uint256).max
         );
         _testERC20_1.approve(address(uniswapV2Router), type(uint256).max);
-        uniswapV2Router.addLiquidityETH{value: 1e6 ether}(
+        uniswapV2Router.addLiquidityETH{ value: 1e6 ether }(
             address(_testERC20_1), 1e6 ether, 0, 0, daoCreator.addr, type(uint256).max
         );
         SafeTransferLib.safeTransferETH(address(weth), 10 ether);
@@ -110,7 +110,7 @@ contract D4ARoyaltySplitterTest is DeployHelper {
 
     function test_splitETH_viaFallback() public {
         uint256 balance = protocolFeePool.addr.balance;
-        (bool succ,) = address(splitter).call{value: 10 ether}("test");
+        (bool succ,) = address(splitter).call{ value: 10 ether }("test");
         require(succ);
         assertEq(protocolFeePool.addr.balance, 10 ether * protocolShare / royaltyFee + balance);
         assertEq(daoFeePool.balance, 10 ether - 10 ether * protocolShare / royaltyFee);

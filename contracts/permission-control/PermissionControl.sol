@@ -68,7 +68,9 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         bytes calldata signature
-    ) external {
+    )
+        external
+    {
         _verifySignature(daoId, whitelist, blacklist, signature);
         _addPermission(daoId, whitelist, blacklist);
     }
@@ -117,7 +119,9 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         Blacklist calldata unblacklist
-    ) external {
+    )
+        external
+    {
         require(msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == protocol, "PermissionControl: not DAO owner");
 
         // modify whitelist
@@ -174,7 +178,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         bytes calldata signature
-    ) internal view {
+    )
+        internal
+        view
+    {
         bytes32 digest = _hashTypedDataV4(
             // hashStruct(value) is encoded as keccak256(typeHash ‖ encodeData(s))
             keccak256(
@@ -234,7 +241,11 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
      * @param _account The address to check
      * @param _proof The merkle proof
      */
-    function inMinterWhitelist(bytes32 daoId, address _account, bytes32[] calldata _proof)
+    function inMinterWhitelist(
+        bytes32 daoId,
+        address _account,
+        bytes32[] calldata _proof
+    )
         external
         view
         returns (bool)
@@ -277,7 +288,11 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
      * @param _account The address to check
      * @param _proof The merkle proof
      */
-    function inCanvasCreatorWhitelist(bytes32 daoId, address _account, bytes32[] calldata _proof)
+    function inCanvasCreatorWhitelist(
+        bytes32 daoId,
+        address _account,
+        bytes32[] calldata _proof
+    )
         external
         view
         returns (bool)

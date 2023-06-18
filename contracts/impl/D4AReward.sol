@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import {UnauthorizedToExchangeRoyaltyTokenToETH} from "contracts/interface/D4AErrors.sol";
+import { UnauthorizedToExchangeRoyaltyTokenToETH } from "contracts/interface/D4AErrors.sol";
 
 import "../D4ASettings/D4ASettingsBaseStorage.sol";
 import "../feepool/D4AFeePool.sol";
-import {IProtoDAOSettingsReadable} from "../ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
-import {ProtoDAOSettingsBaseStorage} from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
+import { IProtoDAOSettingsReadable } from "../ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
+import { ProtoDAOSettingsBaseStorage } from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -41,7 +41,10 @@ library D4AReward {
         uint256 _start_round,
         uint256 total_rounds,
         uint256 erc20_total_supply
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         ID4ADrb drb = l.drb;
         uint256 cur_round = drb.currentRound();
@@ -86,7 +89,9 @@ library D4AReward {
         uint256 daoFee,
         uint256 total_rounds,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
-    ) public {
+    )
+        public
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         ID4ADrb drb = l.drb;
         uint256 cur_round = drb.currentRound();
@@ -128,7 +133,10 @@ library D4AReward {
         uint256 _start_round,
         uint256 _total_rounds,
         uint256 erc20_total_supply
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         updateRewardForCanvas(_allRewards, _project_id, _canvas_id, _start_round, _total_rounds, erc20_total_supply);
         reward_info storage ri = _allRewards[_project_id];
@@ -150,7 +158,10 @@ library D4AReward {
         uint256 startRound,
         uint256 totalRounds,
         uint256 erc20TotalSupply
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         updateRewardForMinter(_allRewards, daoId, minter, startRound, totalRounds, erc20TotalSupply);
         reward_info storage ri = _allRewards[daoId];
         uint256 totalAmount = ri.minter_2_unclaimed_amount[minter];
@@ -168,7 +179,10 @@ library D4AReward {
         address _fee_pool,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth,
         address minter
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         if (erc20_amount == 0) return 0;
         if (msg.sender != minter) revert UnauthorizedToExchangeRoyaltyTokenToETH();
         uint256 to_send = sendETH(erc20_token, _fee_pool, _project_id, minter, minter, erc20_amount, round_2_total_eth);
@@ -182,7 +196,9 @@ library D4AReward {
         uint256 _start_round,
         uint256 _total_rounds,
         uint256 erc20_total_supply
-    ) public {
+    )
+        public
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         uint256 cur_round;
         {
@@ -233,7 +249,9 @@ library D4AReward {
         uint256 _start_round,
         uint256 _total_rounds,
         uint256 erc20_total_supply
-    ) public {
+    )
+        public
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         uint256 cur_round;
         {
@@ -282,7 +300,10 @@ library D4AReward {
         uint256 erc20_amount,
         address _fee_pool,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (erc20_amount == 0) return 0;
         address _owner = l.owner_proxy.ownerOf(_canvas_id);
@@ -298,7 +319,10 @@ library D4AReward {
         uint256 _start_round,
         uint256 _total_rounds,
         uint256 erc20_total_supply
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         reward_info storage ri = _allRewards[_project_id];
         if (ri.active_rounds.length == 0) {
@@ -346,7 +370,10 @@ library D4AReward {
         uint256 erc20_amount,
         address _fee_pool,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (erc20_amount == 0) return 0;
         address _owner = l.owner_proxy.ownerOf(_project_id);
@@ -363,7 +390,10 @@ library D4AReward {
         address _to,
         uint256 erc20_amount,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         ID4AMintableERC20(erc20_token).burn(_owner, erc20_amount);
         ID4AMintableERC20(erc20_token).mint(fee_pool, erc20_amount);
@@ -392,7 +422,10 @@ library D4AReward {
         address _to,
         uint256 amount,
         mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
-    ) public returns (uint256) {
+    )
+        public
+        returns (uint256)
+    {
         return sendETH(erc20_token, fee_pool, project_id, _owner, _to, amount, round_2_total_eth);
     }
 }
