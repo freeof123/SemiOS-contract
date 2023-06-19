@@ -8,14 +8,14 @@
     evm_version = "paris"
     fuzz = { runs = 1_000 }
     gas_reports = ["*"]
-    libs = ["lib"]
+    libs = ["lib", "node_modules"]
     optimizer = false
     optimizer_runs = 200
     out = "out"
     script = "script"
     solc = "0.8.19"
     src = "contracts"
-    test = "test"
+    test = "test/foundry"
     fs_permissions = [{ access = "read-write", path = "./" }]
     ffi = true
 
