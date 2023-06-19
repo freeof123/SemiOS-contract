@@ -329,7 +329,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
                     : IProtoDAOSettingsReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId)
             ) * price;
 
-            (vars.daoFee, vars.protocolFee) = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare);
+            (vars.daoFee, vars.protocolFee) =
+                _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, ci.rebateRatioInBps);
         }
 
         // update
@@ -485,8 +486,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
             address daoFeePool = pi.fee_pool;
             address canvasOwner = l.owner_proxy.ownerOf(canvasId);
 
-            (vars.daoFee, vars.protocolFee) =
-                _splitFee(protocolFeePool, daoFeePool, canvasOwner, vars.totalPrice, vars.daoTotalShare);
+            (vars.daoFee, vars.protocolFee) = _splitFee(
+                protocolFeePool, daoFeePool, canvasOwner, vars.totalPrice, vars.daoTotalShare, ci.rebateRatioInBps
+            );
         }
 
         // update canvas price
@@ -538,7 +540,13 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4AProject.project_info memory pi = _allProjects[_project_id];
 
         _allRewards.updateMintWithAmount(
-            _project_id, canvasId, price - daoFee - protocolFee, daoFee, pi.mintable_rounds, round_2_total_eth
+            _project_id,
+            canvasId,
+            price - daoFee - protocolFee,
+            daoFee,
+            pi.mintable_rounds,
+            round_2_total_eth,
+            _allCanvases[canvasId].rebateRatioInBps
         );
         // _allRewards.updateRewardForCanvas(
         //     _project_id, canvasId, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
@@ -552,20 +560,23 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         address daoFeePool,
         address canvasOwner,
         uint256 price,
-        uint256 daoShare
+        uint256 daoShare,
+        uint256 rebateRatioInBps
     )
         internal
         returns (uint256 daoFee, uint256 protocolFee)
     {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        if (msg.value < price) revert NotEnoughEther();
 
-        uint256 exchange = msg.value - price;
         uint256 ratioBasisPoint = l.ratio_base;
 
         daoFee = daoShare / ratioBasisPoint;
         protocolFee = price * l.mint_d4a_fee_ratio / ratioBasisPoint;
         uint256 canvasFee = price - daoFee - protocolFee;
+        uint256 rebateAmount = canvasFee * rebateRatioInBps / ratioBasisPoint;
+        canvasFee -= rebateAmount;
+        if (msg.value < price - rebateAmount) revert NotEnoughEther();
+        uint256 exchange = msg.value - price + rebateAmount;
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(protocolFeePool, protocolFee);
         if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
@@ -708,5 +719,22 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         _allProjects[daoId].nftPriceMultiplyFactor = newNftPriceMultiplyFactor;
 
         emit DaoNftPriceMultiplyFactorChanged(daoId, newNftPriceMultiplyFactor);
+    }
+
+    error NotCanvasOwner();
+
+    event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
+
+    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        if (msg.sender != l.owner_proxy.ownerOf(canvasId)) revert NotCanvasOwner();
+        require(newCanvasRebateRatioInBps <= 10_000);
+        _allCanvases[canvasId].rebateRatioInBps = newCanvasRebateRatioInBps;
+
+        emit CanvasRebateRatioInBpsSet(canvasId, newCanvasRebateRatioInBps);
+    }
+
+    function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
+        return _allCanvases[canvasId].rebateRatioInBps;
     }
 }

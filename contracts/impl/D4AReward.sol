@@ -88,13 +88,13 @@ library D4AReward {
         uint256 canvasFee,
         uint256 daoFee,
         uint256 total_rounds,
-        mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth
+        mapping(bytes32 => mapping(uint256 => uint256)) storage round_2_total_eth,
+        uint256 canvasRebateRatioInBps
     )
         public
     {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        ID4ADrb drb = l.drb;
-        uint256 cur_round = drb.currentRound();
+        uint256 cur_round = l.drb.currentRound();
 
         reward_info storage ri = _allRewards[_project_id];
         if (ri.active_rounds.length != 0 && ri.active_rounds[ri.active_rounds.length - 1] != cur_round) {
@@ -107,8 +107,12 @@ library D4AReward {
         ProtoDAOSettingsBaseStorage.DaoInfo storage di = ProtoDAOSettingsBaseStorage.layout().allDaos[_project_id];
         if (di.newDAO) {
             ri.round_2_total_amount[cur_round] += daoFee;
-            ri.canvas_2_block_2_amount[_canvas_id][cur_round] += daoFee * canvasCreatroERC20Ratio;
-            ri.minter_2_block_2_amount[msg.sender][cur_round] += daoFee * nftMinterERC20Ratio;
+            {
+                uint256 tokenRebateAmount = daoFee * nftMinterERC20Ratio * canvasRebateRatioInBps / l.ratio_base;
+                ri.canvas_2_block_2_amount[_canvas_id][cur_round] +=
+                    daoFee * canvasCreatroERC20Ratio + tokenRebateAmount;
+                ri.minter_2_block_2_amount[msg.sender][cur_round] += daoFee * nftMinterERC20Ratio - tokenRebateAmount;
+            }
             round_2_total_eth[_project_id][cur_round] += daoFee;
         } else {
             ri.round_2_total_amount[cur_round] += canvasFee;
