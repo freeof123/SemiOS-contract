@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
 import { DeployHelper } from "./utils/DeployHelper.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 
@@ -58,5 +59,223 @@ contract D4AProtocolTest is DeployHelper {
         startHoax(randomGuy.addr);
         vm.expectRevert(NotCanvasOwner.selector);
         protocol.setCanvasRebateRatioInBps(canvasId, ratio);
+    }
+
+    function test_setD4AERC721MaxSupply() public {
+        uint256 maxSupply = 10;
+        startHoax(daoCreator.addr);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        (,,, uint256 nftMaxSupply,,,,,) = protocol.getProjectInfo(daoId);
+        assertEq(nftMaxSupply, maxSupply);
+    }
+
+    event D4AERC721MaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
+
+    function test_setD4AERC721MaxSupply_ExpectEmit() public {
+        uint256 maxSupply = 10;
+        startHoax(daoCreator.addr);
+        vm.expectEmit(address(protocol));
+        emit D4AERC721MaxSupplySet(daoId, maxSupply);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+    }
+
+    function test_RevertIf_setD4AERC721MaxSupply_NotDaoOwner() public {
+        uint256 maxSupply = 10;
+        vm.expectRevert(NotDaoOwner.selector);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+    }
+
+    error NftExceedMaxAmount();
+
+    function test_RevertIf_ReduceMaxSupplyAndMint() public {
+        for (uint256 i; i < 50; i++) {
+            string memory tokenUri = string.concat("test token uri ", vm.toString(i));
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        uint256 maxSupply = 10;
+        startHoax(daoCreator.addr);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+
+        {
+            string memory tokenUri = string.concat("test token uri revert");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            vm.expectRevert(NftExceedMaxAmount.selector);
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+    }
+
+    function test_ShouldContinueToMintIfIncreaseNftMaxSupply() public {
+        for (uint256 i; i < 50; i++) {
+            string memory tokenUri = string.concat("test token uri ", vm.toString(i));
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        uint256 maxSupply = 10;
+        startHoax(daoCreator.addr);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+
+        {
+            string memory tokenUri = string.concat("test token uri revert");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            vm.expectRevert(NftExceedMaxAmount.selector);
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        maxSupply = 100;
+        startHoax(daoCreator.addr);
+        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+
+        {
+            string memory tokenUri = string.concat("test token uri increase supply");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+    }
+
+    function test_setDaoMintableRound() public {
+        uint256 round = 10;
+        startHoax(daoCreator.addr);
+        protocol.setDaoMintableRound(daoId, round);
+        (, uint256 mintableRound,,,,,,,) = protocol.getProjectInfo(daoId);
+        assertEq(mintableRound, round);
+    }
+
+    event DaoMintableRoundSet(bytes32 daoId, uint256 newMintableRounds);
+
+    function test_setDaoMintableRound_ExpectEmit() public {
+        uint256 round = 10;
+        startHoax(daoCreator.addr);
+        vm.expectEmit(address(protocol));
+        emit DaoMintableRoundSet(daoId, round);
+        protocol.setDaoMintableRound(daoId, round);
+    }
+
+    function test_RevertIf_setDaoMintableRound_NotDaoOwner() public {
+        uint256 round = 10;
+        vm.expectRevert(NotDaoOwner.selector);
+        protocol.setDaoMintableRound(daoId, round);
+    }
+
+    function test_RevertIf_ReduceMintableRoundAndMint() public {
+        uint256 round = 10;
+        startHoax(daoCreator.addr);
+        protocol.setDaoMintableRound(daoId, round);
+
+        for (uint256 i; i < 10; i++) {
+            string memory tokenUri = string.concat("test token uri ", vm.toString(i));
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            drb.changeRound(i + 1);
+        }
+
+        {
+            string memory tokenUri = string.concat("test token uri revert");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            vm.expectRevert("rounds end, cannot mint");
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+    }
+
+    function test_ShouldContinueToMintIfIncreaseMintableRound() public {
+        uint256 round = 10;
+        startHoax(daoCreator.addr);
+        protocol.setDaoMintableRound(daoId, round);
+
+        for (uint256 i; i < 10; i++) {
+            string memory tokenUri = string.concat("test token uri ", vm.toString(i));
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            drb.changeRound(i + 1);
+        }
+
+        {
+            string memory tokenUri = string.concat("test token uri revert");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            vm.expectRevert("rounds end, cannot mint");
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        round = 11;
+        startHoax(daoCreator.addr);
+        protocol.setDaoMintableRound(daoId, round);
+
+        {
+            string memory tokenUri = string.concat("test token uri increase mintable round");
+            uint256 flatPrice = 0.1 ether;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+            startHoax(nftMinter.addr);
+            uint256 mintPrice = flatPrice;
+            protocol.mintNFT{ value: mintPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
     }
 }

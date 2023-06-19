@@ -5,12 +5,17 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import "./impl/D4AProject.sol";
-import "./impl/D4ACanvas.sol";
-import "./impl/D4APrice.sol";
-import "./impl/D4AReward.sol";
-import "./interface/ID4AProtocol.sol";
+
+import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
+
+import { D4AProject } from "./impl/D4AProject.sol";
+import { D4ACanvas } from "./impl/D4ACanvas.sol";
+import { D4APrice } from "./impl/D4APrice.sol";
+import { D4AReward } from "./impl/D4AReward.sol";
+import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
 import { IProtoDAOSettingsReadable } from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
+import { ID4AERC721 } from "./interface/ID4AERC721.sol";
+import { D4ASettingsBaseStorage } from "./D4ASettings/D4ASettingsBaseStorage.sol";
 
 abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4AProtocol {
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
@@ -736,5 +741,27 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
         return _allCanvases[canvasId].rebateRatioInBps;
+    }
+
+    event D4AERC721MaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
+
+    function setD4AERC721MaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
+
+        _allProjects[daoId].max_nft_amount = newMaxSupply;
+
+        emit D4AERC721MaxSupplySet(daoId, newMaxSupply);
+    }
+
+    event DaoMintableRoundSet(bytes32 daoId, uint256 newMintableRounds);
+
+    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRounds) public {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
+
+        _allProjects[daoId].mintable_rounds = newMintableRounds;
+
+        emit DaoMintableRoundSet(daoId, newMintableRounds);
     }
 }
