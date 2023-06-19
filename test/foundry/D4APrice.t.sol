@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { D4APriceHarness } from "./harness/D4ApriceHarness.sol";
-import { D4APrice } from "contracts/impl/D4APrice.sol";
+import { D4APrice } from "contracts/libraries/D4APrice.sol";
 
 contract D4APriceTest is DeployHelper {
     D4APriceHarness public priceHarness;

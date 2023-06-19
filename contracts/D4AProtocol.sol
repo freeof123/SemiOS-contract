@@ -8,10 +8,10 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
 
-import { D4AProject } from "./impl/D4AProject.sol";
-import { D4ACanvas } from "./impl/D4ACanvas.sol";
-import { D4APrice } from "./impl/D4APrice.sol";
-import { D4AReward } from "./impl/D4AReward.sol";
+import { D4AProject } from "./libraries/D4AProject.sol";
+import { D4ACanvas } from "./libraries/D4ACanvas.sol";
+import { D4APrice } from "./libraries/D4APrice.sol";
+import { D4AReward } from "./libraries/D4AReward.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
 import { IProtoDAOSettingsReadable } from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
 import { ID4AERC721 } from "./interface/ID4AERC721.sol";

@@ -3,10 +3,10 @@ pragma solidity >=0.8.10;
 
 import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
 
-import "../impl/D4AProject.sol";
-import "../impl/D4ACanvas.sol";
-import "../impl/D4APrice.sol";
-import "../impl/D4AReward.sol";
+import "../libraries/D4AProject.sol";
+import "../libraries/D4ACanvas.sol";
+import "../libraries/D4APrice.sol";
+import "../libraries/D4AReward.sol";
 
 abstract contract ID4AProtocol {
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
