@@ -48,8 +48,8 @@ import { ProtoDAOSettings } from "contracts/ProtoDAOSettings/ProtoDAOSettings.so
 import { FeedRegistryMock } from "./mocks/FeedRegistryMock.sol";
 import { AggregatorV3Mock } from "./mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
-import { LinearPriceTemplate } from "contracts/templates/LinearPriceTemplate.sol";
-import { ExponentialPriceTemplate } from "contracts/templates/ExponentialPriceTemplate.sol";
+import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
+import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -76,8 +76,8 @@ contract DeployHelper is Test {
     IUniswapV2Router public uniswapV2Router;
     FeedRegistryMock public feedRegistry;
     ProtoDAOSettings public protoDAOSettings;
-    LinearPriceTemplate public linearPriceTemplate;
-    ExponentialPriceTemplate public exponentialPriceTemplate;
+    LinearPriceVariation public linearPriceVariation;
+    ExponentialPriceVariation public exponentialPriceVariation;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -528,8 +528,7 @@ contract DeployHelper is Test {
         address priceTemplate;
         uint256 priceFactor;
         address rewardTemplate;
-        uint256[] erc20IssueAmounts;
-        uint256[] drbPerIssuePeriods;
+        uint256 rewardDecayFactor;
         uint256 actionType;
     }
 
@@ -571,8 +570,7 @@ contract DeployHelper is Test {
                 priceTemplate: createDaoParam.priceTemplate,
                 priceFactor: createDaoParam.priceFactor,
                 rewardTemplate: createDaoParam.rewardTemplate,
-                erc20IssueAmounts: createDaoParam.erc20IssueAmounts,
-                drbPerIssuePeriods: createDaoParam.drbPerIssuePeriods
+                rewardDecayFactor: createDaoParam.rewardDecayFactor
             }),
             createDaoParam.actionType
         );
@@ -640,11 +638,11 @@ contract DeployHelper is Test {
     }
 
     function _deployPriceTemplate() internal {
-        linearPriceTemplate = new LinearPriceTemplate();
-        vm.label(address(linearPriceTemplate), "Linear Price Template");
+        linearPriceVariation = new LinearPriceVariation();
+        vm.label(address(linearPriceVariation), "Linear Price Variation");
 
-        exponentialPriceTemplate = new ExponentialPriceTemplate();
-        vm.label(address(exponentialPriceTemplate), "Exponential Price Template");
+        exponentialPriceVariation = new ExponentialPriceVariation();
+        vm.label(address(exponentialPriceVariation), "Exponential Price Variation");
     }
 
     function _deployRewardTemplate() internal { }

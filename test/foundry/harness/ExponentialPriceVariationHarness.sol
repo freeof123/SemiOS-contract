@@ -3,9 +3,9 @@ pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
-import { ExponentialPriceTemplate } from "contracts/templates/ExponentialPriceTemplate.sol";
+import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 
-contract ExponentialPriceTemplateHarness is ExponentialPriceTemplate {
+contract ExponentialPriceVariationHarness is ExponentialPriceVariation {
     function exposed_getPriceInRound(
         PriceStorage.MintInfo memory mintInfo,
         uint256 round,

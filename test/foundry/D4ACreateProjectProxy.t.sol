@@ -154,11 +154,10 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 5000, 2000, 2500),
             TemplateParam({
-                priceTemplate: address(exponentialPriceTemplate),
+                priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
-                erc20IssueAmounts: new uint256[](0),
-                drbPerIssuePeriods: new uint256[](0)
+                rewardDecayFactor: 20_000
             }),
             actionType
         );
@@ -185,11 +184,10 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
             TemplateParam({
-                priceTemplate: address(exponentialPriceTemplate),
+                priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
-                erc20IssueAmounts: new uint256[](0),
-                drbPerIssuePeriods: new uint256[](0)
+                rewardDecayFactor: 20_000
             }),
             1
         );
@@ -255,11 +253,10 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
             TemplateParam({
-                priceTemplate: address(exponentialPriceTemplate),
+                priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
-                erc20IssueAmounts: new uint256[](0),
-                drbPerIssuePeriods: new uint256[](0)
+                rewardDecayFactor: 20_000
             }),
             0
         );

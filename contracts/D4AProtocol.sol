@@ -519,29 +519,11 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
                 )
             );
             require(succ);
-            // (bool succ, bytes memory data) =
-            //     address(this).staticcall(abi.encodeWithSelector(this.getCanvasNextPriceDelegateCall.selector, vars));
-            // require(succ);
             price = abi.decode(data, (uint256));
         } else {
             price = vars.flatPrice;
         }
     }
-
-    // function getCanvasNextPriceDelegateCall(GetCanvasNextPriceVars memory vars) public returns (uint256 price) {
-    //     (bool succ, bytes memory data) = _allProjects[vars.daoId].priceTemplate.delegatecall(
-    //         abi.encodeWithSelector(
-    //             IPriceTemplate.getCanvasNextPrice.selector,
-    //             vars.daoId,
-    //             vars.canvasId,
-    //             vars.startPrb,
-    //             vars.currentRound,
-    //             vars.nftPriceFactor
-    //         )
-    //     );
-    //     require(succ);
-    //     price = abi.decode(data, (uint256));
-    // }
 
     function _updateReward(
         bytes32 _project_id,
@@ -554,18 +536,18 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     {
         D4AProject.project_info memory pi = _allProjects[_project_id];
 
-        // _allRewards.updateMintWithAmount(
-        //     _project_id,
-        //     canvasId,
-        //     price - daoFee - protocolFee,
-        //     daoFee,
-        //     pi.mintable_rounds,
-        //     round_2_total_eth,
-        //     _allCanvases[canvasId].rebateRatioInBps
-        // );
-        // _allRewards.updateRewardForCanvas(
-        //     _project_id, canvasId, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        // );
+        _allRewards.updateMintWithAmount(
+            _project_id,
+            canvasId,
+            price - daoFee - protocolFee,
+            daoFee,
+            pi.mintable_rounds,
+            round_2_total_eth,
+            _allCanvases[canvasId].rebateRatioInBps
+        );
+        _allRewards.updateRewardForCanvas(
+            _project_id, canvasId, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
     }
 
     error NotEnoughEther();
@@ -608,118 +590,118 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         bytes32 project_id, address owner, address to, uint256 erc20_amount, uint256 eth_amount
     );
 
-    // function claimProjectERC20Reward(bytes32 _project_id)
-    //     public
-    //     nonReentrant
-    //     d4aNotPaused
-    //     notPaused(_project_id)
-    //     daoExist(_project_id)
-    //     returns (uint256)
-    // {
-    //     D4AProject.project_info storage pi = _allProjects[_project_id];
-    //     _allRewards.issueTokenToCurrentRound(
-    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     uint256 amount = _allRewards.claimProjectReward(
-    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     emit D4AClaimProjectERC20Reward(_project_id, pi.erc20_token, amount);
-    //     return amount;
-    // }
+    function claimProjectERC20Reward(bytes32 _project_id)
+        public
+        nonReentrant
+        d4aNotPaused
+        notPaused(_project_id)
+        daoExist(_project_id)
+        returns (uint256)
+    {
+        D4AProject.project_info storage pi = _allProjects[_project_id];
+        _allRewards.issueTokenToCurrentRound(
+            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        uint256 amount = _allRewards.claimProjectReward(
+            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        emit D4AClaimProjectERC20Reward(_project_id, pi.erc20_token, amount);
+        return amount;
+    }
 
-    // function claimProjectERC20RewardWithETH(bytes32 _project_id) public returns (uint256) {
-    //     uint256 erc20_amount = claimProjectERC20Reward(_project_id);
-    //     D4AProject.project_info storage pi = _allProjects[_project_id];
-    //     return D4AReward.claimProjectERC20RewardWithETH(
-    //         _project_id, pi.erc20_token, erc20_amount, _allProjects[_project_id].fee_pool, round_2_total_eth
-    //     );
-    // }
+    function claimProjectERC20RewardWithETH(bytes32 _project_id) public returns (uint256) {
+        uint256 erc20_amount = claimProjectERC20Reward(_project_id);
+        D4AProject.project_info storage pi = _allProjects[_project_id];
+        return D4AReward.claimProjectERC20RewardWithETH(
+            _project_id, pi.erc20_token, erc20_amount, _allProjects[_project_id].fee_pool, round_2_total_eth
+        );
+    }
 
     event D4AClaimCanvasReward(bytes32 project_id, bytes32 canvas_id, address erc20_token, uint256 amount);
 
-    // function claimCanvasReward(bytes32 canvasId)
-    //     public
-    //     nonReentrant
-    //     d4aNotPaused
-    //     notPaused(canvasId)
-    //     canvasExist(canvasId)
-    //     returns (uint256)
-    // {
-    //     bytes32 project_id = _allCanvases[canvasId].project_id;
-    //     _checkDaoExist(project_id);
-    //     _checkPauseStatus(project_id);
+    function claimCanvasReward(bytes32 canvasId)
+        public
+        nonReentrant
+        d4aNotPaused
+        notPaused(canvasId)
+        canvasExist(canvasId)
+        returns (uint256)
+    {
+        bytes32 project_id = _allCanvases[canvasId].project_id;
+        _checkDaoExist(project_id);
+        _checkPauseStatus(project_id);
 
-    //     D4AProject.project_info storage pi = _allProjects[project_id];
+        D4AProject.project_info storage pi = _allProjects[project_id];
 
-    //     _allRewards.issueTokenToCurrentRound(
-    //         project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     uint256 amount = _allRewards.claimCanvasReward(
-    //         project_id, canvasId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     emit D4AClaimCanvasReward(project_id, canvasId, pi.erc20_token, amount);
-    //     return amount;
-    // }
+        _allRewards.issueTokenToCurrentRound(
+            project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        uint256 amount = _allRewards.claimCanvasReward(
+            project_id, canvasId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        emit D4AClaimCanvasReward(project_id, canvasId, pi.erc20_token, amount);
+        return amount;
+    }
 
-    // function claimCanvasRewardWithETH(bytes32 canvasId) public returns (uint256) {
-    //     uint256 erc20_amount = claimCanvasReward(canvasId);
+    function claimCanvasRewardWithETH(bytes32 canvasId) public returns (uint256) {
+        uint256 erc20_amount = claimCanvasReward(canvasId);
 
-    //     bytes32 project_id = _allCanvases[canvasId].project_id;
-    //     D4AProject.project_info storage pi = _allProjects[project_id];
-    //     return D4AReward.claimCanvasRewardWithETH(
-    //         project_id, canvasId, pi.erc20_token, erc20_amount, _allProjects[project_id].fee_pool, round_2_total_eth
-    //     );
-    // }
+        bytes32 project_id = _allCanvases[canvasId].project_id;
+        D4AProject.project_info storage pi = _allProjects[project_id];
+        return D4AReward.claimCanvasRewardWithETH(
+            project_id, canvasId, pi.erc20_token, erc20_amount, _allProjects[project_id].fee_pool, round_2_total_eth
+        );
+    }
 
     event D4AClaimNftMinterReward(bytes32 daoId, address erc20Token, uint256 amount);
 
-    // function claimNftMinterReward(
-    //     bytes32 daoId,
-    //     address minter
-    // )
-    //     public
-    //     nonReentrant
-    //     d4aNotPaused
-    //     daoExist(daoId)
-    //     notPaused(daoId)
-    //     returns (uint256)
-    // {
-    //     D4AProject.project_info storage pi = _allProjects[daoId];
-    //     _allRewards.issueTokenToCurrentRound(
-    //         daoId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     uint256 amount = _allRewards.claimNftMinterReward(
-    //         daoId, minter, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     emit D4AClaimNftMinterReward(daoId, pi.erc20_token, amount);
-    //     return amount;
-    // }
+    function claimNftMinterReward(
+        bytes32 daoId,
+        address minter
+    )
+        public
+        nonReentrant
+        d4aNotPaused
+        daoExist(daoId)
+        notPaused(daoId)
+        returns (uint256)
+    {
+        D4AProject.project_info storage pi = _allProjects[daoId];
+        _allRewards.issueTokenToCurrentRound(
+            daoId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        uint256 amount = _allRewards.claimNftMinterReward(
+            daoId, minter, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        emit D4AClaimNftMinterReward(daoId, pi.erc20_token, amount);
+        return amount;
+    }
 
-    // function claimNftMinterRewardWithETH(bytes32 daoId, address minter) public returns (uint256) {
-    //     uint256 erc20_amount = claimNftMinterReward(daoId, minter);
-    //     D4AProject.project_info storage pi = _allProjects[daoId];
-    //     return D4AReward.claimNftMinterRewardWithETH(
-    //         daoId, pi.erc20_token, erc20_amount, _allProjects[daoId].fee_pool, round_2_total_eth, minter
-    //     );
-    // }
+    function claimNftMinterRewardWithETH(bytes32 daoId, address minter) public returns (uint256) {
+        uint256 erc20_amount = claimNftMinterReward(daoId, minter);
+        D4AProject.project_info storage pi = _allProjects[daoId];
+        return D4AReward.claimNftMinterRewardWithETH(
+            daoId, pi.erc20_token, erc20_amount, _allProjects[daoId].fee_pool, round_2_total_eth, minter
+        );
+    }
 
-    // function exchangeERC20ToETH(
-    //     bytes32 _project_id,
-    //     uint256 amount,
-    //     address _to
-    // )
-    //     public
-    //     nonReentrant
-    //     d4aNotPaused
-    //     notPaused(_project_id)
-    //     returns (uint256)
-    // {
-    //     D4AProject.project_info storage pi = _allProjects[_project_id];
-    //     _allRewards.issueTokenToCurrentRound(
-    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-    //     );
-    //     return D4AReward.ToETH(pi.erc20_token, pi.fee_pool, _project_id, msg.sender, _to, amount, round_2_total_eth);
-    // }
+    function exchangeERC20ToETH(
+        bytes32 _project_id,
+        uint256 amount,
+        address _to
+    )
+        public
+        nonReentrant
+        d4aNotPaused
+        notPaused(_project_id)
+        returns (uint256)
+    {
+        D4AProject.project_info storage pi = _allProjects[_project_id];
+        _allRewards.issueTokenToCurrentRound(
+            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+        );
+        return D4AReward.ToETH(pi.erc20_token, pi.fee_pool, _project_id, msg.sender, _to, amount, round_2_total_eth);
+    }
 
     event DaoNftPriceMultiplyFactorChanged(bytes32 daoId, uint256 newNftPriceMultiplyFactor);
 

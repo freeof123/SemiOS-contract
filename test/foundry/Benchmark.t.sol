@@ -55,11 +55,10 @@ contract Benchmark is DeployHelper {
             DaoMintCapParam(0, new UserMintCapParam[](0)),
             DaoETHAndERC20SplitRatioParam(0, 0, 0, 0),
             TemplateParam({
-                priceTemplate: address(exponentialPriceTemplate),
+                priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
-                erc20IssueAmounts: new uint256[](0),
-                drbPerIssuePeriods: new uint256[](0)
+                rewardDecayFactor: 20_000
             }),
             0
         );
