@@ -5,7 +5,8 @@ import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -79,11 +80,12 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     // fourth bit: 0: without DEX pair initialized, 1: with DEX pair initialized
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createProject(
-        DaoMetadataParam memory daoMetadataParam,
+        DaoMetadataParam calldata daoMetadataParam,
         IPermissionControl.Whitelist calldata whitelist,
         IPermissionControl.Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        TemplateParam calldata templateParam,
         uint256 actionType
     )
         public
@@ -95,15 +97,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
                 IAccessControlUpgradeable(address(protocol)).hasRole(keccak256("OPERATION_ROLE"), msg.sender),
                 "only admin can specify project index"
             );
-            projectId = protocol.createOwnerProject{ value: msg.value }(
-                daoMetadataParam.startDrb,
-                daoMetadataParam.mintableRounds,
-                daoMetadataParam.floorPriceRank,
-                daoMetadataParam.maxNftRank,
-                daoMetadataParam.royaltyFee,
-                daoMetadataParam.projectUri,
-                daoMetadataParam.projectIndex
-            );
+            projectId = protocol.createOwnerProject{ value: msg.value }(daoMetadataParam);
         } else {
             projectId = protocol.createProject{ value: msg.value }(
                 daoMetadataParam.startDrb,
@@ -144,6 +138,9 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
                 splitRatioParam.daoFeePoolETHRatioFlatPrice
             );
         }
+
+        // setup template
+        protocol.setTemplate(projectId, templateParam);
 
         _createSplitter(projectId);
     }
@@ -199,12 +196,12 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     }
 
     function getProjectRoyaltyFee(bytes32 project_id) internal view returns (uint96) {
-        (,,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
+        (,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
         return royalty_fee;
     }
 
     function getProjectFeePool(bytes32 project_id) internal view returns (address) {
-        (,,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
+        (,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
         return fee_pool;
     }
 

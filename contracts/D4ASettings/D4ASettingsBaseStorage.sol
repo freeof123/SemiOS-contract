@@ -52,7 +52,6 @@ library D4ASettingsBaseStorage {
         mapping(bytes32 => bool) pause_status;
         address project_proxy;
         uint256 reserved_slots;
-        uint256 defaultNftPriceMultiplyFactor;
         bool initialized;
     }
 

@@ -6,22 +6,48 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
-import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
-
+import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { NotDaoOwner, InvalidTemplate } from "contracts/interface/D4AErrors.sol";
+import { DaoMetadataParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
+import { RewardStorage } from "./storages/RewardStorage.sol";
 import { D4AProject } from "./libraries/D4AProject.sol";
 import { D4ACanvas } from "./libraries/D4ACanvas.sol";
-import { D4APrice } from "./libraries/D4APrice.sol";
-import { D4AReward } from "./libraries/D4AReward.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
 import { IProtoDAOSettingsReadable } from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
 import { ID4AERC721 } from "./interface/ID4AERC721.sol";
+import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { D4ASettingsBaseStorage } from "./D4ASettings/D4ASettingsBaseStorage.sol";
 
 abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4AProtocol {
+    struct MintNftInfo {
+        string tokenUri;
+        uint256 flatPrice;
+    }
+
+    struct MintVars {
+        uint32 length;
+        uint256 currentRound;
+        uint256 nftPriceFactor;
+        uint256 priceChangeBasisPoint;
+        uint256 price;
+        uint256 daoTotalShare;
+        uint256 totalPrice;
+        uint256 daoFee;
+        uint256 protocolFee;
+        uint256 initialPrice;
+    }
+
+    struct GetCanvasNextPriceVars {
+        bytes32 daoId;
+        bytes32 canvasId;
+        uint256 startPrb;
+        uint256 currentRound;
+        uint256 nftPriceFactor;
+        uint256 flatPrice;
+    }
+
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
     using D4ACanvas for mapping(bytes32 => D4ACanvas.canvas_info);
-    using D4APrice for D4APrice.project_price_info;
-    using D4AReward for mapping(bytes32 => D4AReward.reward_info);
 
     mapping(bytes32 => bool) public uri_exists;
 
@@ -32,6 +58,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     uint256 public canvas_num;
 
     uint256 public project_bitmap;
+
+    mapping(address template => bool allowed) public allowedTemplates;
 
     // event from library
     event NewProject(
@@ -168,15 +196,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     error DaoIndexTooLarge();
     error DaoIndexAlreadyExist();
 
-    function createOwnerProject(
-        uint256 _start_prb,
-        uint256 _mintable_rounds,
-        uint256 _floor_price_rank,
-        uint256 _max_nft_rank,
-        uint96 _royalty_fee,
-        string calldata _project_uri,
-        uint256 _project_index
-    )
+    function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
         public
         payable
         override
@@ -190,26 +210,26 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         _checkCaller(l.project_proxy);
         {
-            _checkUriNotExist(_project_uri);
+            _checkUriNotExist(daoMetadataParam.projectUri);
         }
         {
-            if (_project_index >= l.reserved_slots) revert DaoIndexTooLarge();
-            if (((project_bitmap >> _project_index) & 1) != 0) revert DaoIndexAlreadyExist();
+            if (daoMetadataParam.projectIndex >= l.reserved_slots) revert DaoIndexTooLarge();
+            if (((project_bitmap >> daoMetadataParam.projectIndex) & 1) != 0) revert DaoIndexAlreadyExist();
         }
 
         {
-            project_bitmap |= (1 << _project_index);
-            uri_exists[keccak256(abi.encodePacked(_project_uri))] = true;
+            project_bitmap |= (1 << daoMetadataParam.projectIndex);
+            uri_exists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
         }
         {
             return _allProjects.createProject(
-                _start_prb,
-                _mintable_rounds,
-                _floor_price_rank,
-                _max_nft_rank,
-                _royalty_fee,
-                _project_index,
-                _project_uri
+                daoMetadataParam.startDrb,
+                daoMetadataParam.mintableRounds,
+                daoMetadataParam.floorPriceRank,
+                daoMetadataParam.maxNftRank,
+                daoMetadataParam.royaltyFee,
+                daoMetadataParam.projectIndex,
+                daoMetadataParam.projectUri
             );
         }
     }
@@ -292,7 +312,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         }
         bytes32 daoId = _allCanvases[canvasId].project_id;
 
-        if (flatPrice != 0 && flatPrice < _allProjects.getProjectFloorPrice(daoId)) revert PriceTooLow();
+        if (flatPrice != 0 && flatPrice < getProjectFloorPrice(daoId)) revert PriceTooLow();
         _checkPauseStatus(daoId);
 
         D4AProject.project_info storage pi = _allProjects[daoId];
@@ -301,8 +321,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
         MintVars memory vars;
         vars.currentRound = l.drb.currentRound();
-        vars.nftPriceMultiplyFactor =
-            pi.nftPriceMultiplyFactor == 0 ? l.defaultNftPriceMultiplyFactor : pi.nftPriceMultiplyFactor;
+        vars.nftPriceFactor = pi.nftPriceFactor;
 
         {
             bytes32 token_uri_hash = keccak256(abi.encodePacked(_token_uri));
@@ -313,11 +332,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         GetCanvasNextPriceVars memory getCanvasNextPriceVar;
         getCanvasNextPriceVar.daoId = daoId;
         getCanvasNextPriceVar.canvasId = canvasId;
-        getCanvasNextPriceVar.currentRound = vars.currentRound;
-        getCanvasNextPriceVar.floorPrices = pi.floor_prices;
-        getCanvasNextPriceVar.floorPriceRank = pi.floor_price_rank;
         getCanvasNextPriceVar.startPrb = pi.start_prb;
-        getCanvasNextPriceVar.nftPriceMultiplyFactor = vars.nftPriceMultiplyFactor;
+        getCanvasNextPriceVar.currentRound = vars.currentRound;
+        getCanvasNextPriceVar.nftPriceFactor = vars.nftPriceFactor;
         getCanvasNextPriceVar.flatPrice = flatPrice;
         uint256 price = _getCanvasNextPrice(getCanvasNextPriceVar);
 
@@ -345,7 +362,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
             getCanvasNextPriceVar.canvasId,
             price,
             flatPrice,
-            vars.nftPriceMultiplyFactor
+            vars.nftPriceFactor
         );
 
         _updateReward(getCanvasNextPriceVar.daoId, getCanvasNextPriceVar.canvasId, vars.daoFee, vars.protocolFee, price);
@@ -373,26 +390,11 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         internal
     {
         if (flatPrice == 0) {
-            _allPrices[daoId].updateCanvasPrice(currentRound, canvasId, price, nftPriceMultiplyFactor);
+            IPriceTemplate(_allProjects[daoId].priceTemplate).updateCanvasPrice(
+                daoId, canvasId, currentRound, price, nftPriceMultiplyFactor
+            );
+            // _allPrices[daoId].updateCanvasPrice(currentRound, canvasId, price, nftPriceMultiplyFactor);
         }
-    }
-
-    struct MintNftInfo {
-        string tokenUri;
-        uint256 flatPrice;
-    }
-
-    struct MintVars {
-        uint32 length;
-        uint256 currentRound;
-        uint256 nftPriceMultiplyFactor;
-        uint256 priceChangeBasisPoint;
-        uint256 price;
-        uint256 daoTotalShare;
-        uint256 totalPrice;
-        uint256 daoFee;
-        uint256 protocolFee;
-        uint256 initialPrice;
     }
 
     function _mintNft(
@@ -420,7 +422,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         MintVars memory vars;
         vars.length = uint32(mintNftInfos.length);
         {
-            uint256 projectFloorPrice = _allProjects.getProjectFloorPrice(daoId);
+            uint256 projectFloorPrice = getProjectFloorPrice(daoId);
             for (uint32 i = 0; i < vars.length;) {
                 _checkUriNotExist(mintNftInfos[i].tokenUri);
                 if (mintNftInfos[i].flatPrice != 0 && mintNftInfos[i].flatPrice < projectFloorPrice) {
@@ -437,18 +439,15 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         if (pi.nft_supply + vars.length > pi.max_nft_amount) revert NftExceedMaxAmount();
 
         vars.currentRound = l.drb.currentRound();
-        vars.nftPriceMultiplyFactor =
-            pi.nftPriceMultiplyFactor == 0 ? l.defaultNftPriceMultiplyFactor : pi.nftPriceMultiplyFactor;
-        vars.priceChangeBasisPoint = D4APrice._PRICE_CHANGE_BASIS_POINT;
+        vars.nftPriceFactor = pi.nftPriceFactor;
+        vars.priceChangeBasisPoint = BASIS_POINT;
 
         GetCanvasNextPriceVars memory getCanvasNextPriceVar;
         getCanvasNextPriceVar.daoId = daoId;
         getCanvasNextPriceVar.canvasId = canvasId;
-        getCanvasNextPriceVar.currentRound = vars.currentRound;
-        getCanvasNextPriceVar.floorPrices = pi.floor_prices;
-        getCanvasNextPriceVar.floorPriceRank = pi.floor_price_rank;
         getCanvasNextPriceVar.startPrb = pi.start_prb;
-        getCanvasNextPriceVar.nftPriceMultiplyFactor = vars.nftPriceMultiplyFactor;
+        getCanvasNextPriceVar.currentRound = vars.currentRound;
+        getCanvasNextPriceVar.nftPriceFactor = vars.nftPriceFactor;
         vars.price = _getCanvasNextPrice(getCanvasNextPriceVar);
         vars.initialPrice = vars.price;
         vars.daoTotalShare;
@@ -473,7 +472,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
                     vars.daoTotalShare += l.mint_project_fee_ratio * vars.price;
                     vars.totalPrice += vars.price;
                     emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, vars.price);
-                    vars.price *= vars.nftPriceMultiplyFactor / vars.priceChangeBasisPoint;
+                    vars.price *= vars.nftPriceFactor / vars.priceChangeBasisPoint;
                 } else {
                     vars.daoTotalShare += l.mint_project_fee_ratio_flat_price * flatPrice;
                     vars.totalPrice += flatPrice;
@@ -498,8 +497,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
         // update canvas price
         if (vars.price != vars.initialPrice) {
-            vars.price = vars.price * vars.priceChangeBasisPoint / vars.nftPriceMultiplyFactor;
-            _updatePrice(vars.currentRound, daoId, canvasId, vars.price, 0, vars.nftPriceMultiplyFactor);
+            vars.price = vars.price * vars.priceChangeBasisPoint / vars.nftPriceFactor;
+            _updatePrice(vars.currentRound, daoId, canvasId, vars.price, 0, vars.nftPriceFactor);
         }
 
         _updateReward(daoId, canvasId, vars.daoFee, vars.protocolFee, vars.totalPrice);
@@ -507,31 +506,42 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         return tokenIds;
     }
 
-    struct GetCanvasNextPriceVars {
-        bytes32 daoId;
-        bytes32 canvasId;
-        uint256 currentRound;
-        uint256[] floorPrices;
-        uint256 floorPriceRank;
-        uint256 startPrb;
-        uint256 nftPriceMultiplyFactor;
-        uint256 flatPrice;
-    }
-
-    function _getCanvasNextPrice(GetCanvasNextPriceVars memory vars) internal view returns (uint256 price) {
+    function _getCanvasNextPrice(GetCanvasNextPriceVars memory vars) internal returns (uint256 price) {
         if (vars.flatPrice == 0) {
-            price = _allPrices[vars.daoId].getCanvasNextPrice(
-                vars.currentRound,
-                vars.floorPrices,
-                vars.floorPriceRank,
-                vars.startPrb,
-                vars.canvasId,
-                vars.nftPriceMultiplyFactor
+            (bool succ, bytes memory data) = _allProjects[vars.daoId].priceTemplate.delegatecall(
+                abi.encodeWithSelector(
+                    IPriceTemplate.getCanvasNextPrice.selector,
+                    vars.daoId,
+                    vars.canvasId,
+                    vars.startPrb,
+                    vars.currentRound,
+                    vars.nftPriceFactor
+                )
             );
+            require(succ);
+            // (bool succ, bytes memory data) =
+            //     address(this).staticcall(abi.encodeWithSelector(this.getCanvasNextPriceDelegateCall.selector, vars));
+            // require(succ);
+            price = abi.decode(data, (uint256));
         } else {
             price = vars.flatPrice;
         }
     }
+
+    // function getCanvasNextPriceDelegateCall(GetCanvasNextPriceVars memory vars) public returns (uint256 price) {
+    //     (bool succ, bytes memory data) = _allProjects[vars.daoId].priceTemplate.delegatecall(
+    //         abi.encodeWithSelector(
+    //             IPriceTemplate.getCanvasNextPrice.selector,
+    //             vars.daoId,
+    //             vars.canvasId,
+    //             vars.startPrb,
+    //             vars.currentRound,
+    //             vars.nftPriceFactor
+    //         )
+    //     );
+    //     require(succ);
+    //     price = abi.decode(data, (uint256));
+    // }
 
     function _updateReward(
         bytes32 _project_id,
@@ -544,15 +554,15 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     {
         D4AProject.project_info memory pi = _allProjects[_project_id];
 
-        _allRewards.updateMintWithAmount(
-            _project_id,
-            canvasId,
-            price - daoFee - protocolFee,
-            daoFee,
-            pi.mintable_rounds,
-            round_2_total_eth,
-            _allCanvases[canvasId].rebateRatioInBps
-        );
+        // _allRewards.updateMintWithAmount(
+        //     _project_id,
+        //     canvasId,
+        //     price - daoFee - protocolFee,
+        //     daoFee,
+        //     pi.mintable_rounds,
+        //     round_2_total_eth,
+        //     _allCanvases[canvasId].rebateRatioInBps
+        // );
         // _allRewards.updateRewardForCanvas(
         //     _project_id, canvasId, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
         // );
@@ -598,132 +608,126 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         bytes32 project_id, address owner, address to, uint256 erc20_amount, uint256 eth_amount
     );
 
-    function claimProjectERC20Reward(bytes32 _project_id)
-        public
-        nonReentrant
-        d4aNotPaused
-        notPaused(_project_id)
-        daoExist(_project_id)
-        returns (uint256)
-    {
-        D4AProject.project_info storage pi = _allProjects[_project_id];
-        _allRewards.issueTokenToCurrentRound(
-            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        uint256 amount = _allRewards.claimProjectReward(
-            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        emit D4AClaimProjectERC20Reward(_project_id, pi.erc20_token, amount);
-        return amount;
-    }
+    // function claimProjectERC20Reward(bytes32 _project_id)
+    //     public
+    //     nonReentrant
+    //     d4aNotPaused
+    //     notPaused(_project_id)
+    //     daoExist(_project_id)
+    //     returns (uint256)
+    // {
+    //     D4AProject.project_info storage pi = _allProjects[_project_id];
+    //     _allRewards.issueTokenToCurrentRound(
+    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     uint256 amount = _allRewards.claimProjectReward(
+    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     emit D4AClaimProjectERC20Reward(_project_id, pi.erc20_token, amount);
+    //     return amount;
+    // }
 
-    function claimProjectERC20RewardWithETH(bytes32 _project_id) public returns (uint256) {
-        uint256 erc20_amount = claimProjectERC20Reward(_project_id);
-        D4AProject.project_info storage pi = _allProjects[_project_id];
-        return D4AReward.claimProjectERC20RewardWithETH(
-            _project_id, pi.erc20_token, erc20_amount, _allProjects[_project_id].fee_pool, round_2_total_eth
-        );
-    }
+    // function claimProjectERC20RewardWithETH(bytes32 _project_id) public returns (uint256) {
+    //     uint256 erc20_amount = claimProjectERC20Reward(_project_id);
+    //     D4AProject.project_info storage pi = _allProjects[_project_id];
+    //     return D4AReward.claimProjectERC20RewardWithETH(
+    //         _project_id, pi.erc20_token, erc20_amount, _allProjects[_project_id].fee_pool, round_2_total_eth
+    //     );
+    // }
 
     event D4AClaimCanvasReward(bytes32 project_id, bytes32 canvas_id, address erc20_token, uint256 amount);
 
-    function claimCanvasReward(bytes32 canvasId)
-        public
-        nonReentrant
-        d4aNotPaused
-        notPaused(canvasId)
-        canvasExist(canvasId)
-        returns (uint256)
-    {
-        bytes32 project_id = _allCanvases[canvasId].project_id;
-        _checkDaoExist(project_id);
-        _checkPauseStatus(project_id);
+    // function claimCanvasReward(bytes32 canvasId)
+    //     public
+    //     nonReentrant
+    //     d4aNotPaused
+    //     notPaused(canvasId)
+    //     canvasExist(canvasId)
+    //     returns (uint256)
+    // {
+    //     bytes32 project_id = _allCanvases[canvasId].project_id;
+    //     _checkDaoExist(project_id);
+    //     _checkPauseStatus(project_id);
 
-        D4AProject.project_info storage pi = _allProjects[project_id];
+    //     D4AProject.project_info storage pi = _allProjects[project_id];
 
-        _allRewards.issueTokenToCurrentRound(
-            project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        uint256 amount = _allRewards.claimCanvasReward(
-            project_id, canvasId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        emit D4AClaimCanvasReward(project_id, canvasId, pi.erc20_token, amount);
-        return amount;
-    }
+    //     _allRewards.issueTokenToCurrentRound(
+    //         project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     uint256 amount = _allRewards.claimCanvasReward(
+    //         project_id, canvasId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     emit D4AClaimCanvasReward(project_id, canvasId, pi.erc20_token, amount);
+    //     return amount;
+    // }
 
-    function claimCanvasRewardWithETH(bytes32 canvasId) public returns (uint256) {
-        uint256 erc20_amount = claimCanvasReward(canvasId);
+    // function claimCanvasRewardWithETH(bytes32 canvasId) public returns (uint256) {
+    //     uint256 erc20_amount = claimCanvasReward(canvasId);
 
-        bytes32 project_id = _allCanvases[canvasId].project_id;
-        D4AProject.project_info storage pi = _allProjects[project_id];
-        return D4AReward.claimCanvasRewardWithETH(
-            project_id, canvasId, pi.erc20_token, erc20_amount, _allProjects[project_id].fee_pool, round_2_total_eth
-        );
-    }
+    //     bytes32 project_id = _allCanvases[canvasId].project_id;
+    //     D4AProject.project_info storage pi = _allProjects[project_id];
+    //     return D4AReward.claimCanvasRewardWithETH(
+    //         project_id, canvasId, pi.erc20_token, erc20_amount, _allProjects[project_id].fee_pool, round_2_total_eth
+    //     );
+    // }
 
     event D4AClaimNftMinterReward(bytes32 daoId, address erc20Token, uint256 amount);
 
-    function claimNftMinterReward(
-        bytes32 daoId,
-        address minter
-    )
-        public
-        nonReentrant
-        d4aNotPaused
-        daoExist(daoId)
-        notPaused(daoId)
-        returns (uint256)
-    {
-        D4AProject.project_info storage pi = _allProjects[daoId];
-        _allRewards.issueTokenToCurrentRound(
-            daoId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        uint256 amount = _allRewards.claimNftMinterReward(
-            daoId, minter, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        emit D4AClaimNftMinterReward(daoId, pi.erc20_token, amount);
-        return amount;
-    }
+    // function claimNftMinterReward(
+    //     bytes32 daoId,
+    //     address minter
+    // )
+    //     public
+    //     nonReentrant
+    //     d4aNotPaused
+    //     daoExist(daoId)
+    //     notPaused(daoId)
+    //     returns (uint256)
+    // {
+    //     D4AProject.project_info storage pi = _allProjects[daoId];
+    //     _allRewards.issueTokenToCurrentRound(
+    //         daoId, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     uint256 amount = _allRewards.claimNftMinterReward(
+    //         daoId, minter, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     emit D4AClaimNftMinterReward(daoId, pi.erc20_token, amount);
+    //     return amount;
+    // }
 
-    function claimNftMinterRewardWithETH(bytes32 daoId, address minter) public returns (uint256) {
-        uint256 erc20_amount = claimNftMinterReward(daoId, minter);
-        D4AProject.project_info storage pi = _allProjects[daoId];
-        return D4AReward.claimNftMinterRewardWithETH(
-            daoId, pi.erc20_token, erc20_amount, _allProjects[daoId].fee_pool, round_2_total_eth, minter
-        );
-    }
+    // function claimNftMinterRewardWithETH(bytes32 daoId, address minter) public returns (uint256) {
+    //     uint256 erc20_amount = claimNftMinterReward(daoId, minter);
+    //     D4AProject.project_info storage pi = _allProjects[daoId];
+    //     return D4AReward.claimNftMinterRewardWithETH(
+    //         daoId, pi.erc20_token, erc20_amount, _allProjects[daoId].fee_pool, round_2_total_eth, minter
+    //     );
+    // }
 
-    function exchangeERC20ToETH(
-        bytes32 _project_id,
-        uint256 amount,
-        address _to
-    )
-        public
-        nonReentrant
-        d4aNotPaused
-        notPaused(_project_id)
-        returns (uint256)
-    {
-        D4AProject.project_info storage pi = _allProjects[_project_id];
-        _allRewards.issueTokenToCurrentRound(
-            _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
-        );
-        return D4AReward.ToETH(pi.erc20_token, pi.fee_pool, _project_id, msg.sender, _to, amount, round_2_total_eth);
-    }
+    // function exchangeERC20ToETH(
+    //     bytes32 _project_id,
+    //     uint256 amount,
+    //     address _to
+    // )
+    //     public
+    //     nonReentrant
+    //     d4aNotPaused
+    //     notPaused(_project_id)
+    //     returns (uint256)
+    // {
+    //     D4AProject.project_info storage pi = _allProjects[_project_id];
+    //     _allRewards.issueTokenToCurrentRound(
+    //         _project_id, pi.erc20_token, pi.start_prb, pi.mintable_rounds, pi.erc20_total_supply
+    //     );
+    //     return D4AReward.ToETH(pi.erc20_token, pi.fee_pool, _project_id, msg.sender, _to, amount, round_2_total_eth);
+    // }
 
     event DaoNftPriceMultiplyFactorChanged(bytes32 daoId, uint256 newNftPriceMultiplyFactor);
 
-    function changeDaoNftPriceMultiplyFactor(
-        bytes32 daoId,
-        uint256 newNftPriceMultiplyFactor
-    )
-        public
-        onlyRole(bytes32(0))
-    {
-        require(newNftPriceMultiplyFactor >= 10_000);
-        _allProjects[daoId].nftPriceMultiplyFactor = newNftPriceMultiplyFactor;
+    function changeDaoNftPriceMultiplyFactor(bytes32 daoId, uint256 nftPriceFactor) public onlyRole(bytes32(0)) {
+        require(nftPriceFactor >= 10_000);
+        _allProjects[daoId].nftPriceFactor = nftPriceFactor;
 
-        emit DaoNftPriceMultiplyFactorChanged(daoId, newNftPriceMultiplyFactor);
+        emit DaoNftPriceMultiplyFactorChanged(daoId, nftPriceFactor);
     }
 
     error NotCanvasOwner();
@@ -763,5 +767,23 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         _allProjects[daoId].mintable_rounds = newMintableRounds;
 
         emit DaoMintableRoundSet(daoId, newMintableRounds);
+    }
+
+    event DaoTemplateSet(bytes32 daoId, TemplateParam templateParam);
+
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public override {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        _checkCaller(l.project_proxy);
+        if (!allowedTemplates[templateParam.priceTemplate] || !allowedTemplates[templateParam.rewardTemplate]) {
+            revert InvalidTemplate();
+        }
+
+        _allProjects[daoId].priceTemplate = templateParam.priceTemplate;
+        _allProjects[daoId].nftPriceFactor = templateParam.priceFactor;
+        _allProjects[daoId].rewardTemplate = templateParam.rewardTemplate;
+        rewardInfo.decayFactor = templateParam.rewardDecayFactor;
+
+        emit DaoTemplateSet(daoId, templateParam);
     }
 }

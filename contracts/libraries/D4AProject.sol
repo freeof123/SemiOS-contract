@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "../interface/ID4AChangeAdmin.sol";
 import { ProtoDAOSettingsBaseStorage } from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
+import { PriceStorage } from "../storages/PriceStorage.sol";
 import "../D4AERC721.sol";
 import "../feepool/D4AFeePool.sol";
 import "../D4AERC20.sol";
@@ -14,7 +15,6 @@ library D4AProject {
     struct project_info {
         uint256 start_prb;
         uint256 mintable_rounds;
-        uint256 floor_price_rank;
         uint256 max_nft_amount;
         uint256 nft_supply;
         uint96 royalty_fee;
@@ -25,10 +25,11 @@ library D4AProject {
         string project_uri;
         //from setting
         uint256 erc20_total_supply;
-        uint256[] floor_prices;
         bytes32[] canvases;
         bool exist;
-        uint256 nftPriceMultiplyFactor;
+        uint256 nftPriceFactor;
+        address priceTemplate;
+        address rewardTemplate;
     }
 
     using StringsUpgradeable for uint256;
@@ -87,7 +88,6 @@ library D4AProject {
                 require(_start_prb >= cur_round, "start round already passed");
             }
             pi.mintable_rounds = _mintable_rounds;
-            pi.floor_price_rank = _floor_price_rank;
             pi.max_nft_amount = l.max_nft_amounts[_max_nft_rank];
             pi.project_uri = _project_uri;
             pi.royalty_fee = _royalty_fee;
@@ -119,10 +119,8 @@ library D4AProject {
             ID4AChangeAdmin(pi.erc721_token).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
             pi.erc20_total_supply = l.erc20_total_supply;
-            for (uint256 i = 0; i < l.floor_prices.length; i++) {
-                pi.floor_prices.push(l.floor_prices[i]);
-            }
-            require(pi.floor_price_rank < pi.floor_prices.length, "invalid floor price rank");
+
+            PriceStorage.layout().daoFloorPrices[project_id] = l.floor_prices[_floor_price_rank];
 
             pi.exist = true;
             emit NewProject(project_id, _project_uri, pool, pi.erc20_token, pi.erc721_token, _royalty_fee);
@@ -164,7 +162,6 @@ library D4AProject {
         returns (
             uint256 start_prb,
             uint256 mintable_rounds,
-            uint256 floor_price_rank,
             uint256 max_nft_amount,
             address fee_pool,
             uint96 royalty_fee,
@@ -176,25 +173,12 @@ library D4AProject {
         project_info storage pi = _allProjects[_project_id];
         start_prb = pi.start_prb;
         mintable_rounds = pi.mintable_rounds;
-        floor_price_rank = pi.floor_price_rank;
         max_nft_amount = pi.max_nft_amount;
         fee_pool = pi.fee_pool;
         royalty_fee = pi.royalty_fee;
         index = pi.index;
         uri = pi.project_uri;
         erc20_total_supply = pi.erc20_total_supply;
-    }
-
-    function getProjectFloorPrice(
-        mapping(bytes32 => project_info) storage _allProjects,
-        bytes32 _project_id
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        project_info storage pi = _allProjects[_project_id];
-        return pi.floor_prices[pi.floor_price_rank];
     }
 
     /*function toHex16 (bytes16 data) internal pure returns (bytes32 result) {

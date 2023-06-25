@@ -44,8 +44,4 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
     function createCanvasFee() public view returns (uint256) {
         return D4ASettingsBaseStorage.layout().create_canvas_fee;
     }
-
-    function defaultNftPriceMultiplyFactor() public view returns (uint256) {
-        return D4ASettingsBaseStorage.layout().defaultNftPriceMultiplyFactor;
-    }
 }

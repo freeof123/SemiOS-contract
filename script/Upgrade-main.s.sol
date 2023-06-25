@@ -111,7 +111,6 @@ contract UpgradeTest is Test, Script {
         selectors[selectorIndex++] = ID4ASettingsReadable.permissionControl.selector;
         selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
         selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.defaultNftPriceMultiplyFactor.selector;
         // register D4ASettings
         selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
         selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
@@ -123,7 +122,6 @@ contract UpgradeTest is Test, Script {
         selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
         selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
         selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeNftPriceMultiplyFactor.selector;
         selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
         selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
         selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;

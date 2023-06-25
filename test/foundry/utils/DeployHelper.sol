@@ -8,7 +8,8 @@ import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
 
 // dependencies
@@ -47,6 +48,8 @@ import { ProtoDAOSettings } from "contracts/ProtoDAOSettings/ProtoDAOSettings.so
 import { FeedRegistryMock } from "./mocks/FeedRegistryMock.sol";
 import { AggregatorV3Mock } from "./mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
+import { LinearPriceTemplate } from "contracts/templates/LinearPriceTemplate.sol";
+import { ExponentialPriceTemplate } from "contracts/templates/ExponentialPriceTemplate.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -73,6 +76,8 @@ contract DeployHelper is Test {
     IUniswapV2Router public uniswapV2Router;
     FeedRegistryMock public feedRegistry;
     ProtoDAOSettings public protoDAOSettings;
+    LinearPriceTemplate public linearPriceTemplate;
+    ExponentialPriceTemplate public exponentialPriceTemplate;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -113,6 +118,8 @@ contract DeployHelper is Test {
         _deployTestERC20();
         _deployAggregator();
         _deployTestERC721();
+        _deployPriceTemplate();
+        _deployRewardTemplate();
 
         _grantRole();
 
@@ -254,7 +261,7 @@ contract DeployHelper is Test {
     function _cutFacetsSettings() internal {
         //------------------------------------------------------------------------------------------------------
         // settings facet cut
-        bytes4[] memory selectors = new bytes4[](32);
+        bytes4[] memory selectors = new bytes4[](30);
         uint256 selectorIndex;
         // register AccessControl
         selectors[selectorIndex++] = IAccessControl.getRoleAdmin.selector;
@@ -273,7 +280,6 @@ contract DeployHelper is Test {
         selectors[selectorIndex++] = ID4ASettingsReadable.ratioBase.selector;
         selectors[selectorIndex++] = ID4ASettingsReadable.createProjectFee.selector;
         selectors[selectorIndex++] = ID4ASettingsReadable.createCanvasFee.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.defaultNftPriceMultiplyFactor.selector;
         // register D4ASettings
         selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
         selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
@@ -285,7 +291,6 @@ contract DeployHelper is Test {
         selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
         selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
         selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeNftPriceMultiplyFactor.selector;
         selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
         selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
         selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
@@ -520,6 +525,11 @@ contract DeployHelper is Test {
         uint256 nftMinterERC20Ratio;
         uint256 daoFeePoolETHRatio;
         uint256 daoFeePoolETHRatioFlatPrice;
+        address priceTemplate;
+        uint256 priceFactor;
+        address rewardTemplate;
+        uint256[] erc20IssueAmounts;
+        uint256[] drbPerIssuePeriods;
         uint256 actionType;
     }
 
@@ -556,6 +566,13 @@ contract DeployHelper is Test {
                 nftMinterERC20Ratio: createDaoParam.nftMinterERC20Ratio,
                 daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatio,
                 daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioFlatPrice
+            }),
+            TemplateParam({
+                priceTemplate: createDaoParam.priceTemplate,
+                priceFactor: createDaoParam.priceFactor,
+                rewardTemplate: createDaoParam.rewardTemplate,
+                erc20IssueAmounts: createDaoParam.erc20IssueAmounts,
+                drbPerIssuePeriods: createDaoParam.drbPerIssuePeriods
             }),
             createDaoParam.actionType
         );
@@ -621,4 +638,14 @@ contract DeployHelper is Test {
         createDaoParam.actionType = 2;
         daoId = _createDao(createDaoParam);
     }
+
+    function _deployPriceTemplate() internal {
+        linearPriceTemplate = new LinearPriceTemplate();
+        vm.label(address(linearPriceTemplate), "Linear Price Template");
+
+        exponentialPriceTemplate = new ExponentialPriceTemplate();
+        vm.label(address(exponentialPriceTemplate), "Exponential Price Template");
+    }
+
+    function _deployRewardTemplate() internal { }
 }

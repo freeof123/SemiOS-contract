@@ -1,24 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
 
 import "../libraries/D4AProject.sol";
 import "../libraries/D4ACanvas.sol";
 import "../libraries/D4APrice.sol";
 import "../libraries/D4AReward.sol";
+import { PriceStorage } from "../storages/PriceStorage.sol";
+import { IPriceTemplate } from "../interface/IPriceTemplate.sol";
 
 abstract contract ID4AProtocol {
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
     using D4ACanvas for mapping(bytes32 => D4ACanvas.canvas_info);
-    using D4APrice for D4APrice.project_price_info;
-    using D4AReward for mapping(bytes32 => D4AReward.reward_info);
 
     // TODO: add getters for all the mappings
     mapping(bytes32 => D4AProject.project_info) internal _allProjects;
     mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
-    mapping(bytes32 => D4APrice.project_price_info) internal _allPrices;
-    mapping(bytes32 => D4AReward.reward_info) internal _allRewards;
     mapping(bytes32 => bytes32) public tokenid_2_canvas;
 
     address private __DEPRECATED_SETTINGS;
@@ -36,15 +34,7 @@ abstract contract ID4AProtocol {
         virtual
         returns (bytes32 project_id);
 
-    function createOwnerProject(
-        uint256 _start_prb,
-        uint256 _mintable_rounds,
-        uint256 _floor_price_rank,
-        uint256 _max_nft_rank,
-        uint96 _royalty_fee,
-        string memory _project_uri,
-        uint256 _project_index
-    )
+    function createOwnerProject(DaoMetadataParam calldata daoMetadata)
         external
         payable
         virtual
@@ -60,7 +50,6 @@ abstract contract ID4AProtocol {
         returns (
             uint256 start_prb,
             uint256 mintable_rounds,
-            uint256 floor_price_rank,
             uint256 max_nft_amount,
             address fee_pool,
             uint96 royalty_fee,
@@ -73,7 +62,7 @@ abstract contract ID4AProtocol {
     }
 
     function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
-        return _allProjects.getProjectFloorPrice(_project_id);
+        return PriceStorage.layout().daoFloorPrices[_project_id];
     }
 
     function getProjectTokens(bytes32 _project_id) public view returns (address erc20_token, address erc721_token) {
@@ -101,22 +90,17 @@ abstract contract ID4AProtocol {
         return _allCanvases.getCanvasURI(_canvas_id);
     }
 
-    function getCanvasLastPrice(bytes32 _canvas_id) public view returns (uint256 round, uint256 price) {
-        bytes32 proj_id = _allCanvases[_canvas_id].project_id;
-        return _allPrices[proj_id].getCanvasLastPrice(_canvas_id);
+    function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {
+        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().lastMintInfos[canvasId];
+        return (mintInfo.round, mintInfo.price);
     }
 
-    function getCanvasNextPrice(bytes32 _canvas_id) public view returns (uint256) {
+    function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
+        bytes32 daoId = _allCanvases[canvasId].project_id;
+        D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        bytes32 project_id = _allCanvases[_canvas_id].project_id;
-        D4AProject.project_info storage pi = _allProjects[project_id];
-        return _allPrices[project_id].getCanvasNextPrice(
-            l.drb.currentRound(),
-            pi.floor_prices,
-            pi.floor_price_rank,
-            pi.start_prb,
-            _canvas_id,
-            pi.nftPriceMultiplyFactor == 0 ? l.defaultNftPriceMultiplyFactor : pi.nftPriceMultiplyFactor
+        return IPriceTemplate(_allProjects[daoId].priceTemplate).getCanvasNextPrice(
+            daoId, canvasId, pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor
         );
     }
 
@@ -130,4 +114,6 @@ abstract contract ID4AProtocol {
     )
         external
         virtual;
+
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) external virtual;
 }

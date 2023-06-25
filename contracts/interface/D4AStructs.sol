@@ -37,3 +37,10 @@ struct DaoETHAndERC20SplitRatioParam {
     uint256 daoFeePoolETHRatio;
     uint256 daoFeePoolETHRatioFlatPrice;
 }
+
+struct TemplateParam {
+    address priceTemplate;
+    uint256 priceFactor;
+    address rewardTemplate;
+    uint256 rewardDecayFactor;
+}

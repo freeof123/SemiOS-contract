@@ -42,7 +42,7 @@ contract D4ARewardTest is DeployHelper {
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
@@ -220,7 +220,7 @@ contract D4ARewardTest is DeployHelper {
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
 
         // clean up rewards

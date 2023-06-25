@@ -42,7 +42,6 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         l.project_max_rounds = 366;
         l.reserved_slots = 110;
 
-        l.defaultNftPriceMultiplyFactor = 20_000;
         l.initialized = true;
     }
 
@@ -244,14 +243,5 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         _revokeRole(role, previousMember);
 
         emit MembershipTransferred(role, previousMember, newMember);
-    }
-
-    event DefaultNftPriceMultiplyFactorChanged(uint256 newDefaultNftPriceMultiplyFactor);
-
-    function changeNftPriceMultiplyFactor(uint256 newDefaultNftPriceMultiplyFactor) public onlyRole(PROTOCOL_ROLE) {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-
-        l.defaultNftPriceMultiplyFactor = newDefaultNftPriceMultiplyFactor;
-        emit DefaultNftPriceMultiplyFactorChanged(newDefaultNftPriceMultiplyFactor);
     }
 }

@@ -5,7 +5,8 @@ import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
@@ -152,6 +153,13 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 5000, 2000, 2500),
+            TemplateParam({
+                priceTemplate: address(exponentialPriceTemplate),
+                priceFactor: 20_000,
+                rewardTemplate: address(0),
+                erc20IssueAmounts: new uint256[](0),
+                drbPerIssuePeriods: new uint256[](0)
+            }),
             actionType
         );
         assertTrue(daoId != bytes32(0));
@@ -176,6 +184,13 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            TemplateParam({
+                priceTemplate: address(exponentialPriceTemplate),
+                priceFactor: 20_000,
+                rewardTemplate: address(0),
+                erc20IssueAmounts: new uint256[](0),
+                drbPerIssuePeriods: new uint256[](0)
+            }),
             1
         );
     }
@@ -239,6 +254,13 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            TemplateParam({
+                priceTemplate: address(exponentialPriceTemplate),
+                priceFactor: 20_000,
+                rewardTemplate: address(0),
+                erc20IssueAmounts: new uint256[](0),
+                drbPerIssuePeriods: new uint256[](0)
+            }),
             0
         );
         address splitter = daoProxy.getSplitterAddress(daoId);
