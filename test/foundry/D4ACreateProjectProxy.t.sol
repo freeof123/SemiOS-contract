@@ -156,8 +156,9 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             TemplateParam({
                 priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
-                rewardTemplate: address(0),
-                rewardDecayFactor: 20_000
+                rewardTemplate: address(linearRewardIssuance),
+                rewardDecayFactor: 20_000,
+                rewardDecayLife: 1
             }),
             actionType
         );
@@ -187,7 +188,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
                 priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
-                rewardDecayFactor: 20_000
+                rewardDecayFactor: 20_000,
+                rewardDecayLife: 1
             }),
             1
         );
@@ -255,8 +257,9 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             TemplateParam({
                 priceTemplate: address(exponentialPriceVariation),
                 priceFactor: 20_000,
-                rewardTemplate: address(0),
-                rewardDecayFactor: 20_000
+                rewardTemplate: address(linearRewardIssuance),
+                rewardDecayFactor: 20_000,
+                rewardDecayLife: 1
             }),
             0
         );

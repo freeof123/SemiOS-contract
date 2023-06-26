@@ -98,8 +98,8 @@ abstract contract ID4AProtocol {
     function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
         bytes32 daoId = _allCanvases[canvasId].project_id;
         uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
-        PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
-        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
+        PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         return IPriceTemplate(_allProjects[daoId].priceTemplate).getCanvasNextPrice(

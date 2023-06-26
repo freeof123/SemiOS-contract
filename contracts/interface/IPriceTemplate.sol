@@ -23,5 +23,6 @@ interface IPriceTemplate {
         uint256 price,
         uint256 priceMultiplierInBps
     )
-        external;
+        external
+        payable;
 }

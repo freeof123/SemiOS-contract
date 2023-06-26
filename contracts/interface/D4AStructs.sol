@@ -43,6 +43,7 @@ struct TemplateParam {
     uint256 priceFactor;
     address rewardTemplate;
     uint256 rewardDecayFactor;
+    uint256 rewardDecayLife;
 }
 
 struct GetRoundRewardParam {

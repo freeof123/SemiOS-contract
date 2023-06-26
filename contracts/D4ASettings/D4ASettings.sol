@@ -244,4 +244,9 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
 
         emit MembershipTransferred(role, previousMember, newMember);
     }
+
+    function registerAllowedTemplate(address template) public onlyRole(PROTOCOL_ROLE) {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        l.allowedTemplates[template] = true;
+    }
 }

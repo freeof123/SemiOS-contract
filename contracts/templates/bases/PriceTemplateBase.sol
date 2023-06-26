@@ -46,6 +46,7 @@ abstract contract PriceTemplateBase is IPriceTemplate {
         uint256 priceFactor
     )
         public
+        payable
     {
         PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
         PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];

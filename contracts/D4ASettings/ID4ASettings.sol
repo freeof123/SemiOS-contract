@@ -47,4 +47,6 @@ interface ID4ASettings {
     function setCanvasPause(bytes32 obj_id, bool is_paused) external;
 
     function transferMembership(bytes32 role, address previousMember, address newMember) external;
+
+    function registerAllowedTemplate(address template) external;
 }

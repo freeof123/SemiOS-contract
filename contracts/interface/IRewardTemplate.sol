@@ -15,7 +15,8 @@ interface IRewardTemplate {
         uint256 daoCreatorERC20RatioInBps,
         uint256 canvasRebateRatioInBps
     )
-        external;
+        external
+        payable;
 
     function claimDaoCreatorReward(
         bytes32 daoId,

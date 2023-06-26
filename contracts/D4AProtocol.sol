@@ -62,8 +62,6 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     uint256 public project_bitmap;
 
-    mapping(address template => bool allowed) public allowedTemplates;
-
     // event from library
     event NewProject(
         bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
@@ -394,9 +392,17 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         internal
     {
         if (flatPrice == 0) {
-            IPriceTemplate(_allProjects[daoId].priceTemplate).updateCanvasPrice(
-                daoId, canvasId, currentRound, price, nftPriceMultiplyFactor
+            (bool succ,) = _allProjects[daoId].priceTemplate.delegatecall(
+                abi.encodeWithSelector(
+                    IPriceTemplate.updateCanvasPrice.selector,
+                    daoId,
+                    canvasId,
+                    currentRound,
+                    price,
+                    nftPriceMultiplyFactor
+                )
             );
+            require(succ);
             // _allPrices[daoId].updateCanvasPrice(currentRound, canvasId, price, nftPriceMultiplyFactor);
         }
     }
@@ -539,13 +545,13 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ACanvas.canvas_info memory ci = _allCanvases[canvasId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
-        (bool succ,) = _allProjects[daoId].rewardTemplate.delegatecall(
+        (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.updateReward.selector,
                 daoId,
                 canvasId,
                 pi.start_prb,
-                l.drb.currentRound,
+                l.drb.currentRound(),
                 pi.mintable_rounds,
                 daoFeeAmount,
                 l.protocolERC20RatioInBps,
@@ -782,7 +788,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _checkCaller(l.project_proxy);
-        if (!allowedTemplates[templateParam.priceTemplate] || !allowedTemplates[templateParam.rewardTemplate]) {
+        if (!l.allowedTemplates[templateParam.priceTemplate] || !l.allowedTemplates[templateParam.rewardTemplate]) {
             revert InvalidTemplate();
         }
 
@@ -790,6 +796,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         _allProjects[daoId].nftPriceFactor = templateParam.priceFactor;
         _allProjects[daoId].rewardTemplate = templateParam.rewardTemplate;
         rewardInfo.decayFactor = templateParam.rewardDecayFactor;
+        rewardInfo.decayLife = templateParam.rewardDecayLife;
 
         emit DaoTemplateSet(daoId, templateParam);
     }

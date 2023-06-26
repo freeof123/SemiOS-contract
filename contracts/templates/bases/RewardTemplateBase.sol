@@ -21,6 +21,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         uint256 canvasRebateRatioInBps
     )
         public
+        payable
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 

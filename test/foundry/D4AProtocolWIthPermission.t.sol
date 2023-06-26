@@ -159,6 +159,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 1);
     }
@@ -181,6 +185,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 6;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
         vm.expectRevert(D4AProtocolWithPermission.ExceedMaxMintAmount.selector);
@@ -311,6 +319,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
     }
@@ -334,6 +346,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(D4AProtocolWithPermission.Blacklisted.selector);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
@@ -358,6 +374,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(D4AProtocolWithPermission.NotInWhitelist.selector);
         protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
