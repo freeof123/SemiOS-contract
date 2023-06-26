@@ -19,7 +19,6 @@ import { PermissionControl } from "contracts/permission-control/PermissionContro
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
-import { ProtoDAOSettings } from "contracts/ProtoDAOSettings/ProtoDAOSettings.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
 
 contract D4AAddress is CommonBase {
@@ -52,8 +51,6 @@ contract D4AAddress is CommonBase {
         D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission.impl"));
     D4ADiamond public d4aDiamond = D4ADiamond(payable(json.readAddress(".D4AProtocolWithPermission.D4ADiamond")));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".D4AProtocolWithPermission.D4ASettings"));
-    ProtoDAOSettings public protoDaoSettings =
-        ProtoDAOSettings(json.readAddress(".D4AProtocolWithPermission.ProtoDAOSettings"));
 
     // permission control
     TransparentUpgradeableProxy public permissionControl_proxy =
