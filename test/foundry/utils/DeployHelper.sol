@@ -27,7 +27,6 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-import { IProtoDAOSettingsReadable, IProtoDAOSettingsWritable } from "contracts/ProtoDAOSettings/IProtoDAOSettings.sol";
 
 // contracts
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
@@ -44,7 +43,6 @@ import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721Factory } from "contracts/D4AERC721.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { ProtoDAOSettings } from "contracts/ProtoDAOSettings/ProtoDAOSettings.sol";
 import { FeedRegistryMock } from "./mocks/FeedRegistryMock.sol";
 import { AggregatorV3Mock } from "./mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
@@ -77,7 +75,6 @@ contract DeployHelper is Test {
     IUniswapV2Factory public uniswapV2Factory;
     IUniswapV2Router public uniswapV2Router;
     FeedRegistryMock public feedRegistry;
-    ProtoDAOSettings public protoDAOSettings;
     LinearPriceVariation public linearPriceVariation;
     ExponentialPriceVariation public exponentialPriceVariation;
     LinearRewardIssuance public linearRewardIssuance;
@@ -257,7 +254,6 @@ contract DeployHelper is Test {
             )
         );
         _cutFacetsSettings();
-        _cutFacetsProtoDAOSettings();
 
         vm.label(address(protocol), "Protocol");
         vm.label(address(diamond), "Diamond");
@@ -318,29 +314,6 @@ contract DeployHelper is Test {
         D4ADiamond(payable(address(protocol))).setFallbackAddressAndCall(
             address(protocolImpl), address(protocolImpl), abi.encodeWithSignature("initialize()")
         );
-    }
-
-    function _cutFacetsProtoDAOSettings() internal {
-        protoDAOSettings = new ProtoDAOSettings();
-
-        // ProtoDAO Settings facet cut
-        bytes4[] memory selectors = new bytes4[](5);
-        uint256 selectorIndex;
-        // register ProtoDAOSettingsReadable
-        selectors[selectorIndex++] = IProtoDAOSettingsReadable.getCanvasCreatorERC20Ratio.selector;
-        selectors[selectorIndex++] = IProtoDAOSettingsReadable.getNftMinterERC20Ratio.selector;
-        selectors[selectorIndex++] = IProtoDAOSettingsReadable.getDaoFeePoolETHRatio.selector;
-        selectors[selectorIndex++] = IProtoDAOSettingsReadable.getDaoFeePoolETHRatioFlatPrice.selector;
-        // register ProtoDAOSettingsWritable
-        selectors[selectorIndex++] = IProtoDAOSettingsWritable.setRatio.selector;
-
-        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(protoDAOSettings),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
-        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {
@@ -546,15 +519,17 @@ contract DeployHelper is Test {
         uint256 mintCap;
         address[] minters;
         uint256[] userMintCaps;
-        uint256 canvasCreatorERC20Ratio;
-        uint256 nftMinterERC20Ratio;
-        uint256 daoFeePoolETHRatio;
-        uint256 daoFeePoolETHRatioFlatPrice;
+        uint256 canvasCreatorERC20RatioInBps;
+        uint256 nftMinterERC20RatioInBps;
+        uint256 daoFeePoolETHRatioInBps;
+        uint256 daoFeePoolETHRatioInBpsFlatPrice;
+        uint256 protocol;
         address priceTemplate;
         uint256 priceFactor;
         address rewardTemplate;
         uint256 rewardDecayFactor;
         uint256 rewardDecayLife;
+        bool isProgressiveJackpot;
         uint256 actionType;
     }
 
@@ -587,17 +562,18 @@ contract DeployHelper is Test {
             }),
             daoMintCapParam,
             DaoETHAndERC20SplitRatioParam({
-                canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20Ratio,
-                nftMinterERC20Ratio: createDaoParam.nftMinterERC20Ratio,
-                daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatio,
-                daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioFlatPrice
+                canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20RatioInBps,
+                nftMinterERC20Ratio: createDaoParam.nftMinterERC20RatioInBps,
+                daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatioInBps,
+                daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioInBpsFlatPrice
             }),
             TemplateParam({
                 priceTemplate: createDaoParam.priceTemplate,
                 priceFactor: createDaoParam.priceFactor,
                 rewardTemplate: createDaoParam.rewardTemplate,
                 rewardDecayFactor: createDaoParam.rewardDecayFactor,
-                rewardDecayLife: createDaoParam.rewardDecayLife
+                rewardDecayLife: createDaoParam.rewardDecayLife,
+                isProgressiveJackpot: createDaoParam.isProgressiveJackpot
             }),
             createDaoParam.actionType
         );
@@ -624,6 +600,10 @@ contract DeployHelper is Test {
             projectUri: projectUri,
             projectIndex: 0
         });
+        createDaoParam.canvasCreatorERC20RatioInBps = 7000;
+        createDaoParam.nftMinterERC20RatioInBps = 3000;
+        createDaoParam.daoFeePoolETHRatioInBps = 3000;
+        createDaoParam.daoFeePoolETHRatioInBpsFlatPrice = 3500;
         createDaoParam.priceTemplate = address(exponentialPriceVariation);
         createDaoParam.priceFactor = 20_000;
         createDaoParam.rewardTemplate = address(linearRewardIssuance);

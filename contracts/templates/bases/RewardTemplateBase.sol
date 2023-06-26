@@ -2,53 +2,43 @@
 pragma solidity ^0.8.18;
 
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
-import { GetRoundRewardParam } from "contracts/interface/D4AStructs.sol";
+import { UpdateRewardParam, GetRoundRewardParam } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
 abstract contract RewardTemplateBase is IRewardTemplate {
-    function updateReward(
-        bytes32 daoId,
-        bytes32 canvasId,
-        uint256 startRound,
-        uint256 currentRound,
-        uint256 totalRound,
-        uint256 daoFeeAmount,
-        uint256 protocolERC20RatioInBps,
-        uint256 daoCreatorERC20RatioInBps,
-        uint256 canvasRebateRatioInBps
-    )
-        public
-        payable
-    {
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+    function updateReward(UpdateRewardParam memory param) public payable {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
+
+        // update initial mint pending round
+        if (rewardInfo.rewardPendingRound == type(uint256).max) rewardInfo.rewardPendingRound = param.currentRound;
+        _updateRewardRound(rewardInfo, param.currentRound);
 
         uint256 length = rewardInfo.activeRounds.length;
         if (rewardInfo.isProgressiveJackpot) {
-            if (length != 0 && rewardInfo.activeRounds[length - 1] - startRound > totalRound) {
+            if (length != 0 && rewardInfo.activeRounds[length - 1] - param.startRound > param.totalRound) {
                 revert ExceedMaxMintableRound();
             }
         } else {
-            if (length != 0 && rewardInfo.activeRounds[length - 1] != currentRound) {
-                if (length >= totalRound) revert ExceedMaxMintableRound();
+            if (length != 0 && rewardInfo.activeRounds[length - 1] != param.currentRound) {
+                if (length >= param.totalRound) revert ExceedMaxMintableRound();
             }
         }
 
-        rewardInfo.totalWeights[currentRound] += daoFeeAmount;
-        rewardInfo.protocolWeights[currentRound] += daoFeeAmount * protocolERC20RatioInBps / BASIS_POINT;
-        rewardInfo.daoCreatorWeights[currentRound] += daoFeeAmount * daoCreatorERC20RatioInBps / BASIS_POINT;
+        rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
+        rewardInfo.protocolWeights[param.currentRound] +=
+            param.daoFeeAmount * param.protocolERC20RatioInBps / BASIS_POINT;
+        rewardInfo.daoCreatorWeights[param.currentRound] +=
+            param.daoFeeAmount * param.daoCreatorERC20RatioInBps / BASIS_POINT;
 
         uint256 tokenRebateAmount =
-            daoFeeAmount * rewardInfo.nftMinterERC20RatioInBps * canvasRebateRatioInBps / BASIS_POINT ** 2;
-        rewardInfo.canvasCreatorWeights[currentRound][canvasId] += daoFeeAmount
-            * rewardInfo.canvasCreatorERC20RatioInBps * (BASIS_POINT - protocolERC20RatioInBps - daoCreatorERC20RatioInBps)
-            / BASIS_POINT ** 2 + tokenRebateAmount;
-        rewardInfo.nftMinterWeights[currentRound][msg.sender] += daoFeeAmount * rewardInfo.nftMinterERC20RatioInBps
-            * (BASIS_POINT - protocolERC20RatioInBps - daoCreatorERC20RatioInBps) / BASIS_POINT ** 2 - tokenRebateAmount;
-
-        _updateRewardRound(rewardInfo, currentRound);
+            param.daoFeeAmount * rewardInfo.nftMinterERC20RatioInBps * param.canvasRebateRatioInBps / BASIS_POINT ** 2;
+        rewardInfo.canvasCreatorWeights[param.currentRound][param.canvasId] +=
+            param.daoFeeAmount * param.canvasCreatorERC20RatioInBps / BASIS_POINT + tokenRebateAmount;
+        rewardInfo.nftMinterWeights[param.currentRound][msg.sender] +=
+            param.daoFeeAmount * param.nftMinterERC20RatioInBps / BASIS_POINT - tokenRebateAmount;
     }
 
     function claimDaoCreatorReward(
@@ -61,6 +51,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         address token
     )
         public
+        returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRound(rewardInfo, currentRound);
@@ -68,8 +59,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
 
-        uint256 protocolClaimableReward;
-        uint256 daoCreatorClaimableReward;
         // enumerate all active rounds, not including current round
         uint256 i = rewardInfo.daoCreatorClaimableRoundIndex;
         for (; i < length;) {
@@ -87,6 +76,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 )
             );
             // update protocol's claimable reward
+
             protocolClaimableReward +=
                 roundReward * rewardInfo.protocolWeights[activeRounds[i]] / rewardInfo.totalWeights[activeRounds[i]];
             // update dao creator's claimable reward
@@ -112,6 +102,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         address token
     )
         public
+        returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRound(rewardInfo, currentRound);
@@ -119,9 +110,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
 
-        uint256 claimableReward;
         // enumerate all active rounds, not including current round
         uint256 i = rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId];
+
         for (; i < length;) {
             // given a past active round, get round reward
             uint256 roundReward = getRoundReward(
@@ -157,6 +148,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         address token
     )
         public
+        returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRound(rewardInfo, currentRound);
@@ -164,7 +156,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
 
-        uint256 claimableReward;
         // enumerate all active rounds, not including current round
         uint256 i = rewardInfo.nftMinterClaimableRoundIndexes[nftMinter];
         for (; i < length;) {
@@ -197,7 +188,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
     function _updateRewardRound(RewardStorage.RewardInfo storage rewardInfo, uint256 currentRound) internal {
         uint256 pendingRound = rewardInfo.rewardPendingRound;
-        if (currentRound == pendingRound) return;
+        if (pendingRound == type(uint256).max || currentRound == pendingRound) return;
 
         rewardInfo.activeRounds.push(pendingRound);
         rewardInfo.rewardPendingRound = currentRound;

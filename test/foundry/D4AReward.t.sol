@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
@@ -83,9 +84,9 @@ contract D4ARewardTest is DeployHelper {
 
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
-        assertEq(token.balanceOf(protocolFeePool.addr), protocolRewardPerRound);
-        assertEq(token.balanceOf(daoCreator.addr), daoRewardPerRound);
-        assertEq(token.balanceOf(canvasCreator.addr), canvasRewardPerRound);
+        assertEq(token.balanceOf(protocolFeePool.addr), protocolRewardPerRound, "protocol fee pool");
+        assertEq(token.balanceOf(daoCreator.addr), daoRewardPerRound, "dao creator");
+        assertEq(token.balanceOf(canvasCreator.addr), canvasRewardPerRound, "canvas creator");
 
         // tally rewards
         protocolTotalReward += protocolRewardPerRound;
@@ -274,7 +275,7 @@ contract D4ARewardTest is DeployHelper {
 
         startHoax(nftMinter.addr);
         price = protocol.getCanvasNextPrice(canvasId1);
-        vm.expectRevert("rounds end, cannot mint");
+        vm.expectRevert(ExceedMaxMintableRound.selector);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );

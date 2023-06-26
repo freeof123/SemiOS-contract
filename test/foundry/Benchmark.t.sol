@@ -59,7 +59,8 @@ contract Benchmark is DeployHelper {
                 priceFactor: 20_000,
                 rewardTemplate: address(linearRewardIssuance),
                 rewardDecayFactor: 0,
-                rewardDecayLife: 1
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
             }),
             0
         );

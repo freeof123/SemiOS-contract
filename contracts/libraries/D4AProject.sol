@@ -4,8 +4,8 @@ pragma solidity >=0.8.10;
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "../interface/ID4AChangeAdmin.sol";
-import { ProtoDAOSettingsBaseStorage } from "../ProtoDAOSettings/ProtoDAOSettingsBaseStorage.sol";
 import { PriceStorage } from "../storages/PriceStorage.sol";
+import { RewardStorage } from "../storages/RewardStorage.sol";
 import "../D4AERC721.sol";
 import "../feepool/D4AFeePool.sol";
 import "../D4AERC20.sol";
@@ -30,6 +30,8 @@ library D4AProject {
         uint256 nftPriceFactor;
         address priceTemplate;
         address rewardTemplate;
+        uint256 daoFeePoolETHRatioInBps;
+        uint256 daoFeePoolETHRatioInBpsFlatPrice;
     }
 
     using StringsUpgradeable for uint256;
@@ -74,10 +76,6 @@ library D4AProject {
 
         project_id = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
 
-        // set ProtoDAO settings
-        ProtoDAOSettingsBaseStorage.DaoInfo storage di = ProtoDAOSettingsBaseStorage.layout().allDaos[project_id];
-        di.newDAO = true;
-
         if (_allProjects[project_id].exist) revert D4AProjectAlreadyExist(project_id);
         {
             project_info storage pi = _allProjects[project_id];
@@ -121,6 +119,10 @@ library D4AProject {
             pi.erc20_total_supply = l.erc20_total_supply;
 
             PriceStorage.layout().daoFloorPrices[project_id] = l.floor_prices[_floor_price_rank];
+            RewardStorage.layout().rewardInfos[project_id].totalReward = l.erc20_total_supply;
+            // TODO: remove this to save gas? because impossible to mint NFT at round 0, or change prb such that it
+            // starts at round 1
+            RewardStorage.layout().rewardInfos[project_id].rewardPendingRound = type(uint256).max;
 
             pi.exist = true;
             emit NewProject(project_id, _project_uri, pool, pi.erc20_token, pi.erc721_token, _royalty_fee);

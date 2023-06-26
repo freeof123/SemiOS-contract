@@ -18,7 +18,6 @@ import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { IProtoDAOSettingsWritable } from "contracts/ProtoDaoSettings/IProtoDAOSettingsWritable.sol";
 
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
@@ -130,7 +129,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         if ((actionType & 0x10) != 0) {
-            IProtoDAOSettingsWritable(address(protocol)).setRatio(
+            protocol.setRatio(
                 projectId,
                 splitRatioParam.canvasCreatorERC20Ratio,
                 splitRatioParam.nftMinterERC20Ratio,

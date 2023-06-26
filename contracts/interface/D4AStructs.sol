@@ -44,6 +44,7 @@ struct TemplateParam {
     address rewardTemplate;
     uint256 rewardDecayFactor;
     uint256 rewardDecayLife;
+    bool isProgressiveJackpot;
 }
 
 struct GetRoundRewardParam {
@@ -55,4 +56,18 @@ struct GetRoundRewardParam {
     uint256 decayFactor;
     uint256 decayLife;
     bool isProgressiveJackpot;
+}
+
+struct UpdateRewardParam {
+    bytes32 daoId;
+    bytes32 canvasId;
+    uint256 startRound;
+    uint256 currentRound;
+    uint256 totalRound;
+    uint256 daoFeeAmount;
+    uint256 protocolERC20RatioInBps;
+    uint256 daoCreatorERC20RatioInBps;
+    uint256 canvasCreatorERC20RatioInBps;
+    uint256 nftMinterERC20RatioInBps;
+    uint256 canvasRebateRatioInBps;
 }

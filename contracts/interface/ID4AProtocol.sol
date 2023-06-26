@@ -8,6 +8,7 @@ import "../libraries/D4ACanvas.sol";
 import "../libraries/D4APrice.sol";
 import "../libraries/D4AReward.sol";
 import { PriceStorage } from "../storages/PriceStorage.sol";
+import { RewardStorage } from "../storages/RewardStorage.sol";
 import { IPriceTemplate } from "../interface/IPriceTemplate.sol";
 
 abstract contract ID4AProtocol {
@@ -119,4 +120,48 @@ abstract contract ID4AProtocol {
         virtual;
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) external virtual;
+
+    function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        uint256 canvasCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].canvasCreatorERC20RatioInBps;
+        if (canvasCreatorERC20RatioInBps == 0) {
+            return l.canvas_erc20_ratio;
+        }
+        return canvasCreatorERC20RatioInBps * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
+    }
+
+    function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        uint256 nftMinterERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].nftMinterERC20RatioInBps;
+        if (nftMinterERC20RatioInBps == 0) {
+            return 0;
+        }
+        return nftMinterERC20RatioInBps * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
+    }
+
+    function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
+        if (_allProjects[daoId].daoFeePoolETHRatioInBps == 0) {
+            return D4ASettingsBaseStorage.layout().mint_project_fee_ratio;
+        }
+        return _allProjects[daoId].daoFeePoolETHRatioInBps;
+    }
+
+    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
+        if (_allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice == 0) {
+            return D4ASettingsBaseStorage.layout().mint_project_fee_ratio_flat_price;
+        }
+        return _allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice;
+    }
+
+    function setRatio(
+        bytes32 daoId,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+        virtual;
 }

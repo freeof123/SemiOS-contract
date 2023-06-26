@@ -7,15 +7,20 @@ import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { NotDaoOwner, InvalidTemplate } from "contracts/interface/D4AErrors.sol";
-import { DaoMetadataParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
+import {
+    NotDaoOwner,
+    InvalidTemplate,
+    InvalidERC20Ratio,
+    InvalidERC20Ratio,
+    InvalidETHRatio
+} from "contracts/interface/D4AErrors.sol";
+import { DaoMetadataParam, TemplateParam, UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { D4ASettingsBaseStorage } from "./D4ASettings/D4ASettingsBaseStorage.sol";
 import { D4AProject } from "./libraries/D4AProject.sol";
 import { D4ACanvas } from "./libraries/D4ACanvas.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
-import { IProtoDAOSettingsReadable } from "./ProtoDAOSettings/IProtoDAOSettingsReadable.sol";
 import { ID4AERC721 } from "./interface/ID4AERC721.sol";
 import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
@@ -354,11 +359,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
             address canvasOwner = l.owner_proxy.ownerOf(canvasId);
             // uint256 daoShare = (flatPrice == 0 ? l.mint_project_fee_ratio : l.mint_project_fee_ratio_flat_price) *
             // price;
-            uint256 daoShare = (
-                flatPrice == 0
-                    ? IProtoDAOSettingsReadable(address(this)).getDaoFeePoolETHRatio(daoId)
-                    : IProtoDAOSettingsReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId)
-            ) * price;
+            uint256 daoShare =
+                (flatPrice == 0 ? getDaoFeePoolETHRatio(daoId) : getDaoFeePoolETHRatioFlatPrice(daoId)) * price;
 
             (vars.daoFee,) =
                 _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, ci.canvasRebateRatioInBps);
@@ -548,18 +550,27 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.updateReward.selector,
-                daoId,
-                canvasId,
-                pi.start_prb,
-                l.drb.currentRound(),
-                pi.mintable_rounds,
-                daoFeeAmount,
-                l.protocolERC20RatioInBps,
-                l.daoCreatorERC20RatioInBps,
-                ci.canvasRebateRatioInBps
+                UpdateRewardParam(
+                    daoId,
+                    canvasId,
+                    pi.start_prb,
+                    l.drb.currentRound(),
+                    pi.mintable_rounds,
+                    daoFeeAmount,
+                    l.protocolERC20RatioInBps,
+                    l.daoCreatorERC20RatioInBps,
+                    getCanvasCreatorERC20Ratio(canvasId),
+                    getNftMinterERC20Ratio(canvasId),
+                    ci.canvasRebateRatioInBps
+                )
             )
         );
-        require(succ);
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                revert(add(data, 32), mload(data))
+            }
+        }
     }
 
     error NotEnoughEther();
@@ -797,7 +808,48 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         _allProjects[daoId].rewardTemplate = templateParam.rewardTemplate;
         rewardInfo.decayFactor = templateParam.rewardDecayFactor;
         rewardInfo.decayLife = templateParam.rewardDecayLife;
+        rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
 
         emit DaoTemplateSet(daoId, templateParam);
+    }
+
+    event DaoRatioSet(
+        bytes32 daoId,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    );
+
+    function setRatio(
+        bytes32 daoId,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+        override
+    {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        if (msg.sender != l.owner_proxy.ownerOf(daoId) && msg.sender != l.project_proxy) revert NotDaoOwner();
+        if (canvasCreatorERC20Ratio + nftMinterERC20Ratio != l.ratio_base) {
+            revert InvalidERC20Ratio();
+        }
+        uint256 ratioBase = l.ratio_base;
+        uint256 d4aETHRatio = l.mint_d4a_fee_ratio;
+        if (daoFeePoolETHRatioFlatPrice > ratioBase - d4aETHRatio || daoFeePoolETHRatio > daoFeePoolETHRatioFlatPrice) {
+            revert InvalidETHRatio();
+        }
+
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        rewardInfo.canvasCreatorERC20RatioInBps = canvasCreatorERC20Ratio;
+        rewardInfo.nftMinterERC20RatioInBps = nftMinterERC20Ratio;
+        _allProjects[daoId].daoFeePoolETHRatioInBps = daoFeePoolETHRatio;
+        _allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice = daoFeePoolETHRatioFlatPrice;
+
+        emit DaoRatioSet(
+            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+        );
     }
 }

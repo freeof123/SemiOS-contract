@@ -135,7 +135,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             vm.expectCall({
                 callee: address(protocol),
                 msgValue: 0,
-                data: abi.encodeWithSelector(protoDAOSettings.setRatio.selector),
+                data: abi.encodeWithSelector(protocol.setRatio.selector),
                 count: 1
             });
         }
@@ -158,7 +158,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
                 priceFactor: 20_000,
                 rewardTemplate: address(linearRewardIssuance),
                 rewardDecayFactor: 20_000,
-                rewardDecayLife: 1
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
             }),
             actionType
         );
@@ -189,7 +190,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
                 priceFactor: 20_000,
                 rewardTemplate: address(0),
                 rewardDecayFactor: 20_000,
-                rewardDecayLife: 1
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
             }),
             1
         );
@@ -259,7 +261,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
                 priceFactor: 20_000,
                 rewardTemplate: address(linearRewardIssuance),
                 rewardDecayFactor: 20_000,
-                rewardDecayLife: 1
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
             }),
             0
         );
