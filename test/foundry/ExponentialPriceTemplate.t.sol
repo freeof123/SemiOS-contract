@@ -32,27 +32,53 @@ contract exponentialPriceVariationTest is Test {
     // At round 0, will get floor price
     function test_getCanvasNextPrice_MaxPriceZeroRoundAndStartDrb() public {
         uint256 round = 0;
-        uint256 price = exponentialPriceVariation.getCanvasNextPrice(daoId, canvasId1, round, round, priceMultiplier);
+        uint256 price = exponentialPriceVariation.getCanvasNextPrice(
+            round,
+            round,
+            priceMultiplier,
+            floorPrice,
+            PriceStorage.layout().daoMaxPrices[daoId],
+            PriceStorage.layout().canvasLastMintInfos[canvasId1]
+        );
         assertEq(price, floorPrice);
     }
 
     function testFuzz_getCanvasNextPrice_MaxPriceZeroRoundAndStartDrb(uint256 round) public {
-        uint256 price = exponentialPriceVariation.getCanvasNextPrice(daoId, canvasId1, round, round, priceMultiplier);
+        uint256 price = exponentialPriceVariation.getCanvasNextPrice(
+            round,
+            round,
+            priceMultiplier,
+            floorPrice,
+            PriceStorage.layout().daoMaxPrices[daoId],
+            PriceStorage.layout().canvasLastMintInfos[canvasId1]
+        );
         assertEq(price, floorPrice);
     }
 
     function test_getCanvasNextPrice_MaxPriceZeroRoundNotStartDrb() public {
         uint256 startRound = 0;
         uint256 round = 1;
-        uint256 price =
-            exponentialPriceVariation.getCanvasNextPrice(daoId, canvasId1, startRound, round, priceMultiplier);
+        uint256 price = exponentialPriceVariation.getCanvasNextPrice(
+            startRound,
+            round,
+            priceMultiplier,
+            floorPrice,
+            PriceStorage.layout().daoMaxPrices[daoId],
+            PriceStorage.layout().canvasLastMintInfos[canvasId1]
+        );
         assertEq(price, floorPrice >> 1);
     }
 
     function testFuzz_getCanvasNextPrice_MaxPriceZeroRoundNotStartDrb(uint256 startRound, uint256 round) public {
         vm.assume(startRound < round);
-        uint256 price =
-            exponentialPriceVariation.getCanvasNextPrice(daoId, canvasId1, startRound, round, priceMultiplier);
+        uint256 price = exponentialPriceVariation.getCanvasNextPrice(
+            startRound,
+            round,
+            priceMultiplier,
+            floorPrice,
+            PriceStorage.layout().daoMaxPrices[daoId],
+            PriceStorage.layout().canvasLastMintInfos[canvasId1]
+        );
         assertEq(price, floorPrice >> 1);
     }
 }

@@ -91,16 +91,19 @@ abstract contract ID4AProtocol {
     }
 
     function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {
-        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().lastMintInfos[canvasId];
+        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         return (mintInfo.round, mintInfo.price);
     }
 
     function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
         bytes32 daoId = _allCanvases[canvasId].project_id;
+        uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
+        PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         return IPriceTemplate(_allProjects[daoId].priceTemplate).getCanvasNextPrice(
-            daoId, canvasId, pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor
+            pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
         );
     }
 

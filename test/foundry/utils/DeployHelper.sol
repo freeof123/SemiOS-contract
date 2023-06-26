@@ -50,6 +50,8 @@ import { AggregatorV3Mock } from "./mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
+import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
+import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -78,6 +80,8 @@ contract DeployHelper is Test {
     ProtoDAOSettings public protoDAOSettings;
     LinearPriceVariation public linearPriceVariation;
     ExponentialPriceVariation public exponentialPriceVariation;
+    LinearRewardIssuance public linearRewardIssuance;
+    ExponentialRewardIssuance public exponentialRewardIssuance;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -597,6 +601,10 @@ contract DeployHelper is Test {
             projectUri: projectUri,
             projectIndex: 0
         });
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         daoId = _createDao(createDaoParam);
     }
 
@@ -634,6 +642,10 @@ contract DeployHelper is Test {
         createDaoParam.minterAccounts = minterAccounts;
         createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardDecayFactor = 0;
         daoId = _createDao(createDaoParam);
     }
 
@@ -645,5 +657,11 @@ contract DeployHelper is Test {
         vm.label(address(exponentialPriceVariation), "Exponential Price Variation");
     }
 
-    function _deployRewardTemplate() internal { }
+    function _deployRewardTemplate() internal {
+        linearRewardIssuance = new LinearRewardIssuance();
+        vm.label(address(linearRewardIssuance), "Linear Reward Issuance");
+
+        exponentialRewardIssuance = new ExponentialRewardIssuance();
+        vm.label(address(exponentialRewardIssuance), "Exponential Reward Issuance");
+    }
 }

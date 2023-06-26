@@ -350,12 +350,12 @@ library D4AReward {
         ri.project_owner_to_claim_round_index = ri.final_issued_round_index + 1;
 
         {
-            uint256 d4a_amount = erc20_total_supply * l.d4a_erc20_ratio * n / (l.ratio_base * _total_rounds);
+            uint256 d4a_amount = erc20_total_supply * l.protocolERC20RatioInBps * n / (l.ratio_base * _total_rounds);
             if (d4a_amount != 0) {
-                IERC20Upgradeable(erc20_token).safeTransfer(l.protocol_fee_pool, d4a_amount);
+                IERC20Upgradeable(erc20_token).safeTransfer(l.protocolFeePool, d4a_amount);
             }
         }
-        uint256 project_amount = erc20_total_supply * l.project_erc20_ratio * n / (l.ratio_base * _total_rounds);
+        uint256 project_amount = erc20_total_supply * l.daoCreatorERC20RatioInBps * n / (l.ratio_base * _total_rounds);
 
         if (project_amount != 0) {
             address project_owner = l.owner_proxy.ownerOf(_project_id);

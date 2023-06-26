@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+
 interface IPriceTemplate {
     function getCanvasNextPrice(
-        bytes32 daoId,
-        bytes32 canvasId,
         uint256 startRound,
         uint256 currentRound,
-        uint256 priceMultiplierInBps
+        uint256 priceFactor,
+        uint256 daoFloorPrice,
+        PriceStorage.MintInfo memory maxPrice,
+        PriceStorage.MintInfo memory mintInfo
     )
         external
         view

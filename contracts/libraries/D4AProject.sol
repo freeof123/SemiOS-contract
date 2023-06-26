@@ -67,7 +67,7 @@ library D4AProject {
             uint256 minimal = l.create_project_fee;
             require(msg.value >= minimal, "not enough ether to create project");
 
-            SafeTransferLib.safeTransferETH(l.protocol_fee_pool, minimal);
+            SafeTransferLib.safeTransferETH(l.protocolFeePool, minimal);
             uint256 exchange = msg.value - minimal;
             if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }

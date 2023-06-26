@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { GetRoundRewardParam } from "contracts/interface/D4AStructs.sol";
+
 interface IRewardTemplate {
     function updateReward(
         bytes32 daoId,
@@ -9,12 +11,15 @@ interface IRewardTemplate {
         uint256 currentRound,
         uint256 totalRound,
         uint256 daoFeeAmount,
-        uint256 daoCreatorERC20RatioInBps
+        uint256 protocolERC20RatioInBps,
+        uint256 daoCreatorERC20RatioInBps,
+        uint256 canvasRebateRatioInBps
     )
         external;
 
     function claimDaoCreatorReward(
         bytes32 daoId,
+        address protocolFeePool,
         address daoCreator,
         uint256 startRound,
         uint256 currentRound,
@@ -44,17 +49,5 @@ interface IRewardTemplate {
     )
         external;
 
-    function getRoundReward(
-        uint256 totalReward,
-        uint256 startRound,
-        uint256 round,
-        uint256[] memory activeRounds,
-        uint256 totalRound,
-        uint256 decayFactor,
-        uint256 decayLife,
-        bool isProgressiveJackpot
-    )
-        external
-        pure
-        returns (uint256 rewardAmount);
+    function getRoundReward(GetRoundRewardParam memory param) external pure returns (uint256 rewardAmount);
 }

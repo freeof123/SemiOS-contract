@@ -18,7 +18,7 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
     }
 
     function protocolFeePool() public view returns (address) {
-        return D4ASettingsBaseStorage.layout().protocol_fee_pool;
+        return D4ASettingsBaseStorage.layout().protocolFeePool;
     }
 
     function tradeProtocolFeeRatio() public view returns (uint256) {

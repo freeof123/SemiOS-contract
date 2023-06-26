@@ -13,7 +13,8 @@ contract ProtoDAOSettingsReadable is IProtoDAOSettingsReadable {
         if (di.canvasCreatorERC20Ratio == 0 && di.nftMinterERC20Ratio == 0) {
             return l.canvas_erc20_ratio;
         }
-        return di.canvasCreatorERC20Ratio * (l.ratio_base - l.d4a_erc20_ratio - l.project_erc20_ratio) / l.ratio_base;
+        return di.canvasCreatorERC20Ratio * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
     }
 
     function getNftMinterERC20Ratio(bytes32 dao_id) public view returns (uint256) {
@@ -22,7 +23,8 @@ contract ProtoDAOSettingsReadable is IProtoDAOSettingsReadable {
         if (di.canvasCreatorERC20Ratio == 0 && di.nftMinterERC20Ratio == 0) {
             return 0;
         }
-        return di.nftMinterERC20Ratio * (l.ratio_base - l.d4a_erc20_ratio - l.project_erc20_ratio) / l.ratio_base;
+        return di.nftMinterERC20Ratio * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
     }
 
     function getDaoFeePoolETHRatio(bytes32 dao_id) public view returns (uint256) {

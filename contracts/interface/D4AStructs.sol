@@ -44,3 +44,14 @@ struct TemplateParam {
     address rewardTemplate;
     uint256 rewardDecayFactor;
 }
+
+struct GetRoundRewardParam {
+    uint256 totalReward;
+    uint256 startRound;
+    uint256 round;
+    uint256[] activeRounds;
+    uint256 totalRound;
+    uint256 decayFactor;
+    uint256 decayLife;
+    bool isProgressiveJackpot;
+}

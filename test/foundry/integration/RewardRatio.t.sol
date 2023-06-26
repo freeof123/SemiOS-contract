@@ -342,15 +342,20 @@ contract RewardRatioTest is DeployHelper {
 
         drb.changeRound(1);
         hoax(daoCreator.addr, 0);
-        protocol.claimProjectERC20RewardWithETH(daoId);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
         hoax(canvasCreator.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId1);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
         hoax(canvasCreator2.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId2);
+        protocol.claimCanvasReward(canvasId2);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter.addr), nftMinter.addr);
         startHoax(nftMinter2.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter2.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter2.addr), nftMinter2.addr);
 
         uint256 totalWeight = 15 ether;
         uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2;
@@ -729,15 +734,20 @@ contract RewardRatioTest is DeployHelper {
 
         drb.changeRound(1);
         hoax(daoCreator.addr, 0);
-        protocol.claimProjectERC20RewardWithETH(daoId);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
         hoax(canvasCreator.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId1);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
         hoax(canvasCreator2.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId2);
+        protocol.claimCanvasReward(canvasId2);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter.addr), nftMinter.addr);
         startHoax(nftMinter2.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter2.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter2.addr), nftMinter2.addr);
 
         uint256 totalWeight = 15 ether;
         uint256 canvasCreatorRebateAmount1 =

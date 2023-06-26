@@ -8,8 +8,8 @@ library PriceStorage {
     }
 
     struct Layout {
-        mapping(bytes32 canvasId => MintInfo mintInfo) lastMintInfos;
-        mapping(bytes32 daoId => MintInfo) maxPrices;
+        mapping(bytes32 canvasId => MintInfo mintInfo) canvasLastMintInfos;
+        mapping(bytes32 daoId => MintInfo) daoMaxPrices;
         mapping(bytes32 daoId => uint256 floorPrice) daoFloorPrices;
     }
 

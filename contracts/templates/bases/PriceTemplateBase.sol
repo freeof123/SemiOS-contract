@@ -6,20 +6,17 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 
 abstract contract PriceTemplateBase is IPriceTemplate {
     function getCanvasNextPrice(
-        bytes32 daoId,
-        bytes32 canvasId,
         uint256 startRound,
         uint256 currentRound,
-        uint256 priceFactor
+        uint256 priceFactor,
+        uint256 daoFloorPrice,
+        PriceStorage.MintInfo memory maxPrice,
+        PriceStorage.MintInfo memory mintInfo
     )
         public
-        view
+        pure
         returns (uint256)
     {
-        uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
-        PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().maxPrices[daoId];
-        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().lastMintInfos[canvasId];
-
         if (maxPrice.round == 0) {
             if (currentRound == startRound) return daoFloorPrice;
             else return daoFloorPrice >> 1;
@@ -50,8 +47,8 @@ abstract contract PriceTemplateBase is IPriceTemplate {
     )
         public
     {
-        PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().maxPrices[daoId];
-        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().lastMintInfos[canvasId];
+        PriceStorage.MintInfo storage maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
 
         uint256 maxPriceToCurrentRound = _getPriceInRound(maxPrice, currentRound, priceFactor);
         if (price >= maxPriceToCurrentRound) {
