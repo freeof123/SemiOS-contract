@@ -10,7 +10,9 @@ import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
+import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
+import "contracts/interface/D4AEnums.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
@@ -23,9 +25,14 @@ import { PermissionControl } from "contracts/permission-control/PermissionContro
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4ADrb } from "contracts/D4ADrb.sol";
+import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { D4AAddress } from "./utils/D4AAddress.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
+import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
+import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
+import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
+import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 
 contract Deploy is Script, Test, D4AAddress {
     using stdJson for string;
@@ -37,7 +44,7 @@ contract Deploy is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
 
-        _deployClaimer();
+        // _deployClaimer();
 
         // _deployDrb();
 
@@ -49,13 +56,22 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
-        // _deploySettings();
-
+        // _deployProtocolProxy();
         // _deployProtocol();
 
+        // _deploySettings();
+        // _cutSettingsFacet();
+
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
+        // _deployLinearRewardIssuance();
+        // _deployExponentialRewardIssuance();
+
         // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
         // _deployCreateProjectProxy();
+        // _deployCreateProjectProxyProxy();
 
         // _initSettings();
 
@@ -158,6 +174,62 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _cutSettingsFacet() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut D4ASettings facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // settings facet cut
+        bytes4[] memory selectors = new bytes4[](31);
+        uint256 selectorIndex;
+        // register AccessControl
+        selectors[selectorIndex++] = IAccessControl.getRoleAdmin.selector;
+        selectors[selectorIndex++] = IAccessControl.grantRole.selector;
+        selectors[selectorIndex++] = IAccessControl.hasRole.selector;
+        selectors[selectorIndex++] = IAccessControl.renounceRole.selector;
+        selectors[selectorIndex++] = IAccessControl.revokeRole.selector;
+        // register D4ASettingsReadable
+        selectors[selectorIndex++] = ID4ASettingsReadable.permissionControl.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.ownerProxy.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.mintProtocolFeeRatio.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatio.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatioFlatPrice.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.ratioBase.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.createProjectFee.selector;
+        selectors[selectorIndex++] = ID4ASettingsReadable.createCanvasFee.selector;
+        // register D4ASettings
+        selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeCreateFee.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeD4APause.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
+        selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
+        selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
+        selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;
+        selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
+        selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(d4aSettings),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(
+            facetCuts, address(d4aSettings), abi.encodeWithSelector(ID4ASettings.initializeD4ASettings.selector)
+        );
+
+        console2.log("================================================================================\n");
+    }
+
     function _deployProtocol() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AProtocol");
@@ -170,6 +242,94 @@ contract Deploy is Script, Test, D4AAddress {
         vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
 
         console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployProtocolProxy() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AProtocol proxy");
+
+        d4aProtocol_proxy = D4AProtocol(payable(new D4ADiamond()));
+        assertTrue(address(d4aProtocol_proxy) != address(0));
+
+        vm.toString(address(d4aProtocol_proxy)).write(path, ".D4AProtocol.proxy");
+
+        // initialize for the first time
+        // d4aProtocol_proxy.initialize();
+
+        console2.log("D4AProtocol proxy address: ", address(d4aProtocol_proxy));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployLinearPriceVariation() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy LinearPriceVariation");
+
+        linearPriceVariation = new LinearPriceVariation();
+        assertTrue(address(linearPriceVariation) != address(0));
+
+        vm.toString(address(linearPriceVariation)).write(path, ".D4AProtocol.LinearPriceVariation");
+
+        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
+        );
+
+        console2.log("LinearPriceVariation address: ", address(linearPriceVariation));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployExponentialPriceVariation() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy ExponentialPriceVariation");
+
+        exponentialPriceVariation = new ExponentialPriceVariation();
+        assertTrue(address(exponentialPriceVariation) != address(0));
+
+        vm.toString(address(exponentialPriceVariation)).write(path, ".D4AProtocol.ExponentialPriceVariation");
+
+        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PRICE,
+            uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
+            address(exponentialPriceVariation)
+        );
+
+        console2.log("ExponentialPriceVariation address: ", address(exponentialPriceVariation));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployLinearRewardIssuance() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy LinearRewardIssuance");
+
+        linearRewardIssuance = new LinearRewardIssuance();
+        assertTrue(address(linearRewardIssuance) != address(0));
+
+        vm.toString(address(linearRewardIssuance)).write(path, ".D4AProtocol.LinearRewardIssuance");
+
+        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
+        );
+
+        console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployExponentialRewardIssuance() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy ExponentialRewardIssuance");
+
+        exponentialRewardIssuance = new ExponentialRewardIssuance();
+        assertTrue(address(exponentialRewardIssuance) != address(0));
+
+        vm.toString(address(exponentialRewardIssuance)).write(path, ".D4AProtocol.ExponentialRewardIssuance");
+
+        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.REWARD,
+            uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+            address(exponentialRewardIssuance)
+        );
+
+        console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
         console2.log("================================================================================\n");
     }
 
@@ -187,6 +347,26 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployPermissionControlProxy() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PermissionControl proxy");
+
+        permissionControl_proxy = new TransparentUpgradeableProxy(
+                address(permissionControl_impl), 
+                address(proxyAdmin),
+                abi.encodeWithSignature(
+                    "initialize(address)",
+                    address(naiveOwner_proxy)
+                )
+            );
+        assertTrue(address(permissionControl_proxy) != address(0));
+
+        vm.toString(address(permissionControl_proxy)).write(path, ".PermissionControl.proxy");
+
+        console2.log("PermissionControl proxy address: ", address(permissionControl_proxy));
+        console2.log("================================================================================\n");
+    }
+
     function _deployCreateProjectProxy() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ACreateProjectProxy");
@@ -201,6 +381,29 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployCreateProjectProxyProxy() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4ACreateProjectProxy proxy");
+
+        d4aCreateProjectProxy_proxy = new TransparentUpgradeableProxy(
+                address(d4aCreateProjectProxy_impl),
+                address(proxyAdmin),
+                abi.encodeWithSignature(
+                    "initialize(address,address,address,address)",
+                    address(uniswapV2Factory),
+                    address(d4aProtocol_proxy),
+                    address(d4aRoyaltySplitterFactory), 
+                    address(owner) 
+                )
+            );
+        assertTrue(address(d4aCreateProjectProxy_proxy) != address(0));
+
+        vm.toString(address(d4aCreateProjectProxy_proxy)).write(path, ".D4ACreateProjectProxy.proxy");
+
+        console2.log("D4ACreateProjectProxy proxy address: ", address(d4aCreateProjectProxy_proxy));
+        console2.log("================================================================================\n");
+    }
+
     function _initSettings() internal {
         console2.log("\n================================================================================");
         IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
@@ -212,7 +415,7 @@ contract Deploy is Script, Test, D4AAddress {
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
-                json.readAddress("NaiveOwner_proxy"),
+                json.readAddress(".NaiveOwner.proxy"),
                 address(d4aCreateProjectProxy_proxy),
                 address(permissionControl_proxy)
             );
@@ -245,7 +448,6 @@ contract Deploy is Script, Test, D4AAddress {
             floorPrices[10] = 3 ether;
             floorPrices[11] = 5 ether;
             floorPrices[12] = 10 ether;
-            floorPrices[13] = 0 ether;
             ID4ASettings(address(d4aProtocol_proxy)).changeFloorPrices(floorPrices);
         }
         {
@@ -260,7 +462,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         {
             console2.log("Step 7: grant INITIALIZER ROLE");
-            NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress("NaiveOwner_proxy"));
+            NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
             naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocol_proxy));
         }
 
