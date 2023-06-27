@@ -556,8 +556,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
                     daoFeeAmount,
                     l.protocolERC20RatioInBps,
                     l.daoCreatorERC20RatioInBps,
-                    getCanvasCreatorERC20Ratio(canvasId),
-                    getNftMinterERC20Ratio(canvasId),
+                    getCanvasCreatorERC20Ratio(daoId),
+                    getNftMinterERC20Ratio(daoId),
                     ci.canvasRebateRatioInBps
                 )
             )
