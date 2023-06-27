@@ -17,9 +17,12 @@ import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
-import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
+import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
+import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
+import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
+import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 
 contract D4AAddress is CommonBase {
     using stdJson for string;
@@ -45,11 +48,17 @@ contract D4AAddress is CommonBase {
     ProxyAdmin public proxyAdmin = ProxyAdmin(json.readAddress(".ProxyAdmin"));
 
     // D4AProtocol
-    TransparentUpgradeableProxy public d4aProtocol_proxy =
-        TransparentUpgradeableProxy(payable(json.readAddress(".D4AProtocol.proxy")));
-    D4AProtocol public d4aProtocol_impl = D4AProtocol(json.readAddress(".D4AProtocolWithD4AProtocolPermission.impl"));
-    D4ADiamond public d4aDiamond = D4ADiamond(payable(json.readAddress(".D4AProtocol.D4ADiamond")));
+    D4AProtocol public d4aProtocol_proxy = D4AProtocol(payable(json.readAddress(".D4AProtocol.proxy")));
+    D4AProtocol public d4aProtocol_impl = D4AProtocol(json.readAddress(".D4AProtocol.impl"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".D4AProtocol.D4ASettings"));
+    LinearPriceVariation public linearPriceVariation =
+        LinearPriceVariation(json.readAddress(".D4AProtocol.LinearPriceVariation"));
+    ExponentialPriceVariation public exponentialPriceVariation =
+        ExponentialPriceVariation(json.readAddress(".D4AProtocol.ExponentialPriceVariation"));
+    LinearRewardIssuance public linearRewardIssuance =
+        LinearRewardIssuance(json.readAddress(".D4AProtocol.LinearRewardIssuance"));
+    ExponentialRewardIssuance public exponentialRewardIssuance =
+        ExponentialRewardIssuance(json.readAddress(".D4AProtocol.ExponentialRewardIssuance"));
 
     // permission control
     TransparentUpgradeableProxy public permissionControl_proxy =
@@ -61,6 +70,11 @@ contract D4AAddress is CommonBase {
         TransparentUpgradeableProxy(payable(json.readAddress(".D4ACreateProjectProxy.proxy")));
     D4ACreateProjectProxy public d4aCreateProjectProxy_impl =
         D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy.impl")));
+
+    // naive owner proxy
+    TransparentUpgradeableProxy public naiveOwner_proxy =
+        TransparentUpgradeableProxy(payable(json.readAddress(".NaiveOwner.proxy")));
+    NaiveOwner public naiveOwner_impl = NaiveOwner(payable(json.readAddress(".NaiveOwner.impl")));
 
     IWETH public immutable WETH = IWETH(json.readAddress(".WETH"));
     address public immutable uniswapV2Factory = json.readAddress(".D4ASwapFactory");
