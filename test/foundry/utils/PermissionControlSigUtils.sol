@@ -7,7 +7,7 @@ import "forge-std/Test.sol";
 
 contract PermissionControlSigUtils {
     bytes32 private _HASHED_NAME = keccak256(bytes("D4APermissionControl"));
-    bytes32 private _HASHED_VERSION = keccak256(bytes("1"));
+    bytes32 private _HASHED_VERSION = keccak256(bytes("2"));
 
     bytes32 private _TYPE_HASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
