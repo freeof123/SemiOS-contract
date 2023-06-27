@@ -69,8 +69,14 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         uniswapV2Factory = IUniswapV2Factory(newUniswapV2Factory);
     }
 
-    event NewProject(
-        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+    event CreateProjectParamEmitted(
+        DaoMetadataParam daoMetadataParam,
+        IPermissionControl.Whitelist whitelist,
+        IPermissionControl.Blacklist blacklist,
+        DaoMintCapParam daoMintCapParam,
+        DaoETHAndERC20SplitRatioParam splitRatioParam,
+        TemplateParam templateParam,
+        uint256 actionType
     );
 
     // first bit: 0: project, 1: owner project
@@ -142,6 +148,10 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         protocol.setTemplate(projectId, templateParam);
 
         _createSplitter(projectId);
+
+        emit CreateProjectParamEmitted(
+            daoMetadataParam, whitelist, blacklist, daoMintCapParam, splitRatioParam, templateParam, actionType
+        );
     }
 
     function _setMintCapAndPermission(

@@ -7,13 +7,7 @@ import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import {
-    NotDaoOwner,
-    InvalidTemplate,
-    InvalidERC20Ratio,
-    InvalidERC20Ratio,
-    InvalidETHRatio
-} from "contracts/interface/D4AErrors.sol";
+import { NotDaoOwner, InvalidERC20Ratio, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
 import { DaoMetadataParam, TemplateParam, UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
@@ -394,7 +388,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         internal
     {
         if (flatPrice == 0) {
-            (bool succ,) = _allProjects[daoId].priceTemplate.delegatecall(
+            (bool succ,) = D4ASettingsBaseStorage.layout().priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]
+                .delegatecall(
                 abi.encodeWithSelector(
                     IPriceTemplate.updateCanvasPrice.selector,
                     daoId,
@@ -534,9 +529,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         returns (uint256 price)
     {
         if (flatPrice == 0) {
-            price = IPriceTemplate(_allProjects[daoId].priceTemplate).getCanvasNextPrice(
-                startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo
-            );
+            price = IPriceTemplate(
+                D4ASettingsBaseStorage.layout().priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]
+            ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);
         } else {
             price = flatPrice;
         }
@@ -547,7 +542,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ACanvas.canvas_info memory ci = _allCanvases[canvasId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
-        (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
+        (bool succ, bytes memory data) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(
+            _allProjects[daoId].rewardTemplateType
+        )].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.updateReward.selector,
                 UpdateRewardParam(
@@ -623,7 +620,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     {
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
+        (bool succ, bytes memory data) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(
+            _allProjects[daoId].rewardTemplateType
+        )].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimDaoCreatorReward.selector,
                 daoId,
@@ -659,7 +658,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
+        (bool succ, bytes memory data) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(
+            _allProjects[daoId].rewardTemplateType
+        )].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimCanvasCreatorReward.selector,
                 daoId,
@@ -694,7 +695,9 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
     {
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        (bool succ, bytes memory data) = _allProjects[daoId].rewardTemplate.delegatecall(
+        (bool succ, bytes memory data) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(
+            _allProjects[daoId].rewardTemplateType
+        )].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimCanvasCreatorReward.selector,
                 daoId,
@@ -799,13 +802,10 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _checkCaller(l.project_proxy);
-        if (!l.allowedTemplates[templateParam.priceTemplate] || !l.allowedTemplates[templateParam.rewardTemplate]) {
-            revert InvalidTemplate();
-        }
 
-        _allProjects[daoId].priceTemplate = templateParam.priceTemplate;
+        _allProjects[daoId].priceTemplateType = templateParam.priceTemplateType;
         _allProjects[daoId].nftPriceFactor = templateParam.priceFactor;
-        _allProjects[daoId].rewardTemplate = templateParam.rewardTemplate;
+        _allProjects[daoId].rewardTemplateType = templateParam.rewardTemplateType;
         rewardInfo.decayFactor = templateParam.rewardDecayFactor;
         rewardInfo.decayLife = templateParam.rewardDecayLife;
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;

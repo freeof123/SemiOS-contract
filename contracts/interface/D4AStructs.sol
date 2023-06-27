@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
+
 struct DaoMetadataParam {
     uint256 startDrb;
     uint256 mintableRounds;
@@ -39,9 +41,9 @@ struct DaoETHAndERC20SplitRatioParam {
 }
 
 struct TemplateParam {
-    address priceTemplate;
+    PriceTemplateType priceTemplateType;
     uint256 priceFactor;
-    address rewardTemplate;
+    RewardTemplateType rewardTemplateType;
     uint256 rewardDecayFactor;
     uint256 rewardDecayLife;
     bool isProgressiveJackpot;

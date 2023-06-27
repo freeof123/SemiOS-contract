@@ -5,6 +5,7 @@ import "@solidstate/contracts/access/access_control/AccessControl.sol";
 import "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
 import "./ID4ASettings.sol";
+import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
 import "./D4ASettingsBaseStorage.sol";
 import "./D4ASettingsReadable.sol";
 import "../interface/ID4AFeePoolFactory.sol";
@@ -245,8 +246,19 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         emit MembershipTransferred(role, previousMember, newMember);
     }
 
-    function registerAllowedTemplate(address template) public onlyRole(PROTOCOL_ROLE) {
+    function setTemplateAddress(
+        TemplateChoice templateChoice,
+        uint8 index,
+        address template
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        l.allowedTemplates[template] = true;
+        if (templateChoice == TemplateChoice.PRICE) {
+            l.priceTemplates[index] = template;
+        } else {
+            l.rewardTemplates[index] = template;
+        }
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {PriceTemplateType, RewardTemplateType} from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
@@ -55,9 +56,9 @@ contract Benchmark is DeployHelper {
             DaoMintCapParam(0, new UserMintCapParam[](0)),
             DaoETHAndERC20SplitRatioParam(0, 0, 0, 0),
             TemplateParam({
-                priceTemplate: address(exponentialPriceVariation),
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
-                rewardTemplate: address(linearRewardIssuance),
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
                 rewardDecayFactor: 0,
                 rewardDecayLife: 1,
                 isProgressiveJackpot: false

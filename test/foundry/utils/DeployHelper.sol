@@ -3,6 +3,9 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
+// enums
+import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
+
 // structs
 import {
     DaoMetadataParam,
@@ -298,7 +301,7 @@ contract DeployHelper is Test {
         selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
         selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;
         selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
-        selectors[selectorIndex++] = ID4ASettings.registerAllowedTemplate.selector;
+        selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -380,21 +383,33 @@ contract DeployHelper is Test {
 
     function _deployPriceTemplate() internal prank(protocolRoleMember.addr) {
         linearPriceVariation = new LinearPriceVariation();
-        D4ASettings(address(protocol)).registerAllowedTemplate(address(linearPriceVariation));
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
+        );
         vm.label(address(linearPriceVariation), "Linear Price Variation");
 
         exponentialPriceVariation = new ExponentialPriceVariation();
-        D4ASettings(address(protocol)).registerAllowedTemplate(address(exponentialPriceVariation));
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.PRICE,
+            uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
+            address(exponentialPriceVariation)
+        );
         vm.label(address(exponentialPriceVariation), "Exponential Price Variation");
     }
 
     function _deployRewardTemplate() internal prank(protocolRoleMember.addr) {
         linearRewardIssuance = new LinearRewardIssuance();
-        D4ASettings(address(protocol)).registerAllowedTemplate(address(linearRewardIssuance));
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
+        );
         vm.label(address(linearRewardIssuance), "Linear Reward Issuance");
 
         exponentialRewardIssuance = new ExponentialRewardIssuance();
-        D4ASettings(address(protocol)).registerAllowedTemplate(address(exponentialRewardIssuance));
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.REWARD,
+            uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+            address(exponentialRewardIssuance)
+        );
         vm.label(address(exponentialRewardIssuance), "Exponential Reward Issuance");
     }
 
@@ -524,9 +539,9 @@ contract DeployHelper is Test {
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
         uint256 protocol;
-        address priceTemplate;
+        PriceTemplateType priceTemplateType;
         uint256 priceFactor;
-        address rewardTemplate;
+        RewardTemplateType rewardTemplateType;
         uint256 rewardDecayFactor;
         uint256 rewardDecayLife;
         bool isProgressiveJackpot;
@@ -568,9 +583,9 @@ contract DeployHelper is Test {
                 daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioInBpsFlatPrice
             }),
             TemplateParam({
-                priceTemplate: createDaoParam.priceTemplate,
+                priceTemplateType: createDaoParam.priceTemplateType,
                 priceFactor: createDaoParam.priceFactor,
-                rewardTemplate: createDaoParam.rewardTemplate,
+                rewardTemplateType: createDaoParam.rewardTemplateType,
                 rewardDecayFactor: createDaoParam.rewardDecayFactor,
                 rewardDecayLife: createDaoParam.rewardDecayLife,
                 isProgressiveJackpot: createDaoParam.isProgressiveJackpot
@@ -604,9 +619,9 @@ contract DeployHelper is Test {
         createDaoParam.nftMinterERC20RatioInBps = 3000;
         createDaoParam.daoFeePoolETHRatioInBps = 3000;
         createDaoParam.daoFeePoolETHRatioInBpsFlatPrice = 3500;
-        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
         createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
         createDaoParam.rewardDecayLife = 1;
         daoId = _createDao(createDaoParam);
@@ -646,9 +661,9 @@ contract DeployHelper is Test {
         createDaoParam.minterAccounts = minterAccounts;
         createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
         createDaoParam.actionType = 2;
-        createDaoParam.priceTemplate = address(exponentialPriceVariation);
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
         createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplate = address(linearRewardIssuance);
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
         createDaoParam.rewardDecayLife = 1;
         daoId = _createDao(createDaoParam);

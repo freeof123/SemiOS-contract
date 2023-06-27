@@ -4,6 +4,7 @@ pragma solidity >=0.8.10;
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import "../interface/ID4AChangeAdmin.sol";
+import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
 import { PriceStorage } from "../storages/PriceStorage.sol";
 import { RewardStorage } from "../storages/RewardStorage.sol";
 import "../D4AERC721.sol";
@@ -28,8 +29,8 @@ library D4AProject {
         bytes32[] canvases;
         bool exist;
         uint256 nftPriceFactor;
-        address priceTemplate;
-        address rewardTemplate;
+        PriceTemplateType priceTemplateType;
+        RewardTemplateType rewardTemplateType;
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
     }

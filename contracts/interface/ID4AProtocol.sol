@@ -103,7 +103,7 @@ abstract contract ID4AProtocol {
         PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        return IPriceTemplate(_allProjects[daoId].priceTemplate).getCanvasNextPrice(
+        return IPriceTemplate(l.priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]).getCanvasNextPrice(
             pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
         );
     }

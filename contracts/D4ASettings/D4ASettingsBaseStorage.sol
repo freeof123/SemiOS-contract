@@ -53,7 +53,8 @@ library D4ASettingsBaseStorage {
         address project_proxy;
         uint256 reserved_slots;
         bool initialized;
-        mapping(address template => bool allowed) allowedTemplates;
+        address[256] priceTemplates;
+        address[256] rewardTemplates;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4A.contracts.storage.Setting");

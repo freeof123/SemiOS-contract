@@ -9,6 +9,4 @@ error InvalidETHRatio();
 
 error UnauthorizedToExchangeRoyaltyTokenToETH();
 
-error InvalidTemplate();
-
 error ExceedMaxMintableRound();
