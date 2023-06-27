@@ -78,35 +78,35 @@ interface ID4AProtocol {
     )
         external;
 
-    function getProjectCanvasAt(bytes32 _project_id, uint256 _index) external view returns (bytes32);
+    function getProjectCanvasAt(bytes32 daoId, uint256 index) external view returns (bytes32);
 
-    function getProjectInfo(bytes32 _project_id)
+    function getProjectInfo(bytes32 daoId)
         external
         view
         returns (
-            uint256 start_prb,
-            uint256 mintable_rounds,
-            uint256 max_nft_amount,
-            address fee_pool,
-            uint96 royalty_fee,
+            uint256 startRound,
+            uint256 mintableRound,
+            uint256 maxNftAmount,
+            address daoFeePool,
+            uint96 royaltyFeeInBps,
             uint256 index,
-            string memory uri,
-            uint256 erc20_total_supply
+            string memory daoUri,
+            uint256 erc20TotalSupply
         );
 
-    function getProjectFloorPrice(bytes32 _project_id) external view returns (uint256);
+    function getProjectFloorPrice(bytes32 daoId) external view returns (uint256);
 
-    function getProjectTokens(bytes32 _project_id) external view returns (address erc20_token, address erc721_token);
+    function getProjectTokens(bytes32 daoId) external view returns (address token, address nft);
 
-    function getCanvasNFTCount(bytes32 _canvas_id) external view returns (uint256);
+    function getCanvasNFTCount(bytes32 canvasId) external view returns (uint256);
 
-    function getTokenIDAt(bytes32 _canvas_id, uint256 _index) external view returns (uint256);
+    function getTokenIDAt(bytes32 canvasId, uint256 index) external view returns (uint256);
 
-    function getCanvasProject(bytes32 _canvas_id) external view returns (bytes32);
+    function getCanvasProject(bytes32 canvasId) external view returns (bytes32);
 
-    function getCanvasIndex(bytes32 _canvas_id) external view returns (uint256);
+    function getCanvasIndex(bytes32 canvasId) external view returns (uint256);
 
-    function getCanvasURI(bytes32 _canvas_id) external view returns (string memory);
+    function getCanvasURI(bytes32 canvasId) external view returns (string memory);
 
     function getCanvasLastPrice(bytes32 canvasId) external view returns (uint256 round, uint256 price);
 
