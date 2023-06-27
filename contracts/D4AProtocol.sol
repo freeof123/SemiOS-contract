@@ -612,6 +612,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     function claimProjectERC20Reward(bytes32 daoId)
         public
+        override
         nonReentrant
         d4aNotPaused
         notPaused(daoId)
@@ -646,6 +647,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
     function claimCanvasReward(bytes32 canvasId)
         public
+        override
         nonReentrant
         d4aNotPaused
         notPaused(canvasId)
@@ -687,6 +689,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         address minter
     )
         public
+        override
         nonReentrant
         d4aNotPaused
         daoExist(daoId)
@@ -722,6 +725,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         address _to
     )
         public
+        override
         nonReentrant
         d4aNotPaused
         notPaused(daoId)

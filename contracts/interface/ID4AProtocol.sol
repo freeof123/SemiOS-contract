@@ -164,4 +164,12 @@ abstract contract ID4AProtocol {
     )
         public
         virtual;
+
+    function claimProjectERC20Reward(bytes32 daoId) external virtual returns (uint256);
+
+    function claimCanvasReward(bytes32 canvasId) external virtual returns (uint256);
+
+    function claimNftMinterReward(bytes32 daoId, address minter) external virtual returns (uint256);
+
+    function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address _to) external virtual returns (uint256);
 }
