@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
-import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+// external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
+// D4A constants, structs, enums && errors
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { NotDaoOwner, InvalidERC20Ratio, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
 import {
     DaoMetadataParam,
     TemplateParam,
@@ -20,16 +19,21 @@ import {
     DaoMintInfo,
     UserMintInfo
 } from "contracts/interface/D4AStructs.sol";
-import { PriceStorage } from "contracts/storages/PriceStorage.sol";
-import { RewardStorage } from "./storages/RewardStorage.sol";
-import { D4ASettingsBaseStorage } from "./D4ASettings/D4ASettingsBaseStorage.sol";
-import { D4AProject } from "./libraries/D4AProject.sol";
-import { D4ACanvas } from "./libraries/D4ACanvas.sol";
-import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
-import { ID4AERC721 } from "./interface/ID4AERC721.sol";
+import { NotDaoOwner, InvalidERC20Ratio, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
+
+// interfaces
 import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
+import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
+import { ID4AERC721 } from "./interface/ID4AERC721.sol";
+
+// D4A libs, storages && contracts
+import { D4AProject } from "./libraries/D4AProject.sol";
+import { D4ACanvas } from "./libraries/D4ACanvas.sol";
+import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+import { RewardStorage } from "./storages/RewardStorage.sol";
+import { D4ASettingsBaseStorage } from "./D4ASettings/D4ASettingsBaseStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
