@@ -61,7 +61,6 @@ contract DeployHelper is Test {
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
     TestD4AProtocolWithPermission public protocol;
-    D4ADiamond public diamond;
     TestD4AProtocolWithPermission public protocolImpl;
     D4ACreateProjectProxy public daoProxy;
     D4ACreateProjectProxy public daoProxyImpl;
@@ -245,21 +244,12 @@ contract DeployHelper is Test {
     }
 
     function _deployProtocol() internal prank(protocolOwner.addr) {
-        diamond = new D4ADiamond();
+        protocol = TestD4AProtocolWithPermission(payable(new D4ADiamond()));
         protocolImpl = new TestD4AProtocolWithPermission();
-        protocol = TestD4AProtocolWithPermission(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(diamond),
-                    address(proxyAdmin),
-                    abi.encodeWithSignature("initialize(address)", protocolOwner.addr)
-                )
-            )
-        );
+
         _cutFacetsSettings();
 
         vm.label(address(protocol), "Protocol");
-        vm.label(address(diamond), "Diamond");
         vm.label(address(protocolImpl), "Protocol Impl");
     }
 
@@ -314,9 +304,8 @@ contract DeployHelper is Test {
         );
 
         // set diamond fallback address
-        D4ADiamond(payable(address(protocol))).setFallbackAddressAndCall(
-            address(protocolImpl), address(protocolImpl), abi.encodeWithSignature("initialize()")
-        );
+        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
+        protocol.initialize();
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {
