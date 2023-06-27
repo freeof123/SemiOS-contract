@@ -76,7 +76,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     mapping(bytes32 => bool) public uri_exists;
 
-    uint256 public project_num;
+    uint256 public projectIndex;
 
     mapping(bytes32 => mapping(uint256 => uint256)) public round_2_total_eth;
 
@@ -100,7 +100,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     function initialize() public initializer {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         __ReentrancyGuard_init();
-        project_num = l.reserved_slots;
+        projectIndex = l.reserved_slots;
         __EIP712_init("D4AProtocol", "2");
     }
 
@@ -121,10 +121,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     function _hasRole(bytes32 role, address account) internal view virtual returns (bool) {
         return IAccessControlUpgradeable(address(this)).hasRole(role, account);
-    }
-
-    function changeProjectNum(uint256 _project_num) public onlyRole(bytes32(0)) {
-        project_num = _project_num;
     }
 
     modifier onlyCaller(address caller) {
@@ -208,9 +204,9 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         _checkCaller(l.project_proxy);
         uri_exists[keccak256(abi.encodePacked(_project_uri))] = true;
         project_id = _allProjects.createProject(
-            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, project_num, _project_uri
+            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, projectIndex, _project_uri
         );
-        project_num++;
+        projectIndex++;
     }
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
