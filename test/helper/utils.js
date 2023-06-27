@@ -18,19 +18,13 @@ function findValueByKey(obj, key) {
   return undefined;
 }
 
-async function generatePermissionControlSignature(
-  privateKey,
-  permissionControlAddress,
-  value
-) {
+async function generatePermissionControlSignature(privateKey, permissionControlAddress, value) {
   const signer = new ethers.Wallet(privateKey);
-  const provider = new ethers.providers.JsonRpcProvider(
-    `http://127.0.0.1:7545`
-  );
+  const provider = new ethers.providers.JsonRpcProvider(`http://127.0.0.1:7545`);
   // All properties on a domain are optional
   const domain = {
-    name: "D4APermissionControl",
-    version: "1",
+    name: "D4AProtocol",
+    version: "2",
     chainId: (await provider.getNetwork()).chainId,
     verifyingContract: permissionControlAddress,
   };
@@ -60,13 +54,11 @@ async function generatePermissionControlSignature(
 
 async function generateMintNFTSignature(privateKey, protocolAddress, value) {
   const signer = new ethers.Wallet(privateKey);
-  const provider = new ethers.providers.JsonRpcProvider(
-    `http://127.0.0.1:7545`
-  );
+  const provider = new ethers.providers.JsonRpcProvider(`http://127.0.0.1:7545`);
   // All properties on a domain are optional
   const domain = {
-    name: "D4AProtocolWithPermission",
-    version: "1",
+    name: "D4AProtocol",
+    version: "2",
     chainId: (await provider.getNetwork()).chainId,
     verifyingContract: protocolAddress,
   };
@@ -87,7 +79,7 @@ async function generateMintNFTSignature(privateKey, protocolAddress, value) {
 function buildMerkleTree(accounts) {
   const tree = StandardMerkleTree.of(
     accounts.map((account) => [account]),
-    ["address"]
+    ["address"],
   );
 
   return tree;
@@ -122,10 +114,7 @@ function getPrivateKey(index) {
 
 async function getImplAddress(network = "homestead", proxyAddress) {
   const provider = new ethers.providers.InfuraProvider(network);
-  const currentImplAddress = await getImplementationAddress(
-    provider,
-    proxyAddress
-  );
+  const currentImplAddress = await getImplementationAddress(provider, proxyAddress);
   return currentImplAddress;
 }
 

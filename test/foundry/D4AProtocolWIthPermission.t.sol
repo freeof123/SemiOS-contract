@@ -10,27 +10,25 @@ import { ISafeOwnable } from "@solidstate/contracts/access/ownable/ISafeOwnable.
 import {
     IPermissionControl,
     D4ADiamond,
-    TestD4AProtocolWithPermission,
     TransparentUpgradeableProxy,
     NaiveOwner,
     DeployHelper
 } from "./utils/DeployHelper.sol";
-import {
-    D4AProtocolWithPermission, D4AProtocolWithPermissionHarness
-} from "./harness/D4AProtocolWithPermissionHarness.sol";
+import { D4AProtocol, D4AProtocolHarness } from "./harness/D4AProtocolHarness.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
-contract D4AProtocolWithPermissionTest is DeployHelper {
+contract D4AProtocolTest is DeployHelper {
     using stdStorage for StdStorage;
 
-    D4AProtocolWithPermissionHarness public protocolHarness;
+    D4AProtocolHarness public protocolHarness;
 
     function setUp() public {
         setUpEnv();
-        D4AProtocolWithPermissionHarness harness = new D4AProtocolWithPermissionHarness();
+        D4AProtocolHarness harness = new D4AProtocolHarness();
         vm.etch(address(protocolImpl), address(harness).code);
-        protocolHarness = D4AProtocolWithPermissionHarness(payable(address(protocol)));
+        protocolHarness = D4AProtocolHarness(payable(address(protocol)));
     }
 
     function test_MINTNFT_TYPEHASH() public {
@@ -95,7 +93,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             new address[](0),
             canvasCreatorAccounts
         );
-        vm.expectRevert(D4AProtocolWithPermission.Blacklisted.selector);
+        vm.expectRevert(D4AProtocol.Blacklisted.selector);
         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
     }
 
@@ -117,14 +115,14 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             new address[](0),
             new address[](0)
         );
-        vm.expectRevert(D4AProtocolWithPermission.NotInWhitelist.selector);
+        vm.expectRevert(D4AProtocol.NotInWhitelist.selector);
         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
     }
 
     function test_initialize() public {
-        protocol = TestD4AProtocolWithPermission(payable(new D4ADiamond()));
+        protocol = D4AProtocol(payable(new D4ADiamond()));
         ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
-        protocolImpl = new TestD4AProtocolWithPermission();
+        protocolImpl = new D4AProtocol();
 
         vm.startPrank(protocolOwner.addr);
         ISafeOwnable(address(protocol)).acceptOwnership();
@@ -187,7 +185,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
-        vm.expectRevert(D4AProtocolWithPermission.ExceedMaxMintAmount.selector);
+        vm.expectRevert(D4AProtocol.ExceedMaxMintAmount.selector);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 11);
     }
 
@@ -224,8 +222,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
 
         uint256 mintNum = 10;
-        D4AProtocolWithPermission.MintNftInfo[] memory mintNftInfos =
-            new D4AProtocolWithPermission.MintNftInfo[](mintNum);
+        D4AProtocol.MintNftInfo[] memory mintNftInfos = new D4AProtocol.MintNftInfo[](mintNum);
         bytes[] memory signatures = new bytes[](mintNum);
         for (uint256 i; i < mintNum; ++i) {
             mintNftInfos[i].tokenUri = string.concat("test nft uri", vm.toString(i));
@@ -347,7 +344,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(D4AProtocolWithPermission.Blacklisted.selector);
+        vm.expectRevert(D4AProtocol.Blacklisted.selector);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
     }
 
@@ -375,7 +372,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(D4AProtocolWithPermission.NotInWhitelist.selector);
+        vm.expectRevert(D4AProtocol.NotInWhitelist.selector);
         protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
     }
 
@@ -420,7 +417,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(randomGuy.key, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        vm.expectRevert(D4AProtocolWithPermission.InvalidSignature.selector);
+        vm.expectRevert(D4AProtocol.InvalidSignature.selector);
         protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
     }
 }

@@ -37,7 +37,7 @@ import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
-import { TestD4AProtocolWithPermission } from "contracts/test/TestD4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
@@ -60,8 +60,8 @@ contract DeployHelper is Test {
     D4ASettings public settings;
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
-    TestD4AProtocolWithPermission public protocol;
-    TestD4AProtocolWithPermission public protocolImpl;
+    D4AProtocol public protocol;
+    D4AProtocol public protocolImpl;
     D4ACreateProjectProxy public daoProxy;
     D4ACreateProjectProxy public daoProxyImpl;
     PermissionControl public permissionControl;
@@ -244,8 +244,8 @@ contract DeployHelper is Test {
     }
 
     function _deployProtocol() internal prank(protocolOwner.addr) {
-        protocol = TestD4AProtocolWithPermission(payable(new D4ADiamond()));
-        protocolImpl = new TestD4AProtocolWithPermission();
+        protocol = D4AProtocol(payable(new D4ADiamond()));
+        protocolImpl = new D4AProtocol();
 
         _cutFacetsSettings();
 

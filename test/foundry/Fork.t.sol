@@ -11,7 +11,7 @@ import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilter, D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -32,10 +32,9 @@ contract Fork is Test {
         D4AERC721WithFilterFactory(vm.envAddress("D4AERC721WithFilterFactory"));
     D4ASettings public d4aSettings = D4ASettings(vm.envAddress("D4ASetting"));
     ProxyAdmin public proxyAdmin = ProxyAdmin(vm.envAddress("ProxyAdmin"));
-    TransparentUpgradeableProxy public d4aProtocolWithPermission_proxy =
-        TransparentUpgradeableProxy(payable(vm.envAddress("D4AProtocolWithPermission_proxy")));
-    D4AProtocolWithPermission public d4aProtocolWithPermission_impl =
-        D4AProtocolWithPermission(vm.envAddress("D4AProtocolWithPermission_impl"));
+    TransparentUpgradeableProxy public d4aProtocol_proxy =
+        TransparentUpgradeableProxy(payable(vm.envAddress("D4AProtocol_proxy")));
+    D4AProtocol public d4aProtocol_impl = D4AProtocol(vm.envAddress("D4AProtocol_impl"));
     TransparentUpgradeableProxy public permissionControl_proxy =
         TransparentUpgradeableProxy(payable(vm.envAddress("PermissionControl_proxy")));
     PermissionControl public permissionControl_impl = PermissionControl(vm.envAddress("PermissionControl_impl"));
@@ -59,8 +58,8 @@ contract Fork is Test {
 
     //     D4ACreateProjectProxy d4aCreateProjectProxy =
     //         D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy)));
-    //     D4AProtocolWithPermission d4aProtocolWithPermission =
-    //         D4AProtocolWithPermission(address(d4aProtocolWithPermission_proxy));
+    //     D4AProtocol d4aProtocol =
+    //         D4AProtocol(address(d4aProtocol_proxy));
     //     PermissionControl permissionControl = PermissionControl(address(permissionControl_proxy));
 
     //     uint256 startPrb = prb.currentRound();
@@ -68,9 +67,9 @@ contract Fork is Test {
     //     // create project, create canvas and mint NFT
     //     (bytes32 daoId,) =
     //         d4aCreateProjectProxy.createProject{value: 0.1 ether}(startPrb, 30, 0, 0, 750, "test createDao");
-    //     bytes32 canvasId = d4aProtocolWithPermission.createCanvas(daoId, "test canvas uri", new bytes32[](0));
+    //     bytes32 canvasId = d4aProtocol.createCanvas(daoId, "test canvas uri", new bytes32[](0));
     //     // uint256 tokenId =
-    //     //     d4aProtocolWithPermission.mintNFT(daoId, canvasId, "test nft uri", new bytes32[](0), 0, new
+    //     //     d4aProtocol.mintNFT(daoId, canvasId, "test nft uri", new bytes32[](0), 0, new
     // bytes(65));
 
     //     // create project with permission
