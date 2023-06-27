@@ -3,25 +3,14 @@
 pragma solidity >=0.8.10;
 
 import { ID4ADrb } from "../interface/ID4ADrb.sol";
-import "../interface/ID4AFeePoolFactory.sol";
-import "../interface/ID4AERC20Factory.sol";
-import "../interface/ID4AOwnerProxy.sol";
-import "../interface/ID4AERC721.sol";
-import "../interface/ID4AERC721Factory.sol";
-import "../interface/IPermissionControl.sol";
+import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
+import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
+import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
+import { ID4AOwnerProxy } from "../interface/ID4AOwnerProxy.sol";
+import { IPermissionControl } from "../interface/IPermissionControl.sol";
 
-interface ID4AProtocolForSetting {
-    function getCanvasProject(bytes32 _canvas_id) external view returns (bytes32);
-}
-
-/**
- * @dev derived from https://github.com/mudgen/diamond-2 (MIT license)
- */
-library D4ASettingsBaseStorage {
+library SettingsStorage {
     struct Layout {
-        uint256 ratio_base;
-        uint256 min_stamp_duty; //TODO
-        uint256 max_stamp_duty;
         uint256 create_project_fee;
         address protocolFeePool;
         uint256 create_canvas_fee;
@@ -45,19 +34,17 @@ library D4ASettingsBaseStorage {
         ID4AERC20Factory erc20_factory;
         ID4AFeePoolFactory feepool_factory;
         ID4AOwnerProxy owner_proxy;
-        //ID4AProtocolForSetting protocol;
         IPermissionControl permission_control;
         address asset_pool_owner;
         bool d4a_pause;
         mapping(bytes32 => bool) pause_status;
         address project_proxy;
         uint256 reserved_slots;
-        bool initialized;
         address[256] priceTemplates;
         address[256] rewardTemplates;
     }
 
-    bytes32 internal constant STORAGE_SLOT = keccak256("D4A.contracts.storage.Setting");
+    bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");
 
     function layout() internal pure returns (Layout storage l) {
         bytes32 slot = STORAGE_SLOT;

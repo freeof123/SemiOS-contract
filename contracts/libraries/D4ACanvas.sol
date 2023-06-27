@@ -2,7 +2,8 @@
 pragma solidity >=0.8.10;
 
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import "../D4ASettings/D4ASettingsBaseStorage.sol";
+import { SettingsStorage } from "../storages/SettingsStorage.sol";
+import { ID4ADrb } from "../interface/ID4ADrb.sol";
 
 library D4ACanvas {
     struct canvas_info {
@@ -31,7 +32,7 @@ library D4ACanvas {
         public
         returns (bytes32)
     {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
         {
             ID4ADrb drb = l.drb;
             uint256 cur_round = drb.currentRound();

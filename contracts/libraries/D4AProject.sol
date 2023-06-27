@@ -3,14 +3,16 @@ pragma solidity >=0.8.10;
 
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import "../interface/ID4AChangeAdmin.sol";
+
 import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
 import { PriceStorage } from "../storages/PriceStorage.sol";
 import { RewardStorage } from "../storages/RewardStorage.sol";
+import { SettingsStorage } from "../storages/SettingsStorage.sol";
+import { ID4AChangeAdmin } from "../interface/ID4AChangeAdmin.sol";
+import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import "../D4AERC721.sol";
 import "../feepool/D4AFeePool.sol";
 import "../D4AERC20.sol";
-import "../D4ASettings/D4ASettingsBaseStorage.sol";
 
 library D4AProject {
     struct project_info {
@@ -57,7 +59,7 @@ library D4AProject {
         public
         returns (bytes32 project_id)
     {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
         require(l.project_max_rounds >= _mintable_rounds, "rounds too long, not support");
         {
             uint256 protocol_fee = l.mint_d4a_fee_ratio;
@@ -218,14 +220,14 @@ library D4AProject {
     }*/
 
     function _createERC20Token(uint256 _project_num) internal returns (address) {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = string(abi.encodePacked("D4A Token for No.", _project_num.toString()));
         string memory sym = string(abi.encodePacked("D4A.T", _project_num.toString()));
         return l.erc20_factory.createD4AERC20(name, sym, address(this));
     }
 
     function _createERC721Token(uint256 _project_num) internal returns (address) {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = string(abi.encodePacked("D4A NFT for No.", _project_num.toString()));
         string memory sym = string(abi.encodePacked("D4A.N", _project_num.toString()));
         return l.erc721_factory.createD4AERC721(name, sym);
