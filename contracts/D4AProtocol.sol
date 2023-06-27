@@ -658,7 +658,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
                 vars.daoTotalShare += l.mint_project_fee_ratio * vars.price;
                 vars.totalPrice += vars.price;
                 emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, vars.price);
-                vars.price *= nftPriceFactor / BASIS_POINT; // BUG: nftPriceFactor / BASIS_POINT could be 0
+                vars.price = vars.price * nftPriceFactor / BASIS_POINT;
             } else {
                 vars.daoTotalShare += l.mint_project_fee_ratio_flat_price * flatPrice;
                 vars.totalPrice += flatPrice;
