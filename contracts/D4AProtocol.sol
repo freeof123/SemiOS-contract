@@ -72,13 +72,13 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     // TODO: add getters for all the mappings
     mapping(bytes32 => D4AProject.project_info) internal _allProjects;
     mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
-    mapping(bytes32 => bytes32) public tokenid_2_canvas;
+    mapping(bytes32 => bytes32) internal _nftHashToCanvasId;
 
-    mapping(bytes32 => bool) public uri_exists;
+    mapping(bytes32 => bool) public uriExists;
 
-    uint256 public projectIndex;
+    uint256 public daoIndex;
 
-    uint256 public project_bitmap;
+    uint256 internal _daoIndexBitMap;
 
     mapping(bytes32 daoId => DaoMintInfo daoMintInfo) internal _daoMintInfos;
 
@@ -90,7 +90,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     function initialize() public initializer {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         __ReentrancyGuard_init();
-        projectIndex = l.reserved_slots;
+        daoIndex = l.reserved_slots;
         __EIP712_init("D4AProtocol", "2");
     }
 
@@ -159,7 +159,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     }
 
     function _uriExist(string memory uri) internal view returns (bool) {
-        return uri_exists[keccak256(abi.encodePacked(uri))];
+        return uriExists[keccak256(abi.encodePacked(uri))];
     }
 
     function _checkUriExist(string calldata uri) internal view {
@@ -192,11 +192,11 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         _checkCaller(l.project_proxy);
-        uri_exists[keccak256(abi.encodePacked(_project_uri))] = true;
+        uriExists[keccak256(abi.encodePacked(_project_uri))] = true;
         project_id = _allProjects.createProject(
-            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, projectIndex, _project_uri
+            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, daoIndex, _project_uri
         );
-        projectIndex++;
+        daoIndex++;
     }
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
@@ -217,12 +217,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         }
         {
             if (daoMetadataParam.projectIndex >= l.reserved_slots) revert DaoIndexTooLarge();
-            if (((project_bitmap >> daoMetadataParam.projectIndex) & 1) != 0) revert DaoIndexAlreadyExist();
+            if (((_daoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) revert DaoIndexAlreadyExist();
         }
 
         {
-            project_bitmap |= (1 << daoMetadataParam.projectIndex);
-            uri_exists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+            _daoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+            uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
         }
         {
             return _allProjects.createProject(
@@ -454,7 +454,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         uriNotExist(_canvas_uri)
         returns (bytes32 canvas_id)
     {
-        uri_exists[keccak256(abi.encodePacked(_canvas_uri))] = true;
+        uriExists[keccak256(abi.encodePacked(_canvas_uri))] = true;
 
         canvas_id = _allCanvases.createCanvas(
             _allProjects[_project_id].fee_pool,
@@ -498,7 +498,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         {
             bytes32 token_uri_hash = keccak256(abi.encodePacked(_token_uri));
-            uri_exists[token_uri_hash] = true;
+            uriExists[token_uri_hash] = true;
         }
 
         // get next mint price
@@ -532,7 +532,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
             pi.nft_supply++;
             ci.nft_tokens.push(token_id);
             ci.nft_token_number++;
-            tokenid_2_canvas[keccak256(abi.encodePacked(daoId, token_id))] = canvasId;
+            _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, token_id))] = canvasId;
         }
 
         emit D4AMintNFT(daoId, canvasId, token_id, _token_uri, price);
@@ -615,10 +615,10 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         pi.nft_supply += length;
         ci.nft_token_number += length;
         for (uint32 i; i < length;) {
-            uri_exists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
+            uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
             tokenIds[i] = ID4AERC721(pi.erc721_token).mintItem(msg.sender, mintNftInfos[i].tokenUri);
             ci.nft_tokens.push(tokenIds[i]);
-            tokenid_2_canvas[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
+            _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
             D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
             if (flatPrice == 0) {
@@ -747,7 +747,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     }
 
     function getNFTTokenCanvas(bytes32 _project_id, uint256 _token_id) public view returns (bytes32) {
-        return tokenid_2_canvas[keccak256(abi.encodePacked(_project_id, _token_id))];
+        return _nftHashToCanvasId[keccak256(abi.encodePacked(_project_id, _token_id))];
     }
 
     function claimProjectERC20Reward(bytes32 daoId)
