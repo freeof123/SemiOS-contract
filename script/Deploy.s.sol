@@ -18,7 +18,7 @@ import { D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -51,7 +51,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deploySettings();
 
-        // _deployProtocolWithPermission();
+        // _deployProtocol();
 
         // _deployPermissionControl();
 
@@ -66,7 +66,7 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AClaimer");
 
-        d4aClaimer = new D4AClaimer(address(d4aProtocolWithPermission_proxy));
+        d4aClaimer = new D4AClaimer(address(d4aProtocol_proxy));
 
         vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
 
@@ -110,7 +110,7 @@ contract Deploy is Script, Test, D4AAddress {
         d4aRoyaltySplitterFactory = new D4ARoyaltySplitterFactory(address(WETH), uniswapV2Router, oracleRegistry);
         assertTrue(address(d4aRoyaltySplitterFactory) != address(0));
         D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).set(
-            address(d4aProtocolWithPermission_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
+            address(d4aProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
         );
 
         vm.toString(address(d4aRoyaltySplitterFactory)).write(path, ".factories.D4ARoyaltySplitterFactory");
@@ -152,26 +152,24 @@ contract Deploy is Script, Test, D4AAddress {
         d4aSettings = new D4ASettings();
         assertTrue(address(d4aSettings) != address(0));
 
-        vm.toString(address(d4aSettings)).write(path, ".D4AProtocolWithPermission.D4ASettings");
+        vm.toString(address(d4aSettings)).write(path, ".D4AProtocol.D4ASettings");
 
         console2.log("D4ASetting address: ", address(d4aSettings));
         console2.log("================================================================================\n");
     }
 
-    function _deployProtocolWithPermission() internal {
+    function _deployProtocol() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocolWithPermission");
+        console2.log("Start deploy D4AProtocol");
 
-        d4aProtocolWithPermission_impl = new D4AProtocolWithPermission();
-        assertTrue(address(d4aProtocolWithPermission_impl) != address(0));
-        // proxyAdmin.upgrade(d4aProtocolWithPermission_proxy, address(d4aProtocolWithPermission_impl));
-        D4ADiamond(payable(address(d4aProtocolWithPermission_proxy))).setFallbackAddress(
-            address(d4aProtocolWithPermission_impl)
-        );
+        d4aProtocol_impl = new D4AProtocol();
+        assertTrue(address(d4aProtocol_impl) != address(0));
+        // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
+        D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
 
-        vm.toString(address(d4aProtocolWithPermission_impl)).write(path, ".D4AProtocolWithPermission.impl");
+        vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
 
-        console2.log("D4AProtocolWithPermission implementation address: ", address(d4aProtocolWithPermission_impl));
+        console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
         console2.log("================================================================================\n");
     }
 
@@ -179,8 +177,7 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl");
 
-        permissionControl_impl =
-            new PermissionControl(address(d4aProtocolWithPermission_proxy), address(d4aCreateProjectProxy_proxy));
+        permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
         proxyAdmin.upgrade(permissionControl_proxy, address(permissionControl_impl));
 
@@ -206,11 +203,11 @@ contract Deploy is Script, Test, D4AAddress {
 
     function _initSettings() internal {
         console2.log("\n================================================================================");
-        IAccessControl(address(d4aProtocolWithPermission_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+        IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
         console2.log("Start initializing D4ASetting");
         {
             console2.log("Step 1: change address");
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeAddress(
+            ID4ASettings(address(d4aProtocol_proxy)).changeAddress(
                 address(d4aDrb),
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
@@ -222,15 +219,15 @@ contract Deploy is Script, Test, D4AAddress {
         }
         {
             console2.log("Step 2: change protocol fee pool");
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeProtocolFeePool(owner);
+            ID4ASettings(address(d4aProtocol_proxy)).changeProtocolFeePool(owner);
         }
         {
             console2.log("Step 3: change ERC20 total supply");
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeERC20TotalSupply(1e9 ether);
+            ID4ASettings(address(d4aProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
         }
         {
             console2.log("Step 4: change asset pool owner");
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeAssetPoolOwner(owner);
+            ID4ASettings(address(d4aProtocol_proxy)).changeAssetPoolOwner(owner);
         }
         {
             console2.log("Step 5: change floor prices");
@@ -249,7 +246,7 @@ contract Deploy is Script, Test, D4AAddress {
             floorPrices[11] = 5 ether;
             floorPrices[12] = 10 ether;
             floorPrices[13] = 0 ether;
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeFloorPrices(floorPrices);
+            ID4ASettings(address(d4aProtocol_proxy)).changeFloorPrices(floorPrices);
         }
         {
             console2.log("Step 6: change max NFT amounts");
@@ -259,20 +256,20 @@ contract Deploy is Script, Test, D4AAddress {
             maxNFTAmounts[2] = 10_000;
             maxNFTAmounts[3] = 50_000;
             maxNFTAmounts[4] = 100_000;
-            ID4ASettings(address(d4aProtocolWithPermission_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
+            ID4ASettings(address(d4aProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
         }
         {
             console2.log("Step 7: grant INITIALIZER ROLE");
             NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress("NaiveOwner_proxy"));
-            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocolWithPermission_proxy));
+            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocol_proxy));
         }
 
         {
             console2.log("Step 8: grant role");
-            IAccessControl(address(d4aProtocolWithPermission_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
-            IAccessControl(address(d4aProtocolWithPermission_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
-            IAccessControl(address(d4aProtocolWithPermission_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
-            IAccessControl(address(d4aProtocolWithPermission_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
+            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
+            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
+            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
         }
         console2.log("================================================================================\n");
     }

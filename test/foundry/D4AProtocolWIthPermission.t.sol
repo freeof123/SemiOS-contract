@@ -10,28 +10,25 @@ import { ISafeOwnable } from "@solidstate/contracts/access/ownable/ISafeOwnable.
 import {
     IPermissionControl,
     D4ADiamond,
-    TestD4AProtocolWithPermission,
     TransparentUpgradeableProxy,
     NaiveOwner,
     DeployHelper
 } from "./utils/DeployHelper.sol";
-import {
-    D4AProtocolWithPermission, D4AProtocolWithPermissionHarness
-} from "./harness/D4AProtocolWithPermissionHarness.sol";
+import { D4AProtocol, D4AProtocolHarness } from "./harness/D4AProtocolHarness.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
-contract D4AProtocolWithPermissionTest is DeployHelper {
+contract D4AProtocolTest is DeployHelper {
     using stdStorage for StdStorage;
 
-    D4AProtocolWithPermissionHarness public protocolHarness;
+    D4AProtocolHarness public protocolHarness;
 
     function setUp() public {
         setUpEnv();
-        D4AProtocolWithPermissionHarness harness = new D4AProtocolWithPermissionHarness();
+        D4AProtocolHarness harness = new D4AProtocolHarness();
         vm.etch(address(protocolImpl), address(harness).code);
-        protocolHarness = D4AProtocolWithPermissionHarness(payable(address(protocol)));
+        protocolHarness = D4AProtocolHarness(payable(address(protocol)));
     }
 
     function test_MINTNFT_TYPEHASH() public {
@@ -123,9 +120,9 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
     }
 
     function test_initialize() public {
-        protocol = TestD4AProtocolWithPermission(payable(new D4ADiamond()));
+        protocol = D4AProtocol(payable(new D4ADiamond()));
         ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
-        protocolImpl = new TestD4AProtocolWithPermission();
+        protocolImpl = new D4AProtocol();
 
         vm.startPrank(protocolOwner.addr);
         ISafeOwnable(address(protocol)).acceptOwnership();
@@ -225,8 +222,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
 
         uint256 mintNum = 10;
-        D4AProtocolWithPermission.MintNftInfo[] memory mintNftInfos =
-            new D4AProtocolWithPermission.MintNftInfo[](mintNum);
+        D4AProtocol.MintNftInfo[] memory mintNftInfos = new D4AProtocol.MintNftInfo[](mintNum);
         bytes[] memory signatures = new bytes[](mintNum);
         for (uint256 i; i < mintNum; ++i) {
             mintNftInfos[i].tokenUri = string.concat("test nft uri", vm.toString(i));

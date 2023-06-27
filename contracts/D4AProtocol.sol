@@ -33,7 +33,7 @@ import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-abstract contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
+contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
     struct MintNftInfo {
         string tokenUri;
         uint256 flatPrice;
@@ -100,7 +100,7 @@ abstract contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpg
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         __ReentrancyGuard_init();
         project_num = l.reserved_slots;
-        __EIP712_init("D4AProtocolWithPermission", "1");
+        __EIP712_init("D4AProtocol", "2");
     }
 
     error NotRole(bytes32 role, address account);

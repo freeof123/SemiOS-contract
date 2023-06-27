@@ -14,7 +14,7 @@ import { D4ARoyaltySplitter, D4ARoyaltySplitterFactory } from "contracts/royalty
 import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilter, D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -44,13 +44,12 @@ contract D4AAddress is CommonBase {
     // proxy admin
     ProxyAdmin public proxyAdmin = ProxyAdmin(json.readAddress(".ProxyAdmin"));
 
-    // D4AProtocolWithPermission
-    TransparentUpgradeableProxy public d4aProtocolWithPermission_proxy =
-        TransparentUpgradeableProxy(payable(json.readAddress(".D4AProtocolWithPermission.proxy")));
-    D4AProtocolWithPermission public d4aProtocolWithPermission_impl =
-        D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission.impl"));
-    D4ADiamond public d4aDiamond = D4ADiamond(payable(json.readAddress(".D4AProtocolWithPermission.D4ADiamond")));
-    D4ASettings public d4aSettings = D4ASettings(json.readAddress(".D4AProtocolWithPermission.D4ASettings"));
+    // D4AProtocol
+    TransparentUpgradeableProxy public d4aProtocol_proxy =
+        TransparentUpgradeableProxy(payable(json.readAddress(".D4AProtocol.proxy")));
+    D4AProtocol public d4aProtocol_impl = D4AProtocol(json.readAddress(".D4AProtocolWithD4AProtocolPermission.impl"));
+    D4ADiamond public d4aDiamond = D4ADiamond(payable(json.readAddress(".D4AProtocol.D4ADiamond")));
+    D4ASettings public d4aSettings = D4ASettings(json.readAddress(".D4AProtocol.D4ASettings"));
 
     // permission control
     TransparentUpgradeableProxy public permissionControl_proxy =

@@ -10,7 +10,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { IPermissionControl, PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
@@ -32,11 +32,9 @@ contract UpgradeTest is Test, Script {
     address public signer = 0xB5A5a0dEec823323B25533cE8129c6c0eEfa8B3c;
 
     address public weth = json.readAddress(".WETH");
-    D4AProtocolWithPermission public protocol =
-        D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission_proxy"));
+    D4AProtocol public protocol = D4AProtocol(json.readAddress(".D4AProtocol"));
 
-    D4AProtocolWithPermission public protocolImpl =
-        D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission_impl"));
+    D4AProtocol public protocolImpl = D4AProtocol(json.readAddress(".D4AProtocol"));
     D4ACreateProjectProxy public createProjectProxy =
         D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_proxy")));
     D4ACreateProjectProxy public createProjectProxyImpl =
@@ -85,7 +83,7 @@ contract UpgradeTest is Test, Script {
         assertEq(startBlock, oldStartBlock);
         assertEq(periodBlockE18 / 1e18, periodBlock);
 
-        protocolImpl = new D4AProtocolWithPermission();
+        protocolImpl = new D4AProtocol();
         createProjectProxyImpl = new D4ACreateProjectProxy(weth);
         permissionControlImpl = new PermissionControl(address(protocol), address(createProjectProxy));
         royaltySplitterFactory =

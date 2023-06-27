@@ -3,9 +3,9 @@ pragma solidity ^0.8.13;
 
 import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
-contract D4AProtocolWithPermissionHarness is D4AProtocolWithPermission {
+contract D4AProtocolHarness is D4AProtocol {
     function exposed_MINTNFT_TYPEHASH() public pure returns (bytes32) {
         return MINTNFT_TYPEHASH;
     }
