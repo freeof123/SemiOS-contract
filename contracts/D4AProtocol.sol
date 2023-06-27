@@ -21,7 +21,30 @@ import {
     MintNftInfo,
     MintVars
 } from "contracts/interface/D4AStructs.sol";
-import { NotDaoOwner, InvalidERC20Ratio, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
+import {
+    NotDaoOwner,
+    NotCanvasOwner,
+    NotRole,
+    NotCaller,
+    Blacklisted,
+    NotInWhitelist,
+    D4APaused,
+    Paused,
+    UriAlreadyExist,
+    UriNotExist,
+    DaoIndexTooLarge,
+    DaoIndexAlreadyExist,
+    DaoNotExist,
+    CanvasNotExist,
+    ExceedMinterMaxMintAmount,
+    InvalidERC20Ratio,
+    InvalidERC20Ratio,
+    InvalidETHRatio,
+    InvalidSignature,
+    PriceTooLow,
+    NftExceedMaxAmount,
+    NotEnoughEther
+} from "contracts/interface/D4AErrors.sol";
 
 // interfaces
 import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
@@ -83,8 +106,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         __EIP712_init("D4AProtocol", "2");
     }
 
-    error NotRole(bytes32 role, address account);
-
     modifier onlyRole(bytes32 role) {
         _checkRole(role);
         _;
@@ -108,8 +129,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         project_num = _project_num;
     }
 
-    error NotCaller(address caller);
-
     modifier onlyCaller(address caller) {
         _checkCaller(caller);
         _;
@@ -126,8 +145,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         _;
     }
 
-    error D4APaused();
-
     function _checkPauseStatus() internal view {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (l.d4a_pause) {
@@ -140,18 +157,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         _;
     }
 
-    error Paused(bytes32 id);
-
     function _checkPauseStatus(bytes32 id) internal view {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (l.pause_status[id]) {
             revert Paused(id);
         }
     }
-
-    error UriAlreadyExist(string uri);
-
-    error UriNotExist(string uri);
 
     modifier uriExist(string calldata uri) {
         _checkUriExist(uri);
@@ -203,9 +214,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         );
         project_num++;
     }
-
-    error DaoIndexTooLarge();
-    error DaoIndexAlreadyExist();
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
         public
@@ -263,8 +271,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return _createCanvas(daoId, canvasUri);
     }
 
-    error ExceedMaxMintAmount();
-
     modifier ableToMint(bytes32 daoId, bytes32[] calldata proof, uint256 amount) {
         _checkMintEligibility(daoId, msg.sender, proof, amount);
         _;
@@ -279,7 +285,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         internal
         view
     {
-        if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMaxMintAmount();
+        if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();
     }
 
     function mintNFT(
@@ -361,9 +367,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         l.permission_control.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
-    error Blacklisted();
-    error NotInWhitelist();
-
     function _ableToMint(
         bytes32 daoId,
         address account,
@@ -416,8 +419,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return userMintCap != 0 ? expectedMinted <= userMintCap : daoMintCap != 0 ? expectedMinted <= daoMintCap : true;
     }
 
-    error InvalidSignature();
-
     function _verifySignature(
         bytes32 _canvas_id,
         string calldata _token_uri,
@@ -441,9 +442,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     function getProjectCanvasCount(bytes32 _project_id) public view returns (uint256) {
         return _allProjects.getProjectCanvasCount(_project_id);
     }
-
-    error DaoNotExist();
-    error CanvasNotExist();
 
     modifier daoExist(bytes32 daoId) {
         _checkDaoExist(daoId);
@@ -488,10 +486,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     }
 
     event D4AMintNFT(bytes32 project_id, bytes32 canvas_id, uint256 token_id, string token_uri, uint256 price);
-
-    error NftExceedMaxAmount();
-
-    error PriceTooLow();
 
     function _mintNft(
         bytes32 canvasId,
@@ -750,8 +744,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         }
     }
 
-    error NotEnoughEther();
-
     function _splitFee(
         address protocolFeePool,
         address daoFeePool,
@@ -944,8 +936,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         emit DaoNftPriceMultiplyFactorChanged(daoId, nftPriceFactor);
     }
-
-    error NotCanvasOwner();
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
 

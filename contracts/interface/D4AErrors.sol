@@ -3,12 +3,48 @@ pragma solidity ^0.8.13;
 
 error NotDaoOwner();
 
+error NotCanvasOwner();
+
+error NotRole(bytes32 role, address account);
+
+error NotCaller(address caller);
+
+error UnauthorizedToExchangeRoyaltyTokenToETH();
+
+error Blacklisted();
+
+error NotInWhitelist();
+
 error InvalidERC20Ratio();
 
 error InvalidETHRatio();
 
-error UnauthorizedToExchangeRoyaltyTokenToETH();
-
 error ExceedMaxMintableRound();
 
+error ExceedMinterMaxMintAmount();
+
+error NftExceedMaxAmount();
+
 error ZeroFloorPriceCannotUseLinearPriceVariation();
+
+error D4APaused();
+
+error Paused(bytes32 id);
+
+error UriAlreadyExist(string uri);
+
+error UriNotExist(string uri);
+
+error DaoIndexTooLarge();
+
+error DaoIndexAlreadyExist();
+
+error InvalidSignature();
+
+error DaoNotExist();
+
+error CanvasNotExist();
+
+error PriceTooLow();
+
+error NotEnoughEther();
