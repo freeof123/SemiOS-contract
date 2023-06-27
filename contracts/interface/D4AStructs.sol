@@ -73,3 +73,20 @@ struct UpdateRewardParam {
     uint256 nftMinterERC20RatioInBps;
     uint256 canvasRebateRatioInBps;
 }
+
+struct MintNftInfo {
+    string tokenUri;
+    uint256 flatPrice;
+}
+
+struct MintVars {
+    uint32 length;
+    uint256 currentRound;
+    uint256 nftPriceFactor;
+    uint256 priceChangeBasisPoint;
+    uint256 price;
+    uint256 daoTotalShare;
+    uint256 totalPrice;
+    uint256 daoFee;
+    uint256 initialPrice;
+}

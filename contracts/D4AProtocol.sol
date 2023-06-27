@@ -17,7 +17,9 @@ import {
     UpdateRewardParam,
     UserMintCapParam,
     DaoMintInfo,
-    UserMintInfo
+    UserMintInfo,
+    MintNftInfo,
+    MintVars
 } from "contracts/interface/D4AStructs.sol";
 import { NotDaoOwner, InvalidERC20Ratio, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
 
@@ -38,32 +40,6 @@ import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
 contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
-    struct MintNftInfo {
-        string tokenUri;
-        uint256 flatPrice;
-    }
-
-    struct MintVars {
-        uint32 length;
-        uint256 currentRound;
-        uint256 nftPriceFactor;
-        uint256 priceChangeBasisPoint;
-        uint256 price;
-        uint256 daoTotalShare;
-        uint256 totalPrice;
-        uint256 daoFee;
-        uint256 initialPrice;
-    }
-
-    struct GetCanvasNextPriceParam {
-        bytes32 daoId;
-        bytes32 canvasId;
-        uint256 startPrb;
-        uint256 currentRound;
-        uint256 nftPriceFactor;
-        uint256 flatPrice;
-    }
-
     bytes32 internal constant MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
-import { DaoMetadataParam, UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam, MintNftInfo } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
@@ -222,7 +222,7 @@ contract D4AProtocolTest is DeployHelper {
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
 
         uint256 mintNum = 10;
-        D4AProtocol.MintNftInfo[] memory mintNftInfos = new D4AProtocol.MintNftInfo[](mintNum);
+        MintNftInfo[] memory mintNftInfos = new MintNftInfo[](mintNum);
         bytes[] memory signatures = new bytes[](mintNum);
         for (uint256 i; i < mintNum; ++i) {
             mintNftInfos[i].tokenUri = string.concat("test nft uri", vm.toString(i));
