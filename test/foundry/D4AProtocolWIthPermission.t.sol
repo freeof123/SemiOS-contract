@@ -6,6 +6,7 @@ import { DaoMetadataParam, UserMintCapParam } from "contracts/interface/D4AStruc
 
 import "forge-std/Test.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { ISafeOwnable } from "@solidstate/contracts/access/ownable/ISafeOwnable.sol";
 import {
     IPermissionControl,
     D4ADiamond,
@@ -121,18 +122,12 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
     }
 
     function test_initialize() public {
-        diamond = new D4ADiamond();
+        protocol = TestD4AProtocolWithPermission(payable(new D4ADiamond()));
+        ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
         protocolImpl = new TestD4AProtocolWithPermission();
-        protocol = TestD4AProtocolWithPermission(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(diamond),
-                    address(proxyAdmin),
-                    abi.encodeWithSignature("initialize(address)", protocolOwner.addr)
-                )
-            )
-        );
-        vm.prank(protocolOwner.addr);
+
+        vm.startPrank(protocolOwner.addr);
+        ISafeOwnable(address(protocol)).acceptOwnership();
         // set diamond fallback address
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
         protocol.initialize();
