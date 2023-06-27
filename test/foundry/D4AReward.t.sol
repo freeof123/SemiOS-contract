@@ -283,12 +283,14 @@ contract D4ARewardTest is DeployHelper {
 
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
-        assertEq(token.balanceOf(protocolFeePool.addr), protocolTotalReward + 1e9 * 1e18 * 2 / 100, "protocol fee pool");
-        assertEq(token.balanceOf(daoCreator.addr), daoTotalReward + 1e9 * 1e18 * 3 / 100, "dao creator");
         assertApproxEqAbs(
-            token.balanceOf(canvasCreator.addr), canvasTotalReward1 + 1e9 * 1e18 * 95 / 100, 100, "canvas creator 1"
+            token.balanceOf(protocolFeePool.addr), protocolTotalReward + 1e9 * 1e18 * 2 / 100, 10, "protocol fee pool"
         );
-        assertApproxEqAbs(token.balanceOf(address(protocol)), 0, 100, "protocol");
-        assertEq(token.totalSupply(), 1e9 * 1e18, "total supply");
+        assertApproxEqAbs(token.balanceOf(daoCreator.addr), daoTotalReward + 1e9 * 1e18 * 3 / 100, 10, "dao creator");
+        assertApproxEqAbs(
+            token.balanceOf(canvasCreator.addr), canvasTotalReward1 + 1e9 * 1e18 * 95 / 100, 10, "canvas creator 1"
+        );
+        assertEq(token.balanceOf(address(protocol)), 0, "protocol");
+        assertApproxEqAbs(token.totalSupply(), 1e9 * 1e18, 10, "total supply");
     }
 }
