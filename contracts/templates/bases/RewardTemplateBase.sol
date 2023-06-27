@@ -41,7 +41,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             param.daoFeeAmount * param.daoCreatorERC20RatioInBps / BASIS_POINT;
 
         uint256 tokenRebateAmount =
-            param.daoFeeAmount * rewardInfo.nftMinterERC20RatioInBps * param.canvasRebateRatioInBps / BASIS_POINT ** 2;
+            param.daoFeeAmount * param.nftMinterERC20RatioInBps * param.canvasRebateRatioInBps / BASIS_POINT ** 2;
         rewardInfo.canvasCreatorWeights[param.currentRound][param.canvasId] +=
             param.daoFeeAmount * param.canvasCreatorERC20RatioInBps / BASIS_POINT + tokenRebateAmount;
         rewardInfo.nftMinterWeights[param.currentRound][msg.sender] +=
