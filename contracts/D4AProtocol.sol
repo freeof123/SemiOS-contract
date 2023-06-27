@@ -74,8 +74,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
     mapping(bytes32 => bytes32) public tokenid_2_canvas;
 
-    address private __DEPRECATED_SETTINGS;
-
     mapping(bytes32 => bool) public uri_exists;
 
     uint256 public project_num;
