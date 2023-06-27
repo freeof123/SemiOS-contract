@@ -86,12 +86,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     mapping(bytes32 daoId => DaoMintInfo daoMintInfo) internal _daoMintInfos;
 
-    // event from library
-    event NewProject(
-        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
-    );
-    event NewCanvas(bytes32 project_id, bytes32 canvas_id, string uri);
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
