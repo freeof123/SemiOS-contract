@@ -63,7 +63,7 @@ import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
 contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
-    bytes32 internal constant MINTNFT_TYPEHASH =
+    bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
@@ -414,7 +414,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         bytes32 digest = _hashTypedDataV4(
-            keccak256(abi.encode(MINTNFT_TYPEHASH, _canvas_id, keccak256(bytes(_token_uri)), _flat_price))
+            keccak256(abi.encode(_MINTNFT_TYPEHASH, _canvas_id, keccak256(bytes(_token_uri)), _flat_price))
         );
         address signer = ECDSAUpgradeable.recover(digest, _signature);
         if (

@@ -7,7 +7,7 @@ import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract D4AProtocolHarness is D4AProtocol {
     function exposed_MINTNFT_TYPEHASH() public pure returns (bytes32) {
-        return MINTNFT_TYPEHASH;
+        return _MINTNFT_TYPEHASH;
     }
 
     function exposed_daoMintInfos(bytes32 daoId) public view returns (uint32 daoMintCap) {
