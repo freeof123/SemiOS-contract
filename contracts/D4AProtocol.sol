@@ -542,9 +542,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         D4ACanvas.canvas_info memory ci = _allCanvases[canvasId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
-        (bool succ, bytes memory data) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(
-            _allProjects[daoId].rewardTemplateType
-        )].delegatecall(
+        (bool succ,) = D4ASettingsBaseStorage.layout().rewardTemplates[uint8(_allProjects[daoId].rewardTemplateType)]
+            .delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.updateReward.selector,
                 UpdateRewardParam(
@@ -565,7 +564,8 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
         if (!succ) {
             /// @solidity memory-safe-assembly
             assembly {
-                revert(add(data, 32), mload(data))
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
             }
         }
     }
