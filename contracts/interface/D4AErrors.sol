@@ -10,3 +10,5 @@ error InvalidETHRatio();
 error UnauthorizedToExchangeRoyaltyTokenToETH();
 
 error ExceedMaxMintableRound();
+
+error ZeroFloorPriceCannotUseLinearPriceVariation();

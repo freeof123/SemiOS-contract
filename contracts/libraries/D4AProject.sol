@@ -119,7 +119,10 @@ library D4AProject {
             //We copy from setting in case setting may change later.
             pi.erc20_total_supply = l.erc20_total_supply;
 
-            PriceStorage.layout().daoFloorPrices[project_id] = l.floor_prices[_floor_price_rank];
+            if (_floor_price_rank != 9999) {
+                // 9999 is specified for 0 floor price
+                PriceStorage.layout().daoFloorPrices[project_id] = l.floor_prices[_floor_price_rank];
+            }
             RewardStorage.layout().rewardInfos[project_id].totalReward = l.erc20_total_supply;
             // TODO: remove this to save gas? because impossible to mint NFT at round 0, or change prb such that it
             // starts at round 1

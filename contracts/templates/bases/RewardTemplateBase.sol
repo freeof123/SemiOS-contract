@@ -10,6 +10,9 @@ import { D4AERC20 } from "contracts/D4AERC20.sol";
 
 abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
+        // deal with daoFeeAmount being 0
+        if (param.daoFeeAmount == 0) param.daoFeeAmount = 1 ether;
+
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
         // update initial mint pending round

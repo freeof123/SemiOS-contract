@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
@@ -8,6 +9,7 @@ import {
     DaoETHAndERC20SplitRatioParam,
     TemplateParam
 } from "contracts/interface/D4AStructs.sol";
+import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -97,6 +99,13 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         payable
         returns (bytes32 projectId)
     {
+        // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
+        if (
+            daoMetadataParam.floorPriceRank == 9999
+                && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
+        ) {
+            revert ZeroFloorPriceCannotUseLinearPriceVariation();
+        }
         if ((actionType & 0x1) != 0) {
             require(
                 IAccessControlUpgradeable(address(protocol)).hasRole(keccak256("OPERATION_ROLE"), msg.sender),
