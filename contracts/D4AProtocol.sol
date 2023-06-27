@@ -699,7 +699,7 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
             _allProjects[daoId].rewardTemplateType
         )].delegatecall(
             abi.encodeWithSelector(
-                IRewardTemplate.claimCanvasCreatorReward.selector,
+                IRewardTemplate.claimNftMinterReward.selector,
                 daoId,
                 minter,
                 pi.start_prb,
