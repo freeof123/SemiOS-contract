@@ -80,8 +80,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     mapping(bytes32 => mapping(uint256 => uint256)) public round_2_total_eth;
 
-    uint256 public canvas_num;
-
     uint256 public project_bitmap;
 
     mapping(bytes32 daoId => DaoMintInfo daoMintInfo) internal _daoMintInfos;
