@@ -16,8 +16,12 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
         // update initial mint pending round
+        uint256 pendingRound = rewardInfo.rewardPendingRound;
         if (rewardInfo.rewardPendingRound == type(uint256).max) rewardInfo.rewardPendingRound = param.currentRound;
-        _updateRewardRound(rewardInfo, param.currentRound);
+        if (param.currentRound > pendingRound) {
+            rewardInfo.activeRounds.push(pendingRound);
+            rewardInfo.rewardPendingRound = param.currentRound;
+        }
 
         uint256 length = rewardInfo.activeRounds.length;
         if (rewardInfo.isProgressiveJackpot) {
@@ -79,7 +83,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 )
             );
             // update protocol's claimable reward
-
             protocolClaimableReward +=
                 roundReward * rewardInfo.protocolWeights[activeRounds[i]] / rewardInfo.totalWeights[activeRounds[i]];
             // update dao creator's claimable reward
@@ -115,7 +118,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
         // enumerate all active rounds, not including current round
         uint256 i = rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId];
-
         for (; i < length;) {
             // given a past active round, get round reward
             uint256 roundReward = getRoundReward(
@@ -191,9 +193,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
     function _updateRewardRound(RewardStorage.RewardInfo storage rewardInfo, uint256 currentRound) internal {
         uint256 pendingRound = rewardInfo.rewardPendingRound;
-        if (pendingRound == type(uint256).max || currentRound == pendingRound) return;
-
-        rewardInfo.activeRounds.push(pendingRound);
-        rewardInfo.rewardPendingRound = currentRound;
+        if (currentRound > pendingRound) {
+            rewardInfo.activeRounds.push(pendingRound);
+            rewardInfo.rewardPendingRound = type(uint256).max;
+        }
     }
 }
