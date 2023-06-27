@@ -323,8 +323,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return _batchMint(daoId, canvasId, mintNftInfos);
     }
 
-    event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
-
     function setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,
@@ -472,8 +470,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         _allProjects[_project_id].canvases.push(canvas_id);
     }
-
-    event D4AMintNFT(bytes32 project_id, bytes32 canvas_id, uint256 token_id, string token_uri, uint256 price);
 
     function _mintNft(
         bytes32 canvasId,
@@ -765,11 +761,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return tokenid_2_canvas[keccak256(abi.encodePacked(_project_id, _token_id))];
     }
 
-    event D4AClaimProjectERC20Reward(bytes32 project_id, address erc20_token, uint256 amount);
-    event D4AExchangeERC20ToETH(
-        bytes32 project_id, address owner, address to, uint256 erc20_amount, uint256 eth_amount
-    );
-
     function claimProjectERC20Reward(bytes32 daoId)
         public
         override
@@ -802,8 +793,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         return amount;
     }
-
-    event D4AClaimCanvasReward(bytes32 project_id, bytes32 canvas_id, address erc20_token, uint256 amount);
 
     function claimCanvasReward(bytes32 canvasId)
         public
@@ -841,8 +830,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         return amount;
     }
-
-    event D4AClaimNftMinterReward(bytes32 daoId, address erc20Token, uint256 amount);
 
     function claimNftMinterReward(
         bytes32 daoId,
@@ -916,16 +903,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return to_send;
     }
 
-    event DaoNftPriceMultiplyFactorChanged(bytes32 daoId, uint256 newNftPriceMultiplyFactor);
-
     function changeDaoNftPriceMultiplyFactor(bytes32 daoId, uint256 nftPriceFactor) public onlyRole(bytes32(0)) {
         require(nftPriceFactor >= 10_000);
         _allProjects[daoId].nftPriceFactor = nftPriceFactor;
 
         emit DaoNftPriceMultiplyFactorChanged(daoId, nftPriceFactor);
     }
-
-    event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
 
     function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
@@ -940,8 +923,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return _allCanvases[canvasId].canvasRebateRatioInBps;
     }
 
-    event D4AERC721MaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
-
     function setD4AERC721MaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
@@ -951,8 +932,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         emit D4AERC721MaxSupplySet(daoId, newMaxSupply);
     }
 
-    event DaoMintableRoundSet(bytes32 daoId, uint256 newMintableRounds);
-
     function setDaoMintableRound(bytes32 daoId, uint256 newMintableRounds) public {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
@@ -961,8 +940,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         emit DaoMintableRoundSet(daoId, newMintableRounds);
     }
-
-    event DaoTemplateSet(bytes32 daoId, TemplateParam templateParam);
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public override {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
@@ -978,14 +955,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
         emit DaoTemplateSet(daoId, templateParam);
     }
-
-    event DaoRatioSet(
-        bytes32 daoId,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    );
 
     function setRatio(
         bytes32 daoId,
