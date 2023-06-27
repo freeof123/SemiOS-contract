@@ -10,7 +10,7 @@ library RewardStorage {
         uint256 rewardPendingRound;
         uint256[] activeRounds; // doesn't include pending round
         // weights
-        mapping(uint256 round => uint256 totalWeight) totalWeights;
+        mapping(uint256 round => uint256 totalWeight) totalWeights; // also total ETH in DAO fee pool at given round
         mapping(uint256 round => uint256 weight) protocolWeights;
         mapping(uint256 round => uint256 weight) daoCreatorWeights;
         mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeights;

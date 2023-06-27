@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {PriceTemplateType, RewardTemplateType} from "contracts/interface/D4AEnums.sol";
+import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
-    TemplateParam
+    TemplateParam,
+    MintNftInfo
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
@@ -128,7 +129,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -137,7 +138,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
@@ -174,7 +175,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -184,7 +185,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
@@ -204,7 +205,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -215,7 +216,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
@@ -236,7 +237,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -248,7 +249,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
@@ -268,7 +269,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -281,7 +282,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
@@ -301,7 +302,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](5);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](5);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](5);
         uint256[] memory flatPrices = new uint256[](5);
@@ -315,7 +316,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         uint256 daoFeePoolShare = _getDaoFeePoolShare(flatPrices);
@@ -336,7 +337,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](mintNum);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](mintNum);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](mintNum);
         uint256[] memory flatPrices = new uint256[](mintNum);
@@ -345,7 +346,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
@@ -365,7 +366,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](mintNum);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](mintNum);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](mintNum);
         uint256[] memory flatPrices = new uint256[](mintNum);
@@ -374,7 +375,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
@@ -394,7 +395,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](mintNum);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](mintNum);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](mintNum);
         uint256[] memory flatPrices = new uint256[](mintNum);
@@ -403,7 +404,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
@@ -423,7 +424,7 @@ contract Benchmark is DeployHelper {
         uint256 daoFeePoolBalance = daoFeePool.balance;
         uint256 canvasCreatorBalance = canvasCreator.addr.balance;
         vm.startPrank(nftMinter.addr);
-        D4AProtocol.MintNftInfo[] memory nftInfos = new D4AProtocol.MintNftInfo[](mintNum);
+        MintNftInfo[] memory nftInfos = new MintNftInfo[](mintNum);
         bytes32[] memory proof = new bytes32[](0);
         bytes[] memory signatures = new bytes[](mintNum);
         uint256[] memory flatPrices = new uint256[](mintNum);
@@ -432,7 +433,7 @@ contract Benchmark is DeployHelper {
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrices[i]);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             signatures[i] = bytes.concat(r, s, bytes1(v));
-            nftInfos[i] = D4AProtocol.MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
+            nftInfos[i] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrices[i] });
         }
         uint256 value = _getTotalPrice(flatPrices);
         protocol.batchMint{ value: value }(daoId, canvasId, proof, nftInfos, signatures);
