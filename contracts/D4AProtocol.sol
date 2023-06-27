@@ -496,10 +496,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         D4AProject.project_info storage pi = _allProjects[daoId];
         if (pi.nft_supply >= pi.max_nft_amount) revert NftExceedMaxAmount();
 
-        // MintVars memory vars;
-        // vars.currentRound = l.drb.currentRound();
-        // vars.nftPriceFactor = pi.nftPriceFactor;
-
         {
             bytes32 token_uri_hash = keccak256(abi.encodePacked(_token_uri));
             uri_exists[token_uri_hash] = true;
@@ -565,7 +561,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
                 )
             );
             require(succ);
-            // _allPrices[daoId].updateCanvasPrice(currentRound, canvasId, price, nftPriceMultiplyFactor);
         }
     }
 
@@ -609,9 +604,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         if (pi.nft_supply + length > pi.max_nft_amount) revert NftExceedMaxAmount();
 
         MintVars memory vars;
-        // vars.currentRound = l.drb.currentRound();
         uint256 currentRound = D4ASettingsBaseStorage.layout().drb.currentRound();
-        // vars.nftPriceFactor = pi.nftPriceFactor;
         uint256 nftPriceFactor = pi.nftPriceFactor;
 
         vars.price = _getCanvasNextPrice(daoId, canvasId, 0, pi.start_prb, currentRound, nftPriceFactor);
