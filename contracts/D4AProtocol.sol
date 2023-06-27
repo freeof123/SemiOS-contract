@@ -78,8 +78,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     uint256 public projectIndex;
 
-    mapping(bytes32 => mapping(uint256 => uint256)) public round_2_total_eth;
-
     uint256 public project_bitmap;
 
     mapping(bytes32 daoId => DaoMintInfo daoMintInfo) internal _daoMintInfos;
@@ -866,8 +864,8 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     function exchangeERC20ToETH(
         bytes32 daoId,
-        uint256 amount,
-        address _to
+        uint256 tokenAmount,
+        address to
     )
         public
         override
@@ -877,28 +875,29 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         returns (uint256)
     {
         D4AProject.project_info storage pi = _allProjects[daoId];
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        address erc20_token = pi.erc20_token;
-        address fee_pool = pi.fee_pool;
-        D4AERC20(erc20_token).burn(msg.sender, amount);
-        D4AERC20(erc20_token).mint(fee_pool, amount);
 
-        uint256 cur_round = l.drb.currentRound();
+        address token = pi.erc20_token;
+        address daoFeePool = pi.fee_pool;
 
-        uint256 circulate_erc20;
-        {
-            RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-            circulate_erc20 = rewardInfo.totalReward * rewardInfo.activeRounds.length / pi.mintable_rounds + amount
-                - D4AERC20(erc20_token).balanceOf(fee_pool);
-        }
-        if (circulate_erc20 == 0) return 0;
-        uint256 avaliable_eth = fee_pool.balance - round_2_total_eth[daoId][cur_round];
-        uint256 to_send = amount * avaliable_eth / circulate_erc20;
-        if (to_send != 0) {
-            D4AFeePool(payable(fee_pool)).transfer(address(0x0), payable(_to), to_send);
-        }
-        emit D4AExchangeERC20ToETH(daoId, msg.sender, _to, amount, to_send);
-        return to_send;
+        D4AERC20(token).burn(msg.sender, tokenAmount);
+        D4AERC20(token).mint(daoFeePool, tokenAmount);
+
+        uint256 currentRound = D4ASettingsBaseStorage.layout().drb.currentRound();
+
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        uint256 tokenCirculation = rewardInfo.totalReward * rewardInfo.activeRounds.length / pi.mintable_rounds
+            + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
+
+        if (tokenCirculation == 0) return 0;
+
+        uint256 avalaibleETH = daoFeePool.balance - rewardInfo.totalWeights[currentRound];
+        uint256 ethAmount = tokenAmount * avalaibleETH / tokenCirculation;
+
+        if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
+
+        emit D4AExchangeERC20ToETH(daoId, msg.sender, to, tokenAmount, ethAmount);
+
+        return ethAmount;
     }
 
     function changeDaoNftPriceMultiplyFactor(bytes32 daoId, uint256 nftPriceFactor) public onlyRole(bytes32(0)) {
