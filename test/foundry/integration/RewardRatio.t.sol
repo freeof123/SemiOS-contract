@@ -340,13 +340,13 @@ contract RewardRatioTest is DeployHelper {
         deal(daoFeePool, daoFeePoolETH);
 
         drb.changeRound(1);
-        hoax(daoCreator.addr, 0);
+        startHoax(daoCreator.addr, 0);
         protocol.claimProjectERC20Reward(daoId);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
-        hoax(canvasCreator.addr, 0);
+        startHoax(canvasCreator.addr, 0);
         protocol.claimCanvasReward(canvasId1);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
-        hoax(canvasCreator2.addr, 0);
+        startHoax(canvasCreator2.addr, 0);
         protocol.claimCanvasReward(canvasId2);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);
@@ -732,13 +732,13 @@ contract RewardRatioTest is DeployHelper {
         deal(daoFeePool, daoFeePoolETH);
 
         drb.changeRound(1);
-        hoax(daoCreator.addr, 0);
+        startHoax(daoCreator.addr, 0);
         protocol.claimProjectERC20Reward(daoId);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
-        hoax(canvasCreator.addr, 0);
+        startHoax(canvasCreator.addr, 0);
         protocol.claimCanvasReward(canvasId1);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
-        hoax(canvasCreator2.addr, 0);
+        startHoax(canvasCreator2.addr, 0);
         protocol.claimCanvasReward(canvasId2);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);

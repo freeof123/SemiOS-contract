@@ -736,8 +736,12 @@ abstract contract D4AProtocol is Initializable, ReentrancyGuardUpgradeable, ID4A
 
         uint256 cur_round = l.drb.currentRound();
 
-        uint256 circulate_erc20 =
-            D4AERC20(erc20_token).totalSupply() + amount - D4AERC20(erc20_token).balanceOf(fee_pool);
+        uint256 circulate_erc20;
+        {
+            RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+            circulate_erc20 = rewardInfo.totalReward * rewardInfo.activeRounds.length / pi.mintable_rounds + amount
+                - D4AERC20(erc20_token).balanceOf(fee_pool);
+        }
         if (circulate_erc20 == 0) return 0;
         uint256 avaliable_eth = fee_pool.balance - round_2_total_eth[daoId][cur_round];
         uint256 to_send = amount * avaliable_eth / circulate_erc20;
