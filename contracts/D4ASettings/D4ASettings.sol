@@ -5,6 +5,7 @@ import "@solidstate/contracts/access/access_control/AccessControl.sol";
 import "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 
 import "./ID4ASettings.sol";
+import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
 import "./D4ASettingsBaseStorage.sol";
 import "./D4ASettingsReadable.sol";
 import "../interface/ID4AFeePoolFactory.sol";
@@ -36,13 +37,12 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         l.rf_lower_bound = 500;
         l.rf_upper_bound = 1000;
 
-        l.project_erc20_ratio = 300;
-        l.d4a_erc20_ratio = 200;
+        l.daoCreatorERC20RatioInBps = 300;
+        l.protocolERC20RatioInBps = 200;
         l.canvas_erc20_ratio = 9500;
         l.project_max_rounds = 366;
         l.reserved_slots = 110;
 
-        l.defaultNftPriceMultiplyFactor = 20_000;
         l.initialized = true;
     }
 
@@ -61,7 +61,7 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
     function changeProtocolFeePool(address addr) public onlyRole(PROTOCOL_ROLE) {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
-        l.protocol_fee_pool = addr;
+        l.protocolFeePool = addr;
         emit ChangeProtocolFeePool(addr);
     }
 
@@ -113,8 +113,8 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
     {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
 
-        l.d4a_erc20_ratio = _d4a_ratio;
-        l.project_erc20_ratio = _project_ratio;
+        l.protocolERC20RatioInBps = _d4a_ratio;
+        l.daoCreatorERC20RatioInBps = _project_ratio;
         l.canvas_erc20_ratio = _canvas_ratio;
         require(_d4a_ratio + _project_ratio + _canvas_ratio == l.ratio_base, "invalid ratio");
 
@@ -246,12 +246,19 @@ contract D4ASettings is ID4ASettings, AccessControl, D4ASettingsReadable {
         emit MembershipTransferred(role, previousMember, newMember);
     }
 
-    event DefaultNftPriceMultiplyFactorChanged(uint256 newDefaultNftPriceMultiplyFactor);
-
-    function changeNftPriceMultiplyFactor(uint256 newDefaultNftPriceMultiplyFactor) public onlyRole(PROTOCOL_ROLE) {
+    function setTemplateAddress(
+        TemplateChoice templateChoice,
+        uint8 index,
+        address template
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-
-        l.defaultNftPriceMultiplyFactor = newDefaultNftPriceMultiplyFactor;
-        emit DefaultNftPriceMultiplyFactorChanged(newDefaultNftPriceMultiplyFactor);
+        if (templateChoice == TemplateChoice.PRICE) {
+            l.priceTemplates[index] = template;
+        } else {
+            l.rewardTemplates[index] = template;
+        }
     }
 }

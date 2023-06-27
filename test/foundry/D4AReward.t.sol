@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
@@ -42,7 +43,7 @@ contract D4ARewardTest is DeployHelper {
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
@@ -83,9 +84,9 @@ contract D4ARewardTest is DeployHelper {
 
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
-        assertEq(token.balanceOf(protocolFeePool.addr), protocolRewardPerRound);
-        assertEq(token.balanceOf(daoCreator.addr), daoRewardPerRound);
-        assertEq(token.balanceOf(canvasCreator.addr), canvasRewardPerRound);
+        assertEq(token.balanceOf(protocolFeePool.addr), protocolRewardPerRound, "protocol fee pool");
+        assertEq(token.balanceOf(daoCreator.addr), daoRewardPerRound, "dao creator");
+        assertEq(token.balanceOf(canvasCreator.addr), canvasRewardPerRound, "canvas creator");
 
         // tally rewards
         protocolTotalReward += protocolRewardPerRound;
@@ -220,7 +221,7 @@ contract D4ARewardTest is DeployHelper {
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
 
         // clean up rewards
@@ -274,7 +275,7 @@ contract D4ARewardTest is DeployHelper {
 
         startHoax(nftMinter.addr);
         price = protocol.getCanvasNextPrice(canvasId1);
-        vm.expectRevert("rounds end, cannot mint");
+        vm.expectRevert(ExceedMaxMintableRound.selector);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -282,12 +283,14 @@ contract D4ARewardTest is DeployHelper {
 
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
-        assertEq(token.balanceOf(protocolFeePool.addr), protocolTotalReward + 1e9 * 1e18 * 2 / 100, "protocol fee pool");
-        assertEq(token.balanceOf(daoCreator.addr), daoTotalReward + 1e9 * 1e18 * 3 / 100, "dao creator");
         assertApproxEqAbs(
-            token.balanceOf(canvasCreator.addr), canvasTotalReward1 + 1e9 * 1e18 * 95 / 100, 100, "canvas creator 1"
+            token.balanceOf(protocolFeePool.addr), protocolTotalReward + 1e9 * 1e18 * 2 / 100, 10, "protocol fee pool"
         );
-        assertApproxEqAbs(token.balanceOf(address(protocol)), 0, 100, "protocol");
-        assertEq(token.totalSupply(), 1e9 * 1e18, "total supply");
+        assertApproxEqAbs(token.balanceOf(daoCreator.addr), daoTotalReward + 1e9 * 1e18 * 3 / 100, 10, "dao creator");
+        assertApproxEqAbs(
+            token.balanceOf(canvasCreator.addr), canvasTotalReward1 + 1e9 * 1e18 * 95 / 100, 10, "canvas creator 1"
+        );
+        assertEq(token.balanceOf(address(protocol)), 0, "protocol");
+        assertApproxEqAbs(token.totalSupply(), 1e9 * 1e18, 10, "total supply");
     }
 }

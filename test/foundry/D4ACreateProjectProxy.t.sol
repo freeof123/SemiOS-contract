@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
@@ -134,7 +136,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             vm.expectCall({
                 callee: address(protocol),
                 msgValue: 0,
-                data: abi.encodeWithSelector(protoDAOSettings.setRatio.selector),
+                data: abi.encodeWithSelector(protocol.setRatio.selector),
                 count: 1
             });
         }
@@ -152,6 +154,14 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 5000, 2000, 2500),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
+            }),
             actionType
         );
         assertTrue(daoId != bytes32(0));
@@ -176,6 +186,14 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
+            }),
             1
         );
     }
@@ -239,6 +257,14 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
+            }),
             0
         );
         address splitter = daoProxy.getSplitterAddress(daoId);

@@ -11,7 +11,7 @@ contract CreateDaoTest is DeployHelper {
 
     function test_createDao_WithZeroFloorPrice() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 13, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(0, 30, 9999, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));

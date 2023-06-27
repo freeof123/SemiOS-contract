@@ -23,6 +23,4 @@ interface ID4ASettingsReadable {
     function createProjectFee() external view returns (uint256);
 
     function createCanvasFee() external view returns (uint256);
-
-    function defaultNftPriceMultiplyFactor() external view returns (uint256);
 }

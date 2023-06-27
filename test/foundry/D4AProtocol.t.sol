@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { NotDaoOwner } from "contracts/interface/D4AErrors.sol";
+import { NotDaoOwner, ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { DeployHelper } from "./utils/DeployHelper.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 
@@ -23,7 +23,7 @@ contract D4AProtocolTest is DeployHelper {
         daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0));
@@ -65,7 +65,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
         protocol.setD4AERC721MaxSupply(daoId, maxSupply);
-        (,,, uint256 nftMaxSupply,,,,,) = protocol.getProjectInfo(daoId);
+        (,, uint256 nftMaxSupply,,,,,) = protocol.getProjectInfo(daoId);
         assertEq(nftMaxSupply, maxSupply);
     }
 
@@ -174,7 +174,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 round = 10;
         startHoax(daoCreator.addr);
         protocol.setDaoMintableRound(daoId, round);
-        (, uint256 mintableRound,,,,,,,) = protocol.getProjectInfo(daoId);
+        (, uint256 mintableRound,,,,,,) = protocol.getProjectInfo(daoId);
         assertEq(mintableRound, round);
     }
 
@@ -221,7 +221,7 @@ contract D4AProtocolTest is DeployHelper {
 
             startHoax(nftMinter.addr);
             uint256 mintPrice = flatPrice;
-            vm.expectRevert("rounds end, cannot mint");
+            vm.expectRevert(ExceedMaxMintableRound.selector);
             protocol.mintNFT{ value: mintPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );
@@ -255,7 +255,7 @@ contract D4AProtocolTest is DeployHelper {
 
             startHoax(nftMinter.addr);
             uint256 mintPrice = flatPrice;
-            vm.expectRevert("rounds end, cannot mint");
+            vm.expectRevert(ExceedMaxMintableRound.selector);
             protocol.mintNFT{ value: mintPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );

@@ -12,7 +12,7 @@ library D4ACanvas {
         uint256 index;
         string canvas_uri;
         bool exist;
-        uint256 rebateRatioInBps;
+        uint256 canvasRebateRatioInBps;
     }
 
     error D4AInsufficientEther(uint256 required);

@@ -1,24 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
 
-import "../impl/D4AProject.sol";
-import "../impl/D4ACanvas.sol";
-import "../impl/D4APrice.sol";
-import "../impl/D4AReward.sol";
+import "../libraries/D4AProject.sol";
+import "../libraries/D4ACanvas.sol";
+import "../libraries/D4APrice.sol";
+import "../libraries/D4AReward.sol";
+import { PriceStorage } from "../storages/PriceStorage.sol";
+import { RewardStorage } from "../storages/RewardStorage.sol";
+import { IPriceTemplate } from "../interface/IPriceTemplate.sol";
 
 abstract contract ID4AProtocol {
     using D4AProject for mapping(bytes32 => D4AProject.project_info);
     using D4ACanvas for mapping(bytes32 => D4ACanvas.canvas_info);
-    using D4APrice for D4APrice.project_price_info;
-    using D4AReward for mapping(bytes32 => D4AReward.reward_info);
 
     // TODO: add getters for all the mappings
     mapping(bytes32 => D4AProject.project_info) internal _allProjects;
     mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
-    mapping(bytes32 => D4APrice.project_price_info) internal _allPrices;
-    mapping(bytes32 => D4AReward.reward_info) internal _allRewards;
     mapping(bytes32 => bytes32) public tokenid_2_canvas;
 
     address private __DEPRECATED_SETTINGS;
@@ -36,15 +35,7 @@ abstract contract ID4AProtocol {
         virtual
         returns (bytes32 project_id);
 
-    function createOwnerProject(
-        uint256 _start_prb,
-        uint256 _mintable_rounds,
-        uint256 _floor_price_rank,
-        uint256 _max_nft_rank,
-        uint96 _royalty_fee,
-        string memory _project_uri,
-        uint256 _project_index
-    )
+    function createOwnerProject(DaoMetadataParam calldata daoMetadata)
         external
         payable
         virtual
@@ -60,7 +51,6 @@ abstract contract ID4AProtocol {
         returns (
             uint256 start_prb,
             uint256 mintable_rounds,
-            uint256 floor_price_rank,
             uint256 max_nft_amount,
             address fee_pool,
             uint96 royalty_fee,
@@ -73,7 +63,7 @@ abstract contract ID4AProtocol {
     }
 
     function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
-        return _allProjects.getProjectFloorPrice(_project_id);
+        return PriceStorage.layout().daoFloorPrices[_project_id];
     }
 
     function getProjectTokens(bytes32 _project_id) public view returns (address erc20_token, address erc721_token) {
@@ -101,22 +91,20 @@ abstract contract ID4AProtocol {
         return _allCanvases.getCanvasURI(_canvas_id);
     }
 
-    function getCanvasLastPrice(bytes32 _canvas_id) public view returns (uint256 round, uint256 price) {
-        bytes32 proj_id = _allCanvases[_canvas_id].project_id;
-        return _allPrices[proj_id].getCanvasLastPrice(_canvas_id);
+    function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {
+        PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
+        return (mintInfo.round, mintInfo.price);
     }
 
-    function getCanvasNextPrice(bytes32 _canvas_id) public view returns (uint256) {
+    function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
+        bytes32 daoId = _allCanvases[canvasId].project_id;
+        uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
+        PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
+        D4AProject.project_info storage pi = _allProjects[daoId];
         D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        bytes32 project_id = _allCanvases[_canvas_id].project_id;
-        D4AProject.project_info storage pi = _allProjects[project_id];
-        return _allPrices[project_id].getCanvasNextPrice(
-            l.drb.currentRound(),
-            pi.floor_prices,
-            pi.floor_price_rank,
-            pi.start_prb,
-            _canvas_id,
-            pi.nftPriceMultiplyFactor == 0 ? l.defaultNftPriceMultiplyFactor : pi.nftPriceMultiplyFactor
+        return IPriceTemplate(l.priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]).getCanvasNextPrice(
+            pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
         );
     }
 
@@ -130,4 +118,58 @@ abstract contract ID4AProtocol {
     )
         external
         virtual;
+
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) external virtual;
+
+    function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        uint256 canvasCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].canvasCreatorERC20RatioInBps;
+        if (canvasCreatorERC20RatioInBps == 0) {
+            return l.canvas_erc20_ratio;
+        }
+        return canvasCreatorERC20RatioInBps * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
+    }
+
+    function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
+        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
+        uint256 nftMinterERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].nftMinterERC20RatioInBps;
+        if (nftMinterERC20RatioInBps == 0) {
+            return 0;
+        }
+        return nftMinterERC20RatioInBps * (l.ratio_base - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
+            / l.ratio_base;
+    }
+
+    function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
+        if (_allProjects[daoId].daoFeePoolETHRatioInBps == 0) {
+            return D4ASettingsBaseStorage.layout().mint_project_fee_ratio;
+        }
+        return _allProjects[daoId].daoFeePoolETHRatioInBps;
+    }
+
+    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
+        if (_allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice == 0) {
+            return D4ASettingsBaseStorage.layout().mint_project_fee_ratio_flat_price;
+        }
+        return _allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice;
+    }
+
+    function setRatio(
+        bytes32 daoId,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+        virtual;
+
+    function claimProjectERC20Reward(bytes32 daoId) external virtual returns (uint256);
+
+    function claimCanvasReward(bytes32 canvasId) external virtual returns (uint256);
+
+    function claimNftMinterReward(bytes32 daoId, address minter) external virtual returns (uint256);
+
+    function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address _to) external virtual returns (uint256);
 }

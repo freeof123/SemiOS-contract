@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import {PriceTemplateType, RewardTemplateType} from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
@@ -53,10 +55,18 @@ contract Benchmark is DeployHelper {
             IPermissionControl.Blacklist(new address[](0), new address[](0)),
             DaoMintCapParam(0, new UserMintCapParam[](0)),
             DaoETHAndERC20SplitRatioParam(0, 0, 0, 0),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                rewardDecayLife: 1,
+                isProgressiveJackpot: false
+            }),
             0
         );
         {
-            (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+            (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
         }
         (, address erc721Token) = protocol.getProjectTokens(daoId);
         nft = IERC721(erc721Token);

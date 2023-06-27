@@ -8,3 +8,7 @@ error InvalidERC20Ratio();
 error InvalidETHRatio();
 
 error UnauthorizedToExchangeRoyaltyTokenToETH();
+
+error ExceedMaxMintableRound();
+
+error ZeroFloorPriceCannotUseLinearPriceVariation();

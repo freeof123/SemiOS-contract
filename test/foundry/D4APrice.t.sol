@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { D4APriceHarness } from "./harness/D4ApriceHarness.sol";
-import { D4APrice } from "contracts/impl/D4APrice.sol";
+import { D4APrice } from "contracts/libraries/D4APrice.sol";
 
 contract D4APriceTest is DeployHelper {
     D4APriceHarness public priceHarness;
@@ -13,7 +13,7 @@ contract D4APriceTest is DeployHelper {
     bytes32 public canvasId3 = "canvasId3";
     uint256[] public priceSlots = [0.1 ether, 0.2 ether, 0.3 ether, 0.4 ether, 0.5 ether];
     uint256 public priceRank = 0;
-    uint256 public defaultNftPriceMultiplyFactor;
+    uint256 public defaultNftPriceMultiplyFactor = 20_000;
     uint256 public round0 = 0;
     uint256 public round1 = 1;
     uint256 public x1 = 10_000;
@@ -23,7 +23,6 @@ contract D4APriceTest is DeployHelper {
     function setUp() public {
         setUpEnv();
         priceHarness = new D4APriceHarness();
-        defaultNftPriceMultiplyFactor = ID4ASettingsReadable(address(protocol)).defaultNftPriceMultiplyFactor();
     }
 
     function testFuzz_GetCanvasLastPrice(bytes32 daoId, bytes32 canvasId, uint256 round_, uint256 price_) public {

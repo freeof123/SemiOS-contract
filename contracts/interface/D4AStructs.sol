@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
+
 struct DaoMetadataParam {
     uint256 startDrb;
     uint256 mintableRounds;
@@ -36,4 +38,38 @@ struct DaoETHAndERC20SplitRatioParam {
     uint256 nftMinterERC20Ratio;
     uint256 daoFeePoolETHRatio;
     uint256 daoFeePoolETHRatioFlatPrice;
+}
+
+struct TemplateParam {
+    PriceTemplateType priceTemplateType;
+    uint256 priceFactor;
+    RewardTemplateType rewardTemplateType;
+    uint256 rewardDecayFactor;
+    uint256 rewardDecayLife;
+    bool isProgressiveJackpot;
+}
+
+struct GetRoundRewardParam {
+    uint256 totalReward;
+    uint256 startRound;
+    uint256 round;
+    uint256[] activeRounds;
+    uint256 totalRound;
+    uint256 decayFactor;
+    uint256 decayLife;
+    bool isProgressiveJackpot;
+}
+
+struct UpdateRewardParam {
+    bytes32 daoId;
+    bytes32 canvasId;
+    uint256 startRound;
+    uint256 currentRound;
+    uint256 totalRound;
+    uint256 daoFeeAmount;
+    uint256 protocolERC20RatioInBps;
+    uint256 daoCreatorERC20RatioInBps;
+    uint256 canvasCreatorERC20RatioInBps;
+    uint256 nftMinterERC20RatioInBps;
+    uint256 canvasRebateRatioInBps;
 }

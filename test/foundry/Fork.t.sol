@@ -9,10 +9,6 @@ import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitte
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilter, D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
-import { D4AProject } from "contracts/impl/D4AProject.sol";
-import { D4ACanvas } from "contracts/impl/D4ACanvas.sol";
-import { D4APrice } from "contracts/impl/D4APrice.sol";
-import { D4AReward } from "contracts/impl/D4AReward.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";

@@ -6,7 +6,6 @@ import { console2 } from "forge-std/Console2.sol";
 import { DeployHelper } from "../utils/DeployHelper.sol";
 import { MintNftSigUtils } from "../utils/MintNftSigUtils.sol";
 import { D4ASettingsReadable } from "contracts/D4ASettings/D4ASettingsReadable.sol";
-import { ProtoDAOSettings } from "contracts/ProtoDAOSettings/ProtoDAOSettings.sol";
 
 contract RewardRatioTest is DeployHelper {
     MintNftSigUtils public sigUtils;
@@ -31,8 +30,8 @@ contract RewardRatioTest is DeployHelper {
 
         protocolFeePoolETHRatio = D4ASettingsReadable(address(protocol)).mintProtocolFeeRatio();
         ratioBase = D4ASettingsReadable(address(protocol)).ratioBase();
-        daoFeePoolETHRatio = ProtoDAOSettings(address(protocol)).getDaoFeePoolETHRatio(daoId);
-        daoFeePoolETHRatioFlatPrice = ProtoDAOSettings(address(protocol)).getDaoFeePoolETHRatioFlatPrice(daoId);
+        daoFeePoolETHRatio = protocol.getDaoFeePoolETHRatio(daoId);
+        daoFeePoolETHRatioFlatPrice = protocol.getDaoFeePoolETHRatioFlatPrice(daoId);
 
         sigUtils = new MintNftSigUtils(address(protocol));
 
@@ -40,7 +39,7 @@ contract RewardRatioTest is DeployHelper {
         daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0));
@@ -92,7 +91,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         daoFeePoolETHRatio = 4000;
         daoFeePoolETHRatioFlatPrice = 6000;
-        ProtoDAOSettings(address(protocol)).setRatio(daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
+        protocol.setRatio(daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
 
         tokenUri = "test token uri 2";
         flatPrice = 0;
@@ -147,7 +146,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 7500;
         nftMinterERC20Ratio = 2500;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -166,7 +165,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 6000;
         nftMinterERC20Ratio = 4000;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -185,7 +184,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 5000;
         nftMinterERC20Ratio = 5000;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -204,7 +203,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 3500;
         nftMinterERC20Ratio = 6500;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -264,7 +263,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 7500;
         nftMinterERC20Ratio = 2500;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -283,7 +282,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 6000;
         nftMinterERC20Ratio = 4000;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -302,7 +301,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 5000;
         nftMinterERC20Ratio = 5000;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -321,7 +320,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         canvasCreatorERC20Ratio = 3500;
         nftMinterERC20Ratio = 6500;
-        ProtoDAOSettings(address(protocol)).setRatio(
+        protocol.setRatio(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
@@ -341,16 +340,21 @@ contract RewardRatioTest is DeployHelper {
         deal(daoFeePool, daoFeePoolETH);
 
         drb.changeRound(1);
-        hoax(daoCreator.addr, 0);
-        protocol.claimProjectERC20RewardWithETH(daoId);
-        hoax(canvasCreator.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId1);
-        hoax(canvasCreator2.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId2);
+        startHoax(daoCreator.addr, 0);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
+        startHoax(canvasCreator.addr, 0);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
+        startHoax(canvasCreator2.addr, 0);
+        protocol.claimCanvasReward(canvasId2);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter.addr), nftMinter.addr);
         startHoax(nftMinter2.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter2.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter2.addr), nftMinter2.addr);
 
         uint256 totalWeight = 15 ether;
         uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2;
@@ -418,7 +422,7 @@ contract RewardRatioTest is DeployHelper {
         startHoax(daoCreator.addr);
         daoFeePoolETHRatio = 4000;
         daoFeePoolETHRatioFlatPrice = 6000;
-        ProtoDAOSettings(address(protocol)).setRatio(daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
+        protocol.setRatio(daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
 
         tokenUri = "test token uri 2";
         flatPrice = 0;
@@ -493,7 +497,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 7500;
             nftMinterERC20Ratio = 2500;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -514,7 +518,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 6000;
             nftMinterERC20Ratio = 4000;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -535,7 +539,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 5000;
             nftMinterERC20Ratio = 5000;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -556,7 +560,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 3500;
             nftMinterERC20Ratio = 6500;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -644,7 +648,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 7500;
             nftMinterERC20Ratio = 2500;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -665,7 +669,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 6000;
             nftMinterERC20Ratio = 4000;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -686,7 +690,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 5000;
             nftMinterERC20Ratio = 5000;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -707,7 +711,7 @@ contract RewardRatioTest is DeployHelper {
             startHoax(daoCreator.addr);
             canvasCreatorERC20Ratio = 3500;
             nftMinterERC20Ratio = 6500;
-            ProtoDAOSettings(address(protocol)).setRatio(
+            protocol.setRatio(
                 daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
@@ -728,16 +732,21 @@ contract RewardRatioTest is DeployHelper {
         deal(daoFeePool, daoFeePoolETH);
 
         drb.changeRound(1);
-        hoax(daoCreator.addr, 0);
-        protocol.claimProjectERC20RewardWithETH(daoId);
-        hoax(canvasCreator.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId1);
-        hoax(canvasCreator2.addr, 0);
-        protocol.claimCanvasRewardWithETH(canvasId2);
+        startHoax(daoCreator.addr, 0);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
+        startHoax(canvasCreator.addr, 0);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
+        startHoax(canvasCreator2.addr, 0);
+        protocol.claimCanvasReward(canvasId2);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator2.addr), canvasCreator2.addr);
         startHoax(nftMinter.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter.addr), nftMinter.addr);
         startHoax(nftMinter2.addr, 0);
-        protocol.claimNftMinterRewardWithETH(daoId, nftMinter2.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);
+        protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter2.addr), nftMinter2.addr);
 
         uint256 totalWeight = 15 ether;
         uint256 canvasCreatorRebateAmount1 =

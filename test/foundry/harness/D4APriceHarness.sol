@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { D4APrice } from "contracts/impl/D4APrice.sol";
+import { D4APrice } from "contracts/libraries/D4APrice.sol";
 
 contract D4APriceHarness {
     using D4APrice for D4APrice.project_price_info;

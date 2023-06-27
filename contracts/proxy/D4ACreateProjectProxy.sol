@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
 } from "contracts/interface/D4AStructs.sol";
+import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -17,7 +20,6 @@ import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { IProtoDAOSettingsWritable } from "contracts/ProtoDaoSettings/IProtoDAOSettingsWritable.sol";
 
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
@@ -69,8 +71,14 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         uniswapV2Factory = IUniswapV2Factory(newUniswapV2Factory);
     }
 
-    event NewProject(
-        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+    event CreateProjectParamEmitted(
+        DaoMetadataParam daoMetadataParam,
+        IPermissionControl.Whitelist whitelist,
+        IPermissionControl.Blacklist blacklist,
+        DaoMintCapParam daoMintCapParam,
+        DaoETHAndERC20SplitRatioParam splitRatioParam,
+        TemplateParam templateParam,
+        uint256 actionType
     );
 
     // first bit: 0: project, 1: owner project
@@ -79,31 +87,31 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     // fourth bit: 0: without DEX pair initialized, 1: with DEX pair initialized
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createProject(
-        DaoMetadataParam memory daoMetadataParam,
+        DaoMetadataParam calldata daoMetadataParam,
         IPermissionControl.Whitelist calldata whitelist,
         IPermissionControl.Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        TemplateParam calldata templateParam,
         uint256 actionType
     )
         public
         payable
         returns (bytes32 projectId)
     {
+        // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
+        if (
+            daoMetadataParam.floorPriceRank == 9999
+                && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
+        ) {
+            revert ZeroFloorPriceCannotUseLinearPriceVariation();
+        }
         if ((actionType & 0x1) != 0) {
             require(
                 IAccessControlUpgradeable(address(protocol)).hasRole(keccak256("OPERATION_ROLE"), msg.sender),
                 "only admin can specify project index"
             );
-            projectId = protocol.createOwnerProject{ value: msg.value }(
-                daoMetadataParam.startDrb,
-                daoMetadataParam.mintableRounds,
-                daoMetadataParam.floorPriceRank,
-                daoMetadataParam.maxNftRank,
-                daoMetadataParam.royaltyFee,
-                daoMetadataParam.projectUri,
-                daoMetadataParam.projectIndex
-            );
+            projectId = protocol.createOwnerProject{ value: msg.value }(daoMetadataParam);
         } else {
             projectId = protocol.createProject{ value: msg.value }(
                 daoMetadataParam.startDrb,
@@ -136,7 +144,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         if ((actionType & 0x10) != 0) {
-            IProtoDAOSettingsWritable(address(protocol)).setRatio(
+            protocol.setRatio(
                 projectId,
                 splitRatioParam.canvasCreatorERC20Ratio,
                 splitRatioParam.nftMinterERC20Ratio,
@@ -145,7 +153,14 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
             );
         }
 
+        // setup template
+        protocol.setTemplate(projectId, templateParam);
+
         _createSplitter(projectId);
+
+        emit CreateProjectParamEmitted(
+            daoMetadataParam, whitelist, blacklist, daoMintCapParam, splitRatioParam, templateParam, actionType
+        );
     }
 
     function _setMintCapAndPermission(
@@ -199,12 +214,12 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     }
 
     function getProjectRoyaltyFee(bytes32 project_id) internal view returns (uint96) {
-        (,,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
+        (,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
         return royalty_fee;
     }
 
     function getProjectFeePool(bytes32 project_id) internal view returns (address) {
-        (,,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
+        (,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
         return fee_pool;
     }
 

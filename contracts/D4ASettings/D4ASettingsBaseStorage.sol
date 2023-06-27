@@ -23,7 +23,7 @@ library D4ASettingsBaseStorage {
         uint256 min_stamp_duty; //TODO
         uint256 max_stamp_duty;
         uint256 create_project_fee;
-        address protocol_fee_pool;
+        address protocolFeePool;
         uint256 create_canvas_fee;
         uint256 mint_d4a_fee_ratio;
         uint256 trade_d4a_fee_ratio;
@@ -31,9 +31,9 @@ library D4ASettingsBaseStorage {
         uint256 mint_project_fee_ratio_flat_price;
         uint256 erc20_total_supply;
         uint256 project_max_rounds; //366
-        uint256 project_erc20_ratio;
+        uint256 daoCreatorERC20RatioInBps;
         uint256 canvas_erc20_ratio;
-        uint256 d4a_erc20_ratio;
+        uint256 protocolERC20RatioInBps;
         uint256 rf_lower_bound;
         uint256 rf_upper_bound;
         uint256[] floor_prices;
@@ -52,8 +52,9 @@ library D4ASettingsBaseStorage {
         mapping(bytes32 => bool) pause_status;
         address project_proxy;
         uint256 reserved_slots;
-        uint256 defaultNftPriceMultiplyFactor;
         bool initialized;
+        address[256] priceTemplates;
+        address[256] rewardTemplates;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4A.contracts.storage.Setting");

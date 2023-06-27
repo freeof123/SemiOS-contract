@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { TemplateChoice } from "contracts/interface/D4AEnums.sol";
+
 interface ID4ASettings {
     function initializeD4ASettings() external;
 
@@ -48,5 +50,5 @@ interface ID4ASettings {
 
     function transferMembership(bytes32 role, address previousMember, address newMember) external;
 
-    function changeNftPriceMultiplyFactor(uint256 newDefaultNftPriceMultiplyFactor) external;
+    function setTemplateAddress(TemplateChoice templateChoice, uint8 index, address template) external;
 }

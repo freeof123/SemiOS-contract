@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
 import { DaoMetadataParam, UserMintCapParam } from "contracts/interface/D4AStructs.sol";
 
 import "forge-std/Test.sol";
@@ -159,6 +160,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 1);
     }
@@ -181,6 +186,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 6;
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
         vm.expectRevert(D4AProtocolWithPermission.ExceedMaxMintAmount.selector);
@@ -311,6 +320,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
     }
@@ -334,6 +347,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(D4AProtocolWithPermission.Blacklisted.selector);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
@@ -358,6 +375,10 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
+        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        createDaoParam.priceFactor = 20_000;
+        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
+        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(D4AProtocolWithPermission.NotInWhitelist.selector);
         protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
