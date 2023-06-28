@@ -27,11 +27,9 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     ID4AProtocol public protocol;
     ID4ARoyaltySplitterFactory public splitter_factory;
     address public splitter_owner;
-    address internal __DEPRECATED_SETTINGS;
     mapping(bytes32 daoId => address royaltySplitter) internal _royaltySplitters;
 
     IUniswapV2Factory public uniswapV2Factory;
-    address private __DEPRECATED_UNISWAP_V2_FACTORY;
     address public immutable WETH;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
