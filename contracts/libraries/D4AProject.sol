@@ -135,60 +135,6 @@ library D4AProject {
         }
     }
 
-    // TODO: remove getters from library
-    function getProjectCanvasCount(
-        mapping(bytes32 => project_info) storage _allProjects,
-        bytes32 _project_id
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        project_info storage pi = _allProjects[_project_id];
-        return pi.canvases.length;
-    }
-
-    function getProjectCanvasAt(
-        mapping(bytes32 => project_info) storage _allProjects,
-        bytes32 _project_id,
-        uint256 _index
-    )
-        internal
-        view
-        returns (bytes32)
-    {
-        project_info storage pi = _allProjects[_project_id];
-        return pi.canvases[_index];
-    }
-
-    function getProjectInfo(
-        mapping(bytes32 => project_info) storage _allProjects,
-        bytes32 _project_id
-    )
-        internal
-        view
-        returns (
-            uint256 start_prb,
-            uint256 mintable_rounds,
-            uint256 max_nft_amount,
-            address fee_pool,
-            uint96 royalty_fee,
-            uint256 index,
-            string memory uri,
-            uint256 erc20_total_supply
-        )
-    {
-        project_info storage pi = _allProjects[_project_id];
-        start_prb = pi.start_prb;
-        mintable_rounds = pi.mintable_rounds;
-        max_nft_amount = pi.max_nft_amount;
-        fee_pool = pi.fee_pool;
-        royalty_fee = pi.royalty_fee;
-        index = pi.index;
-        uri = pi.project_uri;
-        erc20_total_supply = pi.erc20_total_supply;
-    }
-
     /*function toHex16 (bytes16 data) internal pure returns (bytes32 result) {
     result = bytes32 (data) & 0xFFFFFFFFFFFFFFFF000000000000000000000000000000000000000000000000 |
             (bytes32 (data) & 0x0000000000000000FFFFFFFFFFFFFFFF00000000000000000000000000000000) >> 64;

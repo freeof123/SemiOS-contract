@@ -77,7 +77,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
 
     mapping(bytes32 => bool) public uriExists;
 
-    uint256 public daoIndex;
+    uint256 internal _daoIndex;
 
     uint256 internal _daoIndexBitMap;
 
@@ -91,7 +91,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
     function initialize() public initializer {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         __ReentrancyGuard_init();
-        daoIndex = l.reserved_slots;
+        _daoIndex = l.reserved_slots;
         __EIP712_init("D4AProtocol", "2");
     }
 
@@ -114,9 +114,9 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
         _checkCaller(l.project_proxy);
         uriExists[keccak256(abi.encodePacked(_project_uri))] = true;
         project_id = _allProjects.createProject(
-            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, daoIndex, _project_uri
+            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, _daoIndex, _project_uri
         );
-        daoIndex++;
+        _daoIndex++;
     }
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
@@ -180,11 +180,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
         uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
 
         bytes32 canvasId = _allCanvases.createCanvas(
-            _allProjects[daoId].fee_pool,
-            daoId,
-            _allProjects[daoId].start_prb,
-            _allProjects.getProjectCanvasCount(daoId),
-            canvasUri
+            _allProjects[daoId].fee_pool, daoId, _allProjects[daoId].start_prb, getProjectCanvasCount(daoId), canvasUri
         );
 
         _allProjects[daoId].canvases.push(canvasId);
@@ -276,7 +272,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
     }
 
     function getProjectCanvasCount(bytes32 _project_id) public view returns (uint256) {
-        return _allProjects.getProjectCanvasCount(_project_id);
+        return _allProjects[_project_id].canvases.length;
     }
 
     function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256) {
@@ -510,7 +506,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
     }
 
     function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
-        return _allProjects.getProjectCanvasAt(_project_id, _index);
+        return _allProjects[_project_id].canvases[_index];
     }
 
     function getProjectInfo(bytes32 _project_id)
@@ -527,7 +523,15 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
             uint256 erc20_total_supply
         )
     {
-        return _allProjects.getProjectInfo(_project_id);
+        D4AProject.project_info storage pi = _allProjects[_project_id];
+        start_prb = pi.start_prb;
+        mintable_rounds = pi.mintable_rounds;
+        max_nft_amount = pi.max_nft_amount;
+        fee_pool = pi.fee_pool;
+        royalty_fee = pi.royalty_fee;
+        index = pi.index;
+        uri = pi.project_uri;
+        erc20_total_supply = pi.erc20_total_supply;
     }
 
     function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
@@ -540,11 +544,11 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
     }
 
     function getCanvasNFTCount(bytes32 _canvas_id) public view returns (uint256) {
-        return _allCanvases.getCanvasNFTCount(_canvas_id);
+        return _allCanvases[_canvas_id].nft_token_number;
     }
 
     function getTokenIDAt(bytes32 _canvas_id, uint256 _index) public view returns (uint256) {
-        return _allCanvases.getTokenIDAt(_canvas_id, _index);
+        return _allCanvases[_canvas_id].nft_tokens[_index];
     }
 
     function getCanvasProject(bytes32 _canvas_id) public view returns (bytes32) {
@@ -556,7 +560,7 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
     }
 
     function getCanvasURI(bytes32 _canvas_id) public view returns (string memory) {
-        return _allCanvases.getCanvasURI(_canvas_id);
+        return _allCanvases[_canvas_id].canvas_uri;
     }
 
     function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {

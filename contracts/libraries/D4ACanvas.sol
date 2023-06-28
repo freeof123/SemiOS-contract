@@ -63,41 +63,4 @@ library D4ACanvas {
         emit NewCanvas(_project_id, canvas_id, _canvas_uri);
         return canvas_id;
     }
-
-    function getCanvasNFTCount(
-        mapping(bytes32 => canvas_info) storage _allCanvases,
-        bytes32 _canvas_id
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        canvas_info storage ci = _allCanvases[_canvas_id];
-        return ci.nft_token_number;
-    }
-
-    function getTokenIDAt(
-        mapping(bytes32 => canvas_info) storage _allCanvases,
-        bytes32 _canvas_id,
-        uint256 _index
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        canvas_info storage ci = _allCanvases[_canvas_id];
-        return ci.nft_tokens[_index];
-    }
-
-    function getCanvasURI(
-        mapping(bytes32 => canvas_info) storage _allCanvases,
-        bytes32 _canvas_id
-    )
-        internal
-        view
-        returns (string memory)
-    {
-        canvas_info storage ci = _allCanvases[_canvas_id];
-        return ci.canvas_uri;
-    }
 }
