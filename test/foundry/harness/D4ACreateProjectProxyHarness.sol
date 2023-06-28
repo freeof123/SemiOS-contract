@@ -9,10 +9,6 @@ import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 contract D4ACreateProjectProxyHarness is D4ACreateProjectProxy {
     constructor(address WETH_) D4ACreateProjectProxy(WETH_) { }
 
-    function exposed__DEPRECATED_SETTINGS() public view returns (address) {
-        return __DEPRECATED_SETTINGS;
-    }
-
     function exposed_setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,

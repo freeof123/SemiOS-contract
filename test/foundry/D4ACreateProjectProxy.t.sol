@@ -44,10 +44,6 @@ contract D4ACreateProjectProxyTest is DeployHelper {
         assertEq(daoProxy.splitter_owner(), royaltySplitterOwner.addr);
     }
 
-    function test_settings() public {
-        assertEq(address(daoProxyHarness.exposed__DEPRECATED_SETTINGS()), address(0));
-    }
-
     function test_WETH() public {
         assertEq(address(daoProxy.WETH()), address(weth));
     }
