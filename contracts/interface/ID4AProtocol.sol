@@ -25,6 +25,8 @@ interface ID4AProtocol {
 
     event DaoMintableRoundSet(bytes32 daoId, uint256 newMintableRounds);
 
+    event DaoFloorPriceSet(bytes32 daoId, uint256 newFloorPrice);
+
     event DaoTemplateSet(bytes32 daoId, TemplateParam templateParam);
 
     event DaoRatioSet(

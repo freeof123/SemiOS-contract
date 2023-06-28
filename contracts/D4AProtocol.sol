@@ -922,8 +922,20 @@ contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardU
         emit DaoMintableRoundSet(daoId, newMintableRounds);
     }
 
+    function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
+
+        PriceStorage.layout().daoFloorPrices[daoId] = newFloorPrice;
+
+        emit DaoFloorPriceSet(daoId, newFloorPrice);
+    }
+
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        if (msg.sender != l.owner_proxy.ownerOf(daoId) && msg.sender != l.project_proxy) revert NotDaoOwner();
+
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _checkCaller(l.project_proxy);
 
