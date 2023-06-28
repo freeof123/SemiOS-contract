@@ -184,7 +184,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     )
         public
         payable
-        override
         nonReentrant
         d4aNotPaused
         uriNotExist(_project_uri)
@@ -202,7 +201,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
         public
         payable
-        override
         nonReentrant
         d4aNotPaused
         returns (
@@ -328,7 +326,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         IPermissionControl.Blacklist memory unblacklist
     )
         public
-        override
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.project_proxy && msg.sender != l.owner_proxy.ownerOf(daoId)) {
@@ -750,7 +747,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     function claimProjectERC20Reward(bytes32 daoId)
         public
-        override
         nonReentrant
         d4aNotPaused
         notPaused(daoId)
@@ -783,7 +779,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     function claimCanvasReward(bytes32 canvasId)
         public
-        override
         nonReentrant
         d4aNotPaused
         notPaused(canvasId)
@@ -823,7 +818,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         address minter
     )
         public
-        override
         nonReentrant
         d4aNotPaused
         daoExist(daoId)
@@ -859,7 +853,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         address to
     )
         public
-        override
         nonReentrant
         d4aNotPaused
         notPaused(daoId)
@@ -929,7 +922,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         emit DaoMintableRoundSet(daoId, newMintableRounds);
     }
 
-    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public override {
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _checkCaller(l.project_proxy);
@@ -952,7 +945,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         uint256 daoFeePoolETHRatioFlatPrice
     )
         public
-        override
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId) && msg.sender != l.project_proxy) revert NotDaoOwner();
