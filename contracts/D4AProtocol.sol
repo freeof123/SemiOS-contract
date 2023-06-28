@@ -3,6 +3,7 @@ pragma solidity >=0.8.10;
 
 // external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { Multicall } from "@solidstate/contracts/utils/Multicall.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
@@ -62,7 +63,7 @@ import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
+contract D4AProtocol is ID4AProtocol, Multicall, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
