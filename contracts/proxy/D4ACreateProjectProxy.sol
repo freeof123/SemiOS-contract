@@ -72,6 +72,10 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     }
 
     event CreateProjectParamEmitted(
+        bytes32 daoId,
+        address daoFeePool,
+        address token,
+        address nft,
         DaoMetadataParam daoMetadataParam,
         IPermissionControl.Whitelist whitelist,
         IPermissionControl.Blacklist blacklist,
@@ -159,7 +163,17 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         _createSplitter(projectId);
 
         emit CreateProjectParamEmitted(
-            daoMetadataParam, whitelist, blacklist, daoMintCapParam, splitRatioParam, templateParam, actionType
+            projectId,
+            getProjectFeePool(projectId),
+            getProjectERC20(projectId),
+            getProjectERC721(projectId),
+            daoMetadataParam,
+            whitelist,
+            blacklist,
+            daoMintCapParam,
+            splitRatioParam,
+            templateParam,
+            actionType
         );
     }
 
@@ -221,6 +235,11 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     function getProjectFeePool(bytes32 project_id) internal view returns (address) {
         (,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
         return fee_pool;
+    }
+
+    function getProjectERC20(bytes32 daoId) internal view returns (address) {
+        (address erc20_token,) = protocol.getProjectTokens(daoId);
+        return erc20_token;
     }
 
     function getProjectERC721(bytes32 project_id) internal view returns (address) {
