@@ -42,10 +42,10 @@ contract RewardRatioTest is DeployHelper {
         (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
-        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0));
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
 
         startHoax(canvasCreator2.addr);
-        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0));
+        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0), 0);
     }
 
     function test_ETH_Ratio() public {

@@ -49,7 +49,7 @@ contract V2Test is Test, D4AAddress {
             0
         );
         bytes32 canvasId = D4AProtocol(address(d4aProtocol_proxy)).createCanvas{ value: 0.01 ether }(
-            daoId, "test canvas uri", new bytes32[](0)
+            daoId, "test canvas uri", new bytes32[](0), 0
         );
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 0;
@@ -87,7 +87,7 @@ contract V2Test is Test, D4AAddress {
             31
         );
         canvasId = D4AProtocol(address(d4aProtocol_proxy)).createCanvas{ value: 0.01 ether }(
-            daoId, "test canvas uri 1", new bytes32[](0)
+            daoId, "test canvas uri 1", new bytes32[](0), 0
         );
         tokenUri = "test token uri 1";
         flatPrice = 0;

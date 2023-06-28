@@ -73,7 +73,7 @@ contract Benchmark is DeployHelper {
         nft = IERC721(erc721Token);
 
         hoax(canvasCreator.addr, 0.01 ether);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas", new bytes32[](0));
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas", new bytes32[](0), 0);
         protocolFeePoolBalance = protocolFeePool.addr.balance;
     }
 

@@ -14,7 +14,7 @@ contract CreateDaoTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 9999, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0));
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
         string memory tokenUri = "test nft uri";
         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, 0);

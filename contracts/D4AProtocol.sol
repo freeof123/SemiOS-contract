@@ -238,20 +238,43 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
     function createCanvas(
         bytes32 daoId,
         string calldata canvasUri,
-        bytes32[] calldata proof
+        bytes32[] calldata proof,
+        uint256 canvasRebateRatioInBps
     )
         external
         payable
         nonReentrant
         returns (bytes32)
     {
+        _checkPauseStatus();
+        _checkDaoExist(daoId);
+        _checkPauseStatus(daoId);
+        _checkUriNotExist(canvasUri);
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (l.permission_control.isCanvasCreatorBlacklisted(daoId, msg.sender)) revert Blacklisted();
         if (!l.permission_control.inCanvasCreatorWhitelist(daoId, msg.sender, proof)) {
             revert NotInWhitelist();
         }
-        return _createCanvas(daoId, canvasUri);
+
+        uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
+
+        bytes32 canvasId = _allCanvases.createCanvas(
+            _allProjects[daoId].fee_pool,
+            daoId,
+            _allProjects[daoId].start_prb,
+            _allProjects.getProjectCanvasCount(daoId),
+            canvasUri
+        );
+
+        _allProjects[daoId].canvases.push(canvasId);
+
+        if (canvasRebateRatioInBps != 0) setCanvasRebateRatioInBps(canvasId, canvasRebateRatioInBps);
+
+        return canvasId;
     }
+
+    function _createCanvas(bytes32 _project_id, string calldata _canvas_uri) internal returns (bytes32 canvas_id) { }
 
     modifier ableToMint(bytes32 daoId, bytes32[] calldata proof, uint256 amount) {
         _checkMintEligibility(daoId, msg.sender, proof, amount);
@@ -438,30 +461,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
 
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!_allCanvases[canvasId].exist) revert CanvasNotExist();
-    }
-
-    function _createCanvas(
-        bytes32 _project_id,
-        string calldata _canvas_uri
-    )
-        internal
-        d4aNotPaused
-        daoExist(_project_id)
-        notPaused(_project_id)
-        uriNotExist(_canvas_uri)
-        returns (bytes32 canvas_id)
-    {
-        uriExists[keccak256(abi.encodePacked(_canvas_uri))] = true;
-
-        canvas_id = _allCanvases.createCanvas(
-            _allProjects[_project_id].fee_pool,
-            _project_id,
-            _allProjects[_project_id].start_prb,
-            _allProjects.getProjectCanvasCount(_project_id),
-            _canvas_uri
-        );
-
-        _allProjects[_project_id].canvases.push(canvas_id);
     }
 
     function _mintNft(

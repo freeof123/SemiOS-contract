@@ -26,7 +26,7 @@ contract D4AProtocolTest is DeployHelper {
         (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0));
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
     }
 
     function test_setCanvasRebateRatioInBps() public {

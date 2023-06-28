@@ -37,9 +37,9 @@ contract D4ARewardTest is DeployHelper {
         drb.changeRound(startDrb);
 
         hoax(canvasCreator.addr);
-        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0));
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
         hoax(canvasCreator2.addr);
-        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0));
+        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0), 0);
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
@@ -215,9 +215,9 @@ contract D4ARewardTest is DeployHelper {
         drb.changeRound(startDrb);
 
         hoax(canvasCreator.addr);
-        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 3", new bytes32[](0));
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 3", new bytes32[](0), 0);
         hoax(canvasCreator2.addr);
-        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 4", new bytes32[](0));
+        canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 4", new bytes32[](0), 0);
 
         (address temp,) = protocol.getProjectTokens(daoId);
         token = IERC20(temp);
