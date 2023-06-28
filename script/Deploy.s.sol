@@ -8,7 +8,10 @@ import { console2 } from "forge-std/Console2.sol";
 
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {
+    ITransparentUpgradeableProxy,
+    TransparentUpgradeableProxy
+} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
@@ -339,7 +342,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        proxyAdmin.upgrade(permissionControl_proxy, address(permissionControl_impl));
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
 
@@ -351,14 +356,18 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl proxy");
 
-        permissionControl_proxy = new TransparentUpgradeableProxy(
-                address(permissionControl_impl), 
-                address(proxyAdmin),
-                abi.encodeWithSignature(
-                    "initialize(address)",
-                    address(naiveOwner_proxy)
+        permissionControl_proxy = PermissionControl(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(permissionControl_impl), 
+                    address(proxyAdmin),
+                    abi.encodeWithSignature(
+                        "initialize(address)",
+                        address(naiveOwner_proxy)
+                    )
                 )
-            );
+            )
+        );
         assertTrue(address(permissionControl_proxy) != address(0));
 
         vm.toString(address(permissionControl_proxy)).write(path, ".PermissionControl.proxy");
@@ -373,7 +382,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         d4aCreateProjectProxy_impl = new D4ACreateProjectProxy(address(WETH));
         assertTrue(address(d4aCreateProjectProxy_impl) != address(0));
-        proxyAdmin.upgrade(d4aCreateProjectProxy_proxy, address(d4aCreateProjectProxy_impl));
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy)), address(d4aCreateProjectProxy_impl)
+        );
 
         vm.toString(address(d4aCreateProjectProxy_impl)).write(path, ".D4ACreateProjectProxy.impl");
 
@@ -385,17 +396,23 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ACreateProjectProxy proxy");
 
-        d4aCreateProjectProxy_proxy = new TransparentUpgradeableProxy(
-                address(d4aCreateProjectProxy_impl),
-                address(proxyAdmin),
-                abi.encodeWithSignature(
-                    "initialize(address,address,address,address)",
-                    address(uniswapV2Factory),
-                    address(d4aProtocol_proxy),
-                    address(d4aRoyaltySplitterFactory), 
-                    address(owner) 
+        d4aCreateProjectProxy_proxy = D4ACreateProjectProxy(
+            payable(
+                address(
+                    new TransparentUpgradeableProxy(
+                        address(d4aCreateProjectProxy_impl),
+                        address(proxyAdmin),
+                        abi.encodeWithSignature(
+                            "initialize(address,address,address,address)",
+                            address(uniswapV2Factory),
+                            address(d4aProtocol_proxy),
+                            address(d4aRoyaltySplitterFactory), 
+                            address(owner) 
+                        )
+                    )
                 )
-            );
+            )
+        );
         assertTrue(address(d4aCreateProjectProxy_proxy) != address(0));
 
         vm.toString(address(d4aCreateProjectProxy_proxy)).write(path, ".D4ACreateProjectProxy.proxy");

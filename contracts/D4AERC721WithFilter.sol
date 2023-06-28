@@ -11,11 +11,12 @@ contract D4AERC721WithFilter is D4AERC721, DefaultOperatorFiltererUpgradeable {
         __DefaultOperatorFilterer_init();
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public override onlyAllowedOperator(from) {
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721Upgradeable, IERC721Upgradeable) onlyAllowedOperator(from) {
         super.transferFrom(from, to, tokenId);
     }
 
-    function safeTransferFrom(address from, address to, uint256 tokenId) public override onlyAllowedOperator(from) {
+    function safeTransferFrom(address from, address to, uint256 tokenId) public override(ERC721Upgradeable, IERC721Upgradeable)
+     onlyAllowedOperator(from) {
         super.safeTransferFrom(from, to, tokenId);
     }
 
@@ -26,7 +27,7 @@ contract D4AERC721WithFilter is D4AERC721, DefaultOperatorFiltererUpgradeable {
         bytes memory data
     )
         public
-        override
+        override(ERC721Upgradeable, IERC721Upgradeable)
         onlyAllowedOperator(from)
     {
         super.safeTransferFrom(from, to, tokenId, data);

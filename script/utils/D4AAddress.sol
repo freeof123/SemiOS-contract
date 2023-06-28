@@ -5,7 +5,6 @@ import { CommonBase } from "forge-std/Base.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 
 import { D4ADrb } from "contracts/D4ADrb.sol";
@@ -61,20 +60,18 @@ contract D4AAddress is CommonBase {
         ExponentialRewardIssuance(json.readAddress(".D4AProtocol.ExponentialRewardIssuance"));
 
     // permission control
-    TransparentUpgradeableProxy public permissionControl_proxy =
-        TransparentUpgradeableProxy(payable(json.readAddress(".PermissionControl.proxy")));
+    PermissionControl public permissionControl_proxy = PermissionControl(json.readAddress(".PermissionControl.proxy"));
     PermissionControl public permissionControl_impl = PermissionControl(json.readAddress(".PermissionControl.impl"));
 
     // create project proxy
-    TransparentUpgradeableProxy public d4aCreateProjectProxy_proxy =
-        TransparentUpgradeableProxy(payable(json.readAddress(".D4ACreateProjectProxy.proxy")));
+    D4ACreateProjectProxy public d4aCreateProjectProxy_proxy =
+        D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy.proxy")));
     D4ACreateProjectProxy public d4aCreateProjectProxy_impl =
         D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy.impl")));
 
     // naive owner proxy
-    TransparentUpgradeableProxy public naiveOwner_proxy =
-        TransparentUpgradeableProxy(payable(json.readAddress(".NaiveOwner.proxy")));
-    NaiveOwner public naiveOwner_impl = NaiveOwner(payable(json.readAddress(".NaiveOwner.impl")));
+    NaiveOwner public naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
+    NaiveOwner public naiveOwner_impl = NaiveOwner(json.readAddress(".NaiveOwner.impl"));
 
     IWETH public immutable WETH = IWETH(json.readAddress(".WETH"));
     address public immutable uniswapV2Factory = json.readAddress(".D4ASwapFactory");
