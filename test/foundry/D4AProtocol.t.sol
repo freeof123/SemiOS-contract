@@ -61,28 +61,28 @@ contract D4AProtocolTest is DeployHelper {
         protocol.setCanvasRebateRatioInBps(canvasId, ratio);
     }
 
-    function test_setD4AERC721MaxSupply() public {
+    function test_setDaoNftMaxSupply() public {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
         (,, uint256 nftMaxSupply,,,,,) = protocol.getProjectInfo(daoId);
         assertEq(nftMaxSupply, maxSupply);
     }
 
-    event D4AERC721MaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
+    event DaoNftMaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
 
-    function test_setD4AERC721MaxSupply_ExpectEmit() public {
+    function test_setDaoNftMaxSupply_ExpectEmit() public {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
         vm.expectEmit(address(protocol));
-        emit D4AERC721MaxSupplySet(daoId, maxSupply);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        emit DaoNftMaxSupplySet(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
     }
 
-    function test_RevertIf_setD4AERC721MaxSupply_NotDaoOwner() public {
+    function test_RevertIf_setDaoNftMaxSupply_NotDaoOwner() public {
         uint256 maxSupply = 10;
         vm.expectRevert(NotDaoOwner.selector);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
     }
 
     error NftExceedMaxAmount();
@@ -103,7 +103,7 @@ contract D4AProtocolTest is DeployHelper {
 
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri revert");
@@ -136,7 +136,7 @@ contract D4AProtocolTest is DeployHelper {
 
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri revert");
@@ -154,7 +154,7 @@ contract D4AProtocolTest is DeployHelper {
 
         maxSupply = 100;
         startHoax(daoCreator.addr);
-        protocol.setD4AERC721MaxSupply(daoId, maxSupply);
+        protocol.setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri increase supply");

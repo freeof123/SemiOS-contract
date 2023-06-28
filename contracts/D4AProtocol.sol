@@ -911,13 +911,13 @@ contract D4AProtocol is ID4AProtocol, Initializable, ReentrancyGuardUpgradeable,
         return _allCanvases[canvasId].canvasRebateRatioInBps;
     }
 
-    function setD4AERC721MaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
+    function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
 
         _allProjects[daoId].max_nft_amount = newMaxSupply;
 
-        emit D4AERC721MaxSupplySet(daoId, newMaxSupply);
+        emit DaoNftMaxSupplySet(daoId, newMaxSupply);
     }
 
     function setDaoMintableRound(bytes32 daoId, uint256 newMintableRounds) public {

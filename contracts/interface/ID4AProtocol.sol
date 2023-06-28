@@ -21,7 +21,7 @@ interface ID4AProtocol {
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
 
-    event D4AERC721MaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
+    event DaoNftMaxSupplySet(bytes32 indexed daoId, uint256 newMaxSupply);
 
     event DaoMintableRoundSet(bytes32 daoId, uint256 newMintableRounds);
 
