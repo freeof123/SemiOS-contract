@@ -153,7 +153,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
             DaoStorage.layout().daoInfos[daoId].startRound,
-            getProjectCanvasCount(daoId),
+            ID4AProtocolReadable(address(this)).getProjectCanvasCount(daoId),
             canvasUri
         );
 
@@ -243,10 +243,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         emit MintCapSet(daoId, daoMintCap, userMintCapParams);
 
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
-    }
-
-    function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
-        return DaoStorage.layout().daoInfos[daoId].canvases.length;
     }
 
     function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256) {
@@ -377,10 +373,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps = newCanvasRebateRatioInBps;
 
         emit CanvasRebateRatioInBpsSet(canvasId, newCanvasRebateRatioInBps);
-    }
-
-    function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public {

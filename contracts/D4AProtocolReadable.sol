@@ -133,4 +133,12 @@ contract D4AProtocolReadable {
         }
         return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
     }
+
+    function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
+        return DaoStorage.layout().daoInfos[daoId].canvases.length;
+    }
+
+    function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
+    }
 }

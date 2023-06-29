@@ -53,4 +53,8 @@ interface ID4AProtocolReadable {
     function getDaoFeePoolETHRatio(bytes32 daoId) external view returns (uint256);
 
     function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
+
+    function getProjectCanvasCount(bytes32 daoId) external view returns (uint256);
+
+    function getCanvasRebateRatioInBps(bytes32 canvasId) external view returns (uint256);
 }

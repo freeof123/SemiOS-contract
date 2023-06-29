@@ -34,13 +34,13 @@ contract D4AProtocolTest is DeployHelper {
         uint256 ratio = 1000;
         startHoax(canvasCreator.addr);
         protocol.setCanvasRebateRatioInBps(canvasId, ratio);
-        assertEq(protocol.getCanvasRebateRatioInBps(canvasId), ratio);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasRebateRatioInBps(canvasId), ratio);
     }
 
     function test_getCanvasRebateRatioInBps() public {
-        assertEq(protocol.getCanvasRebateRatioInBps(canvasId), 0);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasRebateRatioInBps(canvasId), 0);
         test_setCanvasRebateRatioInBps();
-        assertEq(protocol.getCanvasRebateRatioInBps(canvasId), 1000);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasRebateRatioInBps(canvasId), 1000);
     }
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);

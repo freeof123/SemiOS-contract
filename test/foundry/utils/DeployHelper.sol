@@ -271,7 +271,7 @@ contract DeployHelper is Test {
     function _cutFacetsProtocolReadable() internal {
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = new bytes4[](17);
+        bytes4[] memory selectors = new bytes4[](19);
         uint256 selectorIndex;
         // register D4AProtoclReadable
         selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
@@ -291,6 +291,8 @@ contract DeployHelper is Test {
         selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
         selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
         selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectCanvasCount.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasRebateRatioInBps.selector;
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
