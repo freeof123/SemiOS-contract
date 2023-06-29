@@ -8,7 +8,6 @@ library CanvasStorage {
     struct CanvasInfo {
         bytes32 daoId;
         uint256[] tokenIds;
-        uint256 nft_token_number;
         uint256 index;
         string canvasUri;
         bool canvasExist;

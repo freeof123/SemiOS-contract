@@ -667,7 +667,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         {
             daoInfo.nftTotalSupply++;
             canvasInfo.tokenIds.push(tokenId);
-            canvasInfo.nft_token_number++;
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))] = canvasId;
         }
 
@@ -744,7 +743,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         vars.totalPrice;
         uint256[] memory tokenIds = new uint256[](length);
         daoInfo.nftTotalSupply += length;
-        canvasInfo.nft_token_number += length;
         for (uint32 i; i < length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
             tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);

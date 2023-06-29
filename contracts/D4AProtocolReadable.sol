@@ -63,7 +63,7 @@ contract D4AProtocolReadable {
     }
 
     function getCanvasNFTCount(bytes32 _canvas_id) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].nft_token_number;
+        return CanvasStorage.layout().canvasInfos[_canvas_id].tokenIds.length;
     }
 
     function getTokenIDAt(bytes32 _canvas_id, uint256 _index) public view returns (uint256) {
