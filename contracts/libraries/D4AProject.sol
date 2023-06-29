@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
+import { DaoStorage } from "../storages/DaoStorage.sol";
 import { PriceStorage } from "../storages/PriceStorage.sol";
 import { RewardStorage } from "../storages/RewardStorage.sol";
 import { SettingsStorage } from "../storages/SettingsStorage.sol";
@@ -15,28 +16,6 @@ import "../feepool/D4AFeePool.sol";
 import "../D4AERC20.sol";
 
 library D4AProject {
-    struct project_info {
-        uint256 start_prb;
-        uint256 mintable_rounds;
-        uint256 max_nft_amount;
-        uint256 nft_supply;
-        uint96 royalty_fee;
-        uint256 index;
-        address erc20_token;
-        address erc721_token;
-        address fee_pool;
-        string project_uri;
-        //from setting
-        uint256 erc20_total_supply;
-        bytes32[] canvases;
-        bool exist;
-        uint256 nftPriceFactor;
-        PriceTemplateType priceTemplateType;
-        RewardTemplateType rewardTemplateType;
-        uint256 daoFeePoolETHRatioInBps;
-        uint256 daoFeePoolETHRatioInBpsFlatPrice;
-    }
-
     using StringsUpgradeable for uint256;
 
     error D4AInsufficientEther(uint256 required);
@@ -47,7 +26,7 @@ library D4AProject {
     );
 
     function createProject(
-        mapping(bytes32 => project_info) storage _allProjects,
+        mapping(bytes32 => DaoStorage.DaoInfo) storage daoInfos,
         uint256 _start_prb,
         uint256 _mintable_rounds,
         uint256 _floor_price_rank,
@@ -78,25 +57,25 @@ library D4AProject {
         }
 
         project_id = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+        DaoStorage.DaoInfo storage daoInfo = daoInfos[project_id];
 
-        if (_allProjects[project_id].exist) revert D4AProjectAlreadyExist(project_id);
+        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(project_id);
         {
-            project_info storage pi = _allProjects[project_id];
-            pi.start_prb = _start_prb;
+            daoInfo.startRound = _start_prb;
             {
                 ID4ADrb drb = l.drb;
                 uint256 cur_round = drb.currentRound();
                 require(_start_prb >= cur_round, "start round already passed");
             }
-            pi.mintable_rounds = _mintable_rounds;
-            pi.max_nft_amount = l.max_nft_amounts[_max_nft_rank];
-            pi.project_uri = _project_uri;
-            pi.royalty_fee = _royalty_fee;
-            pi.index = _project_index;
-            pi.erc20_token = _createERC20Token(_project_index);
+            daoInfo.mintableRound = _mintable_rounds;
+            daoInfo.nftMaxSupply = l.max_nft_amounts[_max_nft_rank];
+            daoInfo.daoUri = _project_uri;
+            daoInfo.royaltyFeeInBps = _royalty_fee;
+            daoInfo.daoIndex = _project_index;
+            daoInfo.token = _createERC20Token(_project_index);
 
-            D4AERC20(pi.erc20_token).grantRole(keccak256("MINTER"), address(this));
-            D4AERC20(pi.erc20_token).grantRole(keccak256("BURNER"), address(this));
+            D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
+            D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
 
             address pool = l.feepool_factory.createD4AFeePool(
                 string(abi.encodePacked("Asset Pool for DAO4Art Project ", _project_index.toString()))
@@ -105,21 +84,21 @@ library D4AProject {
             D4AFeePool(payable(pool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
             ID4AChangeAdmin(pool).changeAdmin(l.asset_pool_owner);
-            ID4AChangeAdmin(pi.erc20_token).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.asset_pool_owner);
 
-            pi.fee_pool = pool;
+            daoInfo.daoFeePool = pool;
 
             l.owner_proxy.initOwnerOf(project_id, msg.sender);
 
-            pi.erc721_token = _createERC721Token(_project_index);
-            D4AERC721(pi.erc721_token).grantRole(keccak256("ROYALTY"), msg.sender);
-            D4AERC721(pi.erc721_token).grantRole(keccak256("MINTER"), address(this));
+            daoInfo.nft = _createERC721Token(_project_index);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
-            D4AERC721(pi.erc721_token).setContractUri(_project_uri);
-            ID4AChangeAdmin(pi.erc721_token).changeAdmin(l.asset_pool_owner);
-            ID4AChangeAdmin(pi.erc721_token).transferOwnership(msg.sender);
+            D4AERC721(daoInfo.nft).setContractUri(_project_uri);
+            ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
-            pi.erc20_total_supply = l.erc20_total_supply;
+            daoInfo.tokenMaxSupply = l.erc20_total_supply;
 
             if (_floor_price_rank != 9999) {
                 // 9999 is specified for 0 floor price
@@ -130,8 +109,8 @@ library D4AProject {
             // starts at round 1
             RewardStorage.layout().rewardInfos[project_id].rewardPendingRound = type(uint256).max;
 
-            pi.exist = true;
-            emit NewProject(project_id, _project_uri, pool, pi.erc20_token, pi.erc721_token, _royalty_fee);
+            daoInfo.daoExist = true;
+            emit NewProject(project_id, _project_uri, pool, daoInfo.token, daoInfo.nft, _royalty_fee);
         }
     }
 

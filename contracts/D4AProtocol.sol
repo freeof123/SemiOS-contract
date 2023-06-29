@@ -57,6 +57,7 @@ import { ID4AERC721 } from "./interface/ID4AERC721.sol";
 // D4A libs, storages && contracts
 import { D4AProject } from "./libraries/D4AProject.sol";
 import { D4ACanvas } from "./libraries/D4ACanvas.sol";
+import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
@@ -67,11 +68,9 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
-    using D4AProject for mapping(bytes32 => D4AProject.project_info);
     using D4ACanvas for mapping(bytes32 => D4ACanvas.canvas_info);
 
     // TODO: add getters for all the mappings
-    mapping(bytes32 => D4AProject.project_info) internal _allProjects;
     mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
     mapping(bytes32 => bytes32) internal _nftHashToCanvasId;
 
@@ -113,8 +112,15 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkCaller(l.project_proxy);
         uriExists[keccak256(abi.encodePacked(_project_uri))] = true;
-        project_id = _allProjects.createProject(
-            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, _daoIndex, _project_uri
+        project_id = D4AProject.createProject(
+            DaoStorage.layout().daoInfos,
+            _start_prb,
+            _mintable_rounds,
+            _floor_price_rank,
+            _max_nft_rank,
+            _royalty_fee,
+            _daoIndex,
+            _project_uri
         );
         _daoIndex++;
     }
@@ -143,7 +149,8 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
         }
         {
-            return _allProjects.createProject(
+            return D4AProject.createProject(
+                DaoStorage.layout().daoInfos,
                 daoMetadataParam.startDrb,
                 daoMetadataParam.mintableRounds,
                 daoMetadataParam.floorPriceRank,
@@ -180,10 +187,14 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
 
         bytes32 canvasId = _allCanvases.createCanvas(
-            _allProjects[daoId].fee_pool, daoId, _allProjects[daoId].start_prb, getProjectCanvasCount(daoId), canvasUri
+            DaoStorage.layout().daoInfos[daoId].daoFeePool,
+            daoId,
+            DaoStorage.layout().daoInfos[daoId].startRound,
+            getProjectCanvasCount(daoId),
+            canvasUri
         );
 
-        _allProjects[daoId].canvases.push(canvasId);
+        DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
 
         if (canvasRebateRatioInBps != 0) setCanvasRebateRatioInBps(canvasId, canvasRebateRatioInBps);
 
@@ -271,34 +282,33 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         l.permission_control.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
-    function getProjectCanvasCount(bytes32 _project_id) public view returns (uint256) {
-        return _allProjects[_project_id].canvases.length;
+    function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
+        return DaoStorage.layout().daoInfos[daoId].canvases.length;
     }
 
     function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256) {
         _checkPauseStatus();
         _checkPauseStatus(daoId);
         _checkDaoExist(daoId);
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(
-            _allProjects[daoId].rewardTemplateType
-        )].delegatecall(
+        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(pi.rewardTemplateType)]
+            .delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimDaoCreatorReward.selector,
                 daoId,
                 l.protocolFeePool,
                 l.owner_proxy.ownerOf(daoId),
-                pi.start_prb,
+                pi.startRound,
                 l.drb.currentRound(),
-                pi.mintable_rounds,
-                pi.erc20_token
+                pi.mintableRound,
+                pi.token
             )
         );
         require(succ);
         uint256 amount = abi.decode(data, (uint256));
 
-        emit D4AClaimProjectERC20Reward(daoId, pi.erc20_token, amount);
+        emit D4AClaimProjectERC20Reward(daoId, pi.token, amount);
 
         return amount;
     }
@@ -311,26 +321,25 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _checkDaoExist(daoId);
         _checkPauseStatus(daoId);
 
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(
-            _allProjects[daoId].rewardTemplateType
-        )].delegatecall(
+        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(pi.rewardTemplateType)]
+            .delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimCanvasCreatorReward.selector,
                 daoId,
                 canvasId,
                 l.owner_proxy.ownerOf(canvasId),
-                pi.start_prb,
+                pi.startRound,
                 l.drb.currentRound(),
-                pi.mintable_rounds,
-                pi.erc20_token
+                pi.mintableRound,
+                pi.token
             )
         );
         require(succ);
         uint256 amount = abi.decode(data, (uint256));
 
-        emit D4AClaimCanvasReward(daoId, canvasId, pi.erc20_token, amount);
+        emit D4AClaimCanvasReward(daoId, canvasId, pi.token, amount);
 
         return amount;
     }
@@ -339,25 +348,24 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _checkPauseStatus();
         _checkDaoExist(daoId);
         _checkPauseStatus(daoId);
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(
-            _allProjects[daoId].rewardTemplateType
-        )].delegatecall(
+        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(pi.rewardTemplateType)]
+            .delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimNftMinterReward.selector,
                 daoId,
                 minter,
-                pi.start_prb,
+                pi.startRound,
                 l.drb.currentRound(),
-                pi.mintable_rounds,
-                pi.erc20_token
+                pi.mintableRound,
+                pi.token
             )
         );
         require(succ);
         uint256 amount = abi.decode(data, (uint256));
 
-        emit D4AClaimNftMinterReward(daoId, pi.erc20_token, amount);
+        emit D4AClaimNftMinterReward(daoId, pi.token, amount);
 
         return amount;
     }
@@ -365,10 +373,10 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     function exchangeERC20ToETH(bytes32 daoId, uint256 tokenAmount, address to) public nonReentrant returns (uint256) {
         _checkPauseStatus();
         _checkPauseStatus(daoId);
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
 
-        address token = pi.erc20_token;
-        address daoFeePool = pi.fee_pool;
+        address token = pi.token;
+        address daoFeePool = pi.daoFeePool;
 
         D4AERC20(token).burn(msg.sender, tokenAmount);
         D4AERC20(token).mint(daoFeePool, tokenAmount);
@@ -376,7 +384,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         uint256 currentRound = SettingsStorage.layout().drb.currentRound();
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        uint256 tokenCirculation = rewardInfo.totalReward * rewardInfo.activeRounds.length / pi.mintable_rounds
+        uint256 tokenCirculation = rewardInfo.totalReward * rewardInfo.activeRounds.length / pi.mintableRound
             + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
 
         if (tokenCirculation == 0) return 0;
@@ -394,7 +402,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     function changeDaoNftPriceMultiplyFactor(bytes32 daoId, uint256 nftPriceFactor) public {
         _checkRole(bytes32(0));
         require(nftPriceFactor >= 10_000);
-        _allProjects[daoId].nftPriceFactor = nftPriceFactor;
+        DaoStorage.layout().daoInfos[daoId].nftPriceFactor = nftPriceFactor;
 
         emit DaoNftPriceMultiplyFactorChanged(daoId, nftPriceFactor);
     }
@@ -416,7 +424,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        _allProjects[daoId].max_nft_amount = newMaxSupply;
+        DaoStorage.layout().daoInfos[daoId].nftMaxSupply = newMaxSupply;
 
         emit DaoNftMaxSupplySet(daoId, newMaxSupply);
     }
@@ -425,7 +433,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        _allProjects[daoId].mintable_rounds = newMintableRounds;
+        DaoStorage.layout().daoInfos[daoId].mintableRound = newMintableRounds;
 
         emit DaoMintableRoundSet(daoId, newMintableRounds);
     }
@@ -447,9 +455,10 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _checkCaller(l.project_proxy);
 
-        _allProjects[daoId].priceTemplateType = templateParam.priceTemplateType;
-        _allProjects[daoId].nftPriceFactor = templateParam.priceFactor;
-        _allProjects[daoId].rewardTemplateType = templateParam.rewardTemplateType;
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.priceTemplateType = templateParam.priceTemplateType;
+        daoInfo.nftPriceFactor = templateParam.priceFactor;
+        daoInfo.rewardTemplateType = templateParam.rewardTemplateType;
         rewardInfo.decayFactor = templateParam.rewardDecayFactor;
         rewardInfo.decayLife = templateParam.rewardDecayLife;
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
@@ -480,8 +489,9 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         rewardInfo.canvasCreatorERC20RatioInBps = canvasCreatorERC20Ratio;
         rewardInfo.nftMinterERC20RatioInBps = nftMinterERC20Ratio;
-        _allProjects[daoId].daoFeePoolETHRatioInBps = daoFeePoolETHRatio;
-        _allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice = daoFeePoolETHRatioFlatPrice;
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.daoFeePoolETHRatioInBps = daoFeePoolETHRatio;
+        daoInfo.daoFeePoolETHRatioInBpsFlatPrice = daoFeePoolETHRatioFlatPrice;
 
         emit DaoRatioSet(
             daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
@@ -506,7 +516,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
-        return _allProjects[_project_id].canvases[_index];
+        return DaoStorage.layout().daoInfos[_project_id].canvases[_index];
     }
 
     function getProjectInfo(bytes32 _project_id)
@@ -523,15 +533,15 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             uint256 erc20_total_supply
         )
     {
-        D4AProject.project_info storage pi = _allProjects[_project_id];
-        start_prb = pi.start_prb;
-        mintable_rounds = pi.mintable_rounds;
-        max_nft_amount = pi.max_nft_amount;
-        fee_pool = pi.fee_pool;
-        royalty_fee = pi.royalty_fee;
-        index = pi.index;
-        uri = pi.project_uri;
-        erc20_total_supply = pi.erc20_total_supply;
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[_project_id];
+        start_prb = pi.startRound;
+        mintable_rounds = pi.mintableRound;
+        max_nft_amount = pi.nftMaxSupply;
+        fee_pool = pi.daoFeePool;
+        royalty_fee = pi.royaltyFeeInBps;
+        index = pi.daoIndex;
+        uri = pi.daoUri;
+        erc20_total_supply = pi.tokenMaxSupply;
     }
 
     function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
@@ -539,8 +549,9 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function getProjectTokens(bytes32 _project_id) public view returns (address erc20_token, address erc721_token) {
-        erc20_token = _allProjects[_project_id].erc20_token;
-        erc721_token = _allProjects[_project_id].erc721_token;
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[_project_id];
+        erc20_token = daoInfo.token;
+        erc721_token = daoInfo.nft;
     }
 
     function getCanvasNFTCount(bytes32 _canvas_id) public view returns (uint256) {
@@ -573,11 +584,10 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
         PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        return IPriceTemplate(l.priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]).getCanvasNextPrice(
-            pi.start_prb, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
-        );
+        return IPriceTemplate(l.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)])
+            .getCanvasNextPrice(pi.startRound, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo);
     }
 
     function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
@@ -601,17 +611,19 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
-        if (_allProjects[daoId].daoFeePoolETHRatioInBps == 0) {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (daoInfo.daoFeePoolETHRatioInBps == 0) {
             return SettingsStorage.layout().mint_project_fee_ratio;
         }
-        return _allProjects[daoId].daoFeePoolETHRatioInBps;
+        return daoInfo.daoFeePoolETHRatioInBps;
     }
 
     function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
-        if (_allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice == 0) {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (daoInfo.daoFeePoolETHRatioInBpsFlatPrice == 0) {
             return SettingsStorage.layout().mint_project_fee_ratio_flat_price;
         }
-        return _allProjects[daoId].daoFeePoolETHRatioInBpsFlatPrice;
+        return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
     }
 
     function _checkRole(bytes32 role) internal view virtual {
@@ -621,7 +633,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function _checkDaoExist(bytes32 daoId) internal view {
-        if (!_allProjects[daoId].exist) revert DaoNotExist();
+        if (!DaoStorage.layout().daoInfos[daoId].daoExist) revert DaoNotExist();
     }
 
     function _checkCanvasExist(bytes32 canvasId) internal view {
@@ -778,8 +790,8 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         if (flatPrice != 0 && flatPrice < getProjectFloorPrice(daoId)) revert PriceTooLow();
         _checkPauseStatus(daoId);
 
-        D4AProject.project_info storage pi = _allProjects[daoId];
-        if (pi.nft_supply >= pi.max_nft_amount) revert NftExceedMaxAmount();
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
+        if (pi.nftTotalSupply >= pi.nftMaxSupply) revert NftExceedMaxAmount();
 
         {
             bytes32 token_uri_hash = keccak256(abi.encodePacked(_token_uri));
@@ -791,7 +803,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         {
             uint256 currentRound = l.drb.currentRound();
             uint256 nftPriceFactor = pi.nftPriceFactor;
-            price = _getCanvasNextPrice(daoId, canvasId, flatPrice, pi.start_prb, currentRound, nftPriceFactor);
+            price = _getCanvasNextPrice(daoId, canvasId, flatPrice, pi.startRound, currentRound, nftPriceFactor);
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
         }
 
@@ -800,7 +812,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         D4ACanvas.canvas_info storage ci = _allCanvases[canvasId];
         {
             address protocolFeePool = l.protocolFeePool;
-            address daoFeePool = pi.fee_pool;
+            address daoFeePool = pi.daoFeePool;
             address canvasOwner = l.owner_proxy.ownerOf(canvasId);
             // uint256 daoShare = (flatPrice == 0 ? l.mint_project_fee_ratio : l.mint_project_fee_ratio_flat_price) *
             uint256 daoShare =
@@ -812,9 +824,9 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _updateReward(daoId, canvasId, daoFee);
 
         // mint
-        token_id = ID4AERC721(pi.erc721_token).mintItem(msg.sender, _token_uri);
+        token_id = ID4AERC721(pi.nft).mintItem(msg.sender, _token_uri);
         {
-            pi.nft_supply++;
+            pi.nftTotalSupply++;
             ci.nft_tokens.push(token_id);
             ci.nft_token_number++;
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, token_id))] = canvasId;
@@ -834,8 +846,9 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         internal
     {
         if (flatPrice == 0) {
-            (bool succ,) = SettingsStorage.layout().priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]
-                .delegatecall(
+            (bool succ,) = SettingsStorage.layout().priceTemplates[uint8(
+                DaoStorage.layout().daoInfos[daoId].priceTemplateType
+            )].delegatecall(
                 abi.encodeWithSelector(
                     IPriceTemplate.updateCanvasPrice.selector,
                     daoId,
@@ -884,24 +897,24 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             }
         }
 
-        D4AProject.project_info storage pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         D4ACanvas.canvas_info storage ci = _allCanvases[canvasId];
-        if (pi.nft_supply + length > pi.max_nft_amount) revert NftExceedMaxAmount();
+        if (pi.nftTotalSupply + length > pi.nftMaxSupply) revert NftExceedMaxAmount();
 
         MintVars memory vars;
         uint256 currentRound = SettingsStorage.layout().drb.currentRound();
         uint256 nftPriceFactor = pi.nftPriceFactor;
 
-        vars.price = _getCanvasNextPrice(daoId, canvasId, 0, pi.start_prb, currentRound, nftPriceFactor);
+        vars.price = _getCanvasNextPrice(daoId, canvasId, 0, pi.startRound, currentRound, nftPriceFactor);
         vars.initialPrice = vars.price;
         vars.daoTotalShare;
         vars.totalPrice;
         uint256[] memory tokenIds = new uint256[](length);
-        pi.nft_supply += length;
+        pi.nftTotalSupply += length;
         ci.nft_token_number += length;
         for (uint32 i; i < length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = ID4AERC721(pi.erc721_token).mintItem(msg.sender, mintNftInfos[i].tokenUri);
+            tokenIds[i] = ID4AERC721(pi.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
             ci.nft_tokens.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
@@ -925,7 +938,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             // split fee
             SettingsStorage.Layout storage l = SettingsStorage.layout();
             address protocolFeePool = l.protocolFeePool;
-            address daoFeePool = pi.fee_pool;
+            address daoFeePool = pi.daoFeePool;
             address canvasOwner = l.owner_proxy.ownerOf(canvasId);
 
             (vars.daoFee,) = _splitFee(
@@ -962,7 +975,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         PriceStorage.MintInfo memory mintInfo = priceStorage.canvasLastMintInfos[canvasId];
         if (flatPrice == 0) {
             price = IPriceTemplate(
-                SettingsStorage.layout().priceTemplates[uint8(_allProjects[daoId].priceTemplateType)]
+                SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
             ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);
         } else {
             price = flatPrice;
@@ -970,20 +983,21 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function _updateReward(bytes32 daoId, bytes32 canvasId, uint256 daoFeeAmount) internal {
-        D4AProject.project_info memory pi = _allProjects[daoId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
         D4ACanvas.canvas_info memory ci = _allCanvases[canvasId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(_allProjects[daoId].rewardTemplateType)]
-            .delegatecall(
+        (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(
+            DaoStorage.layout().daoInfos[daoId].rewardTemplateType
+        )].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.updateReward.selector,
                 UpdateRewardParam(
                     daoId,
                     canvasId,
-                    pi.start_prb,
+                    pi.startRound,
                     l.drb.currentRound(),
-                    pi.mintable_rounds,
+                    pi.mintableRound,
                     daoFeeAmount,
                     l.protocolERC20RatioInBps,
                     l.daoCreatorERC20RatioInBps,
