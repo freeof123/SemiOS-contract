@@ -6,8 +6,10 @@ import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocol {
     event NewProject(
-        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeInBps
     );
+
+    event NewCanvas(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 

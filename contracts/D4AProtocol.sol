@@ -46,7 +46,8 @@ import {
     PriceTooLow,
     NftExceedMaxAmount,
     NotEnoughEther,
-    D4AProjectAlreadyExist
+    D4AProjectAlreadyExist,
+    D4ACanvasAlreadyExist
 } from "contracts/interface/D4AErrors.sol";
 
 // interfaces
@@ -57,8 +58,7 @@ import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 
-// D4A libs, storages && contracts
-import { D4ACanvas } from "./libraries/D4ACanvas.sol";
+// D4A storages && contracts
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
@@ -177,7 +177,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
 
         uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
 
-        bytes32 canvasId = D4ACanvas.createCanvas(
+        bytes32 canvasId = _createCanvas(
             CanvasStorage.layout().canvasInfos,
             DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
@@ -1020,5 +1020,47 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         string memory name = string(abi.encodePacked("D4A NFT for No.", StringsUpgradeable.toString(_project_num)));
         string memory sym = string(abi.encodePacked("D4A.N", StringsUpgradeable.toString(_project_num)));
         return l.erc721_factory.createD4AERC721(name, sym);
+    }
+
+    function _createCanvas(
+        mapping(bytes32 => CanvasStorage.CanvasInfo) storage _allCanvases,
+        address fee_pool,
+        bytes32 _project_id,
+        uint256 _project_start_drb,
+        uint256 canvas_num,
+        string memory _canvas_uri
+    )
+        internal
+        returns (bytes32)
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        {
+            uint256 cur_round = l.drb.currentRound();
+            require(cur_round >= _project_start_drb, "project not start yet");
+        }
+
+        {
+            uint256 minimal = l.create_canvas_fee;
+            require(minimal <= msg.value, "not enough ether to create canvas");
+            if (msg.value < minimal) revert NotEnoughEther();
+
+            SafeTransferLib.safeTransferETH(fee_pool, minimal);
+
+            uint256 exchange = msg.value - minimal;
+            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
+        }
+        bytes32 canvas_id = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+        if (_allCanvases[canvas_id].exist) revert D4ACanvasAlreadyExist(canvas_id);
+
+        {
+            CanvasStorage.CanvasInfo storage ci = _allCanvases[canvas_id];
+            ci.project_id = _project_id;
+            ci.canvas_uri = _canvas_uri;
+            ci.index = canvas_num + 1;
+            l.owner_proxy.initOwnerOf(canvas_id, msg.sender);
+            ci.exist = true;
+        }
+        emit NewCanvas(_project_id, canvas_id, _canvas_uri);
+        return canvas_id;
     }
 }
