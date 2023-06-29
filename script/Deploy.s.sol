@@ -23,11 +23,13 @@ import { D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4ADrb } from "contracts/D4ADrb.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { D4AAddress } from "./utils/D4AAddress.sol";
@@ -61,6 +63,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployProtocolProxy();
         // _deployProtocol();
+
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet();
 
         // _deploySettings();
         // _cutSettingsFacet();
@@ -164,6 +169,56 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployProtocolReadable() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AProtocolReadable");
+
+        d4aProtocolReadable = new D4AProtocolReadable();
+        assertTrue(address(d4aProtocolReadable) != address(0));
+
+        vm.toString(address(d4aProtocolReadable)).write(path, ".D4AProtocol.D4AProtocolReadable");
+
+        console2.log("D4AProtocolReadable address: ", address(d4aProtocolReadable));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutProtocolReadableFacet() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut D4AProtocolRedable facet");
+
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = new bytes4[](17);
+        uint256 selectorIndex;
+        // register D4AProtoclReadable
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectCanvasAt.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectInfo.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectFloorPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectTokens.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNFTCount.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getTokenIDAt.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasProject.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasIndex.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasURI.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasLastPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorERC20Ratio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(d4aProtocolReadable),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+
+        console2.log("================================================================================\n");
+    }
+
     function _deploySettings() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ASettings");
@@ -173,7 +228,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         vm.toString(address(d4aSettings)).write(path, ".D4AProtocol.D4ASettings");
 
-        console2.log("D4ASetting address: ", address(d4aSettings));
+        console2.log("D4ASettings address: ", address(d4aSettings));
         console2.log("================================================================================\n");
     }
 
@@ -233,21 +288,6 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployProtocol() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocol");
-
-        d4aProtocol_impl = new D4AProtocol();
-        assertTrue(address(d4aProtocol_impl) != address(0));
-        // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
-        D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
-
-        vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
-
-        console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
-        console2.log("================================================================================\n");
-    }
-
     function _deployProtocolProxy() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AProtocol proxy");
@@ -257,10 +297,25 @@ contract Deploy is Script, Test, D4AAddress {
 
         vm.toString(address(d4aProtocol_proxy)).write(path, ".D4AProtocol.proxy");
 
+        console2.log("D4AProtocol proxy address: ", address(d4aProtocol_proxy));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployProtocol() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AProtocol");
+
+        d4aProtocol_impl = new D4AProtocol();
+        assertTrue(address(d4aProtocol_impl) != address(0));
+        // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
+        D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
+
         // initialize for the first time
         // d4aProtocol_proxy.initialize();
 
-        console2.log("D4AProtocol proxy address: ", address(d4aProtocol_proxy));
+        vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
+
+        console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
         console2.log("================================================================================\n");
     }
 
