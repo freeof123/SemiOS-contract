@@ -23,32 +23,7 @@ import {
     MintNftInfo,
     MintVars
 } from "contracts/interface/D4AStructs.sol";
-import {
-    NotDaoOwner,
-    NotCanvasOwner,
-    NotRole,
-    NotCaller,
-    Blacklisted,
-    NotInWhitelist,
-    D4APaused,
-    Paused,
-    UriAlreadyExist,
-    UriNotExist,
-    DaoIndexTooLarge,
-    DaoIndexAlreadyExist,
-    DaoNotExist,
-    CanvasNotExist,
-    ExceedMinterMaxMintAmount,
-    InvalidERC20Ratio,
-    InvalidERC20Ratio,
-    InvalidETHRatio,
-    InvalidSignature,
-    PriceTooLow,
-    NftExceedMaxAmount,
-    NotEnoughEther,
-    D4AProjectAlreadyExist,
-    D4ACanvasAlreadyExist
-} from "contracts/interface/D4AErrors.sol";
+import "contracts/interface/D4AErrors.sol";
 
 // interfaces
 import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
@@ -421,13 +396,14 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         emit DaoNftMaxSupplySet(daoId, newMaxSupply);
     }
 
-    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRounds) public {
+    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.owner_proxy.ownerOf(daoId)) revert NotDaoOwner();
+        if (newMintableRound > l.project_max_rounds) revert ExceedMaxMintableRound();
 
-        DaoStorage.layout().daoInfos[daoId].mintableRound = newMintableRounds;
+        DaoStorage.layout().daoInfos[daoId].mintableRound = newMintableRound;
 
-        emit DaoMintableRoundSet(daoId, newMintableRounds);
+        emit DaoMintableRoundSet(daoId, newMintableRound);
     }
 
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public {
@@ -934,17 +910,16 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        require(l.project_max_rounds >= _mintable_rounds, "rounds too long, not support");
+        if (_mintable_rounds > l.project_max_rounds) revert ExceedMaxMintableRound();
         {
             uint256 protocol_fee = l.mint_d4a_fee_ratio;
-            require(
-                _royalty_fee >= l.rf_lower_bound + protocol_fee && _royalty_fee <= l.rf_upper_bound + protocol_fee,
-                "royalty fee out of range"
-            );
+            if (_royalty_fee < l.rf_lower_bound + protocol_fee || _royalty_fee > l.rf_upper_bound + protocol_fee) {
+                revert RoyaltyFeeRatioOutOfRange();
+            }
         }
         {
             uint256 minimal = l.create_project_fee;
-            require(msg.value >= minimal, "not enough ether to create project");
+            if (msg.value < minimal) revert NotEnoughEther();
 
             SafeTransferLib.safeTransferETH(l.protocolFeePool, minimal);
             uint256 exchange = msg.value - minimal;
@@ -959,7 +934,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             daoInfo.startRound = _start_prb;
             {
                 uint256 cur_round = l.drb.currentRound();
-                require(_start_prb >= cur_round, "start round already passed");
+                if (_start_prb < cur_round) revert StartRoundAlreadyPassed();
             }
             daoInfo.mintableRound = _mintable_rounds;
             daoInfo.nftMaxSupply = l.max_nft_amounts[_max_nft_rank];
@@ -1036,7 +1011,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         {
             uint256 cur_round = l.drb.currentRound();
-            require(cur_round >= _project_start_drb, "project not start yet");
+            if (cur_round < _project_start_drb) revert DaoNotStarted();
         }
 
         {

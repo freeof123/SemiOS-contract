@@ -9,6 +9,8 @@ error NotRole(bytes32 role, address account);
 
 error NotCaller(address caller);
 
+error RoyaltyFeeRatioOutOfRange();
+
 error UnauthorizedToExchangeRoyaltyTokenToETH();
 
 error Blacklisted();
@@ -52,3 +54,7 @@ error NotEnoughEther();
 error D4AProjectAlreadyExist(bytes32 daoId);
 
 error D4ACanvasAlreadyExist(bytes32 canvasId);
+
+error StartRoundAlreadyPassed();
+
+error DaoNotStarted();
