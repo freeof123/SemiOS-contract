@@ -6,12 +6,12 @@ import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
 library CanvasStorage {
     struct CanvasInfo {
-        bytes32 project_id;
-        uint256[] nft_tokens;
+        bytes32 daoId;
+        uint256[] tokenIds;
         uint256 nft_token_number;
         uint256 index;
-        string canvas_uri;
-        bool exist;
+        string canvasUri;
+        bool canvasExist;
         uint256 canvasRebateRatioInBps;
     }
 

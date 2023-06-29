@@ -280,7 +280,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _checkPauseStatus();
         _checkPauseStatus(canvasId);
         _checkCanvasExist(canvasId);
-        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].project_id;
+        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
         _checkDaoExist(daoId);
         _checkPauseStatus(daoId);
 
@@ -481,7 +481,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
     }
 
     function _checkCanvasExist(bytes32 canvasId) internal view {
-        if (!CanvasStorage.layout().canvasInfos[canvasId].exist) revert CanvasNotExist();
+        if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
     }
 
     function _hasRole(bytes32 role, address account) internal view virtual returns (bool) {
@@ -623,7 +623,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             _checkCanvasExist(canvasId);
             _checkUriNotExist(tokenUri);
         }
-        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].project_id;
+        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
 
         if (flatPrice != 0 && flatPrice < ID4AProtocolReadable(address(this)).getProjectFloorPrice(daoId)) {
             revert PriceTooLow();
@@ -667,7 +667,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri);
         {
             daoInfo.nftTotalSupply++;
-            canvasInfo.nft_tokens.push(tokenId);
+            canvasInfo.tokenIds.push(tokenId);
             canvasInfo.nft_token_number++;
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))] = canvasId;
         }
@@ -749,7 +749,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         for (uint32 i; i < length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
             tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
-            canvasInfo.nft_tokens.push(tokenIds[i]);
+            canvasInfo.tokenIds.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
             SettingsStorage.Layout storage l = SettingsStorage.layout();
@@ -1008,15 +1008,15 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }
         bytes32 canvasId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
-        if (canvasInfos[canvasId].exist) revert D4ACanvasAlreadyExist(canvasId);
+        if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
 
         {
             CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
-            canvasInfo.project_id = daoId;
-            canvasInfo.canvas_uri = canvasUri;
+            canvasInfo.daoId = daoId;
+            canvasInfo.canvasUri = canvasUri;
             canvasInfo.index = canvasIndex + 1;
             l.owner_proxy.initOwnerOf(canvasId, msg.sender);
-            canvasInfo.exist = true;
+            canvasInfo.canvasExist = true;
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
         return canvasId;
