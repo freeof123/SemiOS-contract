@@ -11,35 +11,38 @@ import { IPermissionControl } from "../interface/IPermissionControl.sol";
 
 library SettingsStorage {
     struct Layout {
-        uint256 create_project_fee;
-        address protocolFeePool;
-        uint256 create_canvas_fee;
-        uint256 mint_d4a_fee_ratio;
-        uint256 trade_d4a_fee_ratio;
-        uint256 mint_project_fee_ratio;
-        uint256 mint_project_fee_ratio_flat_price;
-        uint256 erc20_total_supply;
-        uint256 project_max_rounds; //366
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvas_erc20_ratio;
+        // fee related
+        uint256 createDaoFeeAmount;
+        uint256 createCanvasFeeAmount;
+        uint256 protocolMintFeeRatioInBps;
+        uint256 daoFeePoolMintFeeRatioInBps;
+        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice;
+        uint256 protocolRoyaltyFeeRatioInBps;
+        uint256 minRoyaltyFeeRatioInBps;
+        uint256 maxRoyaltyFeeRatioInBps;
         uint256 protocolERC20RatioInBps;
-        uint256 rf_lower_bound;
-        uint256 rf_upper_bound;
-        uint256[] floor_prices;
-        uint256[] max_nft_amounts;
+        uint256 daoCreatorERC20RatioInBps;
+        uint256 canvasCreatorERC20RatioInBps;
+        // contract address
+        address protocolFeePool;
         ID4ADrb drb;
-        string erc20_name_prefix;
-        string erc20_symbol_prefix;
-        ID4AERC721Factory erc721_factory;
-        ID4AERC20Factory erc20_factory;
-        ID4AFeePoolFactory feepool_factory;
-        ID4AOwnerProxy owner_proxy;
-        IPermissionControl permission_control;
+        ID4AERC20Factory erc20Factory;
+        ID4AERC721Factory erc721Factory;
+        ID4AFeePoolFactory feePoolFactory;
+        ID4AOwnerProxy ownerProxy;
+        IPermissionControl permissionControl;
+        address createProjectProxy;
+        // params
+        uint256 tokenMaxSupply;
+        uint256 maxMintableRound; //366
+        uint256[] daoFloorPrices;
+        uint256[] nftMaxSupplies;
+        string erc20_name_prefix; // TODO: redundant, delete this field
+        string erc20_symbol_prefix; // TODO: redundant, delete this field
         address asset_pool_owner;
-        bool d4a_pause;
-        mapping(bytes32 => bool) pause_status;
-        address project_proxy;
-        uint256 reserved_slots;
+        bool isProtocolPaused;
+        mapping(bytes32 => bool) pauseStatuses;
+        uint256 reservedDaoAmount;
         address[256] priceTemplates;
         address[256] rewardTemplates;
     }
