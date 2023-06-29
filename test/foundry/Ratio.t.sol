@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import { DeployHelper } from "./utils/DeployHelper.sol";
 import { NotDaoOwner, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract RatioTest is DeployHelper {
     function setUp() public {
@@ -13,27 +14,27 @@ contract RatioTest is DeployHelper {
     }
 
     function test_getCanvasCreatorERC20Ratio() public {
-        assertEq(protocol.getCanvasCreatorERC20Ratio(bytes32(0)), 9500);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasCreatorERC20Ratio(bytes32(0)), 9500);
     }
 
     function test_getNftMinterERC20Ratio() public {
-        assertEq(protocol.getNftMinterERC20Ratio(bytes32(0)), 0);
+        assertEq(ID4AProtocolReadable(address(protocol)).getNftMinterERC20Ratio(bytes32(0)), 0);
     }
 
     function test_getDaoFeePoolETHRatio() public {
-        assertEq(protocol.getDaoFeePoolETHRatio(bytes32(0)), 3000);
+        assertEq(ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatio(bytes32(0)), 3000);
     }
 
     function test_getDaoFeePoolETHRatioFlatPrice() public {
-        assertEq(protocol.getDaoFeePoolETHRatioFlatPrice(bytes32(0)), 3500);
+        assertEq(ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatioFlatPrice(bytes32(0)), 3500);
     }
 
     function test_setRatio() public {
         protocol.setRatio(bytes32(0), 1000, 9000, 1000, 1100);
-        assertEq(protocol.getCanvasCreatorERC20Ratio(bytes32(0)), 1000 * 95 / 100);
-        assertEq(protocol.getNftMinterERC20Ratio(bytes32(0)), 9000 * 95 / 100);
-        assertEq(protocol.getDaoFeePoolETHRatio(bytes32(0)), 1000);
-        assertEq(protocol.getDaoFeePoolETHRatioFlatPrice(bytes32(0)), 1100);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasCreatorERC20Ratio(bytes32(0)), 1000 * 95 / 100);
+        assertEq(ID4AProtocolReadable(address(protocol)).getNftMinterERC20Ratio(bytes32(0)), 9000 * 95 / 100);
+        assertEq(ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatio(bytes32(0)), 1000);
+        assertEq(ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatioFlatPrice(bytes32(0)), 1100);
     }
 
     function test_RevertIf_setRatio_NotDaoOwner() public {

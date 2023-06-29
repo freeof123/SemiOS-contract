@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
+import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
 library DaoStorage {
     struct DaoInfo {
@@ -24,6 +25,7 @@ library DaoStorage {
         RewardTemplateType rewardTemplateType;
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
+        DaoMintInfo daoMintInfo;
     }
 
     struct Layout {

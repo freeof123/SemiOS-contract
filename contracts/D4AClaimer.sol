@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import "./interface/ID4AProtocol.sol";
+import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
+import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
 
 contract D4AClaimer {
     ID4AProtocol protocol;
@@ -31,7 +32,9 @@ contract D4AClaimer {
         for (uint256 i = 0; i < canvas.length;) {
             unchecked {
                 uint256 tokenAmount = protocol.claimCanvasReward(canvas[i]);
-                ethAmount += protocol.exchangeERC20ToETH(protocol.getCanvasProject(canvas[i]), tokenAmount, msg.sender);
+                ethAmount += protocol.exchangeERC20ToETH(
+                    ID4AProtocolReadable(address(protocol)).getCanvasProject(canvas[i]), tokenAmount, msg.sender
+                );
                 ++i;
             }
         }

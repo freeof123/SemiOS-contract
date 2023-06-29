@@ -2,27 +2,18 @@
 pragma solidity >=0.8.10;
 
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { CanvasStorage } from "../storages/CanvasStorage.sol";
 import { SettingsStorage } from "../storages/SettingsStorage.sol";
 import { ID4ADrb } from "../interface/ID4ADrb.sol";
 
 library D4ACanvas {
-    struct canvas_info {
-        bytes32 project_id;
-        uint256[] nft_tokens;
-        uint256 nft_token_number;
-        uint256 index;
-        string canvas_uri;
-        bool exist;
-        uint256 canvasRebateRatioInBps;
-    }
-
     error D4AInsufficientEther(uint256 required);
     error D4ACanvasAlreadyExist(bytes32 canvas_id);
 
     event NewCanvas(bytes32 project_id, bytes32 canvas_id, string uri);
 
     function createCanvas(
-        mapping(bytes32 => canvas_info) storage _allCanvases,
+        mapping(bytes32 => CanvasStorage.CanvasInfo) storage _allCanvases,
         address fee_pool,
         bytes32 _project_id,
         uint256 _project_start_drb,
@@ -53,7 +44,7 @@ library D4ACanvas {
         if (_allCanvases[canvas_id].exist) revert D4ACanvasAlreadyExist(canvas_id);
 
         {
-            canvas_info storage ci = _allCanvases[canvas_id];
+            CanvasStorage.CanvasInfo storage ci = _allCanvases[canvas_id];
             ci.project_id = _project_id;
             ci.canvas_uri = _canvas_uri;
             ci.index = canvas_num + 1;

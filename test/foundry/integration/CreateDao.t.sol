@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import { DeployHelper } from "../utils/DeployHelper.sol";
 import { MintNftSigUtils } from "../utils/MintNftSigUtils.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract CreateDaoTest is DeployHelper {
     function setUp() public {
@@ -25,11 +26,11 @@ contract CreateDaoTest is DeployHelper {
             signature = bytes.concat(r, s, bytes1(v));
         }
 
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0);
 
         hoax(nftMinter.addr);
         protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
 
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0);
     }
 }

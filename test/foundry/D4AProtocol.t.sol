@@ -6,6 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { NotDaoOwner, ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { DeployHelper } from "./utils/DeployHelper.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract D4AProtocolTest is DeployHelper {
     MintNftSigUtils public sigUtils;
@@ -21,9 +22,9 @@ contract D4AProtocolTest is DeployHelper {
 
         startHoax(daoCreator.addr);
         daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
-        (address temp,) = protocol.getProjectTokens(daoId);
+        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
@@ -65,7 +66,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
         protocol.setDaoNftMaxSupply(daoId, maxSupply);
-        (,, uint256 nftMaxSupply,,,,,) = protocol.getProjectInfo(daoId);
+        (,, uint256 nftMaxSupply,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         assertEq(nftMaxSupply, maxSupply);
     }
 
@@ -174,7 +175,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 round = 10;
         startHoax(daoCreator.addr);
         protocol.setDaoMintableRound(daoId, round);
-        (, uint256 mintableRound,,,,,,) = protocol.getProjectInfo(daoId);
+        (, uint256 mintableRound,,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         assertEq(mintableRound, round);
     }
 

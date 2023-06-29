@@ -13,6 +13,7 @@ import {
 
 import "forge-std/Test.sol";
 import { DeployHelper } from "./utils/DeployHelper.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
@@ -67,9 +68,9 @@ contract Benchmark is DeployHelper {
             0
         );
         {
-            (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+            (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         }
-        (, address erc721Token) = protocol.getProjectTokens(daoId);
+        (, address erc721Token) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         nft = IERC721(erc721Token);
 
         hoax(canvasCreator.addr, 0.01 ether);
@@ -121,7 +122,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.04 ether);
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.04 ether);
         vm.stopPrank();
     }
 
@@ -149,7 +150,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 5));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 5));
         vm.stopPrank();
     }
 
@@ -197,7 +198,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 4));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 4));
         vm.stopPrank();
     }
 
@@ -228,7 +229,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 3));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 3));
 
         vm.stopPrank();
     }
@@ -261,7 +262,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 2));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 2));
         vm.stopPrank();
     }
 
@@ -294,7 +295,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 1));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 1));
         vm.stopPrank();
     }
 
@@ -328,7 +329,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 0));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 0));
         vm.stopPrank();
     }
 
@@ -357,7 +358,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 10));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 10));
         vm.stopPrank();
     }
 
@@ -386,7 +387,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 50));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 50));
         vm.stopPrank();
     }
 
@@ -415,7 +416,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 100));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** 100));
         vm.stopPrank();
     }
 
@@ -444,7 +445,7 @@ contract Benchmark is DeployHelper {
         assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
         assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
         assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether * (2 ** mintNum));
+        assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether * (2 ** mintNum));
         vm.stopPrank();
     }
 

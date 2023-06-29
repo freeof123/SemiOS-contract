@@ -7,6 +7,7 @@ import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHel
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 import { AggregatorV3Mock } from "./utils/mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 import { console2 } from "forge-std/Console2.sol";
 
@@ -78,13 +79,13 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
         daoId1 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri1");
 
         splitter1 = D4ARoyaltySplitter(payable(daoProxy.getSplitterAddress(daoId1)));
-        (,,, daoFeePool1,,,,) = protocol.getProjectInfo(daoId1);
+        (,,, daoFeePool1,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId1);
 
         hoax(daoCreator.addr);
         daoId2 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri2");
 
         splitter2 = D4ARoyaltySplitter(payable(daoProxy.getSplitterAddress(daoId2)));
-        (,,, daoFeePool2,,,,) = protocol.getProjectInfo(daoId2);
+        (,,, daoFeePool2,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId2);
 
         deal(address(_testERC20), daoCreator.addr, 1e8 ether * 10 ** tokenPriceDecimal / tokenPrice);
         deal(address(_testERC20_1), daoCreator.addr, 1e8 ether * 10 ** tokenPriceDecimal / tokenPrice);

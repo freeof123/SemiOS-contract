@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
-
+import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract D4AProtocolHarness is D4AProtocol {
@@ -11,7 +10,7 @@ contract D4AProtocolHarness is D4AProtocol {
     }
 
     function exposed_daoMintInfos(bytes32 daoId) public view returns (uint32 daoMintCap) {
-        return _daoMintInfos[daoId].daoMintCap;
+        return DaoStorage.layout().daoInfos[daoId].daoMintInfo.daoMintCap;
     }
 
     function exposed_checkMintEligibility(
