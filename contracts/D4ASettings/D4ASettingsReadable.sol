@@ -9,15 +9,15 @@ import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 contract D4ASettingsReadable is ID4ASettingsReadable {
     function permissionControl() public view returns (IPermissionControl) {
-        return SettingsStorage.layout().permission_control;
+        return SettingsStorage.layout().permissionControl;
     }
 
     function ownerProxy() public view returns (ID4AOwnerProxy) {
-        return SettingsStorage.layout().owner_proxy;
+        return SettingsStorage.layout().ownerProxy;
     }
 
     function mintProtocolFeeRatio() public view returns (uint256) {
-        return SettingsStorage.layout().mint_d4a_fee_ratio;
+        return SettingsStorage.layout().protocolMintFeeRatioInBps;
     }
 
     function protocolFeePool() public view returns (address) {
@@ -25,15 +25,15 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
     }
 
     function tradeProtocolFeeRatio() public view returns (uint256) {
-        return SettingsStorage.layout().trade_d4a_fee_ratio;
+        return SettingsStorage.layout().protocolRoyaltyFeeRatioInBps;
     }
 
     function mintProjectFeeRatio() public view returns (uint256) {
-        return SettingsStorage.layout().mint_project_fee_ratio;
+        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
     }
 
     function mintProjectFeeRatioFlatPrice() public view returns (uint256) {
-        return SettingsStorage.layout().mint_project_fee_ratio_flat_price;
+        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
     }
 
     function ratioBase() public pure returns (uint256) {
@@ -41,10 +41,10 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
     }
 
     function createProjectFee() public view returns (uint256) {
-        return SettingsStorage.layout().create_project_fee;
+        return SettingsStorage.layout().createDaoFeeAmount;
     }
 
     function createCanvasFee() public view returns (uint256) {
-        return SettingsStorage.layout().create_canvas_fee;
+        return SettingsStorage.layout().createCanvasFeeAmount;
     }
 }

@@ -30,30 +30,36 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         _setRoleAdmin(DAO_ROLE, OPERATION_ROLE);
         _setRoleAdmin(SIGNER_ROLE, OPERATION_ROLE);
         //some default value here
-        l.create_project_fee = 0.1 ether;
-        l.create_canvas_fee = 0.01 ether;
-        l.mint_d4a_fee_ratio = 250;
-        l.trade_d4a_fee_ratio = 250;
-        l.mint_project_fee_ratio = 3000;
-        l.mint_project_fee_ratio_flat_price = 3500;
-        l.rf_lower_bound = 500;
-        l.rf_upper_bound = 1000;
+        l.createDaoFeeAmount = 0.1 ether;
+        l.createCanvasFeeAmount = 0.01 ether;
+        l.protocolMintFeeRatioInBps = 250;
+        l.protocolRoyaltyFeeRatioInBps = 250;
+        l.daoFeePoolMintFeeRatioInBps = 3000;
+        l.daoFeePoolMintFeeRatioInBpsFlatPrice = 3500;
+        l.minRoyaltyFeeRatioInBps = 500;
+        l.maxRoyaltyFeeRatioInBps = 1000;
 
         l.daoCreatorERC20RatioInBps = 300;
         l.protocolERC20RatioInBps = 200;
-        l.canvas_erc20_ratio = 9500;
-        l.project_max_rounds = 366;
-        l.reserved_slots = 110;
+        l.canvasCreatorERC20RatioInBps = 9500;
+        l.maxMintableRound = 366;
+        l.reservedDaoAmount = 110;
     }
 
     event ChangeCreateFee(uint256 create_project_fee, uint256 create_canvas_fee);
 
-    function changeCreateFee(uint256 _create_project_fee, uint256 _create_canvas_fee) public onlyRole(PROTOCOL_ROLE) {
+    function changeCreateFee(
+        uint256 createDaoFeeAmount,
+        uint256 createCanvasFeeAmount
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.create_project_fee = _create_project_fee;
-        l.create_canvas_fee = _create_canvas_fee;
-        emit ChangeCreateFee(_create_project_fee, _create_canvas_fee);
+        l.createDaoFeeAmount = createDaoFeeAmount;
+        l.createCanvasFeeAmount = createCanvasFeeAmount;
+        emit ChangeCreateFee(createDaoFeeAmount, createCanvasFeeAmount);
     }
 
     event ChangeProtocolFeePool(address addr);
@@ -68,66 +74,71 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
     event ChangeMintFeeRatio(uint256 d4a_ratio, uint256 project_ratio, uint256 project_fee_ratio_flat_price);
 
     function changeMintFeeRatio(
-        uint256 _d4a_fee_ratio,
-        uint256 _project_fee_ratio,
-        uint256 _project_fee_ratio_flat_price
+        uint256 protocolFeeRatioInBps,
+        uint256 daoFeePoolMintFeeRatioInBps,
+        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice
     )
         public
         onlyRole(PROTOCOL_ROLE)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.mint_d4a_fee_ratio = _d4a_fee_ratio;
-        l.mint_project_fee_ratio = _project_fee_ratio;
-        l.mint_project_fee_ratio_flat_price = _project_fee_ratio_flat_price;
-        emit ChangeMintFeeRatio(_d4a_fee_ratio, _project_fee_ratio, _project_fee_ratio_flat_price);
+        l.protocolMintFeeRatioInBps = protocolFeeRatioInBps;
+        l.daoFeePoolMintFeeRatioInBps = daoFeePoolMintFeeRatioInBps;
+        l.daoFeePoolMintFeeRatioInBpsFlatPrice = daoFeePoolMintFeeRatioInBpsFlatPrice;
+        emit ChangeMintFeeRatio(
+            protocolFeeRatioInBps, daoFeePoolMintFeeRatioInBps, daoFeePoolMintFeeRatioInBpsFlatPrice
+        );
     }
 
     event ChangeTradeFeeRatio(uint256 trade_d4a_fee_ratio);
 
-    function changeTradeFeeRatio(uint256 _trade_d4a_fee_ratio) public onlyRole(PROTOCOL_ROLE) {
+    function changeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.trade_d4a_fee_ratio = _trade_d4a_fee_ratio;
-        emit ChangeTradeFeeRatio(_trade_d4a_fee_ratio);
+        l.protocolRoyaltyFeeRatioInBps = protocolRoyaltyFeeRatioInBps;
+        emit ChangeTradeFeeRatio(protocolRoyaltyFeeRatioInBps);
     }
 
     event ChangeERC20TotalSupply(uint256 total_supply);
 
-    function changeERC20TotalSupply(uint256 _total_supply) public onlyRole(PROTOCOL_ROLE) {
+    function changeERC20TotalSupply(uint256 tokenMaxSupply) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.erc20_total_supply = _total_supply;
-        emit ChangeERC20TotalSupply(_total_supply);
+        l.tokenMaxSupply = tokenMaxSupply;
+        emit ChangeERC20TotalSupply(tokenMaxSupply);
     }
 
     event ChangeERC20Ratio(uint256 d4a_ratio, uint256 project_ratio, uint256 canvas_ratio);
 
     function changeERC20Ratio(
-        uint256 _d4a_ratio,
-        uint256 _project_ratio,
-        uint256 _canvas_ratio
+        uint256 protocolERC20RatioInBps,
+        uint256 daoCreatorERC20RatioInBps,
+        uint256 canvasCreatorERC20RatioInBps
     )
         public
         onlyRole(PROTOCOL_ROLE)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.protocolERC20RatioInBps = _d4a_ratio;
-        l.daoCreatorERC20RatioInBps = _project_ratio;
-        l.canvas_erc20_ratio = _canvas_ratio;
-        require(_d4a_ratio + _project_ratio + _canvas_ratio == BASIS_POINT, "invalid ratio");
+        l.protocolERC20RatioInBps = protocolERC20RatioInBps;
+        l.daoCreatorERC20RatioInBps = daoCreatorERC20RatioInBps;
+        l.canvasCreatorERC20RatioInBps = canvasCreatorERC20RatioInBps;
+        require(
+            protocolERC20RatioInBps + daoCreatorERC20RatioInBps + canvasCreatorERC20RatioInBps == BASIS_POINT,
+            "invalid ratio"
+        );
 
-        emit ChangeERC20Ratio(_d4a_ratio, _project_ratio, _canvas_ratio);
+        emit ChangeERC20Ratio(protocolERC20RatioInBps, daoCreatorERC20RatioInBps, canvasCreatorERC20RatioInBps);
     }
 
     event ChangeMaxMintableRounds(uint256 old_rounds, uint256 new_rounds);
 
-    function changeMaxMintableRounds(uint256 _rounds) public onlyRole(PROTOCOL_ROLE) {
+    function changeMaxMintableRounds(uint256 maxMintableRound) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        emit ChangeMaxMintableRounds(l.project_max_rounds, _rounds);
-        l.project_max_rounds = _rounds;
+        emit ChangeMaxMintableRounds(l.maxMintableRound, maxMintableRound);
+        l.maxMintableRound = maxMintableRound;
     }
 
     event ChangeAddress(
@@ -141,28 +152,28 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
     );
 
     function changeAddress(
-        address _prb,
-        address _erc20_factory,
-        address _erc721_factory,
-        address _feepool_factory,
-        address _owner_proxy,
-        address _project_proxy,
-        address _permission_control
+        address drb,
+        address erc20Factory,
+        address erc721Factory,
+        address feePoolFactory,
+        address ownerProxy,
+        address createProjectProxy,
+        address permissionControl
     )
         public
         onlyRole(PROTOCOL_ROLE)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.drb = ID4ADrb(_prb);
-        l.erc20_factory = ID4AERC20Factory(_erc20_factory);
-        l.erc721_factory = ID4AERC721Factory(_erc721_factory);
-        l.feepool_factory = ID4AFeePoolFactory(_feepool_factory);
-        l.owner_proxy = ID4AOwnerProxy(_owner_proxy);
-        l.project_proxy = _project_proxy;
-        l.permission_control = IPermissionControl(_permission_control);
+        l.drb = ID4ADrb(drb);
+        l.erc20Factory = ID4AERC20Factory(erc20Factory);
+        l.erc721Factory = ID4AERC721Factory(erc721Factory);
+        l.feePoolFactory = ID4AFeePoolFactory(feePoolFactory);
+        l.ownerProxy = ID4AOwnerProxy(ownerProxy);
+        l.createProjectProxy = createProjectProxy;
+        l.permissionControl = IPermissionControl(permissionControl);
         emit ChangeAddress(
-            _prb, _erc20_factory, _erc721_factory, _feepool_factory, _owner_proxy, _project_proxy, _permission_control
+            drb, erc20Factory, erc721Factory, feePoolFactory, ownerProxy, createProjectProxy, permissionControl
         );
     }
 
@@ -177,61 +188,61 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
 
     event ChangeFloorPrices(uint256[] prices);
 
-    function changeFloorPrices(uint256[] memory _prices) public onlyRole(PROTOCOL_ROLE) {
+    function changeFloorPrices(uint256[] memory daoFloorPrices) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        delete l.floor_prices;
-        l.floor_prices = _prices;
-        emit ChangeFloorPrices(_prices);
+        delete l.daoFloorPrices; // TODO: check if this is necessary
+        l.daoFloorPrices = daoFloorPrices;
+        emit ChangeFloorPrices(daoFloorPrices);
     }
 
     event ChangeMaxNFTAmounts(uint256[] amounts);
 
-    function changeMaxNFTAmounts(uint256[] memory _amounts) public onlyRole(PROTOCOL_ROLE) {
+    function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        delete l.max_nft_amounts;
-        l.max_nft_amounts = _amounts;
-        emit ChangeMaxNFTAmounts(_amounts);
+        delete l.nftMaxSupplies; // TODO: check if this is necessary
+        l.nftMaxSupplies = nftMaxSupplies;
+        emit ChangeMaxNFTAmounts(nftMaxSupplies);
     }
 
-    event ChangeD4APause(bool is_paused);
+    event ChangeD4APause(bool isPaused);
 
-    function changeD4APause(bool is_paused) public onlyRole(PROTOCOL_ROLE) {
+    function changeD4APause(bool isPaused) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.d4a_pause = is_paused;
-        emit ChangeD4APause(is_paused);
+        l.isProtocolPaused = isPaused;
+        emit ChangeD4APause(isPaused);
     }
 
-    event D4ASetProjectPaused(bytes32 project_id, bool is_paused);
+    event D4ASetProjectPaused(bytes32 project_id, bool isPaused);
 
-    function setProjectPause(bytes32 obj_id, bool is_paused) public {
+    function setProjectPause(bytes32 daoId, bool isPaused) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         require(
-            (_hasRole(DAO_ROLE, msg.sender) && l.owner_proxy.ownerOf(obj_id) == msg.sender)
+            (_hasRole(DAO_ROLE, msg.sender) && l.ownerProxy.ownerOf(daoId) == msg.sender)
                 || _hasRole(OPERATION_ROLE, msg.sender) || _hasRole(PROTOCOL_ROLE, msg.sender),
             "only project owner or admin can call"
         );
-        l.pause_status[obj_id] = is_paused;
-        emit D4ASetProjectPaused(obj_id, is_paused);
+        l.pauseStatuses[daoId] = isPaused;
+        emit D4ASetProjectPaused(daoId, isPaused);
     }
 
-    event D4ASetCanvasPaused(bytes32 canvas_id, bool is_paused);
+    event D4ASetCanvasPaused(bytes32 canvas_id, bool isPaused);
 
-    function setCanvasPause(bytes32 obj_id, bool is_paused) public {
+    function setCanvasPause(bytes32 canvasId, bool isPaused) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         require(
             (
                 _hasRole(DAO_ROLE, msg.sender)
-                    && l.owner_proxy.ownerOf(ID4AProtocolReadable(address(this)).getCanvasProject(obj_id)) == msg.sender
+                    && l.ownerProxy.ownerOf(ID4AProtocolReadable(address(this)).getCanvasProject(canvasId)) == msg.sender
             ) || _hasRole(OPERATION_ROLE, msg.sender) || _hasRole(PROTOCOL_ROLE, msg.sender),
             "only project owner or admin can call"
         );
-        l.pause_status[obj_id] = is_paused;
-        emit D4ASetCanvasPaused(obj_id, is_paused);
+        l.pauseStatuses[canvasId] = isPaused;
+        emit D4ASetCanvasPaused(canvasId, isPaused);
     }
 
     event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);

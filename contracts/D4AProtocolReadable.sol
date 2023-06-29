@@ -67,11 +67,11 @@ contract D4AProtocolReadable {
     }
 
     function getTokenIDAt(bytes32 _canvas_id, uint256 _index) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].nft_tokens[_index];
+        return CanvasStorage.layout().canvasInfos[_canvas_id].tokenIds[_index];
     }
 
     function getCanvasProject(bytes32 _canvas_id) public view returns (bytes32) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].project_id;
+        return CanvasStorage.layout().canvasInfos[_canvas_id].daoId;
     }
 
     function getCanvasIndex(bytes32 _canvas_id) public view returns (uint256) {
@@ -79,7 +79,7 @@ contract D4AProtocolReadable {
     }
 
     function getCanvasURI(bytes32 _canvas_id) public view returns (string memory) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].canvas_uri;
+        return CanvasStorage.layout().canvasInfos[_canvas_id].canvasUri;
     }
 
     function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {
@@ -88,7 +88,7 @@ contract D4AProtocolReadable {
     }
 
     function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
-        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].project_id;
+        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
         uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
         PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
@@ -102,7 +102,7 @@ contract D4AProtocolReadable {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 canvasCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].canvasCreatorERC20RatioInBps;
         if (canvasCreatorERC20RatioInBps == 0) {
-            return l.canvas_erc20_ratio;
+            return l.canvasCreatorERC20RatioInBps;
         }
         return canvasCreatorERC20RatioInBps * (BASIS_POINT - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
             / BASIS_POINT;
@@ -121,7 +121,7 @@ contract D4AProtocolReadable {
     function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.daoFeePoolETHRatioInBps == 0) {
-            return SettingsStorage.layout().mint_project_fee_ratio;
+            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
         }
         return daoInfo.daoFeePoolETHRatioInBps;
     }
@@ -129,7 +129,7 @@ contract D4AProtocolReadable {
     function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.daoFeePoolETHRatioInBpsFlatPrice == 0) {
-            return SettingsStorage.layout().mint_project_fee_ratio_flat_price;
+            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
         }
         return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
     }
