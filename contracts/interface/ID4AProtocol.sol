@@ -5,6 +5,10 @@ import { DaoMetadataParam, UserMintCapParam, TemplateParam } from "./D4AStructs.
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocol {
+    event NewProject(
+        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+    );
+
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);

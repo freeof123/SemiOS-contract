@@ -7,6 +7,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { StringsUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
 
@@ -44,7 +45,8 @@ import {
     InvalidSignature,
     PriceTooLow,
     NftExceedMaxAmount,
-    NotEnoughEther
+    NotEnoughEther,
+    D4AProjectAlreadyExist
 } from "contracts/interface/D4AErrors.sol";
 
 // interfaces
@@ -53,10 +55,9 @@ import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
-import { ID4AERC721 } from "./interface/ID4AERC721.sol";
+import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 
 // D4A libs, storages && contracts
-import { D4AProject } from "./libraries/D4AProject.sol";
 import { D4ACanvas } from "./libraries/D4ACanvas.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
@@ -64,6 +65,7 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
+import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
 contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
@@ -109,15 +111,8 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkCaller(l.project_proxy);
         uriExists[keccak256(abi.encodePacked(_project_uri))] = true;
-        project_id = D4AProject.createProject(
-            DaoStorage.layout().daoInfos,
-            _start_prb,
-            _mintable_rounds,
-            _floor_price_rank,
-            _max_nft_rank,
-            _royalty_fee,
-            _daoIndex,
-            _project_uri
+        project_id = _createProject(
+            _start_prb, _mintable_rounds, _floor_price_rank, _max_nft_rank, _royalty_fee, _daoIndex, _project_uri
         );
         _daoIndex++;
     }
@@ -146,8 +141,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
         }
         {
-            return D4AProject.createProject(
-                DaoStorage.layout().daoInfos,
+            return _createProject(
                 daoMetadataParam.startDrb,
                 daoMetadataParam.mintableRounds,
                 daoMetadataParam.floorPriceRank,
@@ -707,7 +701,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _updateReward(daoId, canvasId, daoFee);
 
         // mint
-        token_id = ID4AERC721(pi.nft).mintItem(msg.sender, _token_uri);
+        token_id = D4AERC721(pi.nft).mintItem(msg.sender, _token_uri);
         {
             pi.nftTotalSupply++;
             ci.nft_tokens.push(token_id);
@@ -797,7 +791,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         ci.nft_token_number += length;
         for (uint32 i; i < length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = ID4AERC721(pi.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
+            tokenIds[i] = D4AERC721(pi.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
             ci.nft_tokens.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
@@ -924,5 +918,107 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
         if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
         if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
+    }
+
+    function _createProject(
+        uint256 _start_prb,
+        uint256 _mintable_rounds,
+        uint256 _floor_price_rank,
+        uint256 _max_nft_rank,
+        uint96 _royalty_fee,
+        uint256 _project_index,
+        string memory _project_uri
+    )
+        internal
+        returns (bytes32 project_id)
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        require(l.project_max_rounds >= _mintable_rounds, "rounds too long, not support");
+        {
+            uint256 protocol_fee = l.mint_d4a_fee_ratio;
+            require(
+                _royalty_fee >= l.rf_lower_bound + protocol_fee && _royalty_fee <= l.rf_upper_bound + protocol_fee,
+                "royalty fee out of range"
+            );
+        }
+        {
+            uint256 minimal = l.create_project_fee;
+            require(msg.value >= minimal, "not enough ether to create project");
+
+            SafeTransferLib.safeTransferETH(l.protocolFeePool, minimal);
+            uint256 exchange = msg.value - minimal;
+            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
+        }
+
+        project_id = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[project_id];
+
+        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(project_id);
+        {
+            daoInfo.startRound = _start_prb;
+            {
+                uint256 cur_round = l.drb.currentRound();
+                require(_start_prb >= cur_round, "start round already passed");
+            }
+            daoInfo.mintableRound = _mintable_rounds;
+            daoInfo.nftMaxSupply = l.max_nft_amounts[_max_nft_rank];
+            daoInfo.daoUri = _project_uri;
+            daoInfo.royaltyFeeInBps = _royalty_fee;
+            daoInfo.daoIndex = _project_index;
+            daoInfo.token = _createERC20Token(_project_index);
+
+            D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
+            D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
+
+            address pool = l.feepool_factory.createD4AFeePool(
+                string(abi.encodePacked("Asset Pool for DAO4Art Project ", StringsUpgradeable.toString(_project_index)))
+            );
+
+            D4AFeePool(payable(pool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
+
+            ID4AChangeAdmin(pool).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.asset_pool_owner);
+
+            daoInfo.daoFeePool = pool;
+
+            l.owner_proxy.initOwnerOf(project_id, msg.sender);
+
+            daoInfo.nft = _createERC721Token(_project_index);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
+
+            D4AERC721(daoInfo.nft).setContractUri(_project_uri);
+            ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
+            //We copy from setting in case setting may change later.
+            daoInfo.tokenMaxSupply = l.erc20_total_supply;
+
+            if (_floor_price_rank != 9999) {
+                // 9999 is specified for 0 floor price
+                PriceStorage.layout().daoFloorPrices[project_id] = l.floor_prices[_floor_price_rank];
+            }
+            RewardStorage.layout().rewardInfos[project_id].totalReward = l.erc20_total_supply;
+            // TODO: remove this to save gas? because impossible to mint NFT at round 0, or change prb such that it
+            // starts at round 1
+            RewardStorage.layout().rewardInfos[project_id].rewardPendingRound = type(uint256).max;
+
+            daoInfo.daoExist = true;
+            emit NewProject(project_id, _project_uri, pool, daoInfo.token, daoInfo.nft, _royalty_fee);
+        }
+    }
+
+    function _createERC20Token(uint256 _project_num) internal returns (address) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        string memory name = string(abi.encodePacked("D4A Token for No.", StringsUpgradeable.toString(_project_num)));
+        string memory sym = string(abi.encodePacked("D4A.T", StringsUpgradeable.toString(_project_num)));
+        return l.erc20_factory.createD4AERC20(name, sym, address(this));
+    }
+
+    function _createERC721Token(uint256 _project_num) internal returns (address) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        string memory name = string(abi.encodePacked("D4A NFT for No.", StringsUpgradeable.toString(_project_num)));
+        string memory sym = string(abi.encodePacked("D4A.N", StringsUpgradeable.toString(_project_num)));
+        return l.erc721_factory.createD4AERC721(name, sym);
     }
 }
