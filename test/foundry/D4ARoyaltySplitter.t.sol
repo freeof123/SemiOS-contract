@@ -6,6 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHelper.sol";
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract D4ARoyaltySplitterTest is DeployHelper {
     D4ARoyaltySplitter public splitter;
@@ -23,7 +24,7 @@ contract D4ARoyaltySplitterTest is DeployHelper {
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri");
 
         splitter = D4ARoyaltySplitter(payable(daoProxy.getSplitterAddress(daoId)));
-        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
 
         deal(address(_testERC20), daoCreator.addr, 1e6 ether);
         deal(address(_testERC20_1), daoCreator.addr, 1e6 ether);

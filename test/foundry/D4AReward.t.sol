@@ -6,6 +6,7 @@ import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract D4ARewardTest is DeployHelper {
     bytes32 daoId;
@@ -41,9 +42,9 @@ contract D4ARewardTest is DeployHelper {
         hoax(canvasCreator2.addr);
         canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0), 0);
 
-        (address temp,) = protocol.getProjectTokens(daoId);
+        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
@@ -103,7 +104,7 @@ contract D4ARewardTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        uint256 price1 = protocol.getCanvasNextPrice(canvasId1);
+        uint256 price1 = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price1 }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -113,7 +114,7 @@ contract D4ARewardTest is DeployHelper {
         (v, r, s) = vm.sign(canvasCreator2.key, digest);
 
         hoax(nftMinter.addr);
-        uint256 price2 = protocol.getCanvasNextPrice(canvasId2);
+        uint256 price2 = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2);
         protocol.mintNFT{ value: price2 }(
             daoId, canvasId2, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -159,7 +160,7 @@ contract D4ARewardTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        uint256 price = protocol.getCanvasNextPrice(canvasId1);
+        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -191,7 +192,7 @@ contract D4ARewardTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        uint256 price = protocol.getCanvasNextPrice(canvasId1);
+        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -219,9 +220,9 @@ contract D4ARewardTest is DeployHelper {
         hoax(canvasCreator2.addr);
         canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 4", new bytes32[](0), 0);
 
-        (address temp,) = protocol.getProjectTokens(daoId);
+        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
 
         // clean up rewards
@@ -238,7 +239,7 @@ contract D4ARewardTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        uint256 price = protocol.getCanvasNextPrice(canvasId1);
+        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -250,7 +251,7 @@ contract D4ARewardTest is DeployHelper {
         (v, r, s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        price = protocol.getCanvasNextPrice(canvasId1);
+        price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -262,7 +263,7 @@ contract D4ARewardTest is DeployHelper {
         (v, r, s) = vm.sign(canvasCreator.key, digest);
 
         hoax(nftMinter.addr);
-        price = protocol.getCanvasNextPrice(canvasId1);
+        price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -274,7 +275,7 @@ contract D4ARewardTest is DeployHelper {
         (v, r, s) = vm.sign(canvasCreator.key, digest);
 
         startHoax(nftMinter.addr);
-        price = protocol.getCanvasNextPrice(canvasId1);
+        price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         vm.expectRevert(ExceedMaxMintableRound.selector);
         protocol.mintNFT{ value: price }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)

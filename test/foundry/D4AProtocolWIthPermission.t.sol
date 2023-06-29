@@ -23,6 +23,7 @@ import {
     ExceedMinterMaxMintAmount,
     InvalidSignature
 } from "contracts/interface/D4AErrors.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract D4AProtocolTest is DeployHelper {
@@ -63,7 +64,9 @@ contract D4AProtocolTest is DeployHelper {
         (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
             _generateTrivialPermission();
         protocol.setMintCapAndPermission(bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist);
-        assertEq(protocolHarness.exposed_daoMintInfos(0), protocol.getDaoMintCap(bytes32(0)));
+        assertEq(
+            protocolHarness.exposed_daoMintInfos(0), ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
+        );
     }
 
     function test_createCanvas() public {
@@ -214,7 +217,7 @@ contract D4AProtocolTest is DeployHelper {
         hoax(nftMinter.addr);
         protocol.mintNFT{ value: 0.1 ether }(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
 
-        (uint32 userMintNum,) = protocol.getUserMintInfo(daoId, nftMinter.addr);
+        (uint32 userMintNum,) = ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr);
         assertEq(userMintNum, 1);
     }
 
@@ -246,7 +249,7 @@ contract D4AProtocolTest is DeployHelper {
             daoId, canvasId, new bytes32[](0), mintNftInfos, signatures
         );
 
-        (uint32 userMintNum,) = (protocol.getUserMintInfo(daoId, nftMinter.addr));
+        (uint32 userMintNum,) = (ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr));
         assertEq(userMintNum, mintNum);
     }
 

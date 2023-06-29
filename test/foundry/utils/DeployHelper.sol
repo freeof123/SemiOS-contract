@@ -28,6 +28,7 @@ import { IUniswapV2Router02 as IUniswapV2Router } from
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
@@ -37,6 +38,7 @@ import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
@@ -60,6 +62,7 @@ contract DeployHelper is Test {
     D4ASettings public settings;
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
+    D4AProtocolReadable public protocolReadable;
     D4AProtocol public protocol;
     D4AProtocol public protocolImpl;
     D4ACreateProjectProxy public daoProxy;
@@ -106,7 +109,6 @@ contract DeployHelper is Test {
         _deployUniswapV2Factory(protocolOwner.addr);
         _deployUniswapV2Router(address(uniswapV2Factory), address(weth));
         _deployDrb();
-        _deploySettings();
         _deployERC20Factory();
         _deployERC721Factory();
         _deployFeePoolFactory();
@@ -183,11 +185,6 @@ contract DeployHelper is Test {
         vm.label(address(drb), "DRB");
     }
 
-    function _deploySettings() internal prank(protocolOwner.addr) {
-        settings = new D4ASettings();
-        vm.label(address(settings), "Settings");
-    }
-
     function _deployNaiveOwner() internal prank(protocolOwner.addr) {
         naiveOwnerImpl = new NaiveOwner();
         naiveOwner = NaiveOwner(
@@ -247,10 +244,61 @@ contract DeployHelper is Test {
         protocol = D4AProtocol(payable(new D4ADiamond()));
         protocolImpl = new D4AProtocol();
 
+        _deployProtocolReadable();
+        _deploySettings();
+
+        _cutFacetsProtocolReadable();
         _cutFacetsSettings();
+
+        // set diamond fallback address
+        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
+        protocol.initialize();
 
         vm.label(address(protocol), "Protocol");
         vm.label(address(protocolImpl), "Protocol Impl");
+    }
+
+    function _deployProtocolReadable() internal {
+        protocolReadable = new D4AProtocolReadable();
+        vm.label(address(protocolReadable), "Protocol Readable");
+    }
+
+    function _deploySettings() internal {
+        settings = new D4ASettings();
+        vm.label(address(settings), "Settings");
+    }
+
+    function _cutFacetsProtocolReadable() internal {
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = new bytes4[](17);
+        uint256 selectorIndex;
+        // register D4AProtoclReadable
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectCanvasAt.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectInfo.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectFloorPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectTokens.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNFTCount.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getTokenIDAt.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasProject.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasIndex.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasURI.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasLastPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorERC20Ratio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
+        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(protocolReadable),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _cutFacetsSettings() internal {
@@ -302,10 +350,6 @@ contract DeployHelper is Test {
         D4ADiamond(payable(address(protocol))).diamondCut(
             facetCuts, address(settings), abi.encodeWithSelector(ID4ASettings.initializeD4ASettings.selector)
         );
-
-        // set diamond fallback address
-        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
-        protocol.initialize();
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {

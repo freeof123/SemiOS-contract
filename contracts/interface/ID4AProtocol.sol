@@ -5,6 +5,10 @@ import { DaoMetadataParam, UserMintCapParam, TemplateParam } from "./D4AStructs.
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocol {
+    event NewProject(
+        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+    );
+
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
@@ -79,46 +83,4 @@ interface ID4AProtocol {
         IPermissionControl.Blacklist memory unblacklist
     )
         external;
-
-    function getProjectCanvasAt(bytes32 daoId, uint256 index) external view returns (bytes32);
-
-    function getProjectInfo(bytes32 daoId)
-        external
-        view
-        returns (
-            uint256 startRound,
-            uint256 mintableRound,
-            uint256 maxNftAmount,
-            address daoFeePool,
-            uint96 royaltyFeeInBps,
-            uint256 index,
-            string memory daoUri,
-            uint256 erc20TotalSupply
-        );
-
-    function getProjectFloorPrice(bytes32 daoId) external view returns (uint256);
-
-    function getProjectTokens(bytes32 daoId) external view returns (address token, address nft);
-
-    function getCanvasNFTCount(bytes32 canvasId) external view returns (uint256);
-
-    function getTokenIDAt(bytes32 canvasId, uint256 index) external view returns (uint256);
-
-    function getCanvasProject(bytes32 canvasId) external view returns (bytes32);
-
-    function getCanvasIndex(bytes32 canvasId) external view returns (uint256);
-
-    function getCanvasURI(bytes32 canvasId) external view returns (string memory);
-
-    function getCanvasLastPrice(bytes32 canvasId) external view returns (uint256 round, uint256 price);
-
-    function getCanvasNextPrice(bytes32 canvasId) external view returns (uint256);
-
-    function getCanvasCreatorERC20Ratio(bytes32 daoId) external view returns (uint256);
-
-    function getNftMinterERC20Ratio(bytes32 daoId) external view returns (uint256);
-
-    function getDaoFeePoolETHRatio(bytes32 daoId) external view returns (uint256);
-
-    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
 }

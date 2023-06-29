@@ -48,3 +48,5 @@ error CanvasNotExist();
 error PriceTooLow();
 
 error NotEnoughEther();
+
+error D4AProjectAlreadyExist(bytes32 daoId);

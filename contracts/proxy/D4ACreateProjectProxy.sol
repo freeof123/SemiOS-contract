@@ -15,6 +15,7 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
+import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
 import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
@@ -141,7 +142,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         if ((actionType & 0x8) != 0) {
-            (address erc20Token,) = protocol.getProjectTokens(projectId);
+            (address erc20Token,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(projectId);
             uniswapV2Factory.createPair(erc20Token, WETH);
         }
 
@@ -226,22 +227,22 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     }
 
     function getProjectRoyaltyFee(bytes32 project_id) internal view returns (uint96) {
-        (,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
+        (,,,, uint96 royalty_fee,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(project_id);
         return royalty_fee;
     }
 
     function getProjectFeePool(bytes32 project_id) internal view returns (address) {
-        (,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
+        (,,, address fee_pool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(project_id);
         return fee_pool;
     }
 
     function getProjectERC20(bytes32 daoId) internal view returns (address) {
-        (address erc20_token,) = protocol.getProjectTokens(daoId);
+        (address erc20_token,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         return erc20_token;
     }
 
     function getProjectERC721(bytes32 project_id) internal view returns (address) {
-        (, address erc721_token) = protocol.getProjectTokens(project_id);
+        (, address erc721_token) = ID4AProtocolReadable(address(protocol)).getProjectTokens(project_id);
         return erc721_token;
     }
 

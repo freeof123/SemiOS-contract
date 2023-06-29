@@ -10,6 +10,7 @@ import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interf
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import "./D4ASettingsReadable.sol";
 import { ID4ADrb } from "../interface/ID4ADrb.sol";
+import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
 import "../interface/ID4AFeePoolFactory.sol";
 import "../interface/ID4AERC20Factory.sol";
@@ -225,7 +226,7 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         require(
             (
                 _hasRole(DAO_ROLE, msg.sender)
-                    && l.owner_proxy.ownerOf(ID4AProtocol(address(this)).getCanvasProject(obj_id)) == msg.sender
+                    && l.owner_proxy.ownerOf(ID4AProtocolReadable(address(this)).getCanvasProject(obj_id)) == msg.sender
             ) || _hasRole(OPERATION_ROLE, msg.sender) || _hasRole(PROTOCOL_ROLE, msg.sender),
             "only project owner or admin can call"
         );

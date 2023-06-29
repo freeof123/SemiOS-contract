@@ -6,6 +6,7 @@ import { console2 } from "forge-std/Console2.sol";
 import { DeployHelper } from "../utils/DeployHelper.sol";
 import { MintNftSigUtils } from "../utils/MintNftSigUtils.sol";
 import { D4ASettingsReadable } from "contracts/D4ASettings/D4ASettingsReadable.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract RewardRatioTest is DeployHelper {
     MintNftSigUtils public sigUtils;
@@ -30,16 +31,16 @@ contract RewardRatioTest is DeployHelper {
 
         protocolFeePoolETHRatio = D4ASettingsReadable(address(protocol)).mintProtocolFeeRatio();
         ratioBase = D4ASettingsReadable(address(protocol)).ratioBase();
-        daoFeePoolETHRatio = protocol.getDaoFeePoolETHRatio(daoId);
-        daoFeePoolETHRatioFlatPrice = protocol.getDaoFeePoolETHRatioFlatPrice(daoId);
+        daoFeePoolETHRatio = ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatio(daoId);
+        daoFeePoolETHRatioFlatPrice = ID4AProtocolReadable(address(protocol)).getDaoFeePoolETHRatioFlatPrice(daoId);
 
         sigUtils = new MintNftSigUtils(address(protocol));
 
         startHoax(daoCreator.addr);
         daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
-        (address temp,) = protocol.getProjectTokens(daoId);
+        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
         token = IERC20(temp);
-        (,,, daoFeePool,,,,) = protocol.getProjectInfo(daoId);
+        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
 
         startHoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
@@ -57,7 +58,7 @@ contract RewardRatioTest is DeployHelper {
         _clearETHBalance();
 
         startHoax(nftMinter.addr);
-        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId1);
+        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: mintPrice }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -101,7 +102,7 @@ contract RewardRatioTest is DeployHelper {
         _clearETHBalance();
 
         startHoax(nftMinter.addr);
-        mintPrice = protocol.getCanvasNextPrice(canvasId1);
+        mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: mintPrice }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -382,7 +383,7 @@ contract RewardRatioTest is DeployHelper {
         _clearETHBalance();
 
         startHoax(nftMinter.addr);
-        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId1);
+        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: mintPrice }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
@@ -432,7 +433,7 @@ contract RewardRatioTest is DeployHelper {
         _clearETHBalance();
 
         startHoax(nftMinter.addr);
-        mintPrice = protocol.getCanvasNextPrice(canvasId1);
+        mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
         protocol.mintNFT{ value: mintPrice }(
             daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );

@@ -13,6 +13,7 @@ import { D4ARoyaltySplitter, D4ARoyaltySplitterFactory } from "contracts/royalty
 import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilter, D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
@@ -49,6 +50,8 @@ contract D4AAddress is CommonBase {
     // D4AProtocol
     D4AProtocol public d4aProtocol_proxy = D4AProtocol(payable(json.readAddress(".D4AProtocol.proxy")));
     D4AProtocol public d4aProtocol_impl = D4AProtocol(json.readAddress(".D4AProtocol.impl"));
+    D4AProtocolReadable public d4aProtocolReadable =
+        D4AProtocolReadable(json.readAddress(".D4AProtocol.D4AProtocolReadable"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".D4AProtocol.D4ASettings"));
     LinearPriceVariation public linearPriceVariation =
         LinearPriceVariation(json.readAddress(".D4AProtocol.LinearPriceVariation"));
