@@ -1041,7 +1041,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
 
         {
             uint256 minimal = l.create_canvas_fee;
-            require(minimal <= msg.value, "not enough ether to create canvas");
             if (msg.value < minimal) revert NotEnoughEther();
 
             SafeTransferLib.safeTransferETH(fee_pool, minimal);
