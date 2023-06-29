@@ -37,8 +37,6 @@ library SettingsStorage {
         uint256 maxMintableRound; //366
         uint256[] daoFloorPrices;
         uint256[] nftMaxSupplies;
-        string erc20_name_prefix; // TODO: redundant, delete this field
-        string erc20_symbol_prefix; // TODO: redundant, delete this field
         address asset_pool_owner;
         bool isProtocolPaused;
         mapping(bytes32 => bool) pauseStatuses;
