@@ -16,6 +16,11 @@ import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
 import "contracts/interface/D4AEnums.sol";
+import {
+    getSettingsSelectors,
+    getProtocolReadableSelectors,
+    getProtocolSetterSelectors
+} from "contracts/utils/CutFacetFunctions.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
@@ -74,18 +79,19 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deploySettings();
         // _cutSettingsFacet();
-        // _initSettings();
-
-        // _deployLinearPriceVariation();
-        // _deployExponentialPriceVariation();
-        // _deployLinearRewardIssuance();
-        // _deployExponentialRewardIssuance();
 
         // _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
+
+        // _initSettings();
+
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
+        // _deployLinearRewardIssuance();
+        // _deployExponentialRewardIssuance();
 
         vm.stopBroadcast();
     }
@@ -191,26 +197,8 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("Start cut D4AProtocolRedable facet");
 
         // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = new bytes4[](17);
-        uint256 selectorIndex;
-        // register D4AProtoclReadable
-        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectCanvasAt.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectInfo.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectFloorPrice.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getProjectTokens.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNFTCount.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getTokenIDAt.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasProject.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasIndex.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasURI.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasLastPrice.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorERC20Ratio.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
-        selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+        bytes4[] memory selectors = getProtocolReadableSelectors();
+        console2.log("D4AProtocolReadable facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -242,18 +230,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = new bytes4[](9);
-        uint256 selectorIndex;
-        // register D4AProtoclReadable
-        selectors[selectorIndex++] = ID4AProtocolSetter.setMintCapAndPermission.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoParams.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoPriceTemplate.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftMaxSupply.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoMintableRound.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoFloorPrice.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setTemplate.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
+        bytes4[] memory selectors = getProtocolSetterSelectors();
+        console2.log("D4AProtocolSetter facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -285,42 +263,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         //------------------------------------------------------------------------------------------------------
         // settings facet cut
-        bytes4[] memory selectors = new bytes4[](31);
-        uint256 selectorIndex;
-        // register AccessControl
-        selectors[selectorIndex++] = IAccessControl.getRoleAdmin.selector;
-        selectors[selectorIndex++] = IAccessControl.grantRole.selector;
-        selectors[selectorIndex++] = IAccessControl.hasRole.selector;
-        selectors[selectorIndex++] = IAccessControl.renounceRole.selector;
-        selectors[selectorIndex++] = IAccessControl.revokeRole.selector;
-        // register D4ASettingsReadable
-        selectors[selectorIndex++] = ID4ASettingsReadable.permissionControl.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.ownerProxy.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.mintProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatioFlatPrice.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.ratioBase.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.createProjectFee.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.createCanvasFee.selector;
-        // register D4ASettings
-        selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeCreateFee.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeD4APause.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
-        selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
+        bytes4[] memory selectors = getSettingsSelectors();
+        console2.log("D4ASettings facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({

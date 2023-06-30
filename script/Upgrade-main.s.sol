@@ -10,6 +10,7 @@ import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
+import { getSettingsSelectors } from "contracts/utils/CutFacetFunctions.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { IPermissionControl, PermissionControl } from "contracts/permission-control/PermissionControl.sol";
@@ -59,7 +60,7 @@ contract UpgradeTest is Test, Script {
         vm.startBroadcast(deployer);
 
         // _deploy();
-        // _cutFacets();
+        // _cutSettingsFacets();
 
         _grantRole();
         _initSettings();
@@ -92,39 +93,11 @@ contract UpgradeTest is Test, Script {
         settings = new D4ASettings();
     }
 
-    function _cutFacets() internal {
+    function _cutSettingsFacets() internal {
         //------------------------------------------------------------------------------------------------------
         // settings facet cut
-        bytes4[] memory selectors = new bytes4[](27);
-        uint256 selectorIndex;
-        // register AccessControl
-        selectors[selectorIndex++] = IAccessControl.getRoleAdmin.selector;
-        selectors[selectorIndex++] = IAccessControl.grantRole.selector;
-        selectors[selectorIndex++] = IAccessControl.hasRole.selector;
-        selectors[selectorIndex++] = IAccessControl.renounceRole.selector;
-        selectors[selectorIndex++] = IAccessControl.revokeRole.selector;
-        // register D4ASettingsReadable
-        selectors[selectorIndex++] = ID4ASettingsReadable.mintProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.ownerProxy.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.permissionControl.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
-        // register D4ASettings
-        selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeCreateFee.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeD4APause.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
+        bytes4[] memory selectors = getSettingsSelectors();
+        console2.log("settings selectors length: %d", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
