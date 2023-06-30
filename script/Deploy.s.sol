@@ -301,9 +301,6 @@ contract Deploy is Script, Test, D4AAddress {
         // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
         D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
 
-        // initialize for the first time
-        d4aProtocol_proxy.initialize();
-
         vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
 
         console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
