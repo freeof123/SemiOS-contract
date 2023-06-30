@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { UserMintCapParam, TemplateParam, DaoMintInfo } from "contracts/interface/D4AStructs.sol";
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
@@ -43,14 +44,28 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
-    function setDaoNftPriceFactor(bytes32 daoId, uint256 nftPriceFactor) public {
+    function setDaoParams(
+        bytes32 daoId,
+        uint256 nftMaxSupply,
+        uint256 mintableRound,
+        uint256 floorPrice,
+        PriceTemplateType priceTemplateType,
+        uint256 nftPriceFactor,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+    {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        require(nftPriceFactor >= 10_000);
-        DaoStorage.layout().daoInfos[daoId].nftPriceFactor = nftPriceFactor;
-
-        emit DaoNftPriceFactorSet(daoId, nftPriceFactor);
+        setDaoNftMaxSupply(daoId, nftMaxSupply);
+        setDaoMintableRound(daoId, mintableRound);
+        setDaoFloorPrice(daoId, floorPrice);
+        setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
+        setRatio(daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
@@ -80,6 +95,19 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         PriceStorage.layout().daoFloorPrices[daoId] = newFloorPrice;
 
         emit DaoFloorPriceSet(daoId, newFloorPrice);
+    }
+
+    function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor) public {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
+
+        if (priceTemplateType == PriceTemplateType.LINEAR_PRICE_VARIATION) require(nftPriceFactor >= 10_000);
+
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.priceTemplateType = priceTemplateType;
+        daoInfo.nftPriceFactor = nftPriceFactor;
+
+        emit DaoPriceTemplateSet(daoId, priceTemplateType, nftPriceFactor);
     }
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public {

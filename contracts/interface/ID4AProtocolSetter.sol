@@ -2,12 +2,13 @@
 pragma solidity ^0.8.18;
 
 import { UserMintCapParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
+import { PriceTemplateType } from "./D4AEnums.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocolSetter {
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 
-    event DaoNftPriceFactorSet(bytes32 daoId, uint256 newNftPriceMultiplyFactor);
+    event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
 
@@ -37,7 +38,21 @@ interface ID4AProtocolSetter {
     )
         external;
 
-    function setDaoNftPriceFactor(bytes32 daoId, uint256 nftPriceFactor) external;
+    function setDaoParams(
+        bytes32 daoId,
+        uint256 nftMaxSupply,
+        uint256 mintableRound,
+        uint256 floorPrice,
+        PriceTemplateType priceTemplateType,
+        uint256 nftPriceFactor,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        external;
+
+    function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 priceFactor) external;
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) external;
 

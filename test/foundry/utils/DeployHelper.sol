@@ -316,11 +316,12 @@ contract DeployHelper is Test {
     function _cutFacetsProtocolSetter() internal {
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = new bytes4[](8);
+        bytes4[] memory selectors = new bytes4[](9);
         uint256 selectorIndex;
         // register D4AProtoclReadable
         selectors[selectorIndex++] = ID4AProtocolSetter.setMintCapAndPermission.selector;
-        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftPriceFactor.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoParams.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoPriceTemplate.selector;
         selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftMaxSupply.selector;
         selectors[selectorIndex++] = ID4AProtocolSetter.setDaoMintableRound.selector;
         selectors[selectorIndex++] = ID4AProtocolSetter.setDaoFloorPrice.selector;
