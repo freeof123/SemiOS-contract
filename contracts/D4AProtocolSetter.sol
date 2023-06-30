@@ -46,9 +46,9 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setDaoParams(
         bytes32 daoId,
-        uint256 nftMaxSupply,
+        uint256 nftMaxSupplyRank,
         uint256 mintableRound,
-        uint256 floorPrice,
+        uint256 daoFloorPriceRank,
         PriceTemplateType priceTemplateType,
         uint256 nftPriceFactor,
         uint256 canvasCreatorERC20Ratio,
@@ -61,9 +61,9 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        setDaoNftMaxSupply(daoId, nftMaxSupply);
+        setDaoNftMaxSupply(daoId, l.nftMaxSupplies[nftMaxSupplyRank]);
         setDaoMintableRound(daoId, mintableRound);
-        setDaoFloorPrice(daoId, floorPrice);
+        setDaoFloorPrice(daoId, l.daoFloorPrices[daoFloorPriceRank]);
         setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
         setRatio(daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
     }

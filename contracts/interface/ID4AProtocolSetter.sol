@@ -40,9 +40,9 @@ interface ID4AProtocolSetter {
 
     function setDaoParams(
         bytes32 daoId,
-        uint256 nftMaxSupply,
+        uint256 nftMaxSupplyRank,
         uint256 mintableRound,
-        uint256 floorPrice,
+        uint256 daoFloorPriceRank,
         PriceTemplateType priceTemplateType,
         uint256 nftPriceFactor,
         uint256 canvasCreatorERC20Ratio,
