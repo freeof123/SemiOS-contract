@@ -19,6 +19,7 @@ import {
     TransparentUpgradeableProxy
 } from "./utils/DeployHelper.sol";
 import { D4ACreateProjectProxyHarness } from "./harness/D4ACreateProjectProxyHarness.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 
 contract D4ACreateProjectProxyTest is DeployHelper {
     using stdStorage for StdStorage;
@@ -116,7 +117,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             vm.expectCall({
                 callee: address(protocol),
                 msgValue: 0,
-                data: abi.encodeWithSelector(protocol.setMintCapAndPermission.selector),
+                data: abi.encodeWithSelector(ID4AProtocolSetter(address(protocol)).setMintCapAndPermission.selector),
                 count: 1
             });
         }
@@ -132,7 +133,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             vm.expectCall({
                 callee: address(protocol),
                 msgValue: 0,
-                data: abi.encodeWithSelector(protocol.setRatio.selector),
+                data: abi.encodeWithSelector(ID4AProtocolSetter(address(protocol)).setRatio.selector),
                 count: 1
             });
         }
@@ -204,7 +205,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
         vm.expectCall({
             callee: address(protocol),
             msgValue: 0,
-            data: abi.encodeWithSelector(protocol.setMintCapAndPermission.selector),
+            data: abi.encodeWithSelector(ID4AProtocolSetter(address(protocol)).setMintCapAndPermission.selector),
             count: 1
         });
         daoProxyHarness.exposed_setMintCapAndPermission(

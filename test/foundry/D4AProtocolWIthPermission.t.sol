@@ -24,6 +24,7 @@ import {
     InvalidSignature
 } from "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract D4AProtocolTest is DeployHelper {
@@ -53,7 +54,9 @@ contract D4AProtocolTest is DeployHelper {
 
         (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
             _generateTrivialPermission();
-        protocol.setMintCapAndPermission(bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+        );
         assertEq(protocolHarness.exposed_daoMintInfos(0), 100);
     }
 
@@ -63,7 +66,9 @@ contract D4AProtocolTest is DeployHelper {
 
         (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
             _generateTrivialPermission();
-        protocol.setMintCapAndPermission(bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+        );
         assertEq(
             protocolHarness.exposed_daoMintInfos(0), ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
         );
@@ -270,7 +275,9 @@ contract D4AProtocolTest is DeployHelper {
             data: abi.encodeWithSelector(permissionControl.modifyPermission.selector),
             count: 1
         });
-        protocol.setMintCapAndPermission(daoId, 100, userMintCapParams, whitelist, blacklist, blacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+        );
     }
 
     function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
@@ -282,7 +289,9 @@ contract D4AProtocolTest is DeployHelper {
 
         hoax(randomGuy.addr);
         vm.expectRevert(NotDaoOwner.selector);
-        protocol.setMintCapAndPermission(daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+        );
     }
 
     event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
@@ -301,7 +310,9 @@ contract D4AProtocolTest is DeployHelper {
         vm.expectEmit(true, true, true, true);
         emit MintCapSet(daoId, 100, userMintCapParams);
         hoax(daoCreator.addr);
-        protocol.setMintCapAndPermission(daoId, 100, userMintCapParams, whitelist, blacklist, blacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+        );
     }
 
     function test_exposed_ableToMint() public {

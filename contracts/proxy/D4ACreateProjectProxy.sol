@@ -16,6 +16,7 @@ import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/a
 import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "../interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
 import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
@@ -147,7 +148,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         if ((actionType & 0x10) != 0) {
-            protocol.setRatio(
+            ID4AProtocolSetter(address(protocol)).setRatio(
                 projectId,
                 splitRatioParam.canvasCreatorERC20Ratio,
                 splitRatioParam.nftMinterERC20Ratio,
@@ -157,7 +158,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         // setup template
-        protocol.setTemplate(projectId, templateParam);
+        ID4AProtocolSetter(address(protocol)).setTemplate(projectId, templateParam);
 
         _createSplitter(projectId);
 
@@ -186,7 +187,9 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     )
         internal
     {
-        protocol.setMintCapAndPermission(project_id, mintCap, userMintCapParams, whitelist, blacklist, unblacklist);
+        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+            project_id, mintCap, userMintCapParams, whitelist, blacklist, unblacklist
+        );
     }
 
     function _addPermission(
