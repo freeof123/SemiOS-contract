@@ -7,6 +7,7 @@ import { NotDaoOwner, ExceedMaxMintableRound } from "contracts/interface/D4AErro
 import { DeployHelper } from "./utils/DeployHelper.sol";
 import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 
 contract D4AProtocolTest is DeployHelper {
     MintNftSigUtils public sigUtils;
@@ -33,7 +34,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_setCanvasRebateRatioInBps() public {
         uint256 ratio = 1000;
         startHoax(canvasCreator.addr);
-        protocol.setCanvasRebateRatioInBps(canvasId, ratio);
+        ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId, ratio);
         assertEq(ID4AProtocolReadable(address(protocol)).getCanvasRebateRatioInBps(canvasId), ratio);
     }
 
@@ -50,7 +51,7 @@ contract D4AProtocolTest is DeployHelper {
         startHoax(canvasCreator.addr);
         vm.expectEmit(address(protocol));
         emit CanvasRebateRatioInBpsSet(canvasId, ratio);
-        protocol.setCanvasRebateRatioInBps(canvasId, ratio);
+        ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId, ratio);
     }
 
     error NotCanvasOwner();
@@ -59,13 +60,13 @@ contract D4AProtocolTest is DeployHelper {
         uint256 ratio = 1000;
         startHoax(randomGuy.addr);
         vm.expectRevert(NotCanvasOwner.selector);
-        protocol.setCanvasRebateRatioInBps(canvasId, ratio);
+        ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId, ratio);
     }
 
     function test_setDaoNftMaxSupply() public {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
         (,, uint256 nftMaxSupply,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         assertEq(nftMaxSupply, maxSupply);
     }
@@ -77,13 +78,13 @@ contract D4AProtocolTest is DeployHelper {
         startHoax(daoCreator.addr);
         vm.expectEmit(address(protocol));
         emit DaoNftMaxSupplySet(daoId, maxSupply);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
     }
 
     function test_RevertIf_setDaoNftMaxSupply_NotDaoOwner() public {
         uint256 maxSupply = 10;
         vm.expectRevert(NotDaoOwner.selector);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
     }
 
     error NftExceedMaxAmount();
@@ -104,7 +105,7 @@ contract D4AProtocolTest is DeployHelper {
 
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri revert");
@@ -137,7 +138,7 @@ contract D4AProtocolTest is DeployHelper {
 
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri revert");
@@ -155,7 +156,7 @@ contract D4AProtocolTest is DeployHelper {
 
         maxSupply = 100;
         startHoax(daoCreator.addr);
-        protocol.setDaoNftMaxSupply(daoId, maxSupply);
+        ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
 
         {
             string memory tokenUri = string.concat("test token uri increase supply");
@@ -174,7 +175,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_setDaoMintableRound() public {
         uint256 round = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
         (, uint256 mintableRound,,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
         assertEq(mintableRound, round);
     }
@@ -186,19 +187,19 @@ contract D4AProtocolTest is DeployHelper {
         startHoax(daoCreator.addr);
         vm.expectEmit(address(protocol));
         emit DaoMintableRoundSet(daoId, round);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
     }
 
     function test_RevertIf_setDaoMintableRound_NotDaoOwner() public {
         uint256 round = 10;
         vm.expectRevert(NotDaoOwner.selector);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
     }
 
     function test_RevertIf_ReduceMintableRoundAndMint() public {
         uint256 round = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
 
         for (uint256 i; i < 10; i++) {
             string memory tokenUri = string.concat("test token uri ", vm.toString(i));
@@ -232,7 +233,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_ShouldContinueToMintIfIncreaseMintableRound() public {
         uint256 round = 10;
         startHoax(daoCreator.addr);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
 
         for (uint256 i; i < 10; i++) {
             string memory tokenUri = string.concat("test token uri ", vm.toString(i));
@@ -264,7 +265,7 @@ contract D4AProtocolTest is DeployHelper {
 
         round = 11;
         startHoax(daoCreator.addr);
-        protocol.setDaoMintableRound(daoId, round);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
 
         {
             string memory tokenUri = string.concat("test token uri increase mintable round");

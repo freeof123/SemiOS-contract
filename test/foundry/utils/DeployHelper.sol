@@ -29,6 +29,7 @@ import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
@@ -39,6 +40,7 @@ import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyalty
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
@@ -63,6 +65,7 @@ contract DeployHelper is Test {
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
     D4AProtocolReadable public protocolReadable;
+    D4AProtocolSetter public protocolSetter;
     D4AProtocol public protocol;
     D4AProtocol public protocolImpl;
     D4ACreateProjectProxy public daoProxy;
@@ -245,9 +248,11 @@ contract DeployHelper is Test {
         protocolImpl = new D4AProtocol();
 
         _deployProtocolReadable();
+        _deployProtocolSetter();
         _deploySettings();
 
         _cutFacetsProtocolReadable();
+        _cutFacetsProtocolSetter();
         _cutFacetsSettings();
 
         // set diamond fallback address
@@ -261,6 +266,11 @@ contract DeployHelper is Test {
     function _deployProtocolReadable() internal {
         protocolReadable = new D4AProtocolReadable();
         vm.label(address(protocolReadable), "Protocol Readable");
+    }
+
+    function _deployProtocolSetter() internal {
+        protocolSetter = new D4AProtocolSetter();
+        vm.label(address(protocolSetter), "Protocol Setter");
     }
 
     function _deploySettings() internal {
@@ -297,6 +307,30 @@ contract DeployHelper is Test {
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
             target: address(protocolReadable),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsProtocolSetter() internal {
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = new bytes4[](8);
+        uint256 selectorIndex;
+        // register D4AProtoclReadable
+        selectors[selectorIndex++] = ID4AProtocolSetter.setMintCapAndPermission.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftPriceFactor.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftMaxSupply.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoMintableRound.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoFloorPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setTemplate.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(protocolSetter),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
