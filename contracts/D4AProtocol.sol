@@ -322,9 +322,8 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
 
         if (tokenCirculation == 0) return 0;
 
-        uint256 avalaibleETH = daoFeePool.balance - PriceStorage.layout().daoFloorPrices[daoId] == 0
-            ? 0
-            : rewardInfo.totalWeights[currentRound];
+        uint256 avalaibleETH = daoFeePool.balance
+            - (PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 0 : rewardInfo.totalWeights[currentRound]);
         uint256 ethAmount = tokenAmount * avalaibleETH / tokenCirculation;
 
         if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
