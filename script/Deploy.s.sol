@@ -24,12 +24,14 @@ import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4ADrb } from "contracts/D4ADrb.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { D4AAddress } from "./utils/D4AAddress.sol";
@@ -67,8 +69,12 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter();
+
         // _deploySettings();
         // _cutSettingsFacet();
+        // _initSettings();
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
@@ -80,8 +86,6 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
-
-        // _initSettings();
 
         vm.stopBroadcast();
     }
@@ -219,6 +223,49 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployProtocolSetter() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AProtocolSetter");
+
+        d4aProtocolSetter = new D4AProtocolSetter();
+        assertTrue(address(d4aProtocolSetter) != address(0));
+
+        vm.toString(address(d4aProtocolSetter)).write(path, ".D4AProtocol.D4AProtocolSetter");
+
+        console2.log("D4AProtocolSetter address: ", address(d4aProtocolSetter));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsProtocolSetter() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut ProtocolSetter facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = new bytes4[](9);
+        uint256 selectorIndex;
+        // register D4AProtoclReadable
+        selectors[selectorIndex++] = ID4AProtocolSetter.setMintCapAndPermission.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoParams.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoPriceTemplate.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftMaxSupply.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoMintableRound.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setDaoFloorPrice.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setTemplate.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
+        selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(d4aProtocolSetter),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+
+        console2.log("================================================================================\n");
+    }
+
     function _deploySettings() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ASettings");
@@ -311,7 +358,7 @@ contract Deploy is Script, Test, D4AAddress {
         D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
 
         // initialize for the first time
-        // d4aProtocol_proxy.initialize();
+        d4aProtocol_proxy.initialize();
 
         vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
 
