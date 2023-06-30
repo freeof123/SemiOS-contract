@@ -80,11 +80,11 @@ contract Deploy is Script, Test, D4AAddress {
         // _deploySettings();
         // _cutSettingsFacet();
 
-        // _deployPermissionControl();
-        // _deployPermissionControlProxy();
-
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
+
+        // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
         // _initSettings();
 
@@ -382,46 +382,6 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployPermissionControl() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy PermissionControl");
-
-        permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
-        assertTrue(address(permissionControl_impl) != address(0));
-        proxyAdmin.upgrade(
-            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        );
-
-        vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
-
-        console2.log("PermissionControl implementation address: ", address(permissionControl_impl));
-        console2.log("================================================================================\n");
-    }
-
-    function _deployPermissionControlProxy() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy PermissionControl proxy");
-
-        permissionControl_proxy = PermissionControl(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(permissionControl_impl), 
-                    address(proxyAdmin),
-                    abi.encodeWithSignature(
-                        "initialize(address)",
-                        address(naiveOwner_proxy)
-                    )
-                )
-            )
-        );
-        assertTrue(address(permissionControl_proxy) != address(0));
-
-        vm.toString(address(permissionControl_proxy)).write(path, ".PermissionControl.proxy");
-
-        console2.log("PermissionControl proxy address: ", address(permissionControl_proxy));
-        console2.log("================================================================================\n");
-    }
-
     function _deployCreateProjectProxy() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ACreateProjectProxy");
@@ -464,6 +424,46 @@ contract Deploy is Script, Test, D4AAddress {
         vm.toString(address(d4aCreateProjectProxy_proxy)).write(path, ".D4ACreateProjectProxy.proxy");
 
         console2.log("D4ACreateProjectProxy proxy address: ", address(d4aCreateProjectProxy_proxy));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPermissionControl() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PermissionControl");
+
+        permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
+        assertTrue(address(permissionControl_impl) != address(0));
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
+
+        vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
+
+        console2.log("PermissionControl implementation address: ", address(permissionControl_impl));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPermissionControlProxy() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PermissionControl proxy");
+
+        permissionControl_proxy = PermissionControl(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(permissionControl_impl), 
+                    address(proxyAdmin),
+                    abi.encodeWithSignature(
+                        "initialize(address)",
+                        address(naiveOwner_proxy)
+                    )
+                )
+            )
+        );
+        assertTrue(address(permissionControl_proxy) != address(0));
+
+        vm.toString(address(permissionControl_proxy)).write(path, ".PermissionControl.proxy");
+
+        console2.log("PermissionControl proxy address: ", address(permissionControl_proxy));
         console2.log("================================================================================\n");
     }
 
