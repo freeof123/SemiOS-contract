@@ -289,7 +289,6 @@ contract DeployHelper is Test {
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolReadableSelectors();
-        console2.log("D4AProtocolReadable facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -304,7 +303,6 @@ contract DeployHelper is Test {
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolSetterSelectors();
-        console2.log("D4AProtocolSetter facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -319,7 +317,6 @@ contract DeployHelper is Test {
         //------------------------------------------------------------------------------------------------------
         // settings facet cut
         bytes4[] memory selectors = getSettingsSelectors();
-        console2.log("D4ASettings facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
