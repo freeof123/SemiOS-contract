@@ -174,11 +174,6 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         return canvasId;
     }
 
-    modifier ableToMint(bytes32 daoId, bytes32[] calldata proof, uint256 amount) {
-        _checkMintEligibility(daoId, msg.sender, proof, amount);
-        _;
-    }
-
     function mintNFT(
         bytes32 daoId,
         bytes32 canvasId,
@@ -348,22 +343,12 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         return _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))];
     }
 
-    function _checkRole(bytes32 role) internal view virtual {
-        if (!_hasRole(role, msg.sender)) {
-            revert NotRole(role, msg.sender);
-        }
-    }
-
     function _checkDaoExist(bytes32 daoId) internal view {
         if (!DaoStorage.layout().daoInfos[daoId].daoExist) revert DaoNotExist();
     }
 
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
-    }
-
-    function _hasRole(bytes32 role, address account) internal view virtual returns (bool) {
-        return IAccessControlUpgradeable(address(this)).hasRole(role, account);
     }
 
     function _checkCaller(address caller) internal view {
