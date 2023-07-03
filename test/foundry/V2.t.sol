@@ -25,9 +25,7 @@ contract V2Test is Test, D4AAddress {
         startHoax(actor.addr);
         // create trivial DAO
         uint256 startDrb = d4aDrb.currentRound();
-        bytes32 daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject{
-            value: 0.1 ether
-        }(
+        bytes32 daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject(
             DaoMetadataParam(startDrb, 30, 0, 0, 750, "test project uri", 0),
             IPermissionControl.Whitelist({
                 minterMerkleRoot: bytes32(0),
@@ -48,9 +46,8 @@ contract V2Test is Test, D4AAddress {
             }),
             0
         );
-        bytes32 canvasId = D4AProtocol(address(d4aProtocol_proxy)).createCanvas{ value: 0.01 ether }(
-            daoId, "test canvas uri", new bytes32[](0), 0
-        );
+        bytes32 canvasId =
+            D4AProtocol(address(d4aProtocol_proxy)).createCanvas(daoId, "test canvas uri", new bytes32[](0), 100);
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 0;
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
