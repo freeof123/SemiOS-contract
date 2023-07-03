@@ -797,8 +797,8 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
-            ID4AChangeAdmin(daoFeePool).changeAdmin(l.asset_pool_owner);
-            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoFeePool).changeAdmin(l.assetOwner);
+            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
 
@@ -809,7 +809,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
             D4AERC721(daoInfo.nft).setContractUri(daoUri);
-            ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.asset_pool_owner);
+            ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
             daoInfo.tokenMaxSupply = l.tokenMaxSupply;

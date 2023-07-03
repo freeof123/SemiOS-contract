@@ -38,7 +38,7 @@ library SettingsStorage {
         uint256[] mintableRounds;
         uint256[] daoFloorPrices;
         uint256[] nftMaxSupplies;
-        address asset_pool_owner;
+        address assetOwner;
         bool isProtocolPaused;
         mapping(bytes32 => bool) pauseStatuses;
         uint256 reservedDaoAmount;

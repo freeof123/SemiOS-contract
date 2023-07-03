@@ -4,51 +4,100 @@ pragma solidity ^0.8.13;
 import { TemplateChoice } from "contracts/interface/D4AEnums.sol";
 
 interface ID4ASettings {
+    event ChangeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount);
+
+    event ChangeProtocolFeePool(address protocolFeePool);
+
+    event ChangeMintFeeRatio(
+        uint256 protocolFeeRatioInBps, uint256 daoFeePoolMintFeeRatioInBps, uint256 daoFeePoolMintFeeRatioInBpsFlatPrice
+    );
+
+    event ChangeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps);
+
+    event ChangeERC20TotalSupply(uint256 tokenMaxSupply);
+
+    event ChangeERC20Ratio(
+        uint256 protocolERC20RatioInBps, uint256 daoCreatorERC20RatioInBps, uint256 canvasCreatorERC20RatioInBps
+    );
+
+    event ChangeMaxMintableRounds(uint256 oldMaxMintableRound, uint256 newMaxMintableRound);
+
+    event MintableRoundsSet(uint256[] mintableRounds);
+
+    event ChangeAddress(
+        address drb,
+        address erc20Factory,
+        address erc721Factory,
+        address feePoolFactory,
+        address ownerProxy,
+        address createProjectProxy,
+        address permissionControl
+    );
+
+    event ChangeAssetPoolOwner(address assetOwner);
+
+    event ChangeFloorPrices(uint256[] daoFloorPrices);
+
+    event ChangeMaxNFTAmounts(uint256[] nftMaxSupplies);
+
+    event ChangeD4APause(bool isPaused);
+
+    event D4ASetProjectPaused(bytes32 daoId, bool isPaused);
+
+    event D4ASetCanvasPaused(bytes32 canvasId, bool isPaused);
+
+    event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
+
     function initializeD4ASettings() external;
 
-    function changeCreateFee(uint256 _create_project_fee, uint256 _create_canvas_fee) external;
+    function changeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount) external;
 
-    function changeProtocolFeePool(address addr) external;
+    function changeProtocolFeePool(address protocolFeePool) external;
 
     function changeMintFeeRatio(
-        uint256 _d4a_fee_ratio,
-        uint256 _project_fee_ratio,
-        uint256 _project_fee_ratio_flat_price
+        uint256 protocolFeeRatioInBps,
+        uint256 daoFeePoolMintFeeRatioInBps,
+        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice
     )
         external;
 
-    function changeTradeFeeRatio(uint256 _trade_d4a_fee_ratio) external;
+    function changeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps) external;
 
-    function changeERC20TotalSupply(uint256 _total_supply) external;
+    function changeERC20TotalSupply(uint256 tokenMaxSupply) external;
 
-    function changeERC20Ratio(uint256 _d4a_ratio, uint256 _project_ratio, uint256 _canvas_ratio) external;
+    function changeERC20Ratio(
+        uint256 protocolERC20RatioInBps,
+        uint256 daoCreatorERC20RatioInBps,
+        uint256 canvasCreatorERC20RatioInBps
+    )
+        external;
 
-    function changeMaxMintableRounds(uint256 _rounds) external;
+    function changeMaxMintableRounds(uint256 maxMintableRound) external;
 
     function setMintableRounds(uint256[] calldata mintableRounds) external;
 
     function changeAddress(
-        address _prb,
-        address _erc20_factory,
-        address _erc721_factory,
-        address _feepool_factory,
-        address _owner_proxy,
-        address _project_proxy,
-        address _permission_control
+        address drb,
+        address erc20Factory,
+        address erc721Factory,
+        address feePoolFactory,
+        address ownerProxy,
+        address createProjectProxy,
+        address permissionControl
     )
         external;
 
-    function changeAssetPoolOwner(address _owner) external;
+    function changeAssetPoolOwner(address assetOwner) external;
 
-    function changeFloorPrices(uint256[] memory _prices) external;
+    function changeFloorPrices(uint256[] memory daoFloorPrices) external;
 
-    function changeMaxNFTAmounts(uint256[] memory _amounts) external;
+    function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) external;
 
-    function changeD4APause(bool is_paused) external;
+    function changeD4APause(bool isPaused) external;
 
-    function setProjectPause(bytes32 obj_id, bool is_paused) external;
+    function setProjectPause(bytes32 daoId, bool isPaused) external;
 
-    function setCanvasPause(bytes32 obj_id, bool is_paused) external;
+    function setCanvasPause(bytes32 canvasId, bool isPaused) external;
 
     function transferMembership(bytes32 role, address previousMember, address newMember) external;
 

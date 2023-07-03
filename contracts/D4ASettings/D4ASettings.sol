@@ -1,22 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "@solidstate/contracts/access/access_control/AccessControl.sol";
-import "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
+import { AccessControl } from "@solidstate/contracts/access/access_control/AccessControl.sol";
+import { AccessControlStorage } from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
 
-import "./ID4ASettings.sol";
-import { PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
-import "./D4ASettingsReadable.sol";
+import { ID4ASettings } from "./ID4ASettings.sol";
 import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
-import "../interface/ID4AFeePoolFactory.sol";
-import "../interface/ID4AERC20Factory.sol";
-import "../interface/ID4AOwnerProxy.sol";
-import "../interface/ID4AERC721Factory.sol";
+import { IPermissionControl } from "../interface/IPermissionControl.sol";
+import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
+import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
+import { ID4AOwnerProxy } from "../interface/ID4AOwnerProxy.sol";
+import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
+import { D4ASettingsReadable } from "./D4ASettingsReadable.sol";
 
 contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsReadable {
     function initializeD4ASettings() public initializer {
@@ -42,8 +43,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.reservedDaoAmount = 110;
     }
 
-    event ChangeCreateFee(uint256 create_project_fee, uint256 create_canvas_fee);
-
     function changeCreateFee(
         uint256 createDaoFeeAmount,
         uint256 createCanvasFeeAmount
@@ -58,16 +57,12 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeCreateFee(createDaoFeeAmount, createCanvasFeeAmount);
     }
 
-    event ChangeProtocolFeePool(address addr);
-
-    function changeProtocolFeePool(address addr) public onlyRole(PROTOCOL_ROLE) {
+    function changeProtocolFeePool(address protocolFeePool) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.protocolFeePool = addr;
-        emit ChangeProtocolFeePool(addr);
+        l.protocolFeePool = protocolFeePool;
+        emit ChangeProtocolFeePool(protocolFeePool);
     }
-
-    event ChangeMintFeeRatio(uint256 d4a_ratio, uint256 project_ratio, uint256 project_fee_ratio_flat_price);
 
     function changeMintFeeRatio(
         uint256 protocolFeeRatioInBps,
@@ -87,8 +82,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         );
     }
 
-    event ChangeTradeFeeRatio(uint256 trade_d4a_fee_ratio);
-
     function changeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
@@ -96,16 +89,12 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeTradeFeeRatio(protocolRoyaltyFeeRatioInBps);
     }
 
-    event ChangeERC20TotalSupply(uint256 total_supply);
-
     function changeERC20TotalSupply(uint256 tokenMaxSupply) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         l.tokenMaxSupply = tokenMaxSupply;
         emit ChangeERC20TotalSupply(tokenMaxSupply);
     }
-
-    event ChangeERC20Ratio(uint256 d4a_ratio, uint256 project_ratio, uint256 canvas_ratio);
 
     function changeERC20Ratio(
         uint256 protocolERC20RatioInBps,
@@ -128,8 +117,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeERC20Ratio(protocolERC20RatioInBps, daoCreatorERC20RatioInBps, canvasCreatorERC20RatioInBps);
     }
 
-    event ChangeMaxMintableRounds(uint256 old_rounds, uint256 new_rounds);
-
     function changeMaxMintableRounds(uint256 maxMintableRound) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
@@ -137,23 +124,11 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.maxMintableRound = maxMintableRound;
     }
 
-    event MintableRoundsSet(uint256[] mintableRounds);
-
     function setMintableRounds(uint256[] calldata mintableRounds) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.layout().mintableRounds = mintableRounds;
 
         emit MintableRoundsSet(mintableRounds);
     }
-
-    event ChangeAddress(
-        address PRB,
-        address erc20_factory,
-        address erc721_factory,
-        address feepool_factory,
-        address owner_proxy,
-        address project_proxy,
-        address permission_control
-    );
 
     function changeAddress(
         address drb,
@@ -181,16 +156,12 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         );
     }
 
-    event ChangeAssetPoolOwner(address new_owner);
-
-    function changeAssetPoolOwner(address _owner) public onlyRole(PROTOCOL_ROLE) {
+    function changeAssetPoolOwner(address assetOwner) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.asset_pool_owner = _owner;
-        emit ChangeAssetPoolOwner(_owner);
+        l.assetOwner = assetOwner;
+        emit ChangeAssetPoolOwner(assetOwner);
     }
-
-    event ChangeFloorPrices(uint256[] prices);
 
     function changeFloorPrices(uint256[] memory daoFloorPrices) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
@@ -200,8 +171,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeFloorPrices(daoFloorPrices);
     }
 
-    event ChangeMaxNFTAmounts(uint256[] amounts);
-
     function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
@@ -210,16 +179,12 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeMaxNFTAmounts(nftMaxSupplies);
     }
 
-    event ChangeD4APause(bool isPaused);
-
     function changeD4APause(bool isPaused) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         l.isProtocolPaused = isPaused;
         emit ChangeD4APause(isPaused);
     }
-
-    event D4ASetProjectPaused(bytes32 project_id, bool isPaused);
 
     function setProjectPause(bytes32 daoId, bool isPaused) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
@@ -232,8 +197,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.pauseStatuses[daoId] = isPaused;
         emit D4ASetProjectPaused(daoId, isPaused);
     }
-
-    event D4ASetCanvasPaused(bytes32 canvas_id, bool isPaused);
 
     function setCanvasPause(bytes32 canvasId, bool isPaused) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
@@ -248,8 +211,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.pauseStatuses[canvasId] = isPaused;
         emit D4ASetCanvasPaused(canvasId, isPaused);
     }
-
-    event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
 
     function transferMembership(bytes32 role, address previousMember, address newMember) public {
         require(!_hasRole(role, newMember), "new member already has the role");
