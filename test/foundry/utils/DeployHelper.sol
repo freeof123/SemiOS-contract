@@ -428,6 +428,7 @@ contract DeployHelper is Test {
         _changeProtocolFeePool();
         _changeERC20TotalSupply();
         _changeAssetPoolOwner();
+        _changeMintableRounds();
         _changeFloorPrices();
         _changeMaxNFTAmounts();
     }
@@ -454,6 +455,18 @@ contract DeployHelper is Test {
 
     function _changeAssetPoolOwner() internal {
         ID4ASettings(address(protocol)).changeAssetPoolOwner(assetPoolOwner.addr);
+    }
+
+    function _changeMintableRounds() internal {
+        uint256[] memory mintableRounds = new uint256[](7);
+        mintableRounds[0] = 30;
+        mintableRounds[1] = 60;
+        mintableRounds[2] = 90;
+        mintableRounds[3] = 120;
+        mintableRounds[4] = 180;
+        mintableRounds[5] = 270;
+        mintableRounds[6] = 360;
+        ID4ASettings(address(protocol)).setMintableRounds(mintableRounds);
     }
 
     function _changeFloorPrices() internal {

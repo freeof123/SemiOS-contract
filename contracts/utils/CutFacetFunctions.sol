@@ -43,6 +43,7 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setMintableRounds.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;

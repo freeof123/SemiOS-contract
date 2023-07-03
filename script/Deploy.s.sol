@@ -493,7 +493,19 @@ contract Deploy is Script, Test, D4AAddress {
             ID4ASettings(address(d4aProtocol_proxy)).changeAssetPoolOwner(owner);
         }
         {
-            console2.log("Step 5: change floor prices");
+            console2.log("Step 5: set mintable rounds");
+            uint256[] memory mintableRounds = new uint256[](7);
+            mintableRounds[0] = 30;
+            mintableRounds[1] = 60;
+            mintableRounds[2] = 90;
+            mintableRounds[3] = 120;
+            mintableRounds[4] = 180;
+            mintableRounds[5] = 270;
+            mintableRounds[6] = 360;
+            ID4ASettings(address(d4aProtocol_proxy)).setMintableRounds(mintableRounds);
+        }
+        {
+            console2.log("Step 6: change floor prices");
             uint256[] memory floorPrices = new uint256[](14);
             floorPrices[0] = 0.01 ether;
             floorPrices[1] = 0.02 ether;
@@ -511,7 +523,7 @@ contract Deploy is Script, Test, D4AAddress {
             ID4ASettings(address(d4aProtocol_proxy)).changeFloorPrices(floorPrices);
         }
         {
-            console2.log("Step 6: change max NFT amounts");
+            console2.log("Step 7: change max NFT amounts");
             uint256[] memory maxNFTAmounts = new uint256[](5);
             maxNFTAmounts[0] = 1000;
             maxNFTAmounts[1] = 5000;
@@ -521,19 +533,19 @@ contract Deploy is Script, Test, D4AAddress {
             ID4ASettings(address(d4aProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
         }
         {
-            console2.log("Step 7: grant INITIALIZER ROLE");
+            console2.log("Step 8: grant INITIALIZER ROLE");
             NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
             naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocol_proxy));
         }
         {
-            console2.log("Step 8: grant role");
+            console2.log("Step 9: grant role");
             IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
             IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
             IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
             IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
         }
         {
-            console2.log("Step 9: change create DOA and Canvas Fee to 0");
+            console2.log("Step 10: change create DOA and Canvas Fee to 0");
             ID4ASettings(address(d4aProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
         }
         console2.log("================================================================================\n");

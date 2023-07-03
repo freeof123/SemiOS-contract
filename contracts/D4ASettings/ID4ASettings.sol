@@ -25,6 +25,8 @@ interface ID4ASettings {
 
     function changeMaxMintableRounds(uint256 _rounds) external;
 
+    function setMintableRounds(uint256[] calldata mintableRounds) external;
+
     function changeAddress(
         address _prb,
         address _erc20_factory,

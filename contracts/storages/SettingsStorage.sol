@@ -35,6 +35,7 @@ library SettingsStorage {
         // params
         uint256 tokenMaxSupply;
         uint256 maxMintableRound; //366
+        uint256[] mintableRounds;
         uint256[] daoFloorPrices;
         uint256[] nftMaxSupplies;
         address asset_pool_owner;

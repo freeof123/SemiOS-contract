@@ -141,6 +141,14 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.maxMintableRound = maxMintableRound;
     }
 
+    event MintableRoundsSet(uint256[] mintableRounds);
+
+    function setMintableRounds(uint256[] calldata mintableRounds) public onlyRole(PROTOCOL_ROLE) {
+        SettingsStorage.layout().mintableRounds = mintableRounds;
+
+        emit MintableRoundsSet(mintableRounds);
+    }
+
     event ChangeAddress(
         address PRB,
         address erc20_factory,
