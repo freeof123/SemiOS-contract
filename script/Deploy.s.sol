@@ -56,8 +56,6 @@ contract Deploy is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
 
-        // _deployClaimer();
-
         // _deployDrb();
 
         // _deployFeePoolFactory();
@@ -80,6 +78,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deploySettings();
         // _cutSettingsFacet();
 
+        // _deployClaimer();
+
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
@@ -94,18 +94,6 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialRewardIssuance();
 
         vm.stopBroadcast();
-    }
-
-    function _deployClaimer() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4AClaimer");
-
-        d4aClaimer = new D4AClaimer(address(d4aProtocol_proxy));
-
-        vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
-
-        console2.log("D4AClaimer address: ", address(d4aClaimer));
-        console2.log("================================================================================\n");
     }
 
     function _deployDrb() internal {
@@ -376,6 +364,18 @@ contract Deploy is Script, Test, D4AAddress {
         );
 
         console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployClaimer() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AClaimer");
+
+        d4aClaimer = new D4AClaimer(address(d4aProtocol_proxy));
+
+        vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
+
+        console2.log("D4AClaimer address: ", address(d4aClaimer));
         console2.log("================================================================================\n");
     }
 
