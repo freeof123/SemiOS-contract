@@ -53,7 +53,7 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
-    assert(interfaceId ^ ID4ASettings.initializeD4ASettings.selector == type(ID4ASettings).interfaceId);
+    assert(interfaceId == type(ID4ASettings).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {

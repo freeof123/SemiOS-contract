@@ -44,7 +44,7 @@ import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
+contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
@@ -63,7 +63,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         _disableInitializers();
     }
 
-    function initialize() public initializer {
+    function initialize() public reinitializer(2) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         __ReentrancyGuard_init();
         _daoIndex = l.reservedDaoAmount;

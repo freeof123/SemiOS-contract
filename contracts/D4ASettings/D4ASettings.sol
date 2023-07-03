@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { AccessControl } from "@solidstate/contracts/access/access_control/AccessControl.sol";
 import { AccessControlStorage } from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
-import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 import { BASIS_POINT, PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
@@ -20,7 +20,7 @@ import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
 import { D4ASettingsReadable } from "./D4ASettingsReadable.sol";
 
 contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsReadable {
-    function initializeD4ASettings() public initializer {
+    function initializeD4ASettings(uint256 reservedDaoAmount) public initializer {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         _grantRole(AccessControlStorage.DEFAULT_ADMIN_ROLE, msg.sender);
@@ -40,7 +40,7 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.protocolERC20RatioInBps = 200;
         l.canvasCreatorERC20RatioInBps = 9500;
         l.maxMintableRound = 366;
-        l.reservedDaoAmount = 110;
+        l.reservedDaoAmount = reservedDaoAmount;
     }
 
     function changeCreateFee(

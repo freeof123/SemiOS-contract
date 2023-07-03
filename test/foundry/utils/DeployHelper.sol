@@ -325,7 +325,7 @@ contract DeployHelper is Test {
             selectors: selectors
         });
         D4ADiamond(payable(address(protocol))).diamondCut(
-            facetCuts, address(settings), abi.encodeWithSelector(ID4ASettings.initializeD4ASettings.selector)
+            facetCuts, address(settings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 110)
         );
     }
 

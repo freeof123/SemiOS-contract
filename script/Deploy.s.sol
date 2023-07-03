@@ -260,8 +260,10 @@ contract Deploy is Script, Test, D4AAddress {
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
+
+        // TODO: change 206 to different when deploying to demo
         D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(
-            facetCuts, address(d4aSettings), abi.encodeWithSelector(ID4ASettings.initializeD4ASettings.selector)
+            facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 206)
         );
 
         console2.log("================================================================================\n");

@@ -48,8 +48,6 @@ interface ID4ASettings {
 
     event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
 
-    function initializeD4ASettings() external;
-
     function changeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount) external;
 
     function changeProtocolFeePool(address protocolFeePool) external;
