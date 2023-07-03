@@ -1,5 +1,3 @@
-forge selectors upload --all
-
 # ABI
 forge inspect --pretty D4AClaimer abi >deployed-contracts-info/frontend-abi/D4AClaimer.json
 forge inspect --pretty D4ACreateProjectProxy abi >deployed-contracts-info/frontend-abi/D4ACreateProjectProxy.json
