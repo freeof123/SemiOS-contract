@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
@@ -112,7 +113,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
         if ((actionType & 0x1) != 0) {
             require(
-                IAccessControlUpgradeable(address(protocol)).hasRole(keccak256("OPERATION_ROLE"), msg.sender),
+                IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
                 "only admin can specify project index"
             );
             projectId = protocol.createOwnerProject{ value: msg.value }(daoMetadataParam);

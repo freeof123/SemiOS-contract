@@ -6,6 +6,7 @@ import "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
 import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
 
 import "./ID4ASettings.sol";
+import { PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import "./D4ASettingsReadable.sol";
@@ -18,11 +19,6 @@ import "../interface/ID4AOwnerProxy.sol";
 import "../interface/ID4AERC721Factory.sol";
 
 contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsReadable {
-    bytes32 public constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");
-    bytes32 public constant OPERATION_ROLE = keccak256("OPERATION_ROLE");
-    bytes32 public constant DAO_ROLE = keccak256("DAO_ROLE");
-    bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
-
     function initializeD4ASettings() public initializer {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 

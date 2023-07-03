@@ -12,7 +12,7 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
 
 // D4A constants, structs, enums && errors
-import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import {
     DaoMetadataParam,
     TemplateParam,
@@ -476,7 +476,7 @@ contract D4AProtocol is ID4AProtocol, Multicallable, Initializable, ReentrancyGu
         );
         address signer = ECDSAUpgradeable.recover(digest, signature);
         if (
-            !IAccessControlUpgradeable(address(this)).hasRole(keccak256("SIGNER_ROLE"), signer)
+            !IAccessControlUpgradeable(address(this)).hasRole(SIGNER_ROLE, signer)
                 && signer != l.ownerProxy.ownerOf(canvasId)
         ) revert InvalidSignature();
     }
