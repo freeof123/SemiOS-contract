@@ -8,6 +8,7 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
+import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 
 contract D4AProtocolReadable {
     /*////////////////////////////////////////////////
@@ -140,5 +141,55 @@ contract D4AProtocolReadable {
 
     function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
         return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
+    }
+
+    function getRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
+
+        uint256 totalRoundReward;
+        for (uint256 i; i < activeRounds.length && activeRounds[i] <= round;) {
+            totalRoundReward += getRoundReward(daoId, activeRounds[i]);
+            unchecked {
+                ++i;
+            }
+        }
+
+        return totalRoundReward;
+    }
+
+    function getRoundReward(bytes32 daoId, uint256 round) public view returns (uint256) {
+        return _castGetRoundRewardToView(_getRoundReward)(daoId, round);
+    }
+
+    function _getRoundReward(bytes32 daoId, uint256 round) internal returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        address rewardTemplate =
+            SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
+
+        (bool succ, bytes memory data) = rewardTemplate.delegatecall(
+            abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
+        );
+        require(succ);
+        uint256 roundIndex = abi.decode(data, (uint256));
+
+        uint256 lastActiveRound =
+            roundIndex == 0 ? rewardInfo.rewardCheckpoints[0].startRound : rewardInfo.activeRounds[roundIndex - 1];
+
+        (succ, data) = rewardTemplate.delegatecall(
+            abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round, lastActiveRound)
+        );
+        require(succ);
+        return abi.decode(data, (uint256));
+    }
+
+    function _castGetRoundRewardToView(function(bytes32, uint256) internal returns (uint256) fnIn)
+        internal
+        pure
+        returns (function(bytes32, uint256) internal view returns (uint256) fnOut)
+    {
+        assembly {
+            fnOut := fnIn
+        }
     }
 }
