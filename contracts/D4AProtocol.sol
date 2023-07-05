@@ -234,9 +234,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 daoId,
                 l.protocolFeePool,
                 l.ownerProxy.ownerOf(daoId),
-                daoInfo.startRound,
                 l.drb.currentRound(),
-                daoInfo.mintableRound,
                 daoInfo.token
             )
         );
@@ -265,9 +263,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 daoId,
                 canvasId,
                 l.ownerProxy.ownerOf(canvasId),
-                daoInfo.startRound,
                 l.drb.currentRound(),
-                daoInfo.mintableRound,
                 daoInfo.token
             )
         );
@@ -288,13 +284,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(daoInfo.rewardTemplateType)]
             .delegatecall(
             abi.encodeWithSelector(
-                IRewardTemplate.claimNftMinterReward.selector,
-                daoId,
-                minter,
-                daoInfo.startRound,
-                l.drb.currentRound(),
-                daoInfo.mintableRound,
-                daoInfo.token
+                IRewardTemplate.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
             )
         );
         require(succ);
@@ -818,7 +808,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 // 9999 is specified for 0 floor price
                 PriceStorage.layout().daoFloorPrices[daoId] = l.daoFloorPrices[daoFloorPriceRank];
             }
-            RewardStorage.layout().rewardInfos[daoId].totalReward = l.tokenMaxSupply;
             // TODO: remove this to save gas? because impossible to mint NFT at round 0, or change prb such that it
             // starts at round 1
             RewardStorage.layout().rewardInfos[daoId].rewardPendingRound = type(uint256).max;

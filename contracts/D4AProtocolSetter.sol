@@ -13,6 +13,7 @@ import { SettingsStorage } from "./storages/SettingsStorage.sol";
 
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
@@ -114,15 +115,21 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
 
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.priceTemplateType = templateParam.priceTemplateType;
         daoInfo.nftPriceFactor = templateParam.priceFactor;
         daoInfo.rewardTemplateType = templateParam.rewardTemplateType;
-        rewardInfo.decayFactor = templateParam.rewardDecayFactor;
-        rewardInfo.decayLife = templateParam.rewardDecayLife;
-        rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
+
+        (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplate.setRewardCheckpoint.selector,
+                daoId,
+                templateParam.rewardDecayFactor,
+                templateParam.rewardDecayLife,
+                templateParam.isProgressiveJackpot
+            )
+        );
+        require(succ);
 
         emit DaoTemplateSet(daoId, templateParam);
     }
