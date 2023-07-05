@@ -34,6 +34,7 @@ struct UserMintCapParam {
 }
 
 struct DaoETHAndERC20SplitRatioParam {
+    uint256 daoCreatorERC20Ratio;
     uint256 canvasCreatorERC20Ratio;
     uint256 nftMinterERC20Ratio;
     uint256 daoFeePoolETHRatio;

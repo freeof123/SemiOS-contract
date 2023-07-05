@@ -26,8 +26,8 @@ library RewardStorage {
         uint256 daoCreatorClaimableRoundIndex;
         mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
         mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
+        uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
-        uint256 nftMinterERC20RatioInBps;
     }
 
     struct Layout {

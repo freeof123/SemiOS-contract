@@ -153,6 +153,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
                 projectId,
+                splitRatioParam.daoCreatorERC20Ratio,
                 splitRatioParam.canvasCreatorERC20Ratio,
                 splitRatioParam.nftMinterERC20Ratio,
                 splitRatioParam.daoFeePoolETHRatio,

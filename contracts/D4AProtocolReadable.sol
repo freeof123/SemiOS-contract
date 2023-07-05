@@ -94,29 +94,35 @@ contract D4AProtocolReadable {
         PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        return IPriceTemplate(l.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)])
-            .getCanvasNextPrice(pi.startRound, l.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo);
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        return IPriceTemplate(
+            settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
+        ).getCanvasNextPrice(
+            pi.startRound, settingsStorage.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+        );
+    }
+
+    function getDaoCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        uint256 daoCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].daoCreatorERC20RatioInBps;
+        if (daoCreatorERC20RatioInBps == 0) {
+            return settingsStorage.daoCreatorERC20RatioInBps;
+        }
+        return daoCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps) / BASIS_POINT;
     }
 
     function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         uint256 canvasCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].canvasCreatorERC20RatioInBps;
         if (canvasCreatorERC20RatioInBps == 0) {
-            return l.canvasCreatorERC20RatioInBps;
+            return settingsStorage.canvasCreatorERC20RatioInBps;
         }
-        return canvasCreatorERC20RatioInBps * (BASIS_POINT - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
-            / BASIS_POINT;
+        return canvasCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps) / BASIS_POINT;
     }
 
     function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 nftMinterERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].nftMinterERC20RatioInBps;
-        if (nftMinterERC20RatioInBps == 0) {
-            return 0;
-        }
-        return nftMinterERC20RatioInBps * (BASIS_POINT - l.protocolERC20RatioInBps - l.daoCreatorERC20RatioInBps)
-            / BASIS_POINT;
+        return BASIS_POINT - SettingsStorage.layout().protocolERC20RatioInBps - getDaoCreatorERC20Ratio(daoId)
+            - getCanvasCreatorERC20Ratio(daoId);
     }
 
     function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {

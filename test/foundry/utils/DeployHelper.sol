@@ -544,6 +544,7 @@ contract DeployHelper is Test {
         uint256 mintCap;
         address[] minters;
         uint256[] userMintCaps;
+        uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
         uint256 nftMinterERC20RatioInBps;
         uint256 daoFeePoolETHRatioInBps;
@@ -587,6 +588,7 @@ contract DeployHelper is Test {
             }),
             daoMintCapParam,
             DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: createDaoParam.daoCreatorERC20RatioInBps,
                 canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20RatioInBps,
                 nftMinterERC20Ratio: createDaoParam.nftMinterERC20RatioInBps,
                 daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatioInBps,

@@ -46,6 +46,8 @@ interface ID4AProtocolReadable {
 
     function getCanvasNextPrice(bytes32 canvasId) external view returns (uint256);
 
+    function getDaoCreatorERC20Ratio(bytes32 daoId) external view returns (uint256);
+
     function getCanvasCreatorERC20Ratio(bytes32 daoId) external view returns (uint256);
 
     function getNftMinterERC20Ratio(bytes32 daoId) external view returns (uint256);

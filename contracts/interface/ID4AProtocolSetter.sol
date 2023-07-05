@@ -22,6 +22,7 @@ interface ID4AProtocolSetter {
 
     event DaoRatioSet(
         bytes32 daoId,
+        uint256 daoCreatorERC20Ratio,
         uint256 canvasCreatorERC20Ratio,
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
@@ -45,6 +46,7 @@ interface ID4AProtocolSetter {
         uint256 daoFloorPriceRank,
         PriceTemplateType priceTemplateType,
         uint256 nftPriceFactor,
+        uint256 daoCreatorERC20Ratio,
         uint256 canvasCreatorERC20Ratio,
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
@@ -64,6 +66,7 @@ interface ID4AProtocolSetter {
 
     function setRatio(
         bytes32 daoId,
+        uint256 daoCreatorERC20Ratio,
         uint256 canvasCreatorERC20Ratio,
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,

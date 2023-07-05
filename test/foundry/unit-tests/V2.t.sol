@@ -37,7 +37,7 @@ contract V2Test is Test, D4AAddress {
             }),
             Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(7500, 2500, 3000, 3500),
+            DaoETHAndERC20SplitRatioParam(300, 7500, 2000, 3000, 3500),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
@@ -74,7 +74,7 @@ contract V2Test is Test, D4AAddress {
             }),
             Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
             DaoMintCapParam({ daoMintCap: 5, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(7500, 2500, 3000, 3500),
+            DaoETHAndERC20SplitRatioParam(300, 7000, 2500, 3000, 3500),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,

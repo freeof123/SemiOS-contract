@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { FixedPointMathLib as Math } from "solady/utils/FixedPointMathLib.sol";
+
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
@@ -52,6 +54,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         uint256 daoFloorPriceRank,
         PriceTemplateType priceTemplateType,
         uint256 nftPriceFactor,
+        uint256 daoCreatorERC20Ratio,
         uint256 canvasCreatorERC20Ratio,
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
@@ -66,7 +69,14 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         setDaoMintableRound(daoId, l.mintableRounds[mintableRoundRank]);
         setDaoFloorPrice(daoId, l.daoFloorPrices[daoFloorPriceRank]);
         setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
-        setRatio(daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice);
+        setRatio(
+            daoId,
+            daoCreatorERC20Ratio,
+            canvasCreatorERC20Ratio,
+            nftMinterERC20Ratio,
+            daoFeePoolETHRatio,
+            daoFeePoolETHRatioFlatPrice
+        );
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
@@ -136,6 +146,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setRatio(
         bytes32 daoId,
+        uint256 daoCreatorERC20Ratio,
         uint256 canvasCreatorERC20Ratio,
         uint256 nftMinterERC20Ratio,
         uint256 daoFeePoolETHRatio,
@@ -146,23 +157,29 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
 
-        if (canvasCreatorERC20Ratio + nftMinterERC20Ratio != BASIS_POINT) {
-            revert InvalidERC20Ratio();
-        }
         if (
             daoFeePoolETHRatioFlatPrice > BASIS_POINT - l.protocolMintFeeRatioInBps
                 || daoFeePoolETHRatio > daoFeePoolETHRatioFlatPrice
         ) revert InvalidETHRatio();
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        rewardInfo.canvasCreatorERC20RatioInBps = canvasCreatorERC20Ratio;
-        rewardInfo.nftMinterERC20RatioInBps = nftMinterERC20Ratio;
+        uint256 sum = daoCreatorERC20Ratio + canvasCreatorERC20Ratio + nftMinterERC20Ratio;
+        uint256 daoCreatorERC20RatioInBps = Math.fullMulDivUp(daoCreatorERC20Ratio, BASIS_POINT, sum);
+        uint256 canvasCreatorERC20RatioInBps = Math.fullMulDivUp(canvasCreatorERC20Ratio, BASIS_POINT, sum);
+        rewardInfo.daoCreatorERC20RatioInBps = daoCreatorERC20RatioInBps;
+        rewardInfo.canvasCreatorERC20RatioInBps = canvasCreatorERC20RatioInBps;
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.daoFeePoolETHRatioInBps = daoFeePoolETHRatio;
         daoInfo.daoFeePoolETHRatioInBpsFlatPrice = daoFeePoolETHRatioFlatPrice;
 
         emit DaoRatioSet(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId,
+            daoCreatorERC20Ratio,
+            canvasCreatorERC20Ratio,
+            nftMinterERC20Ratio,
+            daoFeePoolETHRatio,
+            daoFeePoolETHRatioFlatPrice
         );
     }
 

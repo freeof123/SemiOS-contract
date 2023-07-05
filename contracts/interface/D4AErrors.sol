@@ -17,8 +17,6 @@ error Blacklisted();
 
 error NotInWhitelist();
 
-error InvalidERC20Ratio();
-
 error InvalidETHRatio();
 
 error ExceedMaxMintableRound();

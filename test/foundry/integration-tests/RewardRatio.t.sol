@@ -94,7 +94,7 @@ contract RewardRatioTest is DeployHelper {
         daoFeePoolETHRatio = 4000;
         daoFeePoolETHRatioFlatPrice = 6000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 9500, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 2";
@@ -137,21 +137,19 @@ contract RewardRatioTest is DeployHelper {
     }
 
     function test_DaoToken_Ratio() public {
-        // canvas 1, minter 1: 75%, 25%
+        // canvas 1, minter 1: 75%, 20%
         // mint price: 1 ETH
-        // canvas 1, minter 2: 60%, 40%
+        // canvas 1, minter 2: 60%, 35%
         // mint price: 2 ETH
-        // canvas 2, minter 1: 50%, 50%
+        // canvas 2, minter 1: 50%, 45%
         // mint price: 4 ETH
-        // canvas 2, minter 2: 35%, 65%
+        // canvas 2, minter 2: 35%, 60%
         // mint price: 8 ETH
 
         // set ERC20 ratio to 75% and 20%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 7500;
-        nftMinterERC20Ratio = 2500;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 7500, 2000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         string memory tokenUri = "test token uri 1";
@@ -167,10 +165,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 60% and 35%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 6000;
-        nftMinterERC20Ratio = 4000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 6000, 3500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 2";
@@ -186,10 +182,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 50% and 45%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 5000;
-        nftMinterERC20Ratio = 5000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 5000, 4500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 3";
@@ -205,10 +199,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 35% and 60%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 3500;
-        nftMinterERC20Ratio = 6500;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 3500, 6000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 4";
@@ -233,10 +225,10 @@ contract RewardRatioTest is DeployHelper {
 
         uint256 rewardPerRound = 1e9 * 1e18 / 50;
         uint256 totalWeight = 15 ether;
-        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2;
-        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) * 9500 / ratioBase ** 2;
-        uint256 nftMinter1Weight = (1 ether * 2500 + 4 ether * 5000) * 9500 / ratioBase ** 2;
-        uint256 nftMinter2Weight = (2 ether * 4000 + 8 ether * 6500) * 9500 / ratioBase ** 2;
+        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) / ratioBase;
+        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) / ratioBase;
+        uint256 nftMinter1Weight = (1 ether * 2000 + 4 ether * 4500) / ratioBase;
+        uint256 nftMinter2Weight = (2 ether * 3500 + 8 ether * 6000) / ratioBase;
         assertEq(
             token.balanceOf(protocolFeePool.addr), rewardPerRound * protocolFeePoolERC20Ratio / ratioBase, "protocol"
         );
@@ -254,21 +246,19 @@ contract RewardRatioTest is DeployHelper {
     }
 
     function test_DAO_Token_To_ETH_Ratio() public {
-        // canvas 1, minter 1: 75%, 25%
+        // canvas 1, minter 1: 75%, 20%
         // mint price: 1 ETH
-        // canvas 1, minter 2: 60%, 40%
+        // canvas 1, minter 2: 60%, 35%
         // mint price: 2 ETH
-        // canvas 2, minter 1: 50%, 50%
+        // canvas 2, minter 1: 50%, 45%
         // mint price: 4 ETH
-        // canvas 2, minter 2: 35%, 65%
+        // canvas 2, minter 2: 35%, 60%
         // mint price: 8 ETH
 
         // set ERC20 ratio to 75% and 20%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 7500;
-        nftMinterERC20Ratio = 2500;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 7500, 2000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         string memory tokenUri = "test token uri 1";
@@ -284,10 +274,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 60% and 35%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 6000;
-        nftMinterERC20Ratio = 4000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 6000, 3500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 2";
@@ -303,10 +291,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 50% and 45%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 5000;
-        nftMinterERC20Ratio = 5000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 5000, 4500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 3";
@@ -322,10 +308,8 @@ contract RewardRatioTest is DeployHelper {
 
         // set ERC20 ratio to 35% and 60%
         startHoax(daoCreator.addr);
-        canvasCreatorERC20Ratio = 3500;
-        nftMinterERC20Ratio = 6500;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 3500, 6000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 4";
@@ -361,10 +345,10 @@ contract RewardRatioTest is DeployHelper {
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter2.addr), nftMinter2.addr);
 
         uint256 totalWeight = 15 ether;
-        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2;
-        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) * 9500 / ratioBase ** 2;
-        uint256 nftMinter1Weight = (1 ether * 2500 + 4 ether * 5000) * 9500 / ratioBase ** 2;
-        uint256 nftMinter2Weight = (2 ether * 4000 + 8 ether * 6500) * 9500 / ratioBase ** 2;
+        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) / ratioBase;
+        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) / ratioBase;
+        uint256 nftMinter1Weight = (1 ether * 2000 + 4 ether * 4500) / ratioBase;
+        uint256 nftMinter2Weight = (2 ether * 3500 + 8 ether * 6000) / ratioBase;
         assertEq(daoCreator.addr.balance, daoFeePoolETH * daoFeePoolERC20Ratio / ratioBase, "dao");
         assertEq(canvasCreator.addr.balance, daoFeePoolETH * canvasCreator1Weight / totalWeight, "canvas creator 1");
         assertEq(canvasCreator2.addr.balance, daoFeePoolETH * canvasCreator2Weight / totalWeight, "canvas creator 2");
@@ -427,7 +411,7 @@ contract RewardRatioTest is DeployHelper {
         daoFeePoolETHRatio = 4000;
         daoFeePoolETHRatioFlatPrice = 6000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, 10_000, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 9500, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 2";
@@ -489,22 +473,20 @@ contract RewardRatioTest is DeployHelper {
         startHoax(canvasCreator2.addr);
         ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId2, canvasRebateRatioInBps2);
 
-        // canvas 1, minter 1: 75%, 25%
+        // canvas 1, minter 1: 75%, 20%
         // mint price: 1 ETH
-        // canvas 1, minter 2: 60%, 40%
+        // canvas 1, minter 2: 60%, 35%
         // mint price: 2 ETH
-        // canvas 2, minter 1: 50%, 50%
+        // canvas 2, minter 1: 50%, 45%
         // mint price: 4 ETH
-        // canvas 2, minter 2: 35%, 65%
+        // canvas 2, minter 2: 35%, 60%
         // mint price: 8 ETH
 
         {
             // set ERC20 ratio to 75% and 20%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 7500;
-            nftMinterERC20Ratio = 2500;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 7500, 2000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 1";
@@ -522,10 +504,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 60% and 35%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 6000;
-            nftMinterERC20Ratio = 4000;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 6000, 3500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 2";
@@ -543,10 +523,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 50% and 45%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 5000;
-            nftMinterERC20Ratio = 5000;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 5000, 4500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 3";
@@ -564,10 +542,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 35% and 60%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 3500;
-            nftMinterERC20Ratio = 6500;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 3500, 6000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 4";
@@ -594,21 +570,17 @@ contract RewardRatioTest is DeployHelper {
         uint256 rewardPerRound = 1e9 * 1e18 / 50;
         uint256 totalWeight = 15 ether;
         uint256 canvasCreatorRebateAmount1 =
-            (1 ether * 2500 + 2 ether * 4000) * canvasRebateRatioInBps1 * 9500 / ratioBase ** 3;
+            (1 ether * 2000 + 2 ether * 3500) * canvasRebateRatioInBps1 / ratioBase ** 2;
         uint256 canvasCreatorRebateAmount2 =
-            (4 ether * 5000 + 8 ether * 6500) * canvasRebateRatioInBps2 * 9500 / ratioBase ** 3;
-        uint256 canvasCreator1Weight =
-            (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2 + canvasCreatorRebateAmount1;
-        uint256 canvasCreator2Weight =
-            (4 ether * 5000 + 8 ether * 3500) * 9500 / ratioBase ** 2 + canvasCreatorRebateAmount2;
-        uint256 nftMinterRebateAmount1 = (
-            1 ether * 2500 * canvasRebateRatioInBps1 + 4 ether * 5000 * canvasRebateRatioInBps2
-        ) * 9500 / ratioBase ** 3;
-        uint256 nftMinterRebateAmount2 = (
-            2 ether * 4000 * canvasRebateRatioInBps1 + 8 ether * 6500 * canvasRebateRatioInBps2
-        ) * 9500 / ratioBase ** 3;
-        uint256 nftMinter1Weight = (1 ether * 2500 + 4 ether * 5000) * 9500 / ratioBase ** 2 - nftMinterRebateAmount1;
-        uint256 nftMinter2Weight = (2 ether * 4000 + 8 ether * 6500) * 9500 / ratioBase ** 2 - nftMinterRebateAmount2;
+            (4 ether * 4500 + 8 ether * 6000) * canvasRebateRatioInBps2 / ratioBase ** 2;
+        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) / ratioBase + canvasCreatorRebateAmount1;
+        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) / ratioBase + canvasCreatorRebateAmount2;
+        uint256 nftMinterRebateAmount1 =
+            (1 ether * 2000 * canvasRebateRatioInBps1 + 4 ether * 4500 * canvasRebateRatioInBps2) / ratioBase ** 2;
+        uint256 nftMinterRebateAmount2 =
+            (2 ether * 3500 * canvasRebateRatioInBps1 + 8 ether * 6000 * canvasRebateRatioInBps2) / ratioBase ** 2;
+        uint256 nftMinter1Weight = (1 ether * 2000 + 4 ether * 4500) / ratioBase - nftMinterRebateAmount1;
+        uint256 nftMinter2Weight = (2 ether * 3500 + 8 ether * 6000) / ratioBase - nftMinterRebateAmount2;
 
         assertEq(
             token.balanceOf(protocolFeePool.addr), rewardPerRound * protocolFeePoolERC20Ratio / ratioBase, "protocol"
@@ -640,22 +612,20 @@ contract RewardRatioTest is DeployHelper {
         startHoax(canvasCreator2.addr);
         ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId2, canvasRebateRatioInBps2);
 
-        // canvas 1, minter 1: 75%, 25%
+        // canvas 1, minter 1: 75%, 20%
         // mint price: 1 ETH
-        // canvas 1, minter 2: 60%, 40%
+        // canvas 1, minter 2: 60%, 35%
         // mint price: 2 ETH
-        // canvas 2, minter 1: 50%, 50%
+        // canvas 2, minter 1: 50%, 45%
         // mint price: 4 ETH
-        // canvas 2, minter 2: 35%, 65%
+        // canvas 2, minter 2: 35%, 60%
         // mint price: 8 ETH
 
         {
             // set ERC20 ratio to 75% and 20%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 7500;
-            nftMinterERC20Ratio = 2500;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 7500, 2000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 1";
@@ -673,10 +643,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 60% and 35%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 6000;
-            nftMinterERC20Ratio = 4000;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 6000, 3500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 2";
@@ -694,10 +662,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 50% and 45%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 5000;
-            nftMinterERC20Ratio = 5000;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 5000, 4500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 3";
@@ -715,10 +681,8 @@ contract RewardRatioTest is DeployHelper {
         {
             // set ERC20 ratio to 35% and 60%
             startHoax(daoCreator.addr);
-            canvasCreatorERC20Ratio = 3500;
-            nftMinterERC20Ratio = 6500;
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId, canvasCreatorERC20Ratio, nftMinterERC20Ratio, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+                daoId, 300, 3500, 6000, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
             );
 
             string memory tokenUri = "test token uri 4";
@@ -756,21 +720,17 @@ contract RewardRatioTest is DeployHelper {
 
         uint256 totalWeight = 15 ether;
         uint256 canvasCreatorRebateAmount1 =
-            (1 ether * 2500 + 2 ether * 4000) * canvasRebateRatioInBps1 * 9500 / ratioBase ** 3;
+            (1 ether * 2000 + 2 ether * 3500) * canvasRebateRatioInBps1 / ratioBase ** 2;
         uint256 canvasCreatorRebateAmount2 =
-            (4 ether * 5000 + 8 ether * 6500) * canvasRebateRatioInBps2 * 9500 / ratioBase ** 3;
-        uint256 canvasCreator1Weight =
-            (1 ether * 7500 + 2 ether * 6000) * 9500 / ratioBase ** 2 + canvasCreatorRebateAmount1;
-        uint256 canvasCreator2Weight =
-            (4 ether * 5000 + 8 ether * 3500) * 9500 / ratioBase ** 2 + canvasCreatorRebateAmount2;
-        uint256 nftMinterRebateAmount1 = (
-            1 ether * 2500 * canvasRebateRatioInBps1 + 4 ether * 5000 * canvasRebateRatioInBps2
-        ) * 9500 / ratioBase ** 3;
-        uint256 nftMinterRebateAmount2 = (
-            2 ether * 4000 * canvasRebateRatioInBps1 + 8 ether * 6500 * canvasRebateRatioInBps2
-        ) * 9500 / ratioBase ** 3;
-        uint256 nftMinter1Weight = (1 ether * 2500 + 4 ether * 5000) * 9500 / ratioBase ** 2 - nftMinterRebateAmount1;
-        uint256 nftMinter2Weight = (2 ether * 4000 + 8 ether * 6500) * 9500 / ratioBase ** 2 - nftMinterRebateAmount2;
+            (4 ether * 4500 + 8 ether * 6000) * canvasRebateRatioInBps2 / ratioBase ** 2;
+        uint256 canvasCreator1Weight = (1 ether * 7500 + 2 ether * 6000) / ratioBase + canvasCreatorRebateAmount1;
+        uint256 canvasCreator2Weight = (4 ether * 5000 + 8 ether * 3500) / ratioBase + canvasCreatorRebateAmount2;
+        uint256 nftMinterRebateAmount1 =
+            (1 ether * 2000 * canvasRebateRatioInBps1 + 4 ether * 4500 * canvasRebateRatioInBps2) / ratioBase ** 2;
+        uint256 nftMinterRebateAmount2 =
+            (2 ether * 3500 * canvasRebateRatioInBps1 + 8 ether * 6000 * canvasRebateRatioInBps2) / ratioBase ** 2;
+        uint256 nftMinter1Weight = (1 ether * 2000 + 4 ether * 4500) / ratioBase - nftMinterRebateAmount1;
+        uint256 nftMinter2Weight = (2 ether * 3500 + 8 ether * 6000) / ratioBase - nftMinterRebateAmount2;
         assertEq(daoCreator.addr.balance, daoFeePoolETH * daoFeePoolERC20Ratio / ratioBase, "dao");
         assertEq(canvasCreator.addr.balance, daoFeePoolETH * canvasCreator1Weight / totalWeight, "canvas creator 1");
         assertEq(canvasCreator2.addr.balance, daoFeePoolETH * canvasCreator2Weight / totalWeight, "canvas creator 2");

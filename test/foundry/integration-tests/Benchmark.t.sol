@@ -59,7 +59,7 @@ contract Benchmark is DeployHelper {
             Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
             Blacklist(new address[](0), new address[](0)),
             DaoMintCapParam(0, new UserMintCapParam[](0)),
-            DaoETHAndERC20SplitRatioParam(0, 0, 0, 0),
+            DaoETHAndERC20SplitRatioParam(0, 0, 0, 0, 0),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,

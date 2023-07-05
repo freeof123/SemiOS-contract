@@ -152,7 +152,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             whitelist,
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(5000, 5000, 2000, 2500),
+            DaoETHAndERC20SplitRatioParam(300, 5000, 4500, 2000, 2500),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
@@ -183,7 +183,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             whitelist,
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            DaoETHAndERC20SplitRatioParam(300, 5000, 4500, 2000, 2500),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
@@ -251,7 +251,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             whitelist,
             blacklist,
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(5000, 4500, 2000, 2500),
+            DaoETHAndERC20SplitRatioParam(300, 5000, 4500, 2000, 2500),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
