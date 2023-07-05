@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { DeployHelper } from "./utils/DeployHelper.sol";
+import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+
 import { NotDaoOwner, InvalidERC20Ratio, InvalidETHRatio } from "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";

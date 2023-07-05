@@ -4,7 +4,9 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHelper.sol";
+
+import { ID4ASettingsReadable, TestERC20, DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 

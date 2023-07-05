@@ -2,15 +2,17 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import { PermissionControlSigUtils } from "./utils/PermissionControlSigUtils.sol";
-import { PermissionControlHarness } from "./harness/PermissionControlHarness.sol";
+
+import { PermissionControlSigUtils } from "test/foundry/utils/PermissionControlSigUtils.sol";
+import { PermissionControlHarness } from "test/foundry/harness/PermissionControlHarness.sol";
 import {
     DeployHelper,
     TestERC721,
     NaiveOwner,
     PermissionControl,
     TransparentUpgradeableProxy
-} from "./utils/DeployHelper.sol";
+} from "test/foundry/utils/DeployHelper.sol";
+
 import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 contract PermissionControlTest is DeployHelper {

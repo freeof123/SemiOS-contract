@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { console2 } from "forge-std/Console2.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import { ID4ASettingsReadable, TestERC20, DeployHelper } from "./utils/DeployHelper.sol";
-import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
-import { AggregatorV3Mock } from "./utils/mocks/AggregatorV3Mock.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
-import { console2 } from "forge-std/Console2.sol";
+import { ID4ASettingsReadable, TestERC20, DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { AggregatorV3Mock } from "test/foundry/utils/mocks/AggregatorV3Mock.sol";
+
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 
 contract D4ARoyaltySplitterFactoryTest is DeployHelper {
     uint256 public protocolShare;

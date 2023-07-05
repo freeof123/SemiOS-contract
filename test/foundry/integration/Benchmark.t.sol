@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+
 import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
@@ -10,16 +17,10 @@ import {
     TemplateParam,
     MintNftInfo
 } from "contracts/interface/D4AStructs.sol";
-
-import "forge-std/Test.sol";
-import { DeployHelper } from "./utils/DeployHelper.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 
 contract Benchmark is DeployHelper {

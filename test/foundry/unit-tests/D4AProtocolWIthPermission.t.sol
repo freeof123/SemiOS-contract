@@ -1,28 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
-import { DaoMetadataParam, UserMintCapParam, MintNftInfo } from "contracts/interface/D4AStructs.sol";
-
 import "forge-std/Test.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ISafeOwnable } from "@solidstate/contracts/access/ownable/ISafeOwnable.sol";
+
 import {
     IPermissionControl,
     D4ADiamond,
     TransparentUpgradeableProxy,
     NaiveOwner,
     DeployHelper
-} from "./utils/DeployHelper.sol";
-import { D4AProtocol, D4AProtocolHarness } from "./harness/D4AProtocolHarness.sol";
-import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
-import {
-    NotDaoOwner,
-    Blacklisted,
-    NotInWhitelist,
-    ExceedMinterMaxMintAmount,
-    InvalidSignature
-} from "contracts/interface/D4AErrors.sol";
+} from "test/foundry/utils/DeployHelper.sol";
+import { D4AProtocol, D4AProtocolHarness } from "test/foundry/harness/D4AProtocolHarness.sol";
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+
+import "contracts/interface/D4AErrors.sol";
+import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
+import { DaoMetadataParam, UserMintCapParam, MintNftInfo } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";

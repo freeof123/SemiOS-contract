@@ -4,12 +4,14 @@ pragma solidity ^0.8.18;
 import "forge-std/Test.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
+import { D4AAddress } from "script/utils/D4AAddress.sol";
+
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+
 import "contracts/interface/D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-import { D4AAddress } from "script/utils/D4AAddress.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
 
 contract V2Test is Test, D4AAddress {
     MintNftSigUtils public sigUtils;

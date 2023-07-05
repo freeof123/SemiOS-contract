@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { Test } from "forge-std/Test.sol";
+import "forge-std/Test.sol";
+
+import { ExponentialPriceVariationHarness } from "test/foundry/harness/ExponentialPriceVariationHarness.sol";
+
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
-import { ExponentialPriceVariationHarness } from "./harness/ExponentialPriceVariationHarness.sol";
 
 contract exponentialPriceVariationTest is Test {
     ExponentialPriceVariationHarness public exponentialPriceVariation;

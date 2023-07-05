@@ -2,27 +2,6 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-
-// enums
-import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
-
-// structs
-import {
-    DaoMetadataParam,
-    DaoMintCapParam,
-    UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam,
-    TemplateParam
-} from "contracts/interface/D4AStructs.sol";
-
-// functions
-import {
-    getSettingsSelectors,
-    getProtocolReadableSelectors,
-    getProtocolSetterSelectors
-} from "contracts/utils/CutFacetFunctions.sol";
-
-// dependencies
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
@@ -30,8 +9,24 @@ import { IAccessControl } from "@solidstate/contracts/access/access_control/IAcc
 import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import { IUniswapV2Router02 as IUniswapV2Router } from
     "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
+import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 
-// interfaces
+import { FeedRegistryMock } from "test/foundry/utils/mocks/FeedRegistryMock.sol";
+import { AggregatorV3Mock } from "test/foundry/utils/mocks/AggregatorV3Mock.sol";
+
+import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
+import {
+    DaoMetadataParam,
+    DaoMintCapParam,
+    UserMintCapParam,
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam
+} from "contracts/interface/D4AStructs.sol";
+import {
+    getSettingsSelectors,
+    getProtocolReadableSelectors,
+    getProtocolSetterSelectors
+} from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
@@ -39,8 +34,6 @@ import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.s
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-
-// contracts
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
@@ -57,9 +50,6 @@ import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721Factory } from "contracts/D4AERC721.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { FeedRegistryMock } from "./mocks/FeedRegistryMock.sol";
-import { AggregatorV3Mock } from "./mocks/AggregatorV3Mock.sol";
-import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";

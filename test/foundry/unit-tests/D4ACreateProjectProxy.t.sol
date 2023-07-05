@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+
+import {
+    IPermissionControl,
+    D4ACreateProjectProxy,
+    DeployHelper,
+    TransparentUpgradeableProxy
+} from "test/foundry/utils/DeployHelper.sol";
+
 import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
@@ -9,17 +19,8 @@ import {
     DaoETHAndERC20SplitRatioParam,
     TemplateParam
 } from "contracts/interface/D4AStructs.sol";
-
-import "forge-std/Test.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    IPermissionControl,
-    D4ACreateProjectProxy,
-    DeployHelper,
-    TransparentUpgradeableProxy
-} from "./utils/DeployHelper.sol";
-import { D4ACreateProjectProxyHarness } from "./harness/D4ACreateProjectProxyHarness.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { D4ACreateProjectProxyHarness } from "test/foundry/harness/D4ACreateProjectProxyHarness.sol";
 
 contract D4ACreateProjectProxyTest is DeployHelper {
     using stdStorage for StdStorage;

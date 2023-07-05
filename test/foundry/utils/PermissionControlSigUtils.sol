@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-
 import "forge-std/Test.sol";
+
+import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 contract PermissionControlSigUtils {
     bytes32 private _HASHED_NAME = keccak256(bytes("D4APermissionControl"));

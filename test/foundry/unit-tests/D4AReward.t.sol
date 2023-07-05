@@ -2,10 +2,12 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
-import { ID4ASettingsReadable, DeployHelper } from "./utils/DeployHelper.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { MintNftSigUtils } from "./utils/MintNftSigUtils.sol";
+
+import { ID4ASettingsReadable, DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+
+import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract D4ARewardTest is DeployHelper {
