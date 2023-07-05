@@ -49,20 +49,10 @@ struct TemplateParam {
     bool isProgressiveJackpot;
 }
 
-struct GetRoundRewardParam {
-    uint256 totalReward;
-    uint256 startRound;
-    uint256 round;
-    uint256[] activeRounds;
-    uint256 totalRound;
-    uint256 decayFactor;
-    uint256 decayLife;
-    bool isProgressiveJackpot;
-}
-
 struct UpdateRewardParam {
     bytes32 daoId;
     bytes32 canvasId;
+    address token;
     uint256 startRound;
     uint256 currentRound;
     uint256 totalRound;

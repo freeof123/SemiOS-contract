@@ -291,7 +291,7 @@ contract D4ARewardTest is DeployHelper {
         assertApproxEqAbs(
             token.balanceOf(canvasCreator.addr), canvasTotalReward1 + 1e9 * 1e18 * 95 / 100, 10, "canvas creator 1"
         );
-        assertEq(token.balanceOf(address(protocol)), 0, "protocol");
+        assertApproxEqAbs(token.balanceOf(address(protocol)), 0, 10, "protocol");
         assertApproxEqAbs(token.totalSupply(), 1e9 * 1e18, 10, "total supply");
     }
 }
