@@ -21,7 +21,8 @@ import {
     DaoMintInfo,
     UserMintInfo,
     MintNftInfo,
-    MintVars
+    MintVars,
+    Whitelist
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -421,7 +422,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
         bool isWhitelistOff;
         {
-            IPermissionControl.Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
+            Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
             isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0;
         }
 

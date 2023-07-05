@@ -17,7 +17,9 @@ import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
 import "contracts/interface/D4AErrors.sol";
 import { PriceTemplateType, RewardTemplateType } from "contracts/interface/D4AEnums.sol";
-import { DaoMetadataParam, UserMintCapParam, MintNftInfo } from "contracts/interface/D4AStructs.sol";
+import {
+    DaoMetadataParam, UserMintCapParam, MintNftInfo, Whitelist, Blacklist
+} from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
@@ -47,8 +49,7 @@ contract D4AProtocolTest is DeployHelper {
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
             bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
         );
@@ -59,8 +60,7 @@ contract D4AProtocolTest is DeployHelper {
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
             bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
         );
@@ -257,8 +257,7 @@ contract D4AProtocolTest is DeployHelper {
         hoax(daoCreator.addr);
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
         userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
@@ -279,8 +278,7 @@ contract D4AProtocolTest is DeployHelper {
         hoax(daoCreator.addr);
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         hoax(randomGuy.addr);
         vm.expectRevert(NotDaoOwner.selector);
@@ -295,8 +293,7 @@ contract D4AProtocolTest is DeployHelper {
         hoax(daoCreator.addr);
         bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
 
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
         userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);

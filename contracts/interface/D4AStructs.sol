@@ -80,3 +80,15 @@ struct MintVars {
     uint256 daoFee;
     uint256 initialPrice;
 }
+
+struct Blacklist {
+    address[] minterAccounts;
+    address[] canvasCreatorAccounts;
+}
+
+struct Whitelist {
+    bytes32 minterMerkleRoot;
+    address[] minterNFTHolderPasses;
+    bytes32 canvasCreatorMerkleRoot;
+    address[] canvasCreatorNFTHolderPasses;
+}

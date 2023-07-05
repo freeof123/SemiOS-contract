@@ -29,13 +29,13 @@ contract V2Test is Test, D4AAddress {
         uint256 startDrb = d4aDrb.currentRound();
         bytes32 daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject(
             DaoMetadataParam(startDrb, 30, 0, 0, 750, "test project uri", 0),
-            IPermissionControl.Whitelist({
+            Whitelist({
                 minterMerkleRoot: bytes32(0),
                 minterNFTHolderPasses: new address[](0),
                 canvasCreatorMerkleRoot: bytes32(0),
                 canvasCreatorNFTHolderPasses: new address[](0)
             }),
-            IPermissionControl.Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
             DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(7500, 2500, 3000, 3500),
             TemplateParam({
@@ -66,13 +66,13 @@ contract V2Test is Test, D4AAddress {
         // create complex DAO
         daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject{ value: 0.1 ether }(
             DaoMetadataParam(startDrb, 30, 0, 0, 750, "test project uri 1", 42),
-            IPermissionControl.Whitelist({
+            Whitelist({
                 minterMerkleRoot: bytes32(0),
                 minterNFTHolderPasses: new address[](0),
                 canvasCreatorMerkleRoot: bytes32(0),
                 canvasCreatorNFTHolderPasses: new address[](0)
             }),
-            IPermissionControl.Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
             DaoMintCapParam({ daoMintCap: 5, userMintCapParams: new UserMintCapParam[](0) }),
             DaoETHAndERC20SplitRatioParam(7500, 2500, 3000, 3500),
             TemplateParam({

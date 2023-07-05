@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { UserMintCapParam, TemplateParam, DaoMintInfo } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -20,9 +20,9 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
-        IPermissionControl.Whitelist memory whitelist,
-        IPermissionControl.Blacklist memory blacklist,
-        IPermissionControl.Blacklist memory unblacklist
+        Whitelist memory whitelist,
+        Blacklist memory blacklist,
+        Blacklist memory unblacklist
     )
         public
     {

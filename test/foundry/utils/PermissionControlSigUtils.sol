@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
+import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 contract PermissionControlSigUtils {
@@ -90,8 +91,8 @@ contract PermissionControlSigUtils {
 
     function getStructHash(
         bytes32 daoId,
-        PermissionControl.Whitelist memory whitelist,
-        PermissionControl.Blacklist memory blacklist
+        Whitelist memory whitelist,
+        Blacklist memory blacklist
     )
         public
         pure
@@ -126,8 +127,8 @@ contract PermissionControlSigUtils {
 
     function getTypedDataHash(
         bytes32 daoId,
-        PermissionControl.Whitelist memory whitelist,
-        PermissionControl.Blacklist memory blacklist
+        Whitelist memory whitelist,
+        Blacklist memory blacklist
     )
         public
         view

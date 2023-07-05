@@ -20,7 +20,9 @@ import {
     DaoMintCapParam,
     UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
-    TemplateParam
+    TemplateParam,
+    Whitelist,
+    Blacklist
 } from "contracts/interface/D4AStructs.sol";
 import {
     getSettingsSelectors,
@@ -496,8 +498,8 @@ contract DeployHelper is Test {
         IAccessControl(address(protocol)).grantRole(keccak256("SIGNER_ROLE"), signerRoleMember.addr);
     }
 
-    function _generateTrivialWhitelist() internal returns (PermissionControl.Whitelist memory) {
-        PermissionControl.Whitelist memory whitelist;
+    function _generateTrivialWhitelist() internal returns (Whitelist memory) {
+        Whitelist memory whitelist;
         {
             whitelist.minterMerkleRoot = keccak256("test");
             whitelist.canvasCreatorMerkleRoot = keccak256("test");
@@ -509,8 +511,8 @@ contract DeployHelper is Test {
         return whitelist;
     }
 
-    function _generateTrivialBlacklist() internal pure returns (PermissionControl.Blacklist memory) {
-        PermissionControl.Blacklist memory blacklist;
+    function _generateTrivialBlacklist() internal pure returns (Blacklist memory) {
+        Blacklist memory blacklist;
         {
             blacklist.minterAccounts = new address[](2);
             blacklist.minterAccounts[0] = vm.addr(0x3);
@@ -524,11 +526,7 @@ contract DeployHelper is Test {
 
     function _generateTrivialPermission()
         internal
-        returns (
-            bytes32 daoId,
-            PermissionControl.Whitelist memory whitelist,
-            PermissionControl.Blacklist memory blacklist
-        )
+        returns (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist)
     {
         daoId = keccak256("test");
         whitelist = _generateTrivialWhitelist();
@@ -577,13 +575,13 @@ contract DeployHelper is Test {
 
         daoId = daoProxy.createProject{ value: 0.1 ether }(
             createDaoParam.daoMetadataParam,
-            IPermissionControl.Whitelist({
+            Whitelist({
                 minterMerkleRoot: createDaoParam.minterMerkleRoot,
                 minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
                 canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
                 canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
             }),
-            IPermissionControl.Blacklist({
+            Blacklist({
                 minterAccounts: createDaoParam.minterAccounts,
                 canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
             }),

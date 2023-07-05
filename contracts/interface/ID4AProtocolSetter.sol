@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam } from "contracts/interface/D4AStructs.sol";
-import { PriceTemplateType } from "./D4AEnums.sol";
+import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocolSetter {
@@ -32,9 +32,9 @@ interface ID4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
-        IPermissionControl.Whitelist memory whitelist,
-        IPermissionControl.Blacklist memory blacklist,
-        IPermissionControl.Blacklist memory unblacklist
+        Whitelist memory whitelist,
+        Blacklist memory blacklist,
+        Blacklist memory unblacklist
     )
         external;
 

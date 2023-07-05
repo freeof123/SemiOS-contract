@@ -15,7 +15,9 @@ import {
     UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
     TemplateParam,
-    MintNftInfo
+    MintNftInfo,
+    Whitelist,
+    Blacklist
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
@@ -54,8 +56,8 @@ contract Benchmark is DeployHelper {
                 projectUri: "test dao uri",
                 projectIndex: 0
             }),
-            IPermissionControl.Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
-            IPermissionControl.Blacklist(new address[](0), new address[](0)),
+            Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
+            Blacklist(new address[](0), new address[](0)),
             DaoMintCapParam(0, new UserMintCapParam[](0)),
             DaoETHAndERC20SplitRatioParam(0, 0, 0, 0),
             TemplateParam({

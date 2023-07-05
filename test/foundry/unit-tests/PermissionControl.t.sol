@@ -13,6 +13,7 @@ import {
     TransparentUpgradeableProxy
 } from "test/foundry/utils/DeployHelper.sol";
 
+import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 contract PermissionControlTest is DeployHelper {
@@ -46,8 +47,8 @@ contract PermissionControlTest is DeployHelper {
     function _generateSignature(
         Account memory signer,
         bytes32 daoId,
-        PermissionControl.Whitelist memory whitelist,
-        PermissionControl.Blacklist memory blacklist
+        Whitelist memory whitelist,
+        Blacklist memory blacklist
     )
         internal
         view
@@ -59,8 +60,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_AddPermissionWithSignature() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = _generateSignature(daoCreator, daoId, whitelist, blacklist);
 
@@ -72,8 +72,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermissionWithSignature_RecoverZeroAddress() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = bytes.concat(bytes1(0), bytes32(0), bytes32(0));
 
@@ -86,8 +85,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermissionWithSignature_InvalidSignature() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = bytes.concat(bytes1(uint8(1)), bytes32(uint256(2)), bytes32(uint256(3)));
 
@@ -100,8 +98,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermissionWithSignature_InvalidSignatureLength() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = bytes.concat(bytes1(0), bytes32(0), bytes32(0), bytes32("gibberish"));
 
@@ -114,8 +111,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermissionWithSignature_InvalidSignatureS() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = bytes.concat(bytes1(0), bytes32(type(uint256).max), bytes32(0));
 
@@ -137,8 +133,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermisisonWithSignature_WrongSignature() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = _generateSignature(randomGuy, daoId, whitelist, blacklist);
 
@@ -151,8 +146,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_AddPermission() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -162,8 +156,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_AddPermission_NotdaoCreator() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -174,8 +167,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_AddPermission_Exposed() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -188,11 +180,10 @@ contract PermissionControlTest is DeployHelper {
 
     event CanvasCreatorBlacklisted(bytes32 indexed daoId, address indexed account);
 
-    event WhitelistModified(bytes32 indexed daoId, PermissionControl.Whitelist whitelist);
+    event WhitelistModified(bytes32 indexed daoId, Whitelist whitelist);
 
     function test_AddPermission_ExpectEmit() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -212,9 +203,9 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_Blacklisted_Exposed() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist,) = _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist,) = _generateTrivialPermission();
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
         // [0, 4) only minter, [4, 8) both, [8, 12) only canvas creator
         blacklist.minterAccounts = new address[](8);
         for (uint256 i = 0; i < 8; i++) {
@@ -266,7 +257,7 @@ contract PermissionControlTest is DeployHelper {
         blacklist.canvasCreatorAccounts[6] = vm.addr(13);
         blacklist.canvasCreatorAccounts[7] = vm.addr(15);
 
-        PermissionControl.Blacklist memory unblacklist;
+        Blacklist memory unblacklist;
         unblacklist.minterAccounts = new address[](8);
         unblacklist.minterAccounts[0] = vm.addr(3);
         unblacklist.minterAccounts[1] = vm.addr(4);
@@ -334,8 +325,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_GetWhitelist() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -343,7 +333,7 @@ contract PermissionControlTest is DeployHelper {
         vm.prank(daoCreator.addr);
         permissionControl.addPermission(daoId, whitelist, blacklist);
 
-        PermissionControl.Whitelist memory getWhitelist = permissionControl.getWhitelist(daoId);
+        Whitelist memory getWhitelist = permissionControl.getWhitelist(daoId);
 
         bytes32 minterMerkleRoot = getWhitelist.minterMerkleRoot;
         address[] memory minterNFTHolderPasses = getWhitelist.minterNFTHolderPasses;
@@ -357,26 +347,24 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_ModifyPermission() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
 
-        PermissionControl.Blacklist memory unblacklist = blacklist;
+        Blacklist memory unblacklist = blacklist;
 
         vm.prank(daoCreator.addr);
         permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
     function test_RevertIf_ModifyPermission_NotdaoCreator() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
 
-        PermissionControl.Blacklist memory unblacklist = blacklist;
+        Blacklist memory unblacklist = blacklist;
 
         vm.expectRevert("PermissionControl: not DAO owner");
         vm.prank(randomGuy.addr);
@@ -388,13 +376,12 @@ contract PermissionControlTest is DeployHelper {
     event CanvasCreatorUnBlacklisted(bytes32 indexed daoId, address indexed account);
 
     function test_ModifyPermission_ExpectEmit() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
 
-        PermissionControl.Blacklist memory unblacklist = blacklist;
+        Blacklist memory unblacklist = blacklist;
 
         vm.expectEmit(true, true, true, true);
         emit WhitelistModified(daoId, whitelist);
@@ -420,8 +407,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_VerifySignature_Exposed() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = _generateSignature(daoCreator, daoId, whitelist, blacklist);
 
@@ -433,8 +419,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_VerifySignature_Exposed_RecoverZeroAddress() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -448,8 +433,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_VerifySignature_Exposed_InvalidSignature() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -463,8 +447,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_VerifySignature_Exposed_InvalidSignatureLength() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -478,8 +461,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_VerifySignature_Exposed_InvalidSignatureS() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -503,8 +485,7 @@ contract PermissionControlTest is DeployHelper {
     }
 
     function test_RevertIf_VerifySignature_Exposed_WrongSignature() public {
-        (bytes32 daoId, PermissionControl.Whitelist memory whitelist, PermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (bytes32 daoId, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         bytes memory signature = _generateSignature(randomGuy, daoId, whitelist, blacklist);
 
@@ -520,9 +501,9 @@ contract PermissionControlTest is DeployHelper {
     function test_IsMinterBlacklisted() public {
         bytes32 daoId = keccak256("test");
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
         {
             blacklist.minterAccounts = new address[](2);
             blacklist.minterAccounts[0] = vm.addr(0x3);
@@ -551,9 +532,9 @@ contract PermissionControlTest is DeployHelper {
     function test_IsCanvasCreatorBlacklisted() public {
         bytes32 daoId = keccak256("test");
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
         {
             blacklist.canvasCreatorAccounts = new address[](2);
             blacklist.canvasCreatorAccounts[0] = vm.addr(0x3);
@@ -596,12 +577,12 @@ contract PermissionControlTest is DeployHelper {
             accounts[i] = vm.addr(i + 1);
         }
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.minterMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -641,13 +622,13 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.minterNFTHolderPasses = new address[](1);
             whitelist.minterNFTHolderPasses[0] = address(nft);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -673,14 +654,14 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.minterNFTHolderPasses = new address[](1);
             whitelist.minterNFTHolderPasses[0] = address(nft);
             whitelist.minterMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -706,14 +687,14 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.minterNFTHolderPasses = new address[](1);
             whitelist.minterNFTHolderPasses[0] = address(nft);
             whitelist.minterMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -734,12 +715,12 @@ contract PermissionControlTest is DeployHelper {
         uint256 accountsNumber = 100;
         address[] memory accounts = _generateAccounts(accountsNumber);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.canvasCreatorMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -765,13 +746,13 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.canvasCreatorNFTHolderPasses = new address[](1);
             whitelist.canvasCreatorNFTHolderPasses[0] = address(nft);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -797,14 +778,14 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.canvasCreatorNFTHolderPasses = new address[](1);
             whitelist.canvasCreatorNFTHolderPasses[0] = address(nft);
             whitelist.canvasCreatorMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);
@@ -830,14 +811,14 @@ contract PermissionControlTest is DeployHelper {
         address[] memory accounts = _generateAccounts(accountsNumber);
         _batchMint(accounts);
 
-        PermissionControl.Whitelist memory whitelist;
+        Whitelist memory whitelist;
         {
             whitelist.canvasCreatorNFTHolderPasses = new address[](1);
             whitelist.canvasCreatorNFTHolderPasses[0] = address(nft);
             whitelist.canvasCreatorMerkleRoot = getMerkleRoot(accounts);
         }
 
-        PermissionControl.Blacklist memory blacklist;
+        Blacklist memory blacklist;
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(daoId, daoCreator.addr);

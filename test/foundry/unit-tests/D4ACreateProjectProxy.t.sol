@@ -17,7 +17,9 @@ import {
     DaoMintCapParam,
     UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
-    TemplateParam
+    TemplateParam,
+    Whitelist,
+    Blacklist
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { D4ACreateProjectProxyHarness } from "test/foundry/harness/D4ACreateProjectProxyHarness.sol";
@@ -87,8 +89,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
 
     /// forge-config: default.fuzz.runs = 2000
     function testFuzz_createProject(uint256 actionType) public {
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         vm.assume(actionType < type(uint8).max);
         if (actionType & 0x1 == 0) {
             vm.expectCall({
@@ -166,8 +167,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_RevertIf_createProject_CreateOwnerProjectNotAsOwner() public {
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.expectRevert("only admin can specify project index");
         daoProxy.createProject{ value: 0.1 ether }(
@@ -197,8 +197,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_exposed_setMintCapAndPermission() public {
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
@@ -215,8 +214,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_exposed_addPermission() public {
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
@@ -239,8 +237,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_getSplitterAddress() public {
-        (, IPermissionControl.Whitelist memory whitelist, IPermissionControl.Blacklist memory blacklist) =
-            _generateTrivialPermission();
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: 0,

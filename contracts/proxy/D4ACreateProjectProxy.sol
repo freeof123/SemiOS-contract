@@ -8,7 +8,9 @@ import {
     DaoMintCapParam,
     UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
-    TemplateParam
+    TemplateParam,
+    Whitelist,
+    Blacklist
 } from "contracts/interface/D4AStructs.sol";
 import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
@@ -78,8 +80,8 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         address token,
         address nft,
         DaoMetadataParam daoMetadataParam,
-        IPermissionControl.Whitelist whitelist,
-        IPermissionControl.Blacklist blacklist,
+        Whitelist whitelist,
+        Blacklist blacklist,
         DaoMintCapParam daoMintCapParam,
         DaoETHAndERC20SplitRatioParam splitRatioParam,
         TemplateParam templateParam,
@@ -93,8 +95,8 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createProject(
         DaoMetadataParam calldata daoMetadataParam,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist,
+        Whitelist calldata whitelist,
+        Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
@@ -139,7 +141,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
                 daoMintCapParam.userMintCapParams,
                 whitelist,
                 blacklist,
-                IPermissionControl.Blacklist(new address[](0), new address[](0))
+                Blacklist(new address[](0), new address[](0))
             );
         }
 
@@ -182,9 +184,9 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         bytes32 project_id,
         uint32 mintCap,
         UserMintCapParam[] calldata userMintCapParams,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist,
-        IPermissionControl.Blacklist memory unblacklist
+        Whitelist calldata whitelist,
+        Blacklist calldata blacklist,
+        Blacklist memory unblacklist
     )
         internal
     {
@@ -193,13 +195,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         );
     }
 
-    function _addPermission(
-        bytes32 project_id,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist
-    )
-        internal
-    {
+    function _addPermission(bytes32 project_id, Whitelist calldata whitelist, Blacklist calldata blacklist) internal {
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(project_id, whitelist, blacklist);
     }
 
