@@ -750,10 +750,10 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
         if (mintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
         {
-            uint256 protocol_fee = l.protocolMintFeeRatioInBps;
+            uint256 protocolRoyaltyFeeRatioInBps = l.protocolRoyaltyFeeRatioInBps;
             if (
-                royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocol_fee
-                    || royaltyFeeRatioInBps > l.maxRoyaltyFeeRatioInBps + protocol_fee
+                royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                    || royaltyFeeRatioInBps > l.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
             ) revert RoyaltyFeeRatioOutOfRange();
         }
         {
