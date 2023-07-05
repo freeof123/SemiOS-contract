@@ -7,23 +7,12 @@ import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
-import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
-import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
+import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
-contract D4AProtocolReadable {
-    /*////////////////////////////////////////////////
-                         Getters                     
-    ////////////////////////////////////////////////*/
-
-    function getDaoMintCap(bytes32 daoId) public view returns (uint32) {
-        return DaoStorage.layout().daoInfos[daoId].daoMintInfo.daoMintCap;
-    }
-
-    function getUserMintInfo(bytes32 daoId, address account) public view returns (uint32 minted, uint32 userMintCap) {
-        minted = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].minted;
-        userMintCap = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].mintCap;
-    }
-
+contract D4AProtocolReadable is ID4AProtocolReadable {
+    // legacy functions
     function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
         return DaoStorage.layout().daoInfos[_project_id].canvases[_index];
     }
@@ -75,14 +64,123 @@ contract D4AProtocolReadable {
         return CanvasStorage.layout().canvasInfos[_canvas_id].daoId;
     }
 
-    function getCanvasIndex(bytes32 _canvas_id) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].index;
-    }
-
     function getCanvasURI(bytes32 _canvas_id) public view returns (string memory) {
         return CanvasStorage.layout().canvasInfos[_canvas_id].canvasUri;
     }
 
+    function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
+        return DaoStorage.layout().daoInfos[daoId].canvases.length;
+    }
+
+    // new functions
+    // DAO related functions
+    function getDaoStartRound(bytes32 daoId) external view returns (uint256 startRound) {
+        return DaoStorage.layout().daoInfos[daoId].startRound;
+    }
+
+    function getDaoMintableRound(bytes32 daoId) external view returns (uint256 mintableRound) {
+        return DaoStorage.layout().daoInfos[daoId].mintableRound;
+    }
+
+    function getDaoIndex(bytes32 daoId) external view returns (uint256 index) {
+        return DaoStorage.layout().daoInfos[daoId].daoIndex;
+    }
+
+    function getDaoUri(bytes32 daoId) external view returns (string memory daoUri) {
+        return DaoStorage.layout().daoInfos[daoId].daoUri;
+    }
+
+    function getDaoFeePool(bytes32 daoId) external view returns (address daoFeePool) {
+        return DaoStorage.layout().daoInfos[daoId].daoFeePool;
+    }
+
+    function getDaoToken(bytes32 daoId) external view returns (address token) {
+        return DaoStorage.layout().daoInfos[daoId].token;
+    }
+
+    function getDaoTokenMaxSupply(bytes32 daoId) external view returns (uint256 tokenMaxSupply) {
+        return DaoStorage.layout().daoInfos[daoId].tokenMaxSupply;
+    }
+
+    function getDaoNft(bytes32 daoId) external view returns (address nft) {
+        return DaoStorage.layout().daoInfos[daoId].nft;
+    }
+
+    function getDaoNftMaxSupply(bytes32 daoId) external view returns (uint256 nftMaxSupply) {
+        return DaoStorage.layout().daoInfos[daoId].nftMaxSupply;
+    }
+
+    function getDaoNftTotalSupply(bytes32 daoId) external view returns (uint256 nftTotalSupply) {
+        return DaoStorage.layout().daoInfos[daoId].nftTotalSupply;
+    }
+
+    function getDaoNftRoyaltyFeeInBps(bytes32 daoId) external view returns (uint96 royaltyFeeInBps) {
+        return DaoStorage.layout().daoInfos[daoId].royaltyFeeInBps;
+    }
+
+    function getDaoCanvases(bytes32 daoId) external view returns (bytes32[] memory canvases) {
+        return DaoStorage.layout().daoInfos[daoId].canvases;
+    }
+
+    function getDaoPriceTemplate(bytes32 daoId) external view returns (address priceTemplate) {
+        return SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)];
+    }
+
+    function getDaoPriceFactor(bytes32 daoId) external view returns (uint256 priceFactor) {
+        return DaoStorage.layout().daoInfos[daoId].nftPriceFactor;
+    }
+
+    function getDaoRewardTemplate(bytes32 daoId) external view override returns (address rewardTemplate) {
+        return SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
+    }
+
+    function getDaoMintCap(bytes32 daoId) public view returns (uint32) {
+        return DaoStorage.layout().daoInfos[daoId].daoMintInfo.daoMintCap;
+    }
+
+    function getUserMintInfo(bytes32 daoId, address account) public view returns (uint32 minted, uint32 userMintCap) {
+        minted = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].minted;
+        userMintCap = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].mintCap;
+    }
+
+    function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (daoInfo.daoFeePoolETHRatioInBps == 0) {
+            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
+        }
+        return daoInfo.daoFeePoolETHRatioInBps;
+    }
+
+    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (daoInfo.daoFeePoolETHRatioInBpsFlatPrice == 0) {
+            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
+        }
+        return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
+    }
+
+    // canvas related functions
+    function getCanvasDaoId(bytes32 canvasId) external view returns (bytes32 daoId) {
+        return CanvasStorage.layout().canvasInfos[canvasId].daoId;
+    }
+
+    function getCanvasTokenIds(bytes32 canvasId) external view returns (uint256[] memory tokenIds) {
+        return CanvasStorage.layout().canvasInfos[canvasId].tokenIds;
+    }
+
+    function getCanvasIndex(bytes32 _canvas_id) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[_canvas_id].index;
+    }
+
+    function getCanvasUri(bytes32 canvasId) external view returns (string memory canvasUri) {
+        return CanvasStorage.layout().canvasInfos[canvasId].canvasUri;
+    }
+
+    function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
+    }
+
+    // prices related functions
     function getCanvasLastPrice(bytes32 canvasId) public view returns (uint256 round, uint256 price) {
         PriceStorage.MintInfo storage mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
         return (mintInfo.round, mintInfo.price);
@@ -102,13 +200,115 @@ contract D4AProtocolReadable {
         );
     }
 
+    function getDaoMaxPriceInfo(bytes32 daoId) external view returns (uint256 round, uint256 price) {
+        PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        return (maxPrice.round, maxPrice.price);
+    }
+
+    function getDaoFloorPrice(bytes32 daoId) external view returns (uint256 floorPrice) {
+        return PriceStorage.layout().daoFloorPrices[daoId];
+    }
+
+    // reward related functions
+    function getDaoRewardCheckpoints(bytes32 daoId)
+        external
+        view
+        returns (RewardStorage.RewardCheckpoint[] memory rewardCheckpoints)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints;
+    }
+
+    function getDaoRewardCheckpoint(
+        bytes32 daoId,
+        uint256 index
+    )
+        external
+        view
+        returns (RewardStorage.RewardCheckpoint memory rewardCheckpoint)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[index];
+    }
+
+    function getDaoRewardPendingRound(bytes32 daoId) external view returns (uint256 pendingRound) {
+        return RewardStorage.layout().rewardInfos[daoId].rewardPendingRound;
+    }
+
+    function getDaoActiveRounds(bytes32 daoId) external view returns (uint256[] memory activeRounds) {
+        return RewardStorage.layout().rewardInfos[daoId].activeRounds;
+    }
+
+    function getTotalWeight(bytes32 daoId, uint256 round) external view returns (uint256 totalWeight) {
+        return RewardStorage.layout().rewardInfos[daoId].totalWeights[round];
+    }
+
+    function getProtocolWeight(bytes32 daoId, uint256 round) external view returns (uint256 protocolWeight) {
+        return RewardStorage.layout().rewardInfos[daoId].protocolWeights[round];
+    }
+
+    function getDaoCreatorWeight(bytes32 daoId, uint256 round) external view returns (uint256 creatorWeight) {
+        return RewardStorage.layout().rewardInfos[daoId].daoCreatorWeights[round];
+    }
+
+    function getCanvasCreatorWeight(
+        bytes32 daoId,
+        uint256 round,
+        bytes32 canvasId
+    )
+        external
+        view
+        returns (uint256 creatorWeight)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].canvasCreatorWeights[round][canvasId];
+    }
+
+    function getNftMinterWeight(
+        bytes32 daoId,
+        uint256 round,
+        address nftMinter
+    )
+        external
+        view
+        returns (uint256 minterWeight)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].nftMinterWeights[round][nftMinter];
+    }
+
+    function getDaoCreatorClaimableRound(bytes32 daoId) external view returns (uint256 claimableRound) {
+        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
+            .daoCreatorClaimableRoundIndex];
+    }
+
+    function getCanvasCreatorClaimableRound(
+        bytes32 daoId,
+        bytes32 canvasId
+    )
+        external
+        view
+        returns (uint256 claimableRound)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
+            .canvasCreatorClaimableRoundIndexes[canvasId]];
+    }
+
+    function getNftMinterClaimableRound(
+        bytes32 daoId,
+        address nftMinter
+    )
+        external
+        view
+        returns (uint256 claimableRound)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
+            .nftMinterClaimableRoundIndexes[nftMinter]];
+    }
+
     function getDaoCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         uint256 daoCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].daoCreatorERC20RatioInBps;
         if (daoCreatorERC20RatioInBps == 0) {
             return settingsStorage.daoCreatorERC20RatioInBps;
         }
-        return daoCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps) / BASIS_POINT;
+        return (daoCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) / BASIS_POINT;
     }
 
     function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
@@ -117,7 +317,7 @@ contract D4AProtocolReadable {
         if (canvasCreatorERC20RatioInBps == 0) {
             return settingsStorage.canvasCreatorERC20RatioInBps;
         }
-        return canvasCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps) / BASIS_POINT;
+        return (canvasCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) / BASIS_POINT;
     }
 
     function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
@@ -125,28 +325,8 @@ contract D4AProtocolReadable {
             - getCanvasCreatorERC20Ratio(daoId);
     }
 
-    function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        if (daoInfo.daoFeePoolETHRatioInBps == 0) {
-            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
-        }
-        return daoInfo.daoFeePoolETHRatioInBps;
-    }
-
-    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        if (daoInfo.daoFeePoolETHRatioInBpsFlatPrice == 0) {
-            return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
-        }
-        return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
-    }
-
-    function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
-        return DaoStorage.layout().daoInfos[daoId].canvases.length;
-    }
-
-    function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
+    function getRoundReward(bytes32 daoId, uint256 round) public view returns (uint256) {
+        return _castGetRoundRewardToView(_getRoundReward)(daoId, round);
     }
 
     function getRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
@@ -162,10 +342,6 @@ contract D4AProtocolReadable {
         }
 
         return totalRoundReward;
-    }
-
-    function getRoundReward(bytes32 daoId, uint256 round) public view returns (uint256) {
-        return _castGetRoundRewardToView(_getRoundReward)(daoId, round);
     }
 
     function _getRoundReward(bytes32 daoId, uint256 round) internal returns (uint256) {

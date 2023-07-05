@@ -6,26 +6,29 @@ import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
 library DaoStorage {
     struct DaoInfo {
+        // metadata
         uint256 startRound;
         uint256 mintableRound;
+        uint256 daoIndex;
+        string daoUri;
+        address daoFeePool;
+        // token related info
+        address token;
+        uint256 tokenMaxSupply;
+        // nft related info
+        address nft;
         uint256 nftMaxSupply;
         uint256 nftTotalSupply;
         uint96 royaltyFeeInBps;
-        uint256 daoIndex;
-        address token;
-        address nft;
-        address daoFeePool;
-        string daoUri;
-        //from setting
-        uint256 tokenMaxSupply;
-        bytes32[] canvases;
+        // miscellanous
         bool daoExist;
-        uint256 nftPriceFactor;
         PriceTemplateType priceTemplateType;
         RewardTemplateType rewardTemplateType;
+        DaoMintInfo daoMintInfo;
+        bytes32[] canvases;
+        uint256 nftPriceFactor;
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
-        DaoMintInfo daoMintInfo;
     }
 
     struct Layout {
