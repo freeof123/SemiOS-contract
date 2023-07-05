@@ -2,10 +2,17 @@
 pragma solidity ^0.8.18;
 
 library RewardStorage {
-    struct RewardInfo {
+    struct RewardCheckpoint {
+        uint256 startRound;
+        uint256 totalRound;
+        uint256 totalReward;
         uint256 decayFactor;
         uint256 decayLife;
-        uint256 totalReward;
+        bool isProgressiveJackpot;
+    }
+
+    struct RewardInfo {
+        RewardCheckpoint[] rewardCheckpoints;
         // save current round to pending round, because doesn't issue reward for current round
         uint256 rewardPendingRound;
         uint256[] activeRounds; // doesn't include pending round
@@ -21,7 +28,6 @@ library RewardStorage {
         mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
         uint256 canvasCreatorERC20RatioInBps;
         uint256 nftMinterERC20RatioInBps;
-        bool isProgressiveJackpot;
     }
 
     struct Layout {
