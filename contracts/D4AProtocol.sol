@@ -319,8 +319,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 currentRound = SettingsStorage.layout().drb.currentRound();
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        uint256 tokenCirculation = rewardInfo.totalReward * rewardInfo.activeRounds.length / daoInfo.mintableRound
-            + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
+        uint256 tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
 
         if (tokenCirculation == 0) return 0;
 
@@ -695,6 +694,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 UpdateRewardParam(
                     daoId,
                     canvasId,
+                    daoInfo.token,
                     daoInfo.startRound,
                     l.drb.currentRound(),
                     daoInfo.mintableRound,

@@ -21,6 +21,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         if (param.currentRound > pendingRound) {
             rewardInfo.activeRounds.push(pendingRound);
             rewardInfo.rewardPendingRound = param.currentRound;
+            _issueLastRoundReward(rewardInfo, param.daoId, param.token, pendingRound);
         }
 
         uint256 length = rewardInfo.activeRounds.length;
@@ -61,7 +62,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        _updateRewardRound(rewardInfo, currentRound);
+        _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
@@ -94,8 +95,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         }
         rewardInfo.daoCreatorClaimableRoundIndex = i;
 
-        if (protocolClaimableReward > 0) D4AERC20(token).mint(protocolFeePool, protocolClaimableReward);
-        if (daoCreatorClaimableReward > 0) D4AERC20(token).mint(daoCreator, daoCreatorClaimableReward);
+        if (protocolClaimableReward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableReward);
+        if (daoCreatorClaimableReward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableReward);
     }
 
     function claimCanvasCreatorReward(
@@ -111,7 +112,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        _updateRewardRound(rewardInfo, currentRound);
+        _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
@@ -141,7 +142,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         }
         rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId] = i;
 
-        if (claimableReward > 0) D4AERC20(token).mint(canvasCreator, claimableReward);
+        if (claimableReward > 0) D4AERC20(token).transfer(canvasCreator, claimableReward);
     }
 
     function claimNftMinterReward(
@@ -156,7 +157,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        _updateRewardRound(rewardInfo, currentRound);
+        _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256 length = rewardInfo.activeRounds.length;
         uint256[] memory activeRounds = rewardInfo.activeRounds;
