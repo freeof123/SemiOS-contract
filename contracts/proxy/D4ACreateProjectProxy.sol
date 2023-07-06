@@ -187,8 +187,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(daoId, msg.sender);
         OwnableUpgradeable(nft).transferOwnership(msg.sender);
         uint256 daoFeePoolRoyaltyFeeRatioInBps =
-            uint256(royaltyFeeInBps) - ID4ASettingsReadable(address(protocol)).mintProtocolFeeRatio(); // BUG:
-            // tradeProtocolFeeRatio
+            uint256(royaltyFeeInBps) - ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
         splitter = royaltySplitterFactory.createD4ARoyaltySplitter(
             ID4ASettingsReadable(address(protocol)).protocolFeePool(),
             ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio(),
