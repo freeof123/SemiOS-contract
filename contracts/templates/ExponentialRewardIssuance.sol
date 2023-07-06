@@ -57,44 +57,47 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                 // calculate first checkpoint's reward amount
                 RewardStorage.RewardCheckpoint memory lastActiveRoundRewardCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound];
-                // TODO: precision issue when calculating `beginClaimableReward` first?
-                // kn is 18 decimal for now
-                uint256 kn = MathMate.rpow(
-                    lastActiveRoundRewardCheckpoint.decayFactor * MathMate.WAD / BASIS_POINT,
-                    MathLady.divUp(
-                        lastActiveRoundRewardCheckpoint.totalRound, lastActiveRoundRewardCheckpoint.decayLife
-                    ),
-                    MathMate.WAD
-                );
-                // reward amount of the first period at last active round's checkpoint
-                uint256 beginPeriodReward = lastActiveRoundRewardCheckpoint.totalReward
-                    * (kn - kn * BASIS_POINT / lastActiveRoundRewardCheckpoint.decayFactor) / (kn - MathMate.WAD);
-
-                // period index of last active round at last active round's checkpoint
-                // index start at 0, so `periodIndex` also indicate the number of periods before last active round
-                // denote period number to be `n`, begin claimable reward to be `x`, then
-                // `x + x / k + ... + x / k ^ (n - 1) = x * (k ^ n - 1) / (k ^ n - k ^ (n - 1)`
-                kn = MathMate.rpow(
-                    lastActiveRoundRewardCheckpoint.decayFactor * MathMate.WAD / BASIS_POINT,
-                    (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
-                        / lastActiveRoundRewardCheckpoint.decayLife,
-                    MathMate.WAD
-                );
-                rewardAmount = lastActiveRoundRewardCheckpoint.totalReward
-                    - (
-                        beginPeriodReward * (kn - MathMate.WAD)
-                            / (kn - kn * BASIS_POINT / lastActiveRoundRewardCheckpoint.decayFactor)
+                if (lastActiveRound > lastActiveRoundRewardCheckpoint.startRound - 1) {
+                    // TODO: precision issue when calculating `beginClaimableReward` first?
+                    // kn is 18 decimal for now
+                    uint256 kn = MathMate.rpow(
+                        lastActiveRoundRewardCheckpoint.decayFactor * MathMate.WAD / BASIS_POINT,
+                        MathLady.divUp(
+                            lastActiveRoundRewardCheckpoint.totalRound, lastActiveRoundRewardCheckpoint.decayLife
+                        ),
+                        MathMate.WAD
                     );
-                // trim reward at last active round's period
-                rewardAmount -= (
-                    (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
-                        % lastActiveRoundRewardCheckpoint.decayLife
-                ) * beginPeriodReward * MathMate.WAD / kn / lastActiveRoundRewardCheckpoint.decayLife;
+                    // reward amount of the first period at last active round's checkpoint
+                    uint256 beginPeriodReward = lastActiveRoundRewardCheckpoint.totalReward
+                        * (kn - kn * BASIS_POINT / lastActiveRoundRewardCheckpoint.decayFactor) / (kn - MathMate.WAD);
+
+                    // period index of last active round at last active round's checkpoint
+                    // index start at 0, so `periodIndex` also indicate the number of periods before last active round
+                    // denote period number to be `n`, begin claimable reward to be `x`, then
+                    // `x + x / k + ... + x / k ^ (n - 1) = x * (k ^ n - 1) / (k ^ n - k ^ (n - 1)`
+                    kn = MathMate.rpow(
+                        lastActiveRoundRewardCheckpoint.decayFactor * MathMate.WAD / BASIS_POINT,
+                        (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
+                            / lastActiveRoundRewardCheckpoint.decayLife,
+                        MathMate.WAD
+                    );
+                    rewardAmount = lastActiveRoundRewardCheckpoint.totalReward
+                        - (
+                            beginPeriodReward * (kn - MathMate.WAD)
+                                / (kn - kn * BASIS_POINT / lastActiveRoundRewardCheckpoint.decayFactor)
+                        );
+                    // trim reward at last active round's period
+                    rewardAmount -= (
+                        (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
+                            % lastActiveRoundRewardCheckpoint.decayLife
+                    ) * beginPeriodReward * MathMate.WAD / kn / lastActiveRoundRewardCheckpoint.decayLife;
+                }
             }
             // use `rewardCheckpointIndexOfLastActiveRound` to iterate all reward checkpoints but the fist one and the
-            // last one
-            for (; rewardCheckpointIndexOfLastActiveRound + 1 < rewardCheckpointIndex - 1;) {
-                rewardAmount += rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound].totalReward;
+            // last one, here use `rewardCheckpointIndexOfLastActiveRound + 2 < rewardCheckpointIndex` instead of
+            // `rewardCheckpointIndexOfLastActiveRound + 1 < rewardCheckpointIndex - 1` to avoid underflow
+            for (; rewardCheckpointIndexOfLastActiveRound + 2 < rewardCheckpointIndex;) {
+                rewardAmount += rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound + 1].totalReward;
                 unchecked {
                     ++rewardCheckpointIndexOfLastActiveRound;
                 }
@@ -121,8 +124,8 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                 rewardAmount +=
                     (beginPeriodReward * (kn - MathMate.WAD) / (kn - kn * BASIS_POINT / rewardCheckpoint.decayFactor));
                 // add reward at current round's period
-                rewardAmount += ((round - rewardCheckpoint.startRound) % rewardCheckpoint.decayLife) * beginPeriodReward
-                    * MathMate.WAD / kn / rewardCheckpoint.decayLife;
+                rewardAmount += ((round - rewardCheckpoint.startRound + 1) % rewardCheckpoint.decayLife)
+                    * beginPeriodReward * MathMate.WAD / kn / rewardCheckpoint.decayLife;
             }
         }
         // uint256 totalPeriod = MathLady.divUp(param.totalRound, param.decayLife);

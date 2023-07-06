@@ -224,6 +224,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         pure
         returns (uint256[] memory activeRoundsOfCheckpoint)
     {
+        if (activeRounds.length == 0) return activeRounds;
+
         uint256 l;
         uint256 r = activeRounds.length - 1;
         uint256 mid;
@@ -257,6 +259,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
      * @dev given an array of active rounds and a round, find the index of the round in the array
      */
     function getRoundIndex(uint256[] memory activeRounds, uint256 round) public pure returns (uint256 index) {
+        if (activeRounds.length == 0) return 0;
+
         uint256 l;
         uint256 r = activeRounds.length - 1;
         uint256 mid;

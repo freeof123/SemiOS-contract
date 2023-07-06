@@ -349,14 +349,20 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         address rewardTemplate =
             SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
 
-        (bool succ, bytes memory data) = rewardTemplate.delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
-        );
-        require(succ);
-        uint256 roundIndex = abi.decode(data, (uint256));
+        bool succ;
+        bytes memory data;
+        uint256 lastActiveRound;
+        if (rewardInfo.activeRounds.length == 0) {
+            lastActiveRound = rewardInfo.rewardCheckpoints[0].startRound - 1;
+        } else {
+            (succ, data) = rewardTemplate.delegatecall(
+                abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
+            );
+            require(succ);
+            uint256 roundIndex = abi.decode(data, (uint256));
 
-        uint256 lastActiveRound =
-            roundIndex == 0 ? rewardInfo.rewardCheckpoints[0].startRound : rewardInfo.activeRounds[roundIndex - 1];
+            lastActiveRound = rewardInfo.activeRounds[roundIndex - 1];
+        }
 
         (succ, data) = rewardTemplate.delegatecall(
             abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round, lastActiveRound)
