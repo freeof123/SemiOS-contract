@@ -74,5 +74,5 @@ interface ID4AProtocolSetter {
     )
         external;
 
-    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) external;
+    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) external payable;
 }

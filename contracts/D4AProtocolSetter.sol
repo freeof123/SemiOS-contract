@@ -183,7 +183,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         );
     }
 
-    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public {
+    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(canvasId)) revert NotCanvasOwner();
 
