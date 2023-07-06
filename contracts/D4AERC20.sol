@@ -21,7 +21,7 @@ contract D4AERC20 is Initializable, ERC20PermitUpgradeable, AccessControlUpgrade
         __ERC20_init(name, symbol);
         __AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER, _minter);
+        _setupRole(MINTER, _minter); // TODO: remove this
     }
 
     function mint(address to, uint256 amount) public {
