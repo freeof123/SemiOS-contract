@@ -36,7 +36,7 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         mintable_rounds = pi.mintableRound;
         max_nft_amount = pi.nftMaxSupply;
         fee_pool = pi.daoFeePool;
-        royalty_fee = pi.royaltyFeeInBps;
+        royalty_fee = pi.royaltyFeeRatioInBps;
         index = pi.daoIndex;
         uri = pi.daoUri;
         erc20_total_supply = pi.tokenMaxSupply;
@@ -114,8 +114,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return DaoStorage.layout().daoInfos[daoId].nftTotalSupply;
     }
 
-    function getDaoNftRoyaltyFeeInBps(bytes32 daoId) external view returns (uint96 royaltyFeeInBps) {
-        return DaoStorage.layout().daoInfos[daoId].royaltyFeeInBps;
+    function getDaoNftRoyaltyFeeRatioInBps(bytes32 daoId) external view returns (uint96 royaltyFeeRatioInBps) {
+        return DaoStorage.layout().daoInfos[daoId].royaltyFeeRatioInBps;
     }
 
     function getDaoCanvases(bytes32 daoId) external view returns (bytes32[] memory canvases) {

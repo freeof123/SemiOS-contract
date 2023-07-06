@@ -90,7 +90,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNft.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftMaxSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftTotalSupply.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftRoyaltyFeeInBps.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftRoyaltyFeeRatioInBps.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCanvases.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoPriceTemplate.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoPriceFactor.selector;

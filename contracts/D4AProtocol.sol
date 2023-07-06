@@ -775,7 +775,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             daoInfo.mintableRound = mintableRound;
             daoInfo.nftMaxSupply = l.nftMaxSupplies[nftMaxSupplyRank];
             daoInfo.daoUri = daoUri;
-            daoInfo.royaltyFeeInBps = royaltyFeeRatioInBps;
+            daoInfo.royaltyFeeRatioInBps = royaltyFeeRatioInBps;
             daoInfo.daoIndex = daoIndex;
             daoInfo.token = _createERC20Token(daoIndex);
 

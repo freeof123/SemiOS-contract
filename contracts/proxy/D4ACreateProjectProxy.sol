@@ -180,7 +180,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         // setup template
         ID4AProtocolSetter(address(protocol)).setTemplate(daoId, templateParam);
 
-        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeInBps(daoId);
+        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeRatioInBps(daoId);
         uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
         ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(daoId, msg.sender);
         OwnableUpgradeable(nft).transferOwnership(msg.sender);

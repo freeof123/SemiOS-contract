@@ -6,7 +6,7 @@ import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocol {
     event NewProject(
-        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeInBps
+        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
     );
 
     event NewCanvas(bytes32 daoId, bytes32 canvasId, string canvasUri);
@@ -26,7 +26,7 @@ interface ID4AProtocol {
         uint256 mintableRound,
         uint256 daoFloorPriceRank,
         uint256 maxNftRank,
-        uint96 royaltyFeeInBps,
+        uint96 royaltyFeeRatioInBps,
         string memory daoUri
     )
         external

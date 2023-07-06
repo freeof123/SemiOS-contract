@@ -19,7 +19,7 @@ library DaoStorage {
         address nft;
         uint256 nftMaxSupply;
         uint256 nftTotalSupply;
-        uint96 royaltyFeeInBps;
+        uint96 royaltyFeeRatioInBps;
         // miscellanous
         bool daoExist;
         PriceTemplateType priceTemplateType;

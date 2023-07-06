@@ -15,7 +15,7 @@ interface ID4AProtocolReadable {
             uint256 mintableRound,
             uint256 maxNftAmount,
             address daoFeePool,
-            uint96 royaltyFeeInBps,
+            uint96 royaltyFeeRatioInBps,
             uint256 index,
             string memory daoUri,
             uint256 erc20TotalSupply
@@ -57,7 +57,7 @@ interface ID4AProtocolReadable {
 
     function getDaoNftTotalSupply(bytes32 daoId) external view returns (uint256 nftTotalSupply);
 
-    function getDaoNftRoyaltyFeeInBps(bytes32 daoId) external view returns (uint96 royaltyFeeInBps);
+    function getDaoNftRoyaltyFeeRatioInBps(bytes32 daoId) external view returns (uint96 royaltyFeeRatioInBps);
 
     function getDaoCanvases(bytes32 daoId) external view returns (bytes32[] memory canvases);
 
