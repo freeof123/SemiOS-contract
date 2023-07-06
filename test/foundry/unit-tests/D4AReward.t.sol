@@ -44,9 +44,8 @@ contract D4ARewardTest is DeployHelper {
         hoax(canvasCreator2.addr);
         canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0), 0);
 
-        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
-        token = IERC20(temp);
-        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
+        token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
+        daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
@@ -222,9 +221,8 @@ contract D4ARewardTest is DeployHelper {
         hoax(canvasCreator2.addr);
         canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 4", new bytes32[](0), 0);
 
-        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
-        token = IERC20(temp);
-        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
+        token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
+        daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
         sigUtils = new MintNftSigUtils(address(protocol));
 
         // clean up rewards

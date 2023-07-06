@@ -24,9 +24,8 @@ contract D4AProtocolTest is DeployHelper {
 
         startHoax(daoCreator.addr);
         daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
-        (address temp,) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
-        token = IERC20(temp);
-        (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
+        token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
+        daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
 
         startHoax(canvasCreator.addr);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
@@ -68,7 +67,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 maxSupply = 10;
         startHoax(daoCreator.addr);
         ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
-        (,, uint256 nftMaxSupply,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
+        uint256 nftMaxSupply = ID4AProtocolReadable(address(protocol)).getDaoNftMaxSupply(daoId);
         assertEq(nftMaxSupply, maxSupply);
     }
 
@@ -177,7 +176,7 @@ contract D4AProtocolTest is DeployHelper {
         uint256 round = 10;
         startHoax(daoCreator.addr);
         ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
-        (, uint256 mintableRound,,,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
+        uint256 mintableRound = ID4AProtocolReadable(address(protocol)).getDaoMintableRound(daoId);
         assertEq(mintableRound, round);
     }
 

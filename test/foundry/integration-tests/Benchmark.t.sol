@@ -70,11 +70,8 @@ contract Benchmark is DeployHelper {
             }),
             0
         );
-        {
-            (,,, daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
-        }
-        (, address erc721Token) = ID4AProtocolReadable(address(protocol)).getProjectTokens(daoId);
-        nft = IERC721(erc721Token);
+        daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
+        nft = IERC721(ID4AProtocolReadable(address(protocol)).getDaoNft(daoId));
 
         hoax(canvasCreator.addr, 0.01 ether);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas", new bytes32[](0), 0);
