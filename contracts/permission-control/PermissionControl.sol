@@ -81,7 +81,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
 
     function addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist) external {
         require(
-            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == protocol || msg.sender == createProjectProxy,
+            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == createProjectProxy,
             "PermissionControl: not DAO owner"
         );
         _addPermission(daoId, whitelist, blacklist);
