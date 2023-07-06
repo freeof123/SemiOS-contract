@@ -33,6 +33,8 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.ratioBase.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.createProjectFee.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.createCanvasFee.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.getPriceTemplates.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.getRewardTemplates.selector;
     assert(interfaceId == type(ID4ASettingsReadable).interfaceId);
     // register D4ASettings
     interfaceId = 0;

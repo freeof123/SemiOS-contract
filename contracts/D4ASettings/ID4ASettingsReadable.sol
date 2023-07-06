@@ -25,4 +25,8 @@ interface ID4ASettingsReadable {
     function createProjectFee() external view returns (uint256);
 
     function createCanvasFee() external view returns (uint256);
+
+    function getPriceTemplates() external view returns (address[] memory priceTemplates);
+
+    function getRewardTemplates() external view returns (address[] memory rewardTemplates);
 }
