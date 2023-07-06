@@ -37,7 +37,7 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
 
     function test_royaltySplitters() public {
         bytes32 daoId = _createTrivialDao(drb.currentRound(), 30, 0, 0, 750, "test project uri 1");
-        assertEq(address(royaltySplitterFactory.royaltySplitters(2)), address(daoProxy.getSplitterAddress(daoId)));
+        assertEq(address(royaltySplitterFactory.royaltySplitters(2)), address(daoProxy.royaltySplitters(daoId)));
         vm.expectRevert();
         royaltySplitterFactory.royaltySplitters(3);
     }
@@ -79,13 +79,13 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
         hoax(daoCreator.addr);
         daoId1 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri1");
 
-        splitter1 = D4ARoyaltySplitter(payable(daoProxy.getSplitterAddress(daoId1)));
+        splitter1 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId1)));
         (,,, daoFeePool1,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId1);
 
         hoax(daoCreator.addr);
         daoId2 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri2");
 
-        splitter2 = D4ARoyaltySplitter(payable(daoProxy.getSplitterAddress(daoId2)));
+        splitter2 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId2)));
         (,,, daoFeePool2,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId2);
 
         deal(address(_testERC20), daoCreator.addr, 1e8 ether * 10 ** tokenPriceDecimal / tokenPrice);

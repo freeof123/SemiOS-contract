@@ -22,18 +22,12 @@ import {
     Blacklist
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { D4ACreateProjectProxyHarness } from "test/foundry/harness/D4ACreateProjectProxyHarness.sol";
 
 contract D4ACreateProjectProxyTest is DeployHelper {
     using stdStorage for StdStorage;
 
-    D4ACreateProjectProxyHarness public daoProxyHarness;
-
     function setUp() public {
         setUpEnv();
-        D4ACreateProjectProxyHarness harness = new D4ACreateProjectProxyHarness(address(weth));
-        vm.etch(address(daoProxyImpl), address(harness).code);
-        daoProxyHarness = D4ACreateProjectProxyHarness(payable(address(daoProxy)));
     }
 
     function test_protocol() public {
@@ -41,11 +35,11 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_splitterFactory() public {
-        assertEq(address(daoProxy.splitter_factory()), address(royaltySplitterFactory));
+        assertEq(address(daoProxy.royaltySplitterFactory()), address(royaltySplitterFactory));
     }
 
     function test_splitterOwner() public {
-        assertEq(daoProxy.splitter_owner(), royaltySplitterOwner.addr);
+        assertEq(daoProxy.royaltySplitterOwner(), royaltySplitterOwner.addr);
     }
 
     function test_WETH() public {
@@ -196,46 +190,6 @@ contract D4ACreateProjectProxyTest is DeployHelper {
         );
     }
 
-    function test_exposed_setMintCapAndPermission() public {
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-
-        vm.prank(address(protocol));
-        naiveOwner.initOwnerOf(bytes32(0), address(this));
-
-        vm.expectCall({
-            callee: address(protocol),
-            msgValue: 0,
-            data: abi.encodeWithSelector(ID4AProtocolSetter(address(protocol)).setMintCapAndPermission.selector),
-            count: 1
-        });
-        daoProxyHarness.exposed_setMintCapAndPermission(
-            bytes32(0), 0, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-        );
-    }
-
-    function test_exposed_addPermission() public {
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-
-        vm.prank(address(protocol));
-        naiveOwner.initOwnerOf(bytes32(0), address(this));
-
-        vm.prank(address(this));
-        vm.expectCall({
-            callee: address(permissionControl),
-            msgValue: 0,
-            data: abi.encodeWithSelector(permissionControl.addPermission.selector),
-            count: 1
-        });
-        daoProxyHarness.exposed_addPermission(bytes32(0), whitelist, blacklist);
-    }
-
-    function test_exposed_createSplitter() public {
-        hoax(address(daoProxy), 0.1 ether);
-        bytes32 daoId = protocol.createProject{ value: 0.1 ether }(0, 30, 0, 0, 750, "test project uri");
-
-        daoProxyHarness.exposed_createSplitter(daoId);
-    }
-
     function test_getSplitterAddress() public {
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
@@ -262,7 +216,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
             }),
             0
         );
-        address splitter = daoProxy.getSplitterAddress(daoId);
+        address splitter = daoProxy.royaltySplitters(daoId);
         assertTrue(splitter != address(0));
     }
 }
