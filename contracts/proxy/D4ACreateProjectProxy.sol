@@ -130,6 +130,23 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
             );
         }
 
+        address daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
+        address token = ID4AProtocolReadable(address(protocol)).getDaoToken(daoId);
+        address nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
+        emit CreateProjectParamEmitted(
+            daoId,
+            daoFeePool,
+            token,
+            nft,
+            daoMetadataParam,
+            whitelist,
+            blacklist,
+            daoMintCapParam,
+            splitRatioParam,
+            templateParam,
+            actionType
+        );
+
         if ((actionType & 0x2) != 0) {
             ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
         }
@@ -146,7 +163,6 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         }
 
         if ((actionType & 0x8) != 0) {
-            address token = ID4AProtocolReadable(address(protocol)).getDaoToken(daoId);
             d4aswapFactory.createPair(token, WETH);
         }
 
@@ -164,39 +180,19 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         // setup template
         ID4AProtocolSetter(address(protocol)).setTemplate(daoId, templateParam);
 
-        _createSplitter(daoId);
-
-        emit CreateProjectParamEmitted(
-            daoId,
-            ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId),
-            ID4AProtocolReadable(address(protocol)).getDaoToken(daoId),
-            ID4AProtocolReadable(address(protocol)).getDaoNft(daoId),
-            daoMetadataParam,
-            whitelist,
-            blacklist,
-            daoMintCapParam,
-            splitRatioParam,
-            templateParam,
-            actionType
-        );
-    }
-
-    function _createSplitter(bytes32 daoId) internal returns (address splitter) {
-        address nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
-        uint96 royaltyFeeInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeInBps(daoId);
+        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeInBps(daoId);
+        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
         ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(daoId, msg.sender);
         OwnableUpgradeable(nft).transferOwnership(msg.sender);
-        uint256 daoFeePoolRoyaltyFeeRatioInBps =
-            uint256(royaltyFeeInBps) - ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
-        splitter = royaltySplitterFactory.createD4ARoyaltySplitter(
+        address splitter = royaltySplitterFactory.createD4ARoyaltySplitter(
             ID4ASettingsReadable(address(protocol)).protocolFeePool(),
-            ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio(),
-            ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId),
-            daoFeePoolRoyaltyFeeRatioInBps
+            protocolRoyaltyFeeRatioInBps,
+            daoFeePool,
+            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
         );
         royaltySplitters[daoId] = splitter;
         OwnableUpgradeable(splitter).transferOwnership(royaltySplitterOwner);
-        ID4AERC721(nft).setRoyaltyInfo(splitter, royaltyFeeInBps);
+        ID4AERC721(nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
     }
 
     receive() external payable { }
