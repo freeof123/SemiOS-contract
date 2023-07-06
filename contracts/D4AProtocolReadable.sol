@@ -13,59 +13,59 @@ import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
 contract D4AProtocolReadable is ID4AProtocolReadable {
     // legacy functions
-    function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
-        return DaoStorage.layout().daoInfos[_project_id].canvases[_index];
+    function getProjectCanvasAt(bytes32 daoId, uint256 index) public view returns (bytes32) {
+        return DaoStorage.layout().daoInfos[daoId].canvases[index];
     }
 
-    function getProjectInfo(bytes32 _project_id)
+    function getProjectInfo(bytes32 daoId)
         public
         view
         returns (
-            uint256 start_prb,
-            uint256 mintable_rounds,
-            uint256 max_nft_amount,
-            address fee_pool,
-            uint96 royalty_fee,
-            uint256 index,
-            string memory uri,
-            uint256 erc20_total_supply
+            uint256 startRound,
+            uint256 mintableRound,
+            uint256 nftMaxSupply,
+            address daoFeePool,
+            uint96 royaltyFeeRatioInBps,
+            uint256 daoIndex,
+            string memory daoUri,
+            uint256 tokenMaxSupply
         )
     {
-        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[_project_id];
-        start_prb = pi.startRound;
-        mintable_rounds = pi.mintableRound;
-        max_nft_amount = pi.nftMaxSupply;
-        fee_pool = pi.daoFeePool;
-        royalty_fee = pi.royaltyFeeRatioInBps;
-        index = pi.daoIndex;
-        uri = pi.daoUri;
-        erc20_total_supply = pi.tokenMaxSupply;
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
+        startRound = pi.startRound;
+        mintableRound = pi.mintableRound;
+        nftMaxSupply = pi.nftMaxSupply;
+        daoFeePool = pi.daoFeePool;
+        royaltyFeeRatioInBps = pi.royaltyFeeRatioInBps;
+        daoIndex = pi.daoIndex;
+        daoUri = pi.daoUri;
+        tokenMaxSupply = pi.tokenMaxSupply;
     }
 
-    function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
-        return PriceStorage.layout().daoFloorPrices[_project_id];
+    function getProjectFloorPrice(bytes32 daoId) public view returns (uint256) {
+        return PriceStorage.layout().daoFloorPrices[daoId];
     }
 
-    function getProjectTokens(bytes32 _project_id) public view returns (address erc20_token, address erc721_token) {
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[_project_id];
-        erc20_token = daoInfo.token;
-        erc721_token = daoInfo.nft;
+    function getProjectTokens(bytes32 daoId) public view returns (address token, address nft) {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        token = daoInfo.token;
+        nft = daoInfo.nft;
     }
 
-    function getCanvasNFTCount(bytes32 _canvas_id) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].tokenIds.length;
+    function getCanvasNFTCount(bytes32 canvasId) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[canvasId].tokenIds.length;
     }
 
-    function getTokenIDAt(bytes32 _canvas_id, uint256 _index) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].tokenIds[_index];
+    function getTokenIDAt(bytes32 canvasId, uint256 index) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[canvasId].tokenIds[index];
     }
 
-    function getCanvasProject(bytes32 _canvas_id) public view returns (bytes32) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].daoId;
+    function getCanvasProject(bytes32 canvasId) public view returns (bytes32) {
+        return CanvasStorage.layout().canvasInfos[canvasId].daoId;
     }
 
-    function getCanvasURI(bytes32 _canvas_id) public view returns (string memory) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].canvasUri;
+    function getCanvasURI(bytes32 canvasId) public view returns (string memory) {
+        return CanvasStorage.layout().canvasInfos[canvasId].canvasUri;
     }
 
     function getProjectCanvasCount(bytes32 daoId) public view returns (uint256) {
@@ -168,8 +168,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return CanvasStorage.layout().canvasInfos[canvasId].tokenIds;
     }
 
-    function getCanvasIndex(bytes32 _canvas_id) public view returns (uint256) {
-        return CanvasStorage.layout().canvasInfos[_canvas_id].index;
+    function getCanvasIndex(bytes32 canvasId) public view returns (uint256) {
+        return CanvasStorage.layout().canvasInfos[canvasId].index;
     }
 
     function getCanvasUri(bytes32 canvasId) external view returns (string memory canvasUri) {
