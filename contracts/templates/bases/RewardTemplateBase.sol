@@ -238,9 +238,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
      */
     function _getBelowRoundCount(uint256[] memory activeRounds, uint256 round) public pure returns (uint256 index) {
         if (activeRounds.length == 0) return 0;
-        console2.log("------------------------------_getBelowRoundCount----------------------");
-        console2.log("round: %s", round);
-        console2.log("------------------------------_getBelowRoundCount----------------------");
 
         uint256 l;
         uint256 r = activeRounds.length - 1;
@@ -250,7 +247,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             if (activeRounds[mid] < round) l = mid + 1;
             else r = mid;
         }
-        return l == round ? l : l + 1;
+        return activeRounds[l] == round ? l : l + 1;
     }
 
     /**

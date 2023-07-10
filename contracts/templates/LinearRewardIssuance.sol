@@ -37,33 +37,36 @@ contract LinearRewardIssuance is RewardTemplateBase {
                 // calculate first checkpoint's reward amount
                 RewardStorage.RewardCheckpoint storage lastActiveRoundRewardCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound];
-                // period index of last active round at last active round's checkpoint
-                // index start at 0, so `periodIndex` also indicate the number of periods before last active round
-                uint256 periodIndex = (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
-                    / lastActiveRoundRewardCheckpoint.rewardDecayLife;
-                // total period number of last active rounds at last active round's checkpoint
-                uint256 totalPeriod = Math.divUp(
-                    lastActiveRoundRewardCheckpoint.totalRound, lastActiveRoundRewardCheckpoint.rewardDecayLife
-                );
-                // reward amount of the first period at last active round's checkpoint
-                uint256 beginPeriodReward = lastActiveRoundRewardCheckpoint.totalReward / totalPeriod
-                    + (totalPeriod - 1) * lastActiveRoundRewardCheckpoint.rewardDecayFactor / 2;
-                // reward amount start with total reward of last active round's checkpoint
-                rewardAmount = lastActiveRoundRewardCheckpoint.totalReward;
-                // minus reward amount before the period index of last active round at last active round's checkpoint
-                if (periodIndex > 0) {
-                    // prevent underflow
-                    rewardAmount -= (
-                        periodIndex * beginPeriodReward
-                            - periodIndex * (periodIndex - 1) * lastActiveRoundRewardCheckpoint.rewardDecayFactor / 2
+                if (lastActiveRound > lastActiveRoundRewardCheckpoint.startRound - 1) {
+                    // period index of last active round at last active round's checkpoint
+                    // index start at 0, so `periodIndex` also indicate the number of periods before last active round
+                    uint256 periodIndex = (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
+                        / lastActiveRoundRewardCheckpoint.rewardDecayLife;
+                    // total period number of last active rounds at last active round's checkpoint
+                    uint256 totalPeriod = Math.divUp(
+                        lastActiveRoundRewardCheckpoint.totalRound, lastActiveRoundRewardCheckpoint.rewardDecayLife
                     );
+                    // reward amount of the first period at last active round's checkpoint
+                    uint256 beginPeriodReward = lastActiveRoundRewardCheckpoint.totalReward / totalPeriod
+                        + (totalPeriod - 1) * lastActiveRoundRewardCheckpoint.rewardDecayFactor / 2;
+                    // reward amount start with total reward of last active round's checkpoint
+                    rewardAmount = lastActiveRoundRewardCheckpoint.totalReward;
+                    // minus reward amount before the period index of last active round at last active round's
+                    // checkpoint
+                    if (periodIndex > 0) {
+                        // prevent underflow
+                        rewardAmount -= (
+                            periodIndex * beginPeriodReward
+                                - periodIndex * (periodIndex - 1) * lastActiveRoundRewardCheckpoint.rewardDecayFactor / 2
+                        );
+                    }
+                    // trim reward at last active round's period
+                    rewardAmount -= (
+                        (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
+                            % lastActiveRoundRewardCheckpoint.rewardDecayLife
+                    ) * (beginPeriodReward - periodIndex * rewardCheckpoint.rewardDecayFactor)
+                        / lastActiveRoundRewardCheckpoint.rewardDecayLife;
                 }
-                // trim reward at last active round's period
-                rewardAmount -= (
-                    (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
-                        % lastActiveRoundRewardCheckpoint.rewardDecayLife
-                ) * (beginPeriodReward - periodIndex * rewardCheckpoint.rewardDecayFactor)
-                    / lastActiveRoundRewardCheckpoint.rewardDecayLife;
             }
             // use `rewardCheckpointIndexOfLastActiveRound` to iterate all reward checkpoints but the fist one and the
             // last one
