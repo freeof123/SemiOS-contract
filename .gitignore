@@ -22,3 +22,5 @@ lcov*
 
 # deployed contracts addresses
 deployed-contracts-info
+
+docs/
