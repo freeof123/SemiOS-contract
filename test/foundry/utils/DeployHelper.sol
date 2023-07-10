@@ -130,6 +130,8 @@ contract DeployHelper is Test {
         _deployRewardTemplate();
 
         _initSettings();
+
+        drb.changeRound(1);
     }
 
     modifier prank(address addr) {

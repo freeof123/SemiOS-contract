@@ -30,10 +30,10 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 uint256[] storage activeRoundsOfLastCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
                 if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] != param.currentRound) {
-                    activeRounds.push(param.currentRound);
                     _issueLastRoundReward(
                         param.daoId, param.token, activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1]
                     );
+                    activeRounds.push(param.currentRound);
                 }
             }
             // no old checkpoint
@@ -46,8 +46,12 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             if (activeRounds[activeRounds.length - 1] != param.currentRound) {
                 rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound =
                     activeRounds[activeRounds.length - 1];
+                _issueLastRoundReward(
+                    param.daoId,
+                    param.token,
+                    rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound
+                );
                 activeRounds.push(param.currentRound);
-                _issueLastRoundReward(param.daoId, param.token, activeRounds[activeRounds.length - 1]);
             }
         }
 
@@ -288,7 +292,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             if (activeRounds[activeRounds.length - 1] != currentRound) {
                 rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound =
                     activeRounds[activeRounds.length - 1];
-                _issueLastRoundReward(daoId, token, activeRounds[activeRounds.length - 1]);
+                _issueLastRoundReward(
+                    daoId, token, rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound
+                );
             }
         }
     }
@@ -325,12 +331,16 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         view
         returns (uint256)
     {
-        for (uint256 i = rewardInfo.rewardCheckpoints.length; i >= 0; i--) {
+        console2.log("length: %s", rewardInfo.rewardCheckpoints.length);
+        for (uint256 i = rewardInfo.rewardCheckpoints.length - 1; ~i != 0;) {
             if (
                 rewardInfo.rewardCheckpoints[i].lastActiveRound < round
                     && rewardInfo.rewardCheckpoints[i].lastActiveRound != 0
             ) {
                 return rewardInfo.rewardCheckpoints[i].lastActiveRound;
+            }
+            unchecked {
+                --i;
             }
         }
         return rewardInfo.rewardCheckpoints[0].startRound - 1;

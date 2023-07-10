@@ -70,7 +70,7 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_createCanvas() public {
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
         vm.expectCall({
             callee: address(permissionControl),
             data: abi.encodeWithSelector(permissionControl.isCanvasCreatorBlacklisted.selector),
@@ -89,7 +89,7 @@ contract D4AProtocolTest is DeployHelper {
         address[] memory canvasCreatorAccounts = new address[](1);
         canvasCreatorAccounts[0] = address(this);
         bytes32 daoId = _createDaoWithPermission(
-            0,
+            1,
             30,
             0,
             0,
@@ -111,7 +111,7 @@ contract D4AProtocolTest is DeployHelper {
         _testERC721.mint(protocolOwner.addr, 0);
         canvasCreatorNFTHolderPasses[0] = address(_testERC721);
         bytes32 daoId = _createDaoWithPermission(
-            0,
+            1,
             30,
             0,
             0,
@@ -148,7 +148,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_exposed_checkMintEligibility() public {
         CreateDaoParam memory createDaoParam;
         createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 0,
+            startDrb: 1,
             mintableRounds: 30,
             floorPriceRank: 0,
             maxNftRank: 0,
@@ -173,7 +173,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_RevertIf_exposed_checkMintEligibility_ExceedMaxMintAmount() public {
         CreateDaoParam memory createDaoParam;
         createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 0,
+            startDrb: 1,
             mintableRounds: 30,
             floorPriceRank: 0,
             maxNftRank: 0,
@@ -200,7 +200,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_mintNFT() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -223,7 +223,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_batchMint() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -255,7 +255,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_setMintCapAndPermission() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -276,7 +276,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -291,7 +291,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_setMintCapAndPermission_ExpectEmit() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -310,7 +310,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_exposed_ableToMint() public {
         CreateDaoParam memory createDaoParam;
         createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 0,
+            startDrb: 1,
             mintableRounds: 30,
             floorPriceRank: 0,
             maxNftRank: 0,
@@ -335,7 +335,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_RevertIf_exposed_ableToMint_Blacklisted() public {
         CreateDaoParam memory createDaoParam;
         createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 0,
+            startDrb: 1,
             mintableRounds: 30,
             floorPriceRank: 0,
             maxNftRank: 0,
@@ -363,7 +363,7 @@ contract D4AProtocolTest is DeployHelper {
     function test_RevertIf_exposed_ableToMint_NotInWhitelist() public {
         CreateDaoParam memory createDaoParam;
         createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 0,
+            startDrb: 1,
             mintableRounds: 30,
             floorPriceRank: 0,
             maxNftRank: 0,
@@ -390,7 +390,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_exposed_verifySignature() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -417,7 +417,7 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_RevertIf_exposed_verifySignature_InvalidSignature() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
