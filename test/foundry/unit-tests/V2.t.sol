@@ -43,7 +43,6 @@ contract V2Test is Test, D4AAddress {
                 priceFactor: 20_000,
                 rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
                 rewardDecayFactor: 0,
-                rewardDecayLife: 1,
                 isProgressiveJackpot: false
             }),
             0
@@ -80,7 +79,6 @@ contract V2Test is Test, D4AAddress {
                 priceFactor: 20_000,
                 rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
                 rewardDecayFactor: 0,
-                rewardDecayLife: 1,
                 isProgressiveJackpot: false
             }),
             31

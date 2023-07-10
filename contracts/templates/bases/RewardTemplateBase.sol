@@ -4,13 +4,11 @@ pragma solidity ^0.8.18;
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
+import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
-
-import "forge-std/Test.sol";
 
 abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
@@ -56,7 +54,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         }
 
         uint256 length = activeRounds.length;
-        if (rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot) {
+        if (rewardInfo.isProgressiveJackpot) {
             if (length != 0 && activeRounds[length - 1] - param.startRound > param.totalRound) {
                 revert ExceedMaxMintableRound();
             }
@@ -191,15 +189,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
     }
 
-    function setRewardCheckpoint(
-        bytes32 daoId,
-        uint256 rewardDecayFactor,
-        uint256 rewardDecayLife,
-        bool isProgressiveJackpot
-    )
-        public
-        payable
-    {
+    function setRewardCheckpoint(bytes32 daoId) public payable {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
@@ -209,17 +199,10 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[0].startRound = daoInfo.startRound;
             rewardInfo.rewardCheckpoints[0].totalRound = daoInfo.mintableRound;
             rewardInfo.rewardCheckpoints[0].totalReward = daoInfo.tokenMaxSupply;
-            rewardInfo.rewardCheckpoints[0].rewardDecayFactor = rewardDecayFactor;
-            rewardInfo.rewardCheckpoints[0].rewardDecayLife = rewardDecayLife;
-            rewardInfo.rewardCheckpoints[0].isProgressiveJackpot = isProgressiveJackpot;
         } else if (rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].activeRounds.length == 0) {
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].startRound = daoInfo.startRound;
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalRound = daoInfo.mintableRound;
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalReward = daoInfo.tokenMaxSupply;
-            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayFactor = rewardDecayFactor;
-            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayLife = rewardDecayLife;
-            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot =
-                isProgressiveJackpot;
         } else {
             uint256 startRound = settingsStorage.drb.currentRound();
             RewardStorage.RewardCheckpoint storage rewardCheckpoint =
@@ -231,9 +214,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[length - 1].startRound = startRound;
             rewardInfo.rewardCheckpoints[length - 1].totalRound = totalRound;
             rewardInfo.rewardCheckpoints[length - 1].totalReward = totalReward;
-            rewardInfo.rewardCheckpoints[length - 1].rewardDecayFactor = rewardDecayFactor;
-            rewardInfo.rewardCheckpoints[length - 1].rewardDecayLife = rewardDecayLife;
-            rewardInfo.rewardCheckpoints[length - 1].isProgressiveJackpot = isProgressiveJackpot;
         }
     }
 
@@ -313,6 +293,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         view
         returns (uint256 index)
     {
+        if (round < rewardCheckpoints[0].startRound) revert InvalidRound();
+
         uint256 length = rewardCheckpoints.length;
         for (uint256 i; i < length - 1;) {
             if (rewardCheckpoints[i + 1].startRound > round) return i;
@@ -331,11 +313,10 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         view
         returns (uint256)
     {
-        console2.log("length: %s", rewardInfo.rewardCheckpoints.length);
         for (uint256 i = rewardInfo.rewardCheckpoints.length - 1; ~i != 0;) {
             if (
-                rewardInfo.rewardCheckpoints[i].lastActiveRound < round
-                    && rewardInfo.rewardCheckpoints[i].lastActiveRound != 0
+                rewardInfo.rewardCheckpoints[i].lastActiveRound != 0
+                    && rewardInfo.rewardCheckpoints[i].lastActiveRound < round
             ) {
                 return rewardInfo.rewardCheckpoints[i].lastActiveRound;
             }
@@ -343,7 +324,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 --i;
             }
         }
-        return rewardInfo.rewardCheckpoints[0].startRound - 1;
+        return 0;
     }
 
     /**

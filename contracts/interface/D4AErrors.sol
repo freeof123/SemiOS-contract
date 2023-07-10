@@ -21,6 +21,8 @@ error InvalidETHRatio();
 
 error ExceedMaxMintableRound();
 
+error InvalidRound();
+
 error ExceedMinterMaxMintAmount();
 
 error NftExceedMaxAmount();

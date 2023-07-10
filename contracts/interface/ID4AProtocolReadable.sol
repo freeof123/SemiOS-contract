@@ -126,29 +126,9 @@ interface ID4AProtocolReadable {
         view
         returns (uint256 totalReward);
 
-    function getDaoRewardDecayFactor(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 rewardDecayFactor);
+    function getDaoRewardDecayFactor(bytes32 daoId) external view returns (uint256 rewardDecayFactor);
 
-    function getDaoRewardDecayLife(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 rewardDecayLife);
-
-    function getDaoRewardIsProgressiveJackpot(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (bool isProgressiveJackpot);
+    function getDaoRewardIsProgressiveJackpot(bytes32 daoId) external view returns (bool isProgressiveJackpot);
 
     function getDaoRewardLastActiveRound(
         bytes32 daoId,

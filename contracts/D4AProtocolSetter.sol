@@ -97,15 +97,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.mintableRound = newMintableRound;
 
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.setRewardCheckpoint.selector,
-                daoId,
-                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayFactor,
-                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayLife,
-                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot
-            )
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId)
         );
         require(succ);
 
@@ -125,7 +118,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        if (priceTemplateType == PriceTemplateType.LINEAR_PRICE_VARIATION) require(nftPriceFactor >= 10_000);
+        if (priceTemplateType == PriceTemplateType.LINEAR_PRICE_VARIATION) require(nftPriceFactor > 10_000);
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.priceTemplateType = priceTemplateType;
@@ -143,14 +136,12 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoInfo.nftPriceFactor = templateParam.priceFactor;
         daoInfo.rewardTemplateType = templateParam.rewardTemplateType;
 
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
+        rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
+
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.setRewardCheckpoint.selector,
-                daoId,
-                templateParam.rewardDecayFactor,
-                templateParam.rewardDecayLife,
-                templateParam.isProgressiveJackpot
-            )
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId)
         );
         require(succ);
 
