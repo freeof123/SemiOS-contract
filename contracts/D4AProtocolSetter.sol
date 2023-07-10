@@ -94,7 +94,20 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         if (newMintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
 
-        DaoStorage.layout().daoInfos[daoId].mintableRound = newMintableRound;
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.mintableRound = newMintableRound;
+
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplate.setRewardCheckpoint.selector,
+                daoId,
+                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayFactor,
+                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayLife,
+                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot
+            )
+        );
+        require(succ);
 
         emit DaoMintableRoundSet(daoId, newMintableRound);
     }

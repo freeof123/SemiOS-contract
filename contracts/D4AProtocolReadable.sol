@@ -210,31 +210,133 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
     }
 
     // reward related functions
-    function getDaoRewardCheckpoints(bytes32 daoId)
-        external
-        view
-        returns (RewardStorage.RewardCheckpoint[] memory rewardCheckpoints)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints;
-    }
-
-    function getDaoRewardCheckpoint(
+    function getDaoRewardStartRound(
         bytes32 daoId,
-        uint256 index
+        uint256 rewardCheckpointIndex
     )
         external
         view
-        returns (RewardStorage.RewardCheckpoint memory rewardCheckpoint)
+        returns (uint256 startRound)
     {
-        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[index];
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].startRound;
     }
 
-    function getDaoRewardPendingRound(bytes32 daoId) external view returns (uint256 pendingRound) {
-        return RewardStorage.layout().rewardInfos[daoId].rewardPendingRound;
+    function getDaoRewardTotalRound(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 totalRound)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].totalRound;
     }
 
-    function getDaoActiveRounds(bytes32 daoId) external view returns (uint256[] memory activeRounds) {
-        return RewardStorage.layout().rewardInfos[daoId].activeRounds;
+    function getDaoTotalReward(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 totalReward)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].totalReward;
+    }
+
+    function getDaoRewardDecayFactor(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 rewardDecayFactor)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].rewardDecayFactor;
+    }
+
+    function getDaoRewardDecayLife(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 rewardDecayLife)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].rewardDecayLife;
+    }
+
+    function getDaoRewardIsProgressiveJackpot(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (bool isProgressiveJackpot)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].isProgressiveJackpot;
+    }
+
+    function getDaoRewardLastActiveRound(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 lastActiveRound)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].lastActiveRound;
+    }
+
+    function getDaoRewardActiveRounds(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256[] memory activeRounds)
+    {
+        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].activeRounds;
+    }
+
+    function getDaoCreatorClaimableRound(
+        bytes32 daoId,
+        uint256 rewardCheckpointIndex
+    )
+        external
+        view
+        returns (uint256 claimableRound)
+    {
+        RewardStorage.RewardCheckpoint storage rewardCheckpoint =
+            RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex];
+        return rewardCheckpoint.activeRounds[rewardCheckpoint.daoCreatorClaimableRoundIndex];
+    }
+
+    function getCanvasCreatorClaimableRound(
+        bytes32 daoId,
+        uint256 rewardCheckpointsIndex,
+        bytes32 canvasId
+    )
+        external
+        view
+        returns (uint256 claimableRound)
+    {
+        RewardStorage.RewardCheckpoint storage rewardCheckpoint =
+            RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointsIndex];
+        return rewardCheckpoint.activeRounds[rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId]];
+    }
+
+    function getNftMinterClaimableRound(
+        bytes32 daoId,
+        uint256 rewardCheckpointsIndex,
+        address nftMinter
+    )
+        external
+        view
+        returns (uint256 claimableRound)
+    {
+        RewardStorage.RewardCheckpoint storage rewardCheckpoint =
+            RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointsIndex];
+        return rewardCheckpoint.activeRounds[rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter]];
     }
 
     function getTotalWeight(bytes32 daoId, uint256 round) external view returns (uint256 totalWeight) {
@@ -273,35 +375,6 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return RewardStorage.layout().rewardInfos[daoId].nftMinterWeights[round][nftMinter];
     }
 
-    function getDaoCreatorClaimableRound(bytes32 daoId) external view returns (uint256 claimableRound) {
-        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
-            .daoCreatorClaimableRoundIndex];
-    }
-
-    function getCanvasCreatorClaimableRound(
-        bytes32 daoId,
-        bytes32 canvasId
-    )
-        external
-        view
-        returns (uint256 claimableRound)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
-            .canvasCreatorClaimableRoundIndexes[canvasId]];
-    }
-
-    function getNftMinterClaimableRound(
-        bytes32 daoId,
-        address nftMinter
-    )
-        external
-        view
-        returns (uint256 claimableRound)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].activeRounds[RewardStorage.layout().rewardInfos[daoId]
-            .nftMinterClaimableRoundIndexes[nftMinter]];
-    }
-
     function getDaoCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         uint256 daoCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].daoCreatorERC20RatioInBps;
@@ -331,13 +404,13 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
 
     function getRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        uint256[] memory activeRounds = rewardInfo.activeRounds;
+        RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
 
         uint256 totalRoundReward;
-        for (uint256 i; i < activeRounds.length && activeRounds[i] <= round;) {
-            totalRoundReward += getRoundReward(daoId, activeRounds[i]);
-            unchecked {
-                ++i;
+        for (uint256 i; i < rewardCheckpoints.length; i++) {
+            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
+            for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {
+                totalRoundReward += getRoundReward(daoId, activeRounds[j]);
             }
         }
 
@@ -345,28 +418,28 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
     }
 
     function _getRoundReward(bytes32 daoId, uint256 round) internal returns (uint256) {
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         address rewardTemplate =
             SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
 
         bool succ;
         bytes memory data;
-        uint256 lastActiveRound;
-        if (rewardInfo.activeRounds.length == 0) {
-            lastActiveRound = rewardInfo.rewardCheckpoints[0].startRound - 1;
-        } else {
-            (succ, data) = rewardTemplate.delegatecall(
-                abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
-            );
-            require(succ);
-            uint256 roundIndex = abi.decode(data, (uint256));
+        // uint256 lastActiveRound;
+        // if (rewardInfo.activeRounds.length == 0) {
+        //     lastActiveRound = rewardInfo.rewardCheckpoints[0].startRound - 1;
+        // } else {
+        //     (succ, data) = rewardTemplate.delegatecall(
+        //         abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
+        //     );
+        //     require(succ);
+        //     uint256 roundIndex = abi.decode(data, (uint256));
 
-            lastActiveRound = rewardInfo.activeRounds[roundIndex - 1];
-        }
+        //     lastActiveRound = roundIndex == 0
+        //         ? rewardInfo.rewardCheckpoints[0].startRound - 1
+        //         : rewardInfo.activeRounds[roundIndex - 1];
+        // }
 
-        (succ, data) = rewardTemplate.delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round, lastActiveRound)
-        );
+        (succ, data) =
+            rewardTemplate.delegatecall(abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round));
         require(succ);
         return abi.decode(data, (uint256));
     }

@@ -45,23 +45,5 @@ interface IRewardTemplate {
         external
         payable;
 
-    function getActiveRoundsOfCheckpoint(
-        uint256[] memory activeRounds,
-        uint256 startRound,
-        uint256 endRound
-    )
-        external
-        pure
-        returns (uint256[] memory);
-
-    function getRoundIndex(uint256[] memory activeRounds, uint256 round) external pure returns (uint256 index);
-
-    function getRoundReward(
-        bytes32 daoId,
-        uint256 round,
-        uint256 lastActiveRound
-    )
-        external
-        view
-        returns (uint256 rewardAmount);
+    function getRoundReward(bytes32 daoId, uint256 round) external view returns (uint256 rewardAmount);
 }

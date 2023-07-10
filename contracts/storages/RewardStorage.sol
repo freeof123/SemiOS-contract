@@ -6,26 +6,25 @@ library RewardStorage {
         uint256 startRound;
         uint256 totalRound;
         uint256 totalReward;
-        uint256 decayFactor;
-        uint256 decayLife;
+        uint256 rewardDecayFactor;
+        uint256 rewardDecayLife;
         bool isProgressiveJackpot;
+        uint256 lastActiveRound;
+        uint256[] activeRounds;
+        // claimable round index
+        uint256 daoCreatorClaimableRoundIndex;
+        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
+        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
     }
 
     struct RewardInfo {
         RewardCheckpoint[] rewardCheckpoints;
-        // save current round to pending round, because doesn't issue reward for current round
-        uint256 rewardPendingRound;
-        uint256[] activeRounds; // doesn't include pending round
         // weights
         mapping(uint256 round => uint256 totalWeight) totalWeights; // also total ETH in DAO fee pool at given round
         mapping(uint256 round => uint256 weight) protocolWeights;
         mapping(uint256 round => uint256 weight) daoCreatorWeights;
         mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeights;
         mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterWeights;
-        // claimable round index
-        uint256 daoCreatorClaimableRoundIndex;
-        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
-        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
         uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
     }

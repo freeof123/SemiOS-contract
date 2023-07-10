@@ -10,6 +10,8 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
+import "forge-std/Test.sol";
+
 abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
         // deal with daoFeeAmount being 0
@@ -18,21 +20,44 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
         // update initial mint pending round
-        uint256 pendingRound = rewardInfo.rewardPendingRound;
-        if (rewardInfo.rewardPendingRound == type(uint256).max) rewardInfo.rewardPendingRound = param.currentRound;
-        if (param.currentRound > pendingRound) {
-            rewardInfo.activeRounds.push(pendingRound);
-            rewardInfo.rewardPendingRound = param.currentRound;
-            _issueLastRoundReward(rewardInfo, param.daoId, param.token, pendingRound);
+        uint256[] storage activeRounds =
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].activeRounds;
+        // new checkpoint
+        if (activeRounds.length == 0) {
+            // has at least one old checkpoint
+            if (rewardInfo.rewardCheckpoints.length > 1) {
+                // last checkpoint's active rounds
+                uint256[] storage activeRoundsOfLastCheckpoint =
+                    rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
+                if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] != param.currentRound) {
+                    activeRounds.push(param.currentRound);
+                    _issueLastRoundReward(
+                        param.daoId, param.token, activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1]
+                    );
+                }
+            }
+            // no old checkpoint
+            else {
+                activeRounds.push(param.currentRound);
+            }
+        }
+        // not new checkpoint
+        else {
+            if (activeRounds[activeRounds.length - 1] != param.currentRound) {
+                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound =
+                    activeRounds[activeRounds.length - 1];
+                activeRounds.push(param.currentRound);
+                _issueLastRoundReward(param.daoId, param.token, activeRounds[activeRounds.length - 1]);
+            }
         }
 
-        uint256 length = rewardInfo.activeRounds.length;
+        uint256 length = activeRounds.length;
         if (rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot) {
-            if (length != 0 && rewardInfo.activeRounds[length - 1] - param.startRound > param.totalRound) {
+            if (length != 0 && activeRounds[length - 1] - param.startRound > param.totalRound) {
                 revert ExceedMaxMintableRound();
             }
         } else {
-            if (length != 0 && rewardInfo.activeRounds[length - 1] != param.currentRound) {
+            if (length != 0 && activeRounds[length - 1] != param.currentRound) {
                 if (length >= param.totalRound) revert ExceedMaxMintableRound();
             }
         }
@@ -64,28 +89,28 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256 length = rewardInfo.activeRounds.length;
-        uint256[] memory activeRounds = rewardInfo.activeRounds;
+        RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
+        for (uint256 i; i < rewardCheckpoints.length; i++) {
+            uint256 length = rewardCheckpoints[i].activeRounds.length;
+            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
 
-        // enumerate all active rounds, not including current round
-        uint256 i = rewardInfo.daoCreatorClaimableRoundIndex;
-        for (; i < length;) {
-            // given a past active round, get round reward
-            uint256 checkpointIndex = _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, currentRound);
-            RewardStorage.RewardCheckpoint memory checkpoint = rewardInfo.rewardCheckpoints[checkpointIndex];
-            uint256 roundReward =
-                getRoundReward(daoId, activeRounds[i], i == 0 ? checkpoint.startRound : activeRounds[i - 1]);
-            // update protocol's claimable reward
-            protocolClaimableReward +=
-                roundReward * rewardInfo.protocolWeights[activeRounds[i]] / rewardInfo.totalWeights[activeRounds[i]];
-            // update dao creator's claimable reward
-            daoCreatorClaimableReward +=
-                roundReward * rewardInfo.daoCreatorWeights[activeRounds[i]] / rewardInfo.totalWeights[activeRounds[i]];
-            unchecked {
-                ++i;
+            // enumerate all active rounds, not including current round
+            uint256 j = rewardCheckpoints[i].daoCreatorClaimableRoundIndex;
+            for (; j < length;) {
+                // given a past active round, get round reward
+                uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
+                // update protocol's claimable reward
+                protocolClaimableReward +=
+                    roundReward * rewardInfo.protocolWeights[activeRounds[j]] / rewardInfo.totalWeights[activeRounds[j]];
+                // update dao creator's claimable reward
+                daoCreatorClaimableReward += roundReward * rewardInfo.daoCreatorWeights[activeRounds[j]]
+                    / rewardInfo.totalWeights[activeRounds[j]];
+                unchecked {
+                    ++j;
+                }
             }
+            rewardCheckpoints[i].daoCreatorClaimableRoundIndex = j;
         }
-        rewardInfo.daoCreatorClaimableRoundIndex = i;
 
         if (protocolClaimableReward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableReward);
         if (daoCreatorClaimableReward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableReward);
@@ -104,25 +129,25 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256 length = rewardInfo.activeRounds.length;
-        uint256[] memory activeRounds = rewardInfo.activeRounds;
+        RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
+        for (uint256 i; i < rewardCheckpoints.length; i++) {
+            uint256 length = rewardCheckpoints[i].activeRounds.length;
+            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
 
-        // enumerate all active rounds, not including current round
-        uint256 i = rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId];
-        for (; i < length;) {
-            // given a past active round, get round reward
-            uint256 checkpointIndex = _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, currentRound);
-            RewardStorage.RewardCheckpoint memory checkpoint = rewardInfo.rewardCheckpoints[checkpointIndex];
-            uint256 roundReward =
-                getRoundReward(daoId, activeRounds[i], i == 0 ? checkpoint.startRound : activeRounds[i - 1]);
-            // update dao creator's claimable reward
-            claimableReward += roundReward * rewardInfo.canvasCreatorWeights[activeRounds[i]][canvasId]
-                / rewardInfo.totalWeights[activeRounds[i]];
-            unchecked {
-                ++i;
+            // enumerate all active rounds, not including current round
+            uint256 j = rewardCheckpoints[i].canvasCreatorClaimableRoundIndexes[canvasId];
+            for (; j < length;) {
+                // given a past active round, get round reward
+                uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
+                // update dao creator's claimable reward
+                claimableReward += roundReward * rewardInfo.canvasCreatorWeights[activeRounds[j]][canvasId]
+                    / rewardInfo.totalWeights[activeRounds[j]];
+                unchecked {
+                    ++j;
+                }
             }
+            rewardCheckpoints[i].canvasCreatorClaimableRoundIndexes[canvasId] = j;
         }
-        rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId] = i;
 
         if (claimableReward > 0) D4AERC20(token).transfer(canvasCreator, claimableReward);
     }
@@ -139,25 +164,25 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256 length = rewardInfo.activeRounds.length;
-        uint256[] memory activeRounds = rewardInfo.activeRounds;
+        RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
+        for (uint256 i; i < rewardCheckpoints.length; i++) {
+            uint256 length = rewardCheckpoints[i].activeRounds.length;
+            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
 
-        // enumerate all active rounds, not including current round
-        uint256 i = rewardInfo.nftMinterClaimableRoundIndexes[nftMinter];
-        for (; i < length;) {
-            // given a past active round, get round reward
-            uint256 checkpointIndex = _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, currentRound);
-            RewardStorage.RewardCheckpoint memory checkpoint = rewardInfo.rewardCheckpoints[checkpointIndex];
-            uint256 roundReward =
-                getRoundReward(daoId, activeRounds[i], i == 0 ? checkpoint.startRound : activeRounds[i - 1]);
-            // update dao creator's claimable reward
-            claimableReward += roundReward * rewardInfo.nftMinterWeights[activeRounds[i]][nftMinter]
-                / rewardInfo.totalWeights[activeRounds[i]];
-            unchecked {
-                ++i;
+            // enumerate all active rounds, not including current round
+            uint256 j = rewardCheckpoints[i].nftMinterClaimableRoundIndexes[nftMinter];
+            for (; j < length;) {
+                // given a past active round, get round reward
+                uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
+                // update dao creator's claimable reward
+                claimableReward += roundReward * rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
+                    / rewardInfo.totalWeights[activeRounds[j]];
+                unchecked {
+                    ++j;
+                }
             }
+            rewardCheckpoints[i].nftMinterClaimableRoundIndexes[nftMinter] = j;
         }
-        rewardInfo.nftMinterClaimableRoundIndexes[nftMinter] = i;
 
         if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
     }
@@ -176,90 +201,46 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
 
         if (rewardInfo.rewardCheckpoints.length == 0) {
-            rewardInfo.rewardCheckpoints.push(
-                RewardStorage.RewardCheckpoint({
-                    startRound: daoInfo.startRound,
-                    totalRound: daoInfo.mintableRound,
-                    totalReward: daoInfo.tokenMaxSupply,
-                    decayFactor: rewardDecayFactor,
-                    decayLife: rewardDecayLife,
-                    isProgressiveJackpot: isProgressiveJackpot
-                })
-            );
+            rewardInfo.rewardCheckpoints.push();
+            rewardInfo.rewardCheckpoints[0].startRound = daoInfo.startRound;
+            rewardInfo.rewardCheckpoints[0].totalRound = daoInfo.mintableRound;
+            rewardInfo.rewardCheckpoints[0].totalReward = daoInfo.tokenMaxSupply;
+            rewardInfo.rewardCheckpoints[0].rewardDecayFactor = rewardDecayFactor;
+            rewardInfo.rewardCheckpoints[0].rewardDecayLife = rewardDecayLife;
+            rewardInfo.rewardCheckpoints[0].isProgressiveJackpot = isProgressiveJackpot;
+        } else if (rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].activeRounds.length == 0) {
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].startRound = daoInfo.startRound;
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalRound = daoInfo.mintableRound;
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalReward = daoInfo.tokenMaxSupply;
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayFactor = rewardDecayFactor;
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].rewardDecayLife = rewardDecayLife;
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].isProgressiveJackpot =
+                isProgressiveJackpot;
         } else {
             uint256 startRound = settingsStorage.drb.currentRound();
             RewardStorage.RewardCheckpoint storage rewardCheckpoint =
                 rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
             uint256 totalRound = rewardCheckpoint.totalRound - (startRound - rewardCheckpoint.startRound);
             uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
-            rewardInfo.rewardCheckpoints.push(
-                RewardStorage.RewardCheckpoint({
-                    startRound: startRound,
-                    totalRound: totalRound,
-                    totalReward: totalReward,
-                    decayFactor: rewardDecayFactor,
-                    decayLife: rewardDecayLife,
-                    isProgressiveJackpot: isProgressiveJackpot
-                })
-            );
+            rewardInfo.rewardCheckpoints.push();
+            uint256 length = rewardInfo.rewardCheckpoints.length;
+            rewardInfo.rewardCheckpoints[length - 1].startRound = startRound;
+            rewardInfo.rewardCheckpoints[length - 1].totalRound = totalRound;
+            rewardInfo.rewardCheckpoints[length - 1].totalReward = totalReward;
+            rewardInfo.rewardCheckpoints[length - 1].rewardDecayFactor = rewardDecayFactor;
+            rewardInfo.rewardCheckpoints[length - 1].rewardDecayLife = rewardDecayLife;
+            rewardInfo.rewardCheckpoints[length - 1].isProgressiveJackpot = isProgressiveJackpot;
         }
     }
 
     /**
-     * @dev calculate a sub-array of active rounds given start round and end round of a checkpoint
-     * @dev doesn't include sanity check, active rounds length equal to 0, startRound less than endRound
-     * @param activeRounds all active rounds of a DAO
-     * @param startRound start round of a checkpoint
-     * @param endRound end round of a checkpoint, either start round of the next checkpoint - 1, or current round
-     * @return activeRoundsOfCheckpoint active rounds of a specific checkpoint, greater than or equal to start round,
-     * less than or equal to end
-     * round
+     * @dev given an array of active rounds and a round, return the number of rounds below the round
      */
-    function getActiveRoundsOfCheckpoint(
-        uint256[] memory activeRounds,
-        uint256 startRound,
-        uint256 endRound
-    )
-        public
-        pure
-        returns (uint256[] memory activeRoundsOfCheckpoint)
-    {
-        if (activeRounds.length == 0) return activeRounds;
-
-        uint256 l;
-        uint256 r = activeRounds.length - 1;
-        uint256 mid;
-        while (l < r) {
-            mid = l + r >> 1;
-            if (activeRounds[mid] < startRound) l = mid + 1;
-            else r = mid;
-        }
-        uint256 startIndex = l;
-
-        l = 0;
-        r = activeRounds.length - 1;
-        while (l < r) {
-            mid = l + r + 1 >> 1;
-            if (activeRounds[mid] > endRound) r = mid - 1;
-            else l = mid;
-        }
-        uint256 endIndex = l;
-
-        /// @solidity memory-safe-assembly
-        assembly {
-            let offset := add(activeRounds, mul(startIndex, 0x20))
-            let length := sub(add(endIndex, 1), startIndex)
-            mstore(offset, length)
-            activeRoundsOfCheckpoint := offset // assign return value to remove unreachable code warning
-                // return(offset, mul(add(length, 1), 0x20))
-        }
-    }
-
-    /**
-     * @dev given an array of active rounds and a round, find the index of the round in the array
-     */
-    function getRoundIndex(uint256[] memory activeRounds, uint256 round) public pure returns (uint256 index) {
+    function _getBelowRoundCount(uint256[] memory activeRounds, uint256 round) public pure returns (uint256 index) {
         if (activeRounds.length == 0) return 0;
+        console2.log("------------------------------_getBelowRoundCount----------------------");
+        console2.log("round: %s", round);
+        console2.log("------------------------------_getBelowRoundCount----------------------");
 
         uint256 l;
         uint256 r = activeRounds.length - 1;
@@ -269,7 +250,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             if (activeRounds[mid] < round) l = mid + 1;
             else r = mid;
         }
-        return l;
+        return l == round ? l : l + 1;
     }
 
     /**
@@ -277,18 +258,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
      * calculate reward of the round
      * @param daoId DAO id
      * @param round a specific round
-     * @param lastActiveRound last active round relative to the specific round
      * @return rewardAmount reward amount of the round
      */
-    function getRoundReward(
-        bytes32 daoId,
-        uint256 round,
-        uint256 lastActiveRound
-    )
-        public
-        view
-        virtual
-        returns (uint256 rewardAmount);
+    function getRoundReward(bytes32 daoId, uint256 round) public view virtual returns (uint256 rewardAmount);
 
     function _updateRewardRoundAndIssue(
         RewardStorage.RewardInfo storage rewardInfo,
@@ -298,11 +270,29 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     )
         internal
     {
-        uint256 pendingRound = rewardInfo.rewardPendingRound;
-        if (currentRound > pendingRound) {
-            rewardInfo.activeRounds.push(pendingRound);
-            rewardInfo.rewardPendingRound = type(uint256).max;
-            _issueLastRoundReward(rewardInfo, daoId, token, pendingRound);
+        uint256[] storage activeRounds =
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].activeRounds;
+        // new checkpoint
+        if (activeRounds.length == 0) {
+            // has at least one old checkpoint
+            if (rewardInfo.rewardCheckpoints.length > 1) {
+                // last checkpoint's active rounds
+                uint256[] storage activeRoundsOfLastCheckpoint =
+                    rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
+                if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] != currentRound) {
+                    _issueLastRoundReward(
+                        daoId, token, activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1]
+                    );
+                }
+            }
+        }
+        // not new checkpoint
+        else {
+            if (activeRounds[activeRounds.length - 1] != currentRound) {
+                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound =
+                    activeRounds[activeRounds.length - 1];
+                _issueLastRoundReward(daoId, token, activeRounds[activeRounds.length - 1]);
+            }
         }
     }
 
@@ -330,31 +320,32 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         return length - 1;
     }
 
+    function _getLastActiveRound(
+        RewardStorage.RewardInfo storage rewardInfo,
+        uint256 round
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        for (uint256 i = rewardInfo.rewardCheckpoints.length; i >= 0; i--) {
+            if (
+                rewardInfo.rewardCheckpoints[i].lastActiveRound < round
+                    && rewardInfo.rewardCheckpoints[i].lastActiveRound != 0
+            ) {
+                return rewardInfo.rewardCheckpoints[i].lastActiveRound;
+            }
+        }
+        return rewardInfo.rewardCheckpoints[0].startRound - 1;
+    }
+
     /**
      * @dev Since this method is called when `_updateRewardRoundAndIssue` is called, which is called everytime when
      * `mint` or `claim reward`, we can assure that only one pending round reward is issued at a time
-     * @param rewardInfo reward info of a DAO
-     * @param pendingRound pending round of a DAO
      */
-    function _issueLastRoundReward(
-        RewardStorage.RewardInfo storage rewardInfo,
-        bytes32 daoId,
-        address token,
-        uint256 pendingRound
-    )
-        internal
-    {
-        uint256 activeRoundLength = rewardInfo.activeRounds.length;
+    function _issueLastRoundReward(bytes32 daoId, address token, uint256 pendingRound) internal {
         // get reward of the pending round
-        uint256 roundReward = getRoundReward(
-            daoId,
-            pendingRound,
-            activeRoundLength == 0
-                // if no active round, use the start round of the first checkpoint
-                ? rewardInfo.rewardCheckpoints[0].startRound
-                // otherwise, use the last active round
-                : rewardInfo.activeRounds[activeRoundLength - 1]
-        );
+        uint256 roundReward = getRoundReward(daoId, pendingRound);
         D4AERC20(token).mint(address(this), roundReward);
     }
 }

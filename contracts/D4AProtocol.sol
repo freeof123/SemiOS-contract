@@ -809,9 +809,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 // 9999 is specified for 0 floor price
                 PriceStorage.layout().daoFloorPrices[daoId] = l.daoFloorPrices[daoFloorPriceRank];
             }
-            // TODO: remove this to save gas? because impossible to mint NFT at round 0, or change prb such that it
-            // starts at round 1
-            RewardStorage.layout().rewardInfos[daoId].rewardPendingRound = type(uint256).max;
 
             daoInfo.daoExist = true;
             emit NewProject(daoId, daoUri, daoFeePool, daoInfo.token, daoInfo.nft, royaltyFeeRatioInBps);
