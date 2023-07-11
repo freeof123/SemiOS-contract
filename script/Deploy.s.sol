@@ -93,6 +93,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
 
+        // d4aProtocol_proxy.initialize();
+
         vm.stopBroadcast();
     }
 
