@@ -556,7 +556,6 @@ contract DeployHelper is Test {
         uint256 priceFactor;
         RewardTemplateType rewardTemplateType;
         uint256 rewardDecayFactor;
-        uint256 rewardDecayLife;
         bool isProgressiveJackpot;
         uint256 actionType;
     }
@@ -601,7 +600,6 @@ contract DeployHelper is Test {
                 priceFactor: createDaoParam.priceFactor,
                 rewardTemplateType: createDaoParam.rewardTemplateType,
                 rewardDecayFactor: createDaoParam.rewardDecayFactor,
-                rewardDecayLife: createDaoParam.rewardDecayLife,
                 isProgressiveJackpot: createDaoParam.isProgressiveJackpot
             }),
             createDaoParam.actionType
@@ -637,7 +635,6 @@ contract DeployHelper is Test {
         createDaoParam.priceFactor = 20_000;
         createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
-        createDaoParam.rewardDecayLife = 1;
         daoId = _createDao(createDaoParam);
     }
 
@@ -679,7 +676,6 @@ contract DeployHelper is Test {
         createDaoParam.priceFactor = 20_000;
         createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
         createDaoParam.rewardDecayFactor = 0;
-        createDaoParam.rewardDecayLife = 1;
         daoId = _createDao(createDaoParam);
     }
 }

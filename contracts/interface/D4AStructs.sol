@@ -46,7 +46,6 @@ struct TemplateParam {
     uint256 priceFactor;
     RewardTemplateType rewardTemplateType;
     uint256 rewardDecayFactor;
-    uint256 rewardDecayLife;
     bool isProgressiveJackpot;
 }
 

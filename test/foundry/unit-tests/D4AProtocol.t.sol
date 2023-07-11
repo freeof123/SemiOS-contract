@@ -212,7 +212,7 @@ contract D4AProtocolTest is DeployHelper {
             protocol.mintNFT{ value: mintPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );
-            drb.changeRound(i + 1);
+            drb.changeRound(i + 2);
         }
 
         {
@@ -246,7 +246,7 @@ contract D4AProtocolTest is DeployHelper {
             protocol.mintNFT{ value: mintPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );
-            drb.changeRound(i + 1);
+            drb.changeRound(i + 2);
         }
 
         {

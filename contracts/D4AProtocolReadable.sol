@@ -243,37 +243,12 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].totalReward;
     }
 
-    function getDaoRewardDecayFactor(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 rewardDecayFactor)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].rewardDecayFactor;
+    function getDaoRewardDecayFactor(bytes32 daoId) external view returns (uint256 rewardDecayFactor) {
+        return RewardStorage.layout().rewardInfos[daoId].rewardDecayFactor;
     }
 
-    function getDaoRewardDecayLife(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 rewardDecayLife)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].rewardDecayLife;
-    }
-
-    function getDaoRewardIsProgressiveJackpot(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (bool isProgressiveJackpot)
-    {
-        return RewardStorage.layout().rewardInfos[daoId].rewardCheckpoints[rewardCheckpointIndex].isProgressiveJackpot;
+    function getDaoRewardIsProgressiveJackpot(bytes32 daoId) external view returns (bool isProgressiveJackpot) {
+        return RewardStorage.layout().rewardInfos[daoId].isProgressiveJackpot;
     }
 
     function getDaoRewardLastActiveRound(
@@ -423,20 +398,6 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
 
         bool succ;
         bytes memory data;
-        // uint256 lastActiveRound;
-        // if (rewardInfo.activeRounds.length == 0) {
-        //     lastActiveRound = rewardInfo.rewardCheckpoints[0].startRound - 1;
-        // } else {
-        //     (succ, data) = rewardTemplate.delegatecall(
-        //         abi.encodeWithSelector(IRewardTemplate.getRoundIndex.selector, rewardInfo.activeRounds, round)
-        //     );
-        //     require(succ);
-        //     uint256 roundIndex = abi.decode(data, (uint256));
-
-        //     lastActiveRound = roundIndex == 0
-        //         ? rewardInfo.rewardCheckpoints[0].startRound - 1
-        //         : rewardInfo.activeRounds[roundIndex - 1];
-        // }
 
         (succ, data) =
             rewardTemplate.delegatecall(abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round));

@@ -36,14 +36,7 @@ interface IRewardTemplate {
         external
         returns (uint256 claimableReward);
 
-    function setRewardCheckpoint(
-        bytes32 daoId,
-        uint256 rewardDecayFactor,
-        uint256 rewardDecayLife,
-        bool isProgressiveJackpot
-    )
-        external
-        payable;
+    function setRewardCheckpoint(bytes32 daoId, int256 mintableRoundDelta) external payable;
 
     function getRoundReward(bytes32 daoId, uint256 round) external view returns (uint256 rewardAmount);
 }

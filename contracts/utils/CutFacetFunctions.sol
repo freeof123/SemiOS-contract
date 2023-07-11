@@ -117,7 +117,6 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardTotalRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTotalReward.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardDecayFactor.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardDecayLife.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardIsProgressiveJackpot.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardLastActiveRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardActiveRounds.selector;

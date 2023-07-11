@@ -6,9 +6,6 @@ library RewardStorage {
         uint256 startRound;
         uint256 totalRound;
         uint256 totalReward;
-        uint256 rewardDecayFactor;
-        uint256 rewardDecayLife;
-        bool isProgressiveJackpot;
         uint256 lastActiveRound;
         uint256[] activeRounds;
         // claimable round index
@@ -19,6 +16,9 @@ library RewardStorage {
 
     struct RewardInfo {
         RewardCheckpoint[] rewardCheckpoints;
+        uint256 rewardIssuePendingRound;
+        uint256 rewardDecayFactor;
+        bool isProgressiveJackpot;
         // weights
         mapping(uint256 round => uint256 totalWeight) totalWeights; // also total ETH in DAO fee pool at given round
         mapping(uint256 round => uint256 weight) protocolWeights;

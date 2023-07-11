@@ -23,7 +23,7 @@ contract D4ARoyaltySplitterTest is DeployHelper {
         protocolShare = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
 
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri");
 
         splitter = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId)));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);

@@ -20,7 +20,7 @@ contract CreateDaoTest is DeployHelper {
 
     function test_createDao_With_zero_floor_price() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 9999, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 9999, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -77,7 +77,6 @@ contract CreateDaoTest is DeployHelper {
                 priceFactor: 0.5 ether,
                 rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
                 rewardDecayFactor: 15_000,
-                rewardDecayLife: 3,
                 isProgressiveJackpot: true
             }),
             0x1 | 0x2 | 0x4 | 0x8 | 0x10
@@ -96,7 +95,8 @@ contract CreateDaoTest is DeployHelper {
         assertEq(ID4AProtocolReadable(address(protocol)).getDaoNftMaxSupply(daoId), 1000);
         assertEq(ID4AProtocolReadable(address(protocol)).getDaoNftTotalSupply(daoId), 0);
         assertEq(ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeRatioInBps(daoId), 950);
-        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 113_071_951_744_937_526_928_048_255);
+        assertTrue(ID4AProtocolReadable(address(protocol)).getDaoRewardIsProgressiveJackpot(daoId));
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 333_335_071_707_416_068_263_145_206);
         assertEq(
             ID4AProtocolReadable(address(protocol)).getDaoPriceTemplate(daoId),
             ID4ASettingsReadable(address(protocol)).getPriceTemplates()[1]
@@ -151,7 +151,6 @@ contract CreateDaoTest is DeployHelper {
                 priceFactor: 20_000,
                 rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
                 rewardDecayFactor: 0,
-                rewardDecayLife: 1,
                 isProgressiveJackpot: false
             }),
             0
