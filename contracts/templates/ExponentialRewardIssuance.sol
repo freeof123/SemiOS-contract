@@ -8,8 +8,6 @@ import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { BASIS_POINT, RewardTemplateBase } from "./bases/RewardTemplateBase.sol";
 
-import "forge-std/Test.sol";
-
 contract ExponentialRewardIssuance is RewardTemplateBase {
     /**
      * @dev denote decay factor to be `k`, reward per round to be x,
@@ -21,10 +19,8 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         uint256 rewardCheckpointIndex = _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, round);
         RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[rewardCheckpointIndex];
-        if (round >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound) revert ExceedMaxMintableRound();
 
         if (!rewardInfo.isProgressiveJackpot) {
-            console2.log("0");
             // kn is 27 decimal for now
             uint256 oneOverKn =
                 MathMate.rpow(1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, rewardCheckpoint.totalRound, 1e27);
@@ -38,11 +34,11 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                 ) / 1e27;
             return rewardAmount;
         } else {
-            console2.log("here");
+            if (round >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound) revert ExceedMaxMintableRound();
+
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, round);
             // no active rounds before
             if (lastActiveRound == 0) {
-                console2.log("here 1");
                 for (uint256 i; i < rewardInfo.rewardCheckpoints.length - 1; ++i) {
                     rewardAmount += rewardInfo.rewardCheckpoints[i].totalReward;
                 }
@@ -50,24 +46,19 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                 // kn is 27 decimal for now
                 uint256 oneOverKn =
                     MathMate.rpow(1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, rewardCheckpoint.totalRound, 1e27);
-                console2.log("oneOverKn", oneOverKn);
                 uint256 beginReward = rewardCheckpoint.totalReward
                     * (1e27 - 1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor) / (1e27 - oneOverKn);
-                console2.log("beginReward", beginReward);
                 // denote period number to be `n`, begin claimable reward to be `x`, then
                 // `x + x / k + ... + x / k ^ (n - 1) = x * (1 - (1 / k) ^ n) / (1 - 1 / k)`
                 oneOverKn = MathMate.rpow(
-                    1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, round - rewardCheckpoint.startRound + 1, 1e27
+                    1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, round + 1 - rewardCheckpoint.startRound, 1e27
                 );
-                console2.log("oneOverKn", oneOverKn);
                 rewardAmount +=
                     beginReward * (1e27 - oneOverKn) / (1e27 - 1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor);
-                console2.log("rewardAmount", rewardAmount);
                 return rewardAmount;
             }
             // round is at current reward checkpoint
             else if (rewardCheckpoint.lastActiveRound == lastActiveRound) {
-                console2.log("here 2");
                 uint256 oneOverKn =
                     MathMate.rpow(1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, rewardCheckpoint.totalRound, 1e27);
                 uint256 beginReward = rewardCheckpoint.totalReward
@@ -84,7 +75,6 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
             }
             // need to iterate over all reward checkpoints from last active round to given round
             else {
-                console2.log("here 3");
                 uint256 rewardCheckpointIndexOfLastActiveRound =
                     _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, lastActiveRound);
                 {

@@ -77,13 +77,13 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
         protocolShare = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
 
         hoax(daoCreator.addr);
-        daoId1 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri1");
+        daoId1 = _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri1");
 
         splitter1 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId1)));
         daoFeePool1 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId1);
 
         hoax(daoCreator.addr);
-        daoId2 = _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri2");
+        daoId2 = _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri2");
 
         splitter2 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId2)));
         daoFeePool2 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId2);
@@ -211,7 +211,7 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
 
     function test_performUpkeep_OnlySomeSplittersNeedToPerformUpkeep() public {
         hoax(daoCreator.addr);
-        _createTrivialDao(0, 30, 0, 0, royaltyFee, "test project uri 3");
+        _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri 3");
 
         address[] memory tokens = new address[](2);
         tokens[0] = address(_testERC20);

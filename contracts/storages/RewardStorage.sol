@@ -16,6 +16,7 @@ library RewardStorage {
 
     struct RewardInfo {
         RewardCheckpoint[] rewardCheckpoints;
+        uint256 rewardIssuePendingRound;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
         // weights

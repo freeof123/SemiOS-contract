@@ -514,7 +514,7 @@ contract GetRoundRewardTest is DeployHelper {
                 1,
                 string.concat("round ", vm.toString(j))
             );
-            for (uint256 i = j + 1; i < j + 11; i++) {
+            for (uint256 i = j + 1; i < j + 11 && i < 31; i++) {
                 assertApproxEqAbs(
                     ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, i),
                     temp * Math.rpow(uint256(1e27) * 10_000 / 15_000, j - 2, 1e27) / 1e27 * 10_000 / 15_000,

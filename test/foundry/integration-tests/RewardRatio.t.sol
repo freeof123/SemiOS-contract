@@ -38,7 +38,7 @@ contract RewardRatioTest is DeployHelper {
         sigUtils = new MintNftSigUtils(address(protocol));
 
         startHoax(daoCreator.addr);
-        daoId = _createTrivialDao(0, 50, 0, 0, 750, "test dao uri");
+        daoId = _createTrivialDao(1, 50, 0, 0, 750, "test dao uri");
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
 
@@ -213,7 +213,7 @@ contract RewardRatioTest is DeployHelper {
             daoId, canvasId2, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
 
-        drb.changeRound(1);
+        drb.changeRound(2);
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
         protocol.claimCanvasReward(canvasId2);
@@ -326,7 +326,7 @@ contract RewardRatioTest is DeployHelper {
         uint256 daoFeePoolETH = 10 ether;
         deal(daoFeePool, daoFeePoolETH);
 
-        drb.changeRound(1);
+        drb.changeRound(2);
         startHoax(daoCreator.addr, 0);
         protocol.claimProjectERC20Reward(daoId);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
@@ -557,7 +557,7 @@ contract RewardRatioTest is DeployHelper {
             );
         }
 
-        drb.changeRound(1);
+        drb.changeRound(2);
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
         protocol.claimCanvasReward(canvasId2);
@@ -700,7 +700,7 @@ contract RewardRatioTest is DeployHelper {
         uint256 daoFeePoolETH = 10 ether;
         deal(daoFeePool, daoFeePoolETH);
 
-        drb.changeRound(1);
+        drb.changeRound(2);
         startHoax(daoCreator.addr, 0);
         protocol.claimProjectERC20Reward(daoId);
         protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);

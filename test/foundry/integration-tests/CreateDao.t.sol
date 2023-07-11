@@ -20,7 +20,7 @@ contract CreateDaoTest is DeployHelper {
 
     function test_createDao_With_zero_floor_price() public {
         hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(0, 30, 9999, 0, 750, "test project uri");
+        bytes32 daoId = _createTrivialDao(1, 30, 9999, 0, 750, "test project uri");
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -96,7 +96,7 @@ contract CreateDaoTest is DeployHelper {
         assertEq(ID4AProtocolReadable(address(protocol)).getDaoNftTotalSupply(daoId), 0);
         assertEq(ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeRatioInBps(daoId), 950);
         assertTrue(ID4AProtocolReadable(address(protocol)).getDaoRewardIsProgressiveJackpot(daoId));
-        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 113_071_951_744_937_526_928_048_255);
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 333_335_071_707_416_068_263_145_206);
         assertEq(
             ID4AProtocolReadable(address(protocol)).getDaoPriceTemplate(daoId),
             ID4ASettingsReadable(address(protocol)).getPriceTemplates()[1]

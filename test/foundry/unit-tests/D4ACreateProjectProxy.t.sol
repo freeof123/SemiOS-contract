@@ -135,7 +135,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
         }
         bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
-                startDrb: 0,
+                startDrb: 1,
                 mintableRounds: 30,
                 floorPriceRank: 0,
                 maxNftRank: 0,
@@ -192,7 +192,7 @@ contract D4ACreateProjectProxyTest is DeployHelper {
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
             DaoMetadataParam({
-                startDrb: 0,
+                startDrb: 1,
                 mintableRounds: 30,
                 floorPriceRank: 0,
                 maxNftRank: 0,

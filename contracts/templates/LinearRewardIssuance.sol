@@ -17,11 +17,12 @@ contract LinearRewardIssuance is RewardTemplateBase {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         uint256 rewardCheckpointIndex = _getRewardCheckpointIndexByRound(rewardInfo.rewardCheckpoints, round);
         RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[rewardCheckpointIndex];
-        if (round >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound) revert ExceedMaxMintableRound();
 
         if (!rewardInfo.isProgressiveJackpot) {
             rewardAmount = rewardCheckpoint.totalReward / rewardCheckpoint.totalRound;
         } else {
+            if (round >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound) revert ExceedMaxMintableRound();
+
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, round);
             // no active rounds before
             if (lastActiveRound == 0) {

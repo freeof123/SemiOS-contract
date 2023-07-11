@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { FixedPointMathLib as Math } from "solady/utils/FixedPointMathLib.sol";
+import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
@@ -95,10 +96,15 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         if (newMintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        uint256 oldMintableRound = daoInfo.mintableRound;
         daoInfo.mintableRound = newMintableRound;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId)
+            abi.encodeWithSelector(
+                IRewardTemplate.setRewardCheckpoint.selector,
+                daoId,
+                SafeCastLib.toInt256(newMintableRound) - SafeCastLib.toInt256(oldMintableRound)
+            )
         );
         require(succ);
 
@@ -141,7 +147,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0)
         );
         require(succ);
 
