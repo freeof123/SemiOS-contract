@@ -396,12 +396,15 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         address rewardTemplate =
             SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
 
-        bool succ;
-        bytes memory data;
-
-        (succ, data) =
+        (bool succ, bytes memory data) =
             rewardTemplate.delegatecall(abi.encodeWithSelector(IRewardTemplate.getRoundReward.selector, daoId, round));
-        require(succ);
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
         return abi.decode(data, (uint256));
     }
 
