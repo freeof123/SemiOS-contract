@@ -29,8 +29,8 @@ contract LinearRewardIssuance is RewardTemplateBase {
                 for (uint256 i; i < rewardInfo.rewardCheckpoints.length - 1; ++i) {
                     rewardAmount += rewardInfo.rewardCheckpoints[i].totalReward;
                 }
-                rewardAmount +=
-                    rewardCheckpoint.totalReward / rewardCheckpoint.totalRound * (round - rewardCheckpoint.startRound);
+                rewardAmount += rewardCheckpoint.totalReward / rewardCheckpoint.totalRound
+                    * (round + 1 - rewardCheckpoint.startRound);
                 return rewardAmount;
             }
             // round is at current reward checkpoint
