@@ -89,6 +89,16 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
+        {
+            uint256 length = rewardInfo.rewardCheckpoints.length;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
+            if (
+                rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.activeRounds[rewardCheckpoint.daoCreatorClaimableRoundIndex] == currentRound
+            ) return (0, 0);
+        }
+
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
@@ -129,6 +139,17 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
+        {
+            uint256 length = rewardInfo.rewardCheckpoints.length;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
+            if (
+                rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.activeRounds[rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId]]
+                        == currentRound
+            ) return (0);
+        }
+
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
@@ -164,6 +185,17 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
+        {
+            uint256 length = rewardInfo.rewardCheckpoints.length;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
+            if (
+                rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.activeRounds[rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter]]
+                        == currentRound
+            ) return (0);
+        }
+
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
@@ -262,22 +294,6 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     {
         uint256[] storage activeRounds =
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].activeRounds;
-        // if (activeRounds.length == 0 && rewardInfo.rewardCheckpoints.length > 1) {
-        //     uint256[] storage activeRoundsOfLastCheckpoint =
-        //         rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
-        //     if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] == currentRound) return;
-        //     _issueLastRoundReward(daoId, token, activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length -
-        // 1]);
-        // }
-        // if (activeRounds.length != 0 && activeRounds[activeRounds.length - 1] == currentRound) return;
-
-        // if (activeRounds[activeRounds.length - 1] != currentRound) {
-        //     rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound =
-        //         activeRounds[activeRounds.length - 1];
-        //     _issueLastRoundReward(
-        //         daoId, token, rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].lastActiveRound
-        //     );
-        // }
 
         // new checkpoint
         if (activeRounds.length == 0) {
