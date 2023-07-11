@@ -726,12 +726,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 rebateAmount = canvasFee * canvasRebateRatioInBps / BASIS_POINT;
         canvasFee -= rebateAmount;
         if (msg.value < price - rebateAmount) revert NotEnoughEther();
-        uint256 exchange = msg.value - price + rebateAmount;
+        uint256 dust = msg.value + rebateAmount - price;
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(protocolFeePool, protocolFee);
         if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
         if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
-        if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
+        if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
     }
 
     function _createProject(
