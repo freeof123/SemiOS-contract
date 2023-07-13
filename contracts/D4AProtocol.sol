@@ -222,7 +222,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         return _batchMint(daoId, canvasId, mintNftInfos);
     }
 
-    function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256) {
+    function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256 daoCreatorReward) {
         _checkPauseStatus();
         _checkPauseStatus(daoId);
         _checkDaoExist(daoId);
@@ -240,11 +240,9 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             )
         );
         require(succ);
-        uint256 amount = abi.decode(data, (uint256));
+        (, daoCreatorReward) = abi.decode(data, (uint256, uint256));
 
-        emit D4AClaimProjectERC20Reward(daoId, daoInfo.token, amount);
-
-        return amount;
+        emit D4AClaimProjectERC20Reward(daoId, daoInfo.token, daoCreatorReward);
     }
 
     function claimCanvasReward(bytes32 canvasId) public nonReentrant returns (uint256) {
