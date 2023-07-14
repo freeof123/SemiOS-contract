@@ -70,6 +70,8 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                         1e27
                     ) / 1e27;
                 // rewardAmount = x * (1 - 1 / k ^ n) / (k - 1)
+                oneOverKn =
+                    MathMate.rpow(1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, round - lastActiveRound, 1e27);
                 return lastActiveRoundReward * (1e27 - oneOverKn)
                     / (1e27 * rewardInfo.rewardDecayFactor / BASIS_POINT - 1e27);
             }
