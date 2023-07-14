@@ -68,7 +68,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         setDaoNftMaxSupply(daoId, l.nftMaxSupplies[nftMaxSupplyRank]);
         setDaoMintableRound(daoId, l.mintableRounds[mintableRoundRank]);
-        setDaoFloorPrice(daoId, l.daoFloorPrices[daoFloorPriceRank]);
+        setDaoFloorPrice(daoId, daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[daoFloorPriceRank]);
         setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
         setRatio(
             daoId,
