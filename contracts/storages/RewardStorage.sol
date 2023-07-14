@@ -6,7 +6,7 @@ library RewardStorage {
         uint256 startRound;
         uint256 totalRound;
         uint256 totalReward;
-        uint256 lastActiveRound;
+        uint256 lastActiveRound; // deprecated
         uint256[] activeRounds;
         // claimable round index
         uint256 daoCreatorClaimableRoundIndex;

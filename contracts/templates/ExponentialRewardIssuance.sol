@@ -58,7 +58,7 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                 return rewardAmount;
             }
             // round is at current reward checkpoint
-            else if (rewardCheckpoint.lastActiveRound == lastActiveRound) {
+            else if (lastActiveRound >= rewardCheckpoint.startRound) {
                 uint256 oneOverKn =
                     MathMate.rpow(1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, rewardCheckpoint.totalRound, 1e27);
                 uint256 beginReward = rewardCheckpoint.totalReward

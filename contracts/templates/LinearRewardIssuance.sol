@@ -34,7 +34,7 @@ contract LinearRewardIssuance is RewardTemplateBase {
                 return rewardAmount;
             }
             // round is at current reward checkpoint
-            else if (rewardCheckpoint.lastActiveRound == lastActiveRound) {
+            else if (lastActiveRound >= rewardCheckpoint.startRound) {
                 rewardAmount = (round - lastActiveRound) * rewardCheckpoint.totalReward / rewardCheckpoint.totalRound;
                 return rewardAmount;
             }
