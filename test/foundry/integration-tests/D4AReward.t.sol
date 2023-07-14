@@ -7,7 +7,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ID4ASettingsReadable, DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
-import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
+import "contracts/interface/D4AConstants.sol";
+import "contracts/interface/D4AStructs.sol";
+import "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 contract D4ARewardTest is DeployHelper {
@@ -293,5 +295,165 @@ contract D4ARewardTest is DeployHelper {
         );
         assertApproxEqAbs(token.balanceOf(address(protocol)), 0, 10, "protocol");
         assertApproxEqAbs(token.totalSupply(), 1e9 * 1e18, 10, "total supply");
+    }
+
+    function test_Reward_amount() public {
+        drb.changeRound(1);
+        hoax(daoCreator.addr);
+        daoId = daoProxy.createProject{ value: 0.1 ether }(
+            DaoMetadataParam({
+                startDrb: 1,
+                mintableRounds: mintableRound,
+                floorPriceRank: 0,
+                maxNftRank: 0,
+                royaltyFee: 750,
+                projectUri: "test dao uri",
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: bytes32(0),
+                minterNFTHolderPasses: new address[](0),
+                canvasCreatorMerkleRoot: bytes32(0),
+                canvasCreatorNFTHolderPasses: new address[](0)
+            }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 1900,
+                canvasCreatorERC20Ratio: 4000,
+                nftMinterERC20Ratio: 3900,
+                daoFeePoolETHRatio: 3000,
+                daoFeePoolETHRatioFlatPrice: 3500
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
+                rewardDecayFactor: 12_600,
+                isProgressiveJackpot: true
+            }),
+            16
+        );
+        drb.changeRound(1);
+        hoax(canvasCreator.addr);
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);
+
+        {
+            drb.changeRound(2);
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1) }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        {
+            drb.changeRound(23);
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1) }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        drb.changeRound(24);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        uint256 totalReward = ID4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 23);
+        token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
+        assertApproxEqAbs(
+            token.balanceOf(protocolFeePool.addr), totalReward * 200 / BASIS_POINT, 1, "protocol fee pool"
+        );
+        assertEq(token.balanceOf(daoCreator.addr), totalReward * 1900 / BASIS_POINT, "dao creator");
+        assertApproxEqAbs(token.balanceOf(canvasCreator.addr), totalReward * 4390 / BASIS_POINT, 1, "canvas creator");
+        assertApproxEqAbs(token.balanceOf(nftMinter.addr), totalReward * 3510 / BASIS_POINT, 1, "nft minter");
+    }
+
+    function test_claim_partial_reward_when_current_round_have_mint() public {
+        drb.changeRound(1);
+        hoax(daoCreator.addr);
+        daoId = daoProxy.createProject{ value: 0.1 ether }(
+            DaoMetadataParam({
+                startDrb: 1,
+                mintableRounds: mintableRound,
+                floorPriceRank: 0,
+                maxNftRank: 0,
+                royaltyFee: 750,
+                projectUri: "test dao uri",
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: bytes32(0),
+                minterNFTHolderPasses: new address[](0),
+                canvasCreatorMerkleRoot: bytes32(0),
+                canvasCreatorNFTHolderPasses: new address[](0)
+            }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 1900,
+                canvasCreatorERC20Ratio: 4000,
+                nftMinterERC20Ratio: 3900,
+                daoFeePoolETHRatio: 3000,
+                daoFeePoolETHRatioFlatPrice: 3500
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
+                rewardDecayFactor: 12_600,
+                isProgressiveJackpot: true
+            }),
+            16
+        );
+        drb.changeRound(1);
+        hoax(canvasCreator.addr);
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);
+
+        {
+            drb.changeRound(2);
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1) }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        {
+            drb.changeRound(23);
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1) }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        // drb.changeRound(24);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        uint256 totalReward = ID4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2);
+        token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
+        assertEq(token.balanceOf(protocolFeePool.addr), totalReward * 200 / BASIS_POINT, "protocol fee pool");
+        assertEq(token.balanceOf(daoCreator.addr), totalReward * 1900 / BASIS_POINT, "dao creator");
+        assertEq(token.balanceOf(canvasCreator.addr), totalReward * 4390 / BASIS_POINT, "canvas creator");
+        assertEq(token.balanceOf(nftMinter.addr), totalReward * 3510 / BASIS_POINT, "nft minter");
     }
 }
