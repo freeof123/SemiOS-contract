@@ -39,7 +39,7 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, round);
             // no active rounds before
             if (lastActiveRound == 0) {
-                for (uint256 i; i < rewardInfo.rewardCheckpoints.length - 1; ++i) {
+                for (uint256 i; i < rewardCheckpointIndex; ++i) {
                     rewardAmount += rewardInfo.rewardCheckpoints[i].totalReward;
                 }
                 // calculate last checkpoint's reward amount

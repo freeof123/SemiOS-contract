@@ -236,13 +236,14 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalRound = daoInfo.mintableRound;
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalReward = daoInfo.tokenMaxSupply;
         } else {
-            // new checkpoint start at current round
-            uint256 startRound = settingsStorage.drb.currentRound();
+            // new checkpoint start at current round + 1
+            uint256 currentRound = settingsStorage.drb.currentRound();
             RewardStorage.RewardCheckpoint storage rewardCheckpoint =
                 rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
-            uint256 totalRound = rewardCheckpoint.totalRound - (startRound - rewardCheckpoint.startRound);
+            uint256 totalRound = rewardCheckpoint.totalRound - (currentRound + 1 - rewardCheckpoint.startRound);
             _issueLastRoundReward(rewardInfo, daoId, daoInfo.token);
             uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
+            if (rewardInfo.isProgressiveJackpot) totalReward -= getRoundReward(daoId, currentRound);
 
             // modify old checkpoint
             rewardCheckpoint.totalRound -= totalRound;
@@ -251,7 +252,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             // set new checkpoint
             rewardInfo.rewardCheckpoints.push();
             uint256 length = rewardInfo.rewardCheckpoints.length;
-            rewardInfo.rewardCheckpoints[length - 1].startRound = startRound;
+            rewardInfo.rewardCheckpoints[length - 1].startRound = currentRound + 1;
             rewardInfo.rewardCheckpoints[length - 1].totalRound =
                 SafeCast.toUint256(SafeCastLib.toInt256(totalRound) + mintableRoundDelta);
             rewardInfo.rewardCheckpoints[length - 1].totalReward = totalReward;
