@@ -24,3 +24,5 @@ lcov*
 deployed-contracts-info
 
 docs/
+
+Error.t.sol
