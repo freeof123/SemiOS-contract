@@ -25,7 +25,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
         uint256 length = activeRounds.length;
         if (rewardInfo.isProgressiveJackpot) {
-            if (length != 0 && activeRounds[length - 1] - param.startRound > param.totalRound) {
+            if (param.currentRound - param.startRound >= param.totalRound) {
                 revert ExceedMaxMintableRound();
             }
         } else {
