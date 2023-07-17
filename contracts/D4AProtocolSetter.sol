@@ -90,12 +90,14 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (daoInfo.mintableRound == newMintableRound) return;
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
         if (newMintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
 
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 oldMintableRound = daoInfo.mintableRound;
         daoInfo.mintableRound = newMintableRound;
 
@@ -112,12 +114,14 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public {
+        PriceStorage.Layout storage priceStorage = PriceStorage.layout();
+        if (priceStorage.daoFloorPrices[daoId] == newFloorPrice) return;
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
         bytes32[] memory canvases = DaoStorage.layout().daoInfos[daoId].canvases;
         uint256 length = canvases.length;
-        PriceStorage.Layout storage priceStorage = PriceStorage.layout();
         for (uint256 i; i < length;) {
             uint256 canvasNextPrice = D4AProtocolReadable(address(this)).getCanvasNextPrice(canvases[i]);
             if (canvasNextPrice >= newFloorPrice) {
