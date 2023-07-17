@@ -100,7 +100,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         RewardStorage.RewardCheckpoint storage rewardCheckpoint =
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
         if (
-            l.drb.currentRound() - rewardCheckpoint.startRound >= rewardCheckpoint.totalRound
+            l.drb.currentRound() >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound
                 || newMintableRound > l.maxMintableRound
         ) revert ExceedMaxMintableRound();
 
