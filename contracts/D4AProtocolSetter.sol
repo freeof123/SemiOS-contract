@@ -96,7 +96,13 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        if (newMintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        RewardStorage.RewardCheckpoint storage rewardCheckpoint =
+            rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
+        if (
+            l.drb.currentRound() - rewardCheckpoint.startRound >= rewardCheckpoint.totalRound
+                || newMintableRound > l.maxMintableRound
+        ) revert ExceedMaxMintableRound();
 
         uint256 oldMintableRound = daoInfo.mintableRound;
         daoInfo.mintableRound = newMintableRound;
