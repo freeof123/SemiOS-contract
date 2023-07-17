@@ -280,4 +280,11 @@ contract D4AProtocolTest is DeployHelper {
             );
         }
     }
+
+    function test_createCanvas_ExpectEmit_CanvasRebateRatioInBpsSet() public {
+        vm.expectEmit(false, false, false, true, address(protocol));
+        emit CanvasRebateRatioInBpsSet(canvasId, 0);
+        startHoax(canvasCreator.addr);
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2 ", new bytes32[](0), 0);
+    }
 }

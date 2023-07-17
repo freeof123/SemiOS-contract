@@ -163,14 +163,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
 
-        if (canvasRebateRatioInBps != 0) {
-            (bool succ,) = address(this).delegatecall(
-                abi.encodeWithSelector(
-                    ID4AProtocolSetter.setCanvasRebateRatioInBps.selector, canvasId, canvasRebateRatioInBps
-                )
-            );
-            require(succ);
-        }
+        (bool succ,) = address(this).delegatecall(
+            abi.encodeWithSelector(
+                ID4AProtocolSetter.setCanvasRebateRatioInBps.selector, canvasId, canvasRebateRatioInBps
+            )
+        );
+        require(succ);
 
         return canvasId;
     }
