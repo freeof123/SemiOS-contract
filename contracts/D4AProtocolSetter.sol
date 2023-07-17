@@ -13,10 +13,10 @@ import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
-
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
@@ -115,7 +115,25 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
-        PriceStorage.layout().daoFloorPrices[daoId] = newFloorPrice;
+        bytes32[] memory canvases = DaoStorage.layout().daoInfos[daoId].canvases;
+        uint256 length = canvases.length;
+        bool flag = true;
+        for (uint256 i; i < length;) {
+            if (D4AProtocolReadable(address(this)).getCanvasNextPrice(canvases[i]) >= newFloorPrice) {
+                flag = false;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        PriceStorage.Layout storage priceStorage = PriceStorage.layout();
+        if (flag) {
+            priceStorage.daoMaxPrices[daoId] =
+                PriceStorage.MintInfo({ round: l.drb.currentRound(), price: newFloorPrice });
+        }
+        priceStorage.daoFloorPrices[daoId] = newFloorPrice;
 
         emit DaoFloorPriceSet(daoId, newFloorPrice);
     }
