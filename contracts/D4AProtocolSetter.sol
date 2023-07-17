@@ -117,22 +117,19 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         bytes32[] memory canvases = DaoStorage.layout().daoInfos[daoId].canvases;
         uint256 length = canvases.length;
-        bool flag = true;
+        PriceStorage.Layout storage priceStorage = PriceStorage.layout();
         for (uint256 i; i < length;) {
-            if (D4AProtocolReadable(address(this)).getCanvasNextPrice(canvases[i]) >= newFloorPrice) {
-                flag = false;
-                break;
+            uint256 canvasNextPrice = D4AProtocolReadable(address(this)).getCanvasNextPrice(canvases[i]);
+            if (canvasNextPrice >= newFloorPrice) {
+                priceStorage.canvasLastMintInfos[canvases[i]] =
+                    PriceStorage.MintInfo({ round: l.drb.currentRound(), price: canvasNextPrice / 2 });
             }
             unchecked {
                 ++i;
             }
         }
 
-        PriceStorage.Layout storage priceStorage = PriceStorage.layout();
-        if (flag) {
-            priceStorage.daoMaxPrices[daoId] =
-                PriceStorage.MintInfo({ round: l.drb.currentRound(), price: newFloorPrice });
-        }
+        priceStorage.daoMaxPrices[daoId] = PriceStorage.MintInfo({ round: l.drb.currentRound(), price: newFloorPrice });
         priceStorage.daoFloorPrices[daoId] = newFloorPrice;
 
         emit DaoFloorPriceSet(daoId, newFloorPrice);
