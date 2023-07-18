@@ -206,17 +206,17 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         nonReentrant
         returns (uint256[] memory)
     {
-        uint32 length = uint32(mintNftInfos.length);
+        uint256 length = mintNftInfos.length;
         {
             _checkMintEligibility(daoId, msg.sender, proof, length);
-            for (uint32 i = 0; i < length;) {
+            for (uint256 i; i < length;) {
                 _verifySignature(canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice, signatures[i]);
                 unchecked {
                     ++i;
                 }
             }
         }
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += length;
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += uint32(length);
         return _batchMint(daoId, canvasId, mintNftInfos);
     }
 
@@ -568,7 +568,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 length = mintNftInfos.length;
         {
             uint256 projectFloorPrice = ID4AProtocolReadable(address(this)).getProjectFloorPrice(daoId);
-            for (uint32 i = 0; i < length;) {
+            for (uint256 i; i < length;) {
                 _checkUriNotExist(mintNftInfos[i].tokenUri);
                 if (mintNftInfos[i].flatPrice != 0 && mintNftInfos[i].flatPrice < projectFloorPrice) {
                     revert PriceTooLow();
@@ -592,7 +592,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         vars.totalPrice;
         uint256[] memory tokenIds = new uint256[](length);
         daoInfo.nftTotalSupply += length;
-        for (uint32 i; i < length;) {
+        for (uint256 i; i < length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
             tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
             canvasInfo.tokenIds.push(tokenIds[i]);
