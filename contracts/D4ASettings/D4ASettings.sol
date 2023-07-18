@@ -204,7 +204,7 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         require(
             (
                 _hasRole(DAO_ROLE, msg.sender)
-                    && l.ownerProxy.ownerOf(ID4AProtocolReadable(address(this)).getCanvasProject(canvasId)) == msg.sender
+                    && l.ownerProxy.ownerOf(ID4AProtocolReadable(address(this)).getCanvasDaoId(canvasId)) == msg.sender
             ) || _hasRole(OPERATION_ROLE, msg.sender) || _hasRole(PROTOCOL_ROLE, msg.sender),
             "only project owner or admin can call"
         );

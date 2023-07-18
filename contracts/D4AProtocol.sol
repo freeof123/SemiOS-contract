@@ -157,7 +157,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
             DaoStorage.layout().daoInfos[daoId].startRound,
-            ID4AProtocolReadable(address(this)).getProjectCanvasCount(daoId),
+            DaoStorage.layout().daoInfos[daoId].canvases.length,
             canvasUri
         );
 
@@ -474,7 +474,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         }
         bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
 
-        if (flatPrice != 0 && flatPrice < ID4AProtocolReadable(address(this)).getProjectFloorPrice(daoId)) {
+        if (flatPrice != 0 && flatPrice < ID4AProtocolReadable(address(this)).getDaoFloorPrice(daoId)) {
             revert PriceTooLow();
         }
         _checkPauseStatus(daoId);
@@ -567,10 +567,10 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
         uint256 length = mintNftInfos.length;
         {
-            uint256 projectFloorPrice = ID4AProtocolReadable(address(this)).getProjectFloorPrice(daoId);
+            uint256 daoFloorPrice = ID4AProtocolReadable(address(this)).getDaoFloorPrice(daoId);
             for (uint256 i; i < length;) {
                 _checkUriNotExist(mintNftInfos[i].tokenUri);
-                if (mintNftInfos[i].flatPrice != 0 && mintNftInfos[i].flatPrice < projectFloorPrice) {
+                if (mintNftInfos[i].flatPrice != 0 && mintNftInfos[i].flatPrice < daoFloorPrice) {
                     revert PriceTooLow();
                 }
                 unchecked {

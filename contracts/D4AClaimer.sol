@@ -33,7 +33,7 @@ contract D4AClaimer {
             unchecked {
                 uint256 tokenAmount = protocol.claimCanvasReward(canvas[i]);
                 ethAmount += protocol.exchangeERC20ToETH(
-                    ID4AProtocolReadable(address(protocol)).getCanvasProject(canvas[i]), tokenAmount, msg.sender
+                    ID4AProtocolReadable(address(protocol)).getCanvasDaoId(canvas[i]), tokenAmount, msg.sender
                 );
                 ++i;
             }
