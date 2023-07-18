@@ -236,6 +236,7 @@ contract D4AProtocolTest is DeployHelper {
         ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
 
         for (uint256 i; i < 10; i++) {
+            drb.changeRound(i + 1);
             string memory tokenUri = string.concat("test token uri ", vm.toString(i));
             uint256 flatPrice = 0.1 ether;
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
@@ -246,10 +247,10 @@ contract D4AProtocolTest is DeployHelper {
             protocol.mintNFT{ value: mintPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );
-            drb.changeRound(i + 2);
         }
 
         {
+            drb.changeRound(11);
             string memory tokenUri = string.concat("test token uri revert");
             uint256 flatPrice = 0.1 ether;
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
@@ -264,6 +265,7 @@ contract D4AProtocolTest is DeployHelper {
         }
 
         round = 11;
+        drb.changeRound(10);
         startHoax(daoCreator.addr);
         ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, round);
 
