@@ -99,20 +99,19 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         RewardStorage.RewardCheckpoint storage rewardCheckpoint =
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
+        uint256 currentRound = l.drb.currentRound();
+        uint256 oldMintableRound = daoInfo.mintableRound;
+        int256 mintableRoundDelta = SafeCastLib.toInt256(newMintableRound) - SafeCastLib.toInt256(oldMintableRound);
         if (
-            l.drb.currentRound() >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound
-                || newMintableRound > l.maxMintableRound
+            currentRound >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound
+                || SafeCastLib.toInt256(rewardCheckpoint.startRound + rewardCheckpoint.totalRound) + mintableRoundDelta
+                    < SafeCastLib.toInt256(currentRound) || newMintableRound > l.maxMintableRound
         ) revert ExceedMaxMintableRound();
 
-        uint256 oldMintableRound = daoInfo.mintableRound;
         daoInfo.mintableRound = newMintableRound;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.setRewardCheckpoint.selector,
-                daoId,
-                SafeCastLib.toInt256(newMintableRound) - SafeCastLib.toInt256(oldMintableRound)
-            )
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, mintableRoundDelta)
         );
         require(succ);
 
