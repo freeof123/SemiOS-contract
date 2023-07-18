@@ -93,7 +93,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftMaxSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftTotalSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftRoyaltyFeeRatioInBps.selector;
-    // interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoExist.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoExist.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCanvases.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoPriceTemplate.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoPriceFactor.selector;
@@ -108,7 +108,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasIndex.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasUri.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasRebateRatioInBps.selector;
-    // interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasExist.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasExist.selector;
     // prices related functions
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasLastPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
@@ -135,7 +135,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRoundReward.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRewardTillRound.selector;
-    // assert(interfaceId == type(ID4AProtocolReadable).interfaceId);
+    assert(interfaceId == type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {
