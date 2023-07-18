@@ -506,7 +506,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                     : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId)
             ) * price;
 
-            (daoFee,) =
+            daoFee =
                 _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasInfo.canvasRebateRatioInBps);
         }
 
@@ -622,7 +622,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             address daoFeePool = daoInfo.daoFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(canvasId);
 
-            (vars.daoFee,) = _splitFee(
+            vars.daoFee = _splitFee(
                 protocolFeePool,
                 daoFeePool,
                 canvasOwner,
@@ -712,12 +712,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 canvasRebateRatioInBps
     )
         internal
-        returns (uint256 daoFee, uint256 protocolFee)
+        returns (uint256 daoFee)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         daoFee = daoShare / BASIS_POINT;
-        protocolFee = price * l.protocolMintFeeRatioInBps / BASIS_POINT;
+        uint256 protocolFee = price * l.protocolMintFeeRatioInBps / BASIS_POINT;
         uint256 canvasFee = price - daoFee - protocolFee;
         uint256 rebateAmount = canvasFee * canvasRebateRatioInBps / BASIS_POINT;
         canvasFee -= rebateAmount;
