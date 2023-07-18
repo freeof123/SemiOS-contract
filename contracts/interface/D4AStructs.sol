@@ -70,15 +70,11 @@ struct MintNftInfo {
 }
 
 struct MintVars {
-    uint32 length;
-    uint256 currentRound;
-    uint256 nftPriceFactor;
-    uint256 priceChangeBasisPoint;
     uint256 price;
     uint256 daoTotalShare;
     uint256 totalPrice;
     uint256 daoFee;
-    uint256 initialPrice;
+    bool needUpdatePrice;
 }
 
 struct Blacklist {

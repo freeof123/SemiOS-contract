@@ -565,7 +565,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             _checkPauseStatus(canvasId);
         }
 
-        uint256 length = uint32(mintNftInfos.length);
+        uint256 length = mintNftInfos.length;
         {
             uint256 projectFloorPrice = ID4AProtocolReadable(address(this)).getProjectFloorPrice(daoId);
             for (uint32 i = 0; i < length;) {
@@ -588,7 +588,6 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 nftPriceFactor = daoInfo.nftPriceFactor;
 
         vars.price = _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, currentRound, nftPriceFactor);
-        vars.initialPrice = vars.price;
         vars.daoTotalShare;
         vars.totalPrice;
         uint256[] memory tokenIds = new uint256[](length);
@@ -605,6 +604,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 vars.totalPrice += vars.price;
                 emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, vars.price);
                 vars.price = vars.price * nftPriceFactor / BASIS_POINT;
+                vars.needUpdatePrice = true;
             } else {
                 vars.daoTotalShare += l.daoFeePoolMintFeeRatioInBpsFlatPrice * flatPrice;
                 vars.totalPrice += flatPrice;
@@ -633,7 +633,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         }
 
         // update canvas price
-        if (vars.price != vars.initialPrice) {
+        if (vars.needUpdatePrice) {
             vars.price = vars.price * BASIS_POINT / nftPriceFactor;
             _updatePrice(currentRound, daoId, canvasId, vars.price, 0, nftPriceFactor);
         }
