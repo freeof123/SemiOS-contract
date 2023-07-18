@@ -118,6 +118,10 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return DaoStorage.layout().daoInfos[daoId].royaltyFeeRatioInBps;
     }
 
+    function getDaoExist(bytes32 daoId) external view returns (bool exist) {
+        return DaoStorage.layout().daoInfos[daoId].daoExist;
+    }
+
     function getDaoCanvases(bytes32 daoId) external view returns (bytes32[] memory canvases) {
         return DaoStorage.layout().daoInfos[daoId].canvases;
     }
@@ -178,6 +182,10 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
 
     function getCanvasRebateRatioInBps(bytes32 canvasId) public view returns (uint256) {
         return CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps;
+    }
+
+    function getCanvasExist(bytes32 canvasId) external view returns (bool exist) {
+        return CanvasStorage.layout().canvasInfos[canvasId].canvasExist;
     }
 
     // prices related functions

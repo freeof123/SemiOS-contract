@@ -41,6 +41,7 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { D4AAddress } from "./utils/D4AAddress.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
+import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
@@ -79,6 +80,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutSettingsFacet();
 
         // _deployClaimer();
+        // _deployUniversalClaimer();
 
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
@@ -380,6 +382,21 @@ contract Deploy is Script, Test, D4AAddress {
         vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
 
         console2.log("D4AClaimer address: ", address(d4aClaimer));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployUniversalClaimer() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy D4AUniversalClaimer");
+
+        address[] memory protocols = new address[](2);
+        protocols[0] = protocolV1;
+        protocols[1] = address(d4aProtocol_proxy);
+        d4aUniversalClaimer = new D4AUniversalClaimer(protocols);
+
+        vm.toString(address(d4aUniversalClaimer)).write(path, ".D4AUniversalClaimer");
+
+        console2.log("D4AUniversalClaimer address: ", address(d4aUniversalClaimer));
         console2.log("================================================================================\n");
     }
 

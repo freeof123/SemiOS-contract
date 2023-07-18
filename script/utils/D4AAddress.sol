@@ -20,6 +20,7 @@ import { PermissionControl } from "contracts/permission-control/PermissionContro
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
+import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
@@ -82,4 +83,6 @@ contract D4AAddress is CommonBase {
     address public immutable uniswapV2Factory = json.readAddress(".D4ASwapFactory");
     address public immutable uniswapV2Router = json.readAddress(".UniswapV2Router");
     address public immutable oracleRegistry = json.readAddress(".OracleRegistry");
+    D4AUniversalClaimer public d4aUniversalClaimer = D4AUniversalClaimer(json.readAddress(".D4AUniversalClaimer"));
+    address public immutable protocolV1 = json.readAddress(".D4AProtocolV1");
 }

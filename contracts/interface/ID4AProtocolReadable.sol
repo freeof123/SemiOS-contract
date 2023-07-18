@@ -59,6 +59,8 @@ interface ID4AProtocolReadable {
 
     function getDaoNftRoyaltyFeeRatioInBps(bytes32 daoId) external view returns (uint96 royaltyFeeRatioInBps);
 
+    function getDaoExist(bytes32 daoId) external view returns (bool);
+
     function getDaoCanvases(bytes32 daoId) external view returns (bytes32[] memory canvases);
 
     function getDaoPriceTemplate(bytes32 daoId) external view returns (address priceTemplate);
@@ -91,6 +93,8 @@ interface ID4AProtocolReadable {
     function getCanvasUri(bytes32 canvasId) external view returns (string memory canvasUri);
 
     function getCanvasRebateRatioInBps(bytes32 canvasId) external view returns (uint256 rebateRatioInBps);
+
+    function getCanvasExist(bytes32 canvasId) external view returns (bool);
 
     // prices related functions
     function getCanvasLastPrice(bytes32 canvasId) external view returns (uint256 round, uint256 price);
