@@ -389,10 +389,7 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AUniversalClaimer");
 
-        address[] memory protocols = new address[](2);
-        protocols[0] = protocolV1;
-        protocols[1] = address(d4aProtocol_proxy);
-        d4aUniversalClaimer = new D4AUniversalClaimer(protocols);
+        d4aUniversalClaimer = new D4AUniversalClaimer();
 
         vm.toString(address(d4aUniversalClaimer)).write(path, ".D4AUniversalClaimer");
 

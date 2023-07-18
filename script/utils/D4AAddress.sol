@@ -84,5 +84,4 @@ contract D4AAddress is CommonBase {
     address public immutable uniswapV2Router = json.readAddress(".UniswapV2Router");
     address public immutable oracleRegistry = json.readAddress(".OracleRegistry");
     D4AUniversalClaimer public d4aUniversalClaimer = D4AUniversalClaimer(json.readAddress(".D4AUniversalClaimer"));
-    address public immutable protocolV1 = json.readAddress(".D4AProtocolV1");
 }
