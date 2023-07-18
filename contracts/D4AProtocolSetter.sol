@@ -36,7 +36,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         daoMintInfo.daoMintCap = daoMintCap;
         uint256 length = userMintCapParams.length;
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i; i < length;) {
             daoMintInfo.userMintInfos[userMintCapParams[i].minter].mintCap = userMintCapParams[i].mintCap;
             unchecked {
                 ++i;
