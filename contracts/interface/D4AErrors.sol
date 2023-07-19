@@ -21,6 +21,10 @@ error InvalidETHRatio();
 
 error ExceedMaxMintableRound();
 
+error ExceedDaoMintableRound();
+
+error NewMintableRoundsFewerThanRewardIssuedRounds();
+
 error InvalidRound();
 
 error ExceedMinterMaxMintAmount();

@@ -102,11 +102,38 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         uint256 currentRound = l.drb.currentRound();
         uint256 oldMintableRound = daoInfo.mintableRound;
         int256 mintableRoundDelta = SafeCastLib.toInt256(newMintableRound) - SafeCastLib.toInt256(oldMintableRound);
-        if (
-            currentRound >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound
-                || SafeCastLib.toInt256(rewardCheckpoint.startRound + rewardCheckpoint.totalRound) + mintableRoundDelta
-                    < SafeCastLib.toInt256(currentRound) || newMintableRound > l.maxMintableRound
-        ) revert ExceedMaxMintableRound();
+        if (newMintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
+        if (rewardInfo.isProgressiveJackpot) {
+            if (currentRound >= rewardCheckpoint.startRound + rewardCheckpoint.totalRound) {
+                revert ExceedDaoMintableRound();
+            }
+            if (
+                SafeCastLib.toInt256(rewardCheckpoint.startRound + rewardCheckpoint.totalRound) + mintableRoundDelta
+                    < SafeCastLib.toInt256(currentRound)
+            ) revert NewMintableRoundsFewerThanRewardIssuedRounds();
+        } else {
+            uint256 finalActiveRound;
+            {
+                for (uint256 i = rewardInfo.rewardCheckpoints.length - 1; ~i != 0;) {
+                    uint256[] storage activeRounds = rewardInfo.rewardCheckpoints[i].activeRounds;
+                    if (activeRounds.length > 0) finalActiveRound = activeRounds[activeRounds.length - 1];
+                    unchecked {
+                        --i;
+                    }
+                }
+            }
+
+            if (rewardCheckpoint.activeRounds.length >= rewardCheckpoint.totalRound && currentRound > finalActiveRound)
+            {
+                revert ExceedDaoMintableRound();
+            }
+            if (
+                SafeCastLib.toInt256(rewardCheckpoint.totalRound) + mintableRoundDelta
+                    < SafeCastLib.toInt256(rewardCheckpoint.activeRounds.length)
+            ) {
+                revert NewMintableRoundsFewerThanRewardIssuedRounds();
+            }
+        }
 
         daoInfo.mintableRound = newMintableRound;
 
