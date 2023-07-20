@@ -1093,4 +1093,138 @@ contract D4AProtocolSetterTest is DeployHelper {
         hoax(daoCreator.addr);
         D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 28);
     }
+
+    function test_setDaoMintableRound_new_mints_should_update_active_rounds_in_old_checkpoint() public {
+        hoax(daoCreator.addr);
+        bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
+            DaoMetadataParam({
+                startDrb: 1,
+                mintableRounds: 69,
+                floorPriceRank: 0,
+                maxNftRank: 0,
+                royaltyFee: 750,
+                projectUri: "test dao uri",
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: bytes32(0),
+                minterNFTHolderPasses: new address[](0),
+                canvasCreatorMerkleRoot: bytes32(0),
+                canvasCreatorNFTHolderPasses: new address[](0)
+            }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 300,
+                canvasCreatorERC20Ratio: 9500,
+                nftMinterERC20Ratio: 3000,
+                daoFeePoolETHRatio: 3000,
+                daoFeePoolETHRatioFlatPrice: 3500
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.LINEAR_PRICE_VARIATION,
+                priceFactor: 0.01 ether,
+                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
+                rewardDecayFactor: 12_600,
+                isProgressiveJackpot: false
+            }),
+            0
+        );
+
+        drb.changeRound(1);
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
+
+        {
+            string memory tokenUri = "test token uri";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+
+        drb.changeRound(2);
+        {
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[1], 2);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 42);
+
+        {
+            string memory tokenUri = "test token uri 3";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[1], 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1).length, 0);
+
+        drb.changeRound(3);
+
+        {
+            string memory tokenUri = "test token uri 4";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        drb.changeRound(4);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 30);
+
+        {
+            string memory tokenUri = "test token uri 5";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[1], 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1)[0], 3);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1)[1], 4);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 2).length, 0);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardStartRound(daoId, 2), 5);
+    }
 }

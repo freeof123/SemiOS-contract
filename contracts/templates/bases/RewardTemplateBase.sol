@@ -43,7 +43,14 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                     rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
                 if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] != param.currentRound) {
                     _issueLastRoundReward(rewardInfo, param.daoId, param.token);
-                    activeRounds.push(param.currentRound);
+                    if (
+                        param.currentRound
+                            < rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].startRound
+                    ) {
+                        activeRoundsOfLastCheckpoint.push(param.currentRound);
+                    } else {
+                        activeRounds.push(param.currentRound);
+                    }
                 }
             }
             // no old checkpoint
