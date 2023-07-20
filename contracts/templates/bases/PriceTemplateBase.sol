@@ -24,6 +24,7 @@ abstract contract PriceTemplateBase is IPriceTemplate {
 
         uint256 price = _getPriceInRound(mintInfo, currentRound, priceFactor);
         if (price >= daoFloorPrice) {
+            if (mintInfo.price < daoFloorPrice) return daoFloorPrice;
             return price;
         }
 
