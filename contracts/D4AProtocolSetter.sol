@@ -158,7 +158,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             uint256 canvasNextPrice = D4AProtocolReadable(address(this)).getCanvasNextPrice(canvases[i]);
             if (canvasNextPrice >= newFloorPrice) {
                 priceStorage.canvasLastMintInfos[canvases[i]] =
-                    PriceStorage.MintInfo({ round: l.drb.currentRound(), price: canvasNextPrice / 2 });
+                    PriceStorage.MintInfo({ round: l.drb.currentRound() - 1, price: canvasNextPrice });
             }
             unchecked {
                 ++i;
