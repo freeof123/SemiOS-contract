@@ -95,6 +95,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
             if (
                 rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.daoCreatorClaimableRoundIndex == rewardCheckpoint.activeRounds.length
                     || rewardCheckpoint.activeRounds[rewardCheckpoint.daoCreatorClaimableRoundIndex] == currentRound
             ) return (0, 0);
         }
@@ -145,6 +146,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
             if (
                 rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId] == rewardCheckpoint.activeRounds.length
                     || rewardCheckpoint.activeRounds[rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId]]
                         == currentRound
             ) return 0;
@@ -191,6 +193,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
             if (
                 rewardCheckpoint.activeRounds.length == 0
+                    || rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter] == rewardCheckpoint.activeRounds.length
                     || rewardCheckpoint.activeRounds[rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter]]
                         == currentRound
             ) return (0);

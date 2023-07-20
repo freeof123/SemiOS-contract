@@ -289,4 +289,26 @@ contract D4AProtocolTest is DeployHelper {
         startHoax(canvasCreator.addr);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2 ", new bytes32[](0), 0);
     }
+
+    function test_claimReward_twice() public {
+        {
+            string memory tokenUri = "test token uri";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        drb.changeRound(2);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+    }
 }
