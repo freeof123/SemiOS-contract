@@ -45,7 +45,7 @@ contract LinearRewardIssuance is RewardTemplateBase {
                 // calculate first checkpoint's reward amount
                 RewardStorage.RewardCheckpoint storage lastActiveRoundRewardCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound];
-                rewardAmount = (lastActiveRoundRewardCheckpoint.totalRound - lastActiveRound)
+                rewardAmount = (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
                     * lastActiveRoundRewardCheckpoint.totalReward / lastActiveRoundRewardCheckpoint.totalRound;
                 for (; rewardCheckpointIndexOfLastActiveRound + 2 < rewardCheckpointIndex;) {
                     rewardAmount += rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound + 1].totalReward;
