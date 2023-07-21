@@ -10,6 +10,7 @@ import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 import "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
 contract GetRoundRewardTest is DeployHelper {
@@ -644,6 +645,51 @@ contract GetRoundRewardTest is DeployHelper {
         assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 30), 629_520_465_316_441_201_884_181_206);
         vm.expectRevert(ExceedMaxMintableRound.selector);
         ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 31);
+    }
+
+    function test_getRoundReward_on_new_checkpoint() public {
+        _createDaoAndCanvas(90, RewardTemplateType.LINEAR_REWARD_ISSUANCE, 0, true);
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 11_111_111_111_111_111_111_111_111);
+        assertEq(
+            ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 2), 11_111_111_111_111_111_111_111_111 * 2
+        );
+
+        {
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        {
+            drb.changeRound(2);
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            startHoax(nftMinter.addr);
+            protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+            vm.stopPrank();
+        }
+
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 11_111_111_111_111_111_111_111_111);
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 2), 11_111_111_111_111_111_111_111_111);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 120);
+
+        console2.log(ID4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0));
+
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 11_111_111_111_111_111_111_111_111);
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 2), 11_111_111_111_111_111_111_111_111);
+        assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 3), 8_286_252_354_048_964_218_455_743);
     }
 
     function _createDaoAndCanvas(
