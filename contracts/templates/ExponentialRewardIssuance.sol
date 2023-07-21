@@ -94,7 +94,7 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                         * (1e27 - 1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor) / (1e27 - oneOverKn);
                     oneOverKn = MathMate.rpow(
                         1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor,
-                        lastActiveRound - lastActiveRoundRewardCheckpoint.startRound,
+                        lastActiveRound + 1 - lastActiveRoundRewardCheckpoint.startRound,
                         1e27
                     );
                     rewardAmount = lastActiveRoundRewardCheckpoint.totalReward
@@ -120,7 +120,7 @@ contract ExponentialRewardIssuance is RewardTemplateBase {
                     // denote period number to be `n`, begin claimable reward to be `x`, then
                     // `x + x / k + ... + x / k ^ (n - 1) = x * (k ^ n - 1) / (k ^ n - k ^ (n - 1)`
                     oneOverKn = MathMate.rpow(
-                        1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, round - rewardCheckpoint.startRound, 1e27
+                        1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor, round + 1 - rewardCheckpoint.startRound, 1e27
                     );
                     rewardAmount +=
                         beginReward * (1e27 - oneOverKn) / (1e27 - 1e27 * BASIS_POINT / rewardInfo.rewardDecayFactor);

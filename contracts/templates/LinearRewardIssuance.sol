@@ -45,8 +45,10 @@ contract LinearRewardIssuance is RewardTemplateBase {
                 // calculate first checkpoint's reward amount
                 RewardStorage.RewardCheckpoint storage lastActiveRoundRewardCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound];
-                rewardAmount = (lastActiveRound - lastActiveRoundRewardCheckpoint.startRound)
-                    * lastActiveRoundRewardCheckpoint.totalReward / lastActiveRoundRewardCheckpoint.totalRound;
+                rewardAmount = (
+                    lastActiveRoundRewardCheckpoint.startRound + lastActiveRoundRewardCheckpoint.totalRound
+                        - lastActiveRound - 1
+                ) * lastActiveRoundRewardCheckpoint.totalReward / lastActiveRoundRewardCheckpoint.totalRound;
                 for (; rewardCheckpointIndexOfLastActiveRound + 2 < rewardCheckpointIndex;) {
                     rewardAmount += rewardInfo.rewardCheckpoints[rewardCheckpointIndexOfLastActiveRound + 1].totalReward;
                     unchecked {
@@ -54,8 +56,8 @@ contract LinearRewardIssuance is RewardTemplateBase {
                     }
                 }
                 // calculate last checkpoint's reward amount
-                rewardAmount +=
-                    (round - rewardCheckpoint.startRound) * rewardCheckpoint.totalReward / rewardCheckpoint.totalRound;
+                rewardAmount += (round + 1 - rewardCheckpoint.startRound) * rewardCheckpoint.totalReward
+                    / rewardCheckpoint.totalRound;
             }
         }
     }

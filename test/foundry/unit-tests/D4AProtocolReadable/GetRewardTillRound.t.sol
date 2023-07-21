@@ -125,7 +125,7 @@ contract GetRewardTillRoundTest is DeployHelper {
             ID4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 3), 25_460_363_831_576_134_072_973_665
         );
         assertEq(
-            ID4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 4), 99_915_089_675_896_711_790_498_593
+            ID4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 4), 98_020_633_177_309_110_468_408_999
         );
     }
 
