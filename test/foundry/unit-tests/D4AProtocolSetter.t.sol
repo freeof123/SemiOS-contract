@@ -1270,4 +1270,92 @@ contract D4AProtocolSetterTest is DeployHelper {
 
         assertEq(D4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 74_166_953_780_930_718_901_381_592);
     }
+
+    function test_setDaoFloorPrice_case_1() public {
+        hoax(daoCreator.addr);
+        bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
+            DaoMetadataParam({
+                startDrb: 1,
+                mintableRounds: 90,
+                floorPriceRank: 0,
+                maxNftRank: 0,
+                royaltyFee: 750,
+                projectUri: "test dao uri",
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: bytes32(0),
+                minterNFTHolderPasses: new address[](0),
+                canvasCreatorMerkleRoot: bytes32(0),
+                canvasCreatorNFTHolderPasses: new address[](0)
+            }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 300,
+                canvasCreatorERC20Ratio: 9500,
+                nftMinterERC20Ratio: 3000,
+                daoFeePoolETHRatio: 3000,
+                daoFeePoolETHRatioFlatPrice: 3500
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.LINEAR_PRICE_VARIATION,
+                priceFactor: 0.0098 ether,
+                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
+                rewardDecayFactor: 10_801,
+                isProgressiveJackpot: false
+            }),
+            0
+        );
+
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3500);
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.01 ether);
+
+        {
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.0198 ether);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.02 ether);
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.02 ether);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.03 ether);
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.03 ether);
+
+        {
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.0398 ether);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoPriceTemplate(
+            daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 17_000
+        );
+
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.0398 ether);
+    }
 }
