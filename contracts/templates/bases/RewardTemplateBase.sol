@@ -260,7 +260,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 _issueLastRoundReward(rewardInfo, daoId, daoInfo.token);
             }
             uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
-            if (rewardInfo.isProgressiveJackpot) totalReward -= getRoundReward(daoId, currentRound);
+            totalReward -= getRoundReward(daoId, currentRound);
 
             // modify old checkpoint
             rewardCheckpoint.totalRound -= totalRound;
