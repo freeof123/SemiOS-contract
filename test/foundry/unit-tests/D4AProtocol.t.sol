@@ -311,4 +311,25 @@ contract D4AProtocolTest is DeployHelper {
         protocol.claimCanvasReward(canvasId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
     }
+
+    function test_claimReward_of_old_checkpoint() public {
+        {
+            string memory tokenUri = "test token uri";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: price }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        hoax(daoCreator.addr);
+        ID4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 42);
+
+        drb.changeRound(2);
+        assertTrue(protocol.claimProjectERC20Reward(daoId) != 0);
+        assertTrue(protocol.claimCanvasReward(canvasId) != 0);
+    }
 }

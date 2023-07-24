@@ -97,26 +97,16 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
-        {
-            uint256 length = rewardInfo.rewardCheckpoints.length;
-            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
-            if (
-                rewardCheckpoint.activeRounds.length == 0
-                    || rewardCheckpoint.daoCreatorClaimableRoundIndex == rewardCheckpoint.activeRounds.length
-                    || rewardCheckpoint.activeRounds[rewardCheckpoint.daoCreatorClaimableRoundIndex] == currentRound
-            ) return (0, 0);
-        }
-
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
         for (uint256 i; i < rewardCheckpoints.length; i++) {
-            uint256 length = rewardCheckpoints[i].activeRounds.length;
-            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardCheckpoints[i];
+            uint256[] memory activeRounds = rewardCheckpoint.activeRounds;
 
             // enumerate all active rounds, not including current round
-            uint256 j = rewardCheckpoints[i].daoCreatorClaimableRoundIndex;
-            for (; j < length && activeRounds[j] < currentRound;) {
+            uint256 j = rewardCheckpoint.daoCreatorClaimableRoundIndex;
+            for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
                 // given a past active round, get round reward
                 uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
                 // update protocol's claimable reward
@@ -129,7 +119,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                     ++j;
                 }
             }
-            rewardCheckpoints[i].daoCreatorClaimableRoundIndex = j;
+            rewardCheckpoint.daoCreatorClaimableRoundIndex = j;
         }
 
         if (protocolClaimableReward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableReward);
@@ -148,27 +138,16 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
-        {
-            uint256 length = rewardInfo.rewardCheckpoints.length;
-            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
-            if (
-                rewardCheckpoint.activeRounds.length == 0
-                    || rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId] == rewardCheckpoint.activeRounds.length
-                    || rewardCheckpoint.activeRounds[rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId]]
-                        == currentRound
-            ) return 0;
-        }
-
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
         for (uint256 i; i < rewardCheckpoints.length; i++) {
-            uint256 length = rewardCheckpoints[i].activeRounds.length;
-            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardCheckpoints[i];
+            uint256[] memory activeRounds = rewardCheckpoint.activeRounds;
 
             // enumerate all active rounds, not including current round
-            uint256 j = rewardCheckpoints[i].canvasCreatorClaimableRoundIndexes[canvasId];
-            for (; j < length && activeRounds[j] < currentRound;) {
+            uint256 j = rewardCheckpoint.canvasCreatorClaimableRoundIndexes[canvasId];
+            for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
                 // given a past active round, get round reward
                 uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
                 // update dao creator's claimable reward
@@ -195,27 +174,16 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
-        {
-            uint256 length = rewardInfo.rewardCheckpoints.length;
-            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
-            if (
-                rewardCheckpoint.activeRounds.length == 0
-                    || rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter] == rewardCheckpoint.activeRounds.length
-                    || rewardCheckpoint.activeRounds[rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter]]
-                        == currentRound
-            ) return (0);
-        }
-
         _updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
         for (uint256 i; i < rewardCheckpoints.length; i++) {
-            uint256 length = rewardCheckpoints[i].activeRounds.length;
-            uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
+            RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardCheckpoints[i];
+            uint256[] memory activeRounds = rewardCheckpoint.activeRounds;
 
             // enumerate all active rounds, not including current round
-            uint256 j = rewardCheckpoints[i].nftMinterClaimableRoundIndexes[nftMinter];
-            for (; j < length && activeRounds[j] < currentRound;) {
+            uint256 j = rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter];
+            for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
                 // given a past active round, get round reward
                 uint256 roundReward = getRoundReward(daoId, activeRounds[j]);
                 // update dao creator's claimable reward
@@ -225,7 +193,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                     ++j;
                 }
             }
-            rewardCheckpoints[i].nftMinterClaimableRoundIndexes[nftMinter] = j;
+            rewardCheckpoint.nftMinterClaimableRoundIndexes[nftMinter] = j;
         }
 
         if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
