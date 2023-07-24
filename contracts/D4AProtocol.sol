@@ -577,6 +577,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         if (daoInfo.nftTotalSupply + length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
 
         MintVars memory vars;
+        vars.daoId = daoId;
         uint256 currentRound = SettingsStorage.layout().drb.currentRound();
         uint256 nftPriceFactor = daoInfo.nftPriceFactor;
 
@@ -591,15 +592,15 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             canvasInfo.tokenIds.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
-            SettingsStorage.Layout storage l = SettingsStorage.layout();
             if (flatPrice == 0) {
-                vars.daoTotalShare += l.daoFeePoolMintFeeRatioInBps * vars.price;
+                vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(vars.daoId) * vars.price;
                 vars.totalPrice += vars.price;
                 emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, vars.price);
                 vars.price = vars.price * nftPriceFactor / BASIS_POINT;
                 vars.needUpdatePrice = true;
             } else {
-                vars.daoTotalShare += l.daoFeePoolMintFeeRatioInBpsFlatPrice * flatPrice;
+                vars.daoTotalShare +=
+                    ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(vars.daoId) * flatPrice;
                 vars.totalPrice += flatPrice;
                 emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, flatPrice);
             }

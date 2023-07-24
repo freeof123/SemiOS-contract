@@ -70,6 +70,7 @@ struct MintNftInfo {
 }
 
 struct MintVars {
+    bytes32 daoId;
     uint256 price;
     uint256 daoTotalShare;
     uint256 totalPrice;
