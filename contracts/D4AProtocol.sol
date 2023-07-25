@@ -510,7 +510,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasInfo.canvasRebateRatioInBps);
         }
 
-        _updateReward(daoId, canvasId, daoFee);
+        _updateReward(daoId, canvasId, PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether : daoFee);
 
         // mint
         tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri);
@@ -635,7 +635,9 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             _updatePrice(currentRound, daoId, canvasId, vars.price, 0, nftPriceFactor);
         }
 
-        _updateReward(daoId, canvasId, vars.daoFee);
+        _updateReward(
+            daoId, canvasId, PriceStorage.layout().daoFloorPrices[vars.daoId] == 0 ? 1 ether * length : vars.daoFee
+        );
 
         return tokenIds;
     }

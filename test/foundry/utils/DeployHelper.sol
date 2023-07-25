@@ -13,17 +13,11 @@ import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 
 import { FeedRegistryMock } from "test/foundry/utils/mocks/FeedRegistryMock.sol";
 import { AggregatorV3Mock } from "test/foundry/utils/mocks/AggregatorV3Mock.sol";
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
+import "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
-import {
-    DaoMetadataParam,
-    DaoMintCapParam,
-    UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam,
-    TemplateParam,
-    Whitelist,
-    Blacklist
-} from "contracts/interface/D4AStructs.sol";
+import "contracts/interface/D4AStructs.sol";
 import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
@@ -86,6 +80,7 @@ contract DeployHelper is Test {
     ExponentialPriceVariation public exponentialPriceVariation;
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
+    MintNftSigUtils public mintNftSigUtils;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -123,6 +118,7 @@ contract DeployHelper is Test {
         _deployTestERC20();
         _deployAggregator();
         _deployTestERC721();
+        _deployMintNftSigUtils();
 
         _grantRole();
 
@@ -374,6 +370,11 @@ contract DeployHelper is Test {
         vm.label(address(_testERC721), "ERC721 Test");
     }
 
+    function _deployMintNftSigUtils() internal prank(protocolOwner.addr) {
+        mintNftSigUtils = new MintNftSigUtils(address(protocol));
+        vm.label(address(mintNftSigUtils), "Mint NFT SigUtils");
+    }
+
     function _deployFeedRegistry() internal prank(protocolOwner.addr) {
         feedRegistry = new FeedRegistryMock(protocolOwner.addr);
         vm.label(address(feedRegistry), "Feed Registry");
@@ -610,7 +611,9 @@ contract DeployHelper is Test {
                 canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20RatioInBps == 0
                     ? 9500
                     : createDaoParam.canvasCreatorERC20RatioInBps,
-                nftMinterERC20Ratio: createDaoParam.nftMinterERC20RatioInBps,
+                nftMinterERC20Ratio: createDaoParam.nftMinterERC20RatioInBps == 0
+                    ? 0
+                    : createDaoParam.nftMinterERC20RatioInBps,
                 daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatioInBps == 0
                     ? 3000
                     : createDaoParam.daoFeePoolETHRatioInBps,
@@ -627,6 +630,75 @@ contract DeployHelper is Test {
             }),
             createDaoParam.actionType
         );
+
+        vm.stopPrank();
+    }
+
+    function _mintNft(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice,
+        uint256 canvasCreatorKey,
+        address hoaxer
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        startHoax(hoaxer);
+
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        tokenId = protocol.mintNFT{
+            value: flatPrice == 0 ? ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) : flatPrice
+        }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
+
+        vm.stopPrank();
+    }
+
+    function _batchMint(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string[] memory tokenUris,
+        uint256[] memory flatPrices,
+        uint256 canvasCreatorKey,
+        address hoaxer
+    )
+        internal
+        returns (uint256[] memory tokenIds)
+    {
+        startHoax(hoaxer);
+
+        bytes[] memory signatures = new bytes[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUris[i], flatPrices[i]);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            signatures[i] = abi.encodePacked(r, s, v);
+        }
+        uint256 totalPrice;
+        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+        uint256 counter;
+        uint256 priceFactor = ID4AProtocolReadable(address(protocol)).getDaoPriceFactor(daoId);
+        for (uint256 i; i < tokenUris.length; i++) {
+            if (flatPrices[i] == 0) {
+                if (
+                    ID4AProtocolReadable(address(protocol)).getDaoPriceTemplate(daoId)
+                        == address(exponentialPriceVariation)
+                ) {
+                    totalPrice += mintPrice * priceFactor ** counter / BASIS_POINT ** counter;
+                } else {
+                    totalPrice += mintPrice + priceFactor * counter;
+                }
+                ++counter;
+            } else {
+                totalPrice += flatPrices[i];
+            }
+        }
+        MintNftInfo[] memory mintNftINfos = new MintNftInfo[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            mintNftINfos[i] = MintNftInfo({ tokenUri: tokenUris[i], flatPrice: flatPrices[i] });
+        }
+        tokenIds = protocol.batchMint{ value: totalPrice }(daoId, canvasId, new bytes32[](0), mintNftINfos, signatures);
 
         vm.stopPrank();
     }

@@ -19,7 +19,6 @@ contract D4ARewardTest is DeployHelper {
     IERC20 token;
     address daoFeePool;
 
-    uint256 startDrb = 5;
     uint256 mintableRound = 50;
     uint256 rewardPerRound = 1e9 * 1e18 / mintableRound;
     uint256 protocolRewardPerRound = rewardPerRound * 2 / 100;
@@ -36,12 +35,9 @@ contract D4ARewardTest is DeployHelper {
         setUpEnv();
 
         DeployHelper.CreateDaoParam memory createDaoParam;
-        createDaoParam.startDrb = startDrb;
         createDaoParam.mintableRound = mintableRound;
         daoId = _createDao(createDaoParam);
         assertEq(daoCreator.addr, naiveOwner.ownerOf(daoId));
-
-        drb.changeRound(startDrb);
 
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
@@ -54,7 +50,6 @@ contract D4ARewardTest is DeployHelper {
     }
 
     function test_case_00_NoMintAndTryClaimReward() public {
-        drb.changeRound(10);
         protocol.claimProjectERC20Reward(daoId);
         assertEq(token.balanceOf(protocolFeePool.addr), 0);
         assertEq(token.balanceOf(daoCreator.addr), 0);
@@ -64,8 +59,6 @@ contract D4ARewardTest is DeployHelper {
 
     function test_case_01_OneMintAndClaimRewardInTheSameDrbShouldGetNothing() public {
         test_case_00_NoMintAndTryClaimReward();
-
-        drb.changeRound(11);
 
         string memory tokenUri = "token uri 1";
         uint256 flatPrice = 0;
@@ -86,7 +79,7 @@ contract D4ARewardTest is DeployHelper {
     function test_case_02_ClaimInNextDrbShouldGetSomething() public {
         test_case_01_OneMintAndClaimRewardInTheSameDrbShouldGetNothing();
 
-        drb.changeRound(12);
+        drb.changeRound(2);
 
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
@@ -124,7 +117,7 @@ contract D4ARewardTest is DeployHelper {
             daoId, canvasId2, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
 
-        drb.changeRound(13);
+        drb.changeRound(3);
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(canvasId1);
         protocol.claimCanvasReward(canvasId2);
@@ -215,13 +208,10 @@ contract D4ARewardTest is DeployHelper {
 
     function test_case_20_MintAfterSuperLongGap() public {
         DeployHelper.CreateDaoParam memory createDaoParam;
-        createDaoParam.startDrb = startDrb;
         createDaoParam.mintableRound = 3;
         createDaoParam.daoUri = "test dao uri 1";
         daoId = _createDao(createDaoParam);
         assertEq(daoCreator.addr, naiveOwner.ownerOf(daoId));
-
-        drb.changeRound(startDrb);
 
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 3", new bytes32[](0), 0);
@@ -303,18 +293,14 @@ contract D4ARewardTest is DeployHelper {
     }
 
     function test_Reward_amount() public {
-        drb.changeRound(1);
-
         DeployHelper.CreateDaoParam memory createDaoParam;
         createDaoParam.daoUri = "test dao uri 1";
-        createDaoParam.startDrb = 1;
         createDaoParam.daoCreatorERC20RatioInBps = 1900;
         createDaoParam.canvasCreatorERC20RatioInBps = 4000;
         createDaoParam.nftMinterERC20RatioInBps = 3900;
         createDaoParam.actionType = 16;
         daoId = _createDao(createDaoParam);
 
-        drb.changeRound(1);
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);
 
@@ -359,11 +345,8 @@ contract D4ARewardTest is DeployHelper {
     }
 
     function test_claim_partial_reward_when_current_round_have_mint() public {
-        drb.changeRound(1);
-
         DeployHelper.CreateDaoParam memory createDaoParam;
         createDaoParam.daoUri = "test dao uri 1";
-        createDaoParam.startDrb = 1;
         createDaoParam.daoCreatorERC20RatioInBps = 1900;
         createDaoParam.canvasCreatorERC20RatioInBps = 4000;
         createDaoParam.nftMinterERC20RatioInBps = 3900;
@@ -372,7 +355,6 @@ contract D4ARewardTest is DeployHelper {
         createDaoParam.actionType = 16;
         daoId = _createDao(createDaoParam);
 
-        drb.changeRound(1);
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);
 
@@ -412,5 +394,38 @@ contract D4ARewardTest is DeployHelper {
         assertEq(token.balanceOf(daoCreator.addr), totalReward * 1900 / BASIS_POINT, "dao creator");
         assertEq(token.balanceOf(canvasCreator.addr), totalReward * 4390 / BASIS_POINT, "canvas creator");
         assertEq(token.balanceOf(nftMinter.addr), totalReward * 3510 / BASIS_POINT, "nft minter");
+    }
+
+    function test_claimRewardWhenDaoFloorPriceIsZeroAndUseBatchMint() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.daoUri = "test dao uri 1";
+        createDaoParam.floorPriceRank = 9999;
+        createDaoParam.daoCreatorERC20RatioInBps = 300;
+        createDaoParam.canvasCreatorERC20RatioInBps = 5000;
+        createDaoParam.nftMinterERC20RatioInBps = 4500;
+        createDaoParam.actionType = 16;
+        daoId = _createDao(createDaoParam);
+
+        hoax(canvasCreator.addr);
+        canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 3", new bytes32[](0), 0);
+
+        string[] memory tokenUris = new string[](3);
+        tokenUris[0] = "test token uri 1";
+        tokenUris[1] = "test token uri 2";
+        tokenUris[2] = "test token uri 3";
+        uint256[] memory flatPrices = new uint256[](3);
+        _batchMint(daoId, canvasId1, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
+
+        tokenUris = new string[](2);
+        tokenUris[0] = "test token uri 4";
+        tokenUris[1] = "test token uri 5";
+        flatPrices = new uint256[](2);
+        _batchMint(daoId, canvasId1, tokenUris, flatPrices, canvasCreator.key, nftMinter2.addr);
+
+        drb.changeRound(2);
+        assertEq(protocol.claimProjectERC20Reward(daoId), 999_999_999_999_999_999_999_999);
+        assertEq(protocol.claimCanvasReward(canvasId1), 16_666_666_666_666_666_666_666_666);
+        assertEq(protocol.claimNftMinterReward(daoId, nftMinter.addr), 8_999_999_999_999_999_999_999_999);
+        assertEq(protocol.claimNftMinterReward(daoId, nftMinter2.addr), 5_999_999_999_999_999_999_999_999);
     }
 }
