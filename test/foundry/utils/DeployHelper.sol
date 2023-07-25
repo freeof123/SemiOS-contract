@@ -536,7 +536,13 @@ contract DeployHelper is Test {
     }
 
     struct CreateDaoParam {
-        DaoMetadataParam daoMetadataParam;
+        uint256 startDrb;
+        uint256 mintableRound;
+        uint256 floorPriceRank;
+        uint256 maxNftRank;
+        uint96 royaltyFee;
+        string daoUri;
+        uint256 projectIndex;
         bytes32 minterMerkleRoot;
         address[] minterNFTHolderPasses;
         bytes32 canvasCreatorMerkleRoot;
@@ -551,7 +557,6 @@ contract DeployHelper is Test {
         uint256 nftMinterERC20RatioInBps;
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
-        uint256 protocol;
         PriceTemplateType priceTemplateType;
         uint256 priceFactor;
         RewardTemplateType rewardTemplateType;
@@ -561,6 +566,8 @@ contract DeployHelper is Test {
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
+        startHoax(daoCreator.addr);
+
         DaoMintCapParam memory daoMintCapParam;
         {
             uint256 length = createDaoParam.minters.length;
@@ -576,7 +583,15 @@ contract DeployHelper is Test {
         }
 
         daoId = daoProxy.createProject{ value: 0.1 ether }(
-            createDaoParam.daoMetadataParam,
+            DaoMetadataParam({
+                startDrb: createDaoParam.startDrb == 0 ? drb.currentRound() : createDaoParam.startDrb,
+                mintableRounds: createDaoParam.mintableRound == 0 ? 30 : createDaoParam.mintableRound,
+                floorPriceRank: createDaoParam.floorPriceRank,
+                maxNftRank: createDaoParam.maxNftRank,
+                royaltyFee: createDaoParam.royaltyFee == 0 ? 750 : createDaoParam.royaltyFee,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: createDaoParam.projectIndex
+            }),
             Whitelist({
                 minterMerkleRoot: createDaoParam.minterMerkleRoot,
                 minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
@@ -589,93 +604,30 @@ contract DeployHelper is Test {
             }),
             daoMintCapParam,
             DaoETHAndERC20SplitRatioParam({
-                daoCreatorERC20Ratio: createDaoParam.daoCreatorERC20RatioInBps,
-                canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20RatioInBps,
+                daoCreatorERC20Ratio: createDaoParam.daoCreatorERC20RatioInBps == 0
+                    ? 300
+                    : createDaoParam.daoCreatorERC20RatioInBps,
+                canvasCreatorERC20Ratio: createDaoParam.canvasCreatorERC20RatioInBps == 0
+                    ? 9500
+                    : createDaoParam.canvasCreatorERC20RatioInBps,
                 nftMinterERC20Ratio: createDaoParam.nftMinterERC20RatioInBps,
-                daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatioInBps,
-                daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioInBpsFlatPrice
+                daoFeePoolETHRatio: createDaoParam.daoFeePoolETHRatioInBps == 0
+                    ? 3000
+                    : createDaoParam.daoFeePoolETHRatioInBps,
+                daoFeePoolETHRatioFlatPrice: createDaoParam.daoFeePoolETHRatioInBpsFlatPrice == 0
+                    ? 3500
+                    : createDaoParam.daoFeePoolETHRatioInBpsFlatPrice
             }),
             TemplateParam({
                 priceTemplateType: createDaoParam.priceTemplateType,
-                priceFactor: createDaoParam.priceFactor,
+                priceFactor: createDaoParam.priceFactor == 0 ? 20_000 : createDaoParam.priceFactor,
                 rewardTemplateType: createDaoParam.rewardTemplateType,
                 rewardDecayFactor: createDaoParam.rewardDecayFactor,
                 isProgressiveJackpot: createDaoParam.isProgressiveJackpot
             }),
             createDaoParam.actionType
         );
-    }
 
-    function _createTrivialDao(
-        uint256 startDrb,
-        uint256 mintableRounds,
-        uint256 floorPriceRank,
-        uint256 maxNftRank,
-        uint96 royaltyFee,
-        string memory projectUri
-    )
-        internal
-        returns (bytes32 daoId)
-    {
-        CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: startDrb,
-            mintableRounds: mintableRounds,
-            floorPriceRank: floorPriceRank,
-            maxNftRank: maxNftRank,
-            royaltyFee: royaltyFee,
-            projectUri: projectUri,
-            projectIndex: 0
-        });
-        createDaoParam.canvasCreatorERC20RatioInBps = 7000;
-        createDaoParam.nftMinterERC20RatioInBps = 3000;
-        createDaoParam.daoFeePoolETHRatioInBps = 3000;
-        createDaoParam.daoFeePoolETHRatioInBpsFlatPrice = 3500;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
-        daoId = _createDao(createDaoParam);
-    }
-
-    function _createDaoWithPermission(
-        uint256 startDrb,
-        uint256 mintableRounds,
-        uint256 floorPriceRank,
-        uint256 maxNftRank,
-        uint96 royaltyFee,
-        string memory projectUri,
-        bytes32 minterMerkleRoot,
-        address[] memory minterNFTHolderPasses,
-        bytes32 canvasCreatorMerkleRoot,
-        address[] memory canvasCreatorNFTHolderPasses,
-        address[] memory minterAccounts,
-        address[] memory canvasCreatorAccounts
-    )
-        internal
-        returns (bytes32 daoId)
-    {
-        CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: startDrb,
-            mintableRounds: mintableRounds,
-            floorPriceRank: floorPriceRank,
-            maxNftRank: maxNftRank,
-            royaltyFee: royaltyFee,
-            projectUri: projectUri,
-            projectIndex: 0
-        });
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.minterNFTHolderPasses = minterNFTHolderPasses;
-        createDaoParam.canvasCreatorMerkleRoot = canvasCreatorMerkleRoot;
-        createDaoParam.canvasCreatorNFTHolderPasses = canvasCreatorNFTHolderPasses;
-        createDaoParam.minterAccounts = minterAccounts;
-        createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
-        createDaoParam.actionType = 2;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
-        daoId = _createDao(createDaoParam);
+        vm.stopPrank();
     }
 }

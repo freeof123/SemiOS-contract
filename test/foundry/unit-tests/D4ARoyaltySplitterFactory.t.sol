@@ -36,7 +36,8 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
     }
 
     function test_royaltySplitters() public {
-        bytes32 daoId = _createTrivialDao(drb.currentRound(), 30, 0, 0, 750, "test project uri 1");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
         assertEq(address(royaltySplitterFactory.royaltySplitters(2)), address(daoProxy.royaltySplitters(daoId)));
         vm.expectRevert();
         royaltySplitterFactory.royaltySplitters(3);
@@ -76,14 +77,15 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
         tokenPriceDecimal = feedRegistry.decimals(address(_testERC20_1), Denominations.ETH);
         protocolShare = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
 
-        hoax(daoCreator.addr);
-        daoId1 = _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri1");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.daoUri = "test dao uri 1";
+        daoId1 = _createDao(createDaoParam);
 
         splitter1 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId1)));
         daoFeePool1 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId1);
 
-        hoax(daoCreator.addr);
-        daoId2 = _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri2");
+        createDaoParam.daoUri = "test dao uri 2";
+        daoId2 = _createDao(createDaoParam);
 
         splitter2 = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId2)));
         daoFeePool2 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId2);
@@ -210,9 +212,6 @@ contract D4ARoyaltySplitterFactoryTest is DeployHelper {
     }
 
     function test_performUpkeep_OnlySomeSplittersNeedToPerformUpkeep() public {
-        hoax(daoCreator.addr);
-        _createTrivialDao(1, 30, 0, 0, royaltyFee, "test project uri 3");
-
         address[] memory tokens = new address[](2);
         tokens[0] = address(_testERC20);
         tokens[1] = address(_testERC20_1);

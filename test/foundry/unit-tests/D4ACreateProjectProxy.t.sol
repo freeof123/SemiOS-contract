@@ -189,30 +189,8 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_getSplitterAddress() public {
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-        bytes32 daoId = daoProxy.createProject{ value: 0.1 ether }(
-            DaoMetadataParam({
-                startDrb: 1,
-                mintableRounds: 30,
-                floorPriceRank: 0,
-                maxNftRank: 0,
-                royaltyFee: 750,
-                projectUri: "test project uri",
-                projectIndex: 0
-            }),
-            whitelist,
-            blacklist,
-            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam(300, 5000, 4500, 2000, 2500),
-            TemplateParam({
-                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
-                priceFactor: 20_000,
-                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
-                rewardDecayFactor: 0,
-                isProgressiveJackpot: false
-            }),
-            0
-        );
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
         address splitter = daoProxy.royaltySplitters(daoId);
         assertTrue(splitter != address(0));
     }

@@ -22,8 +22,9 @@ contract D4AProtocolTest is DeployHelper {
 
         sigUtils = new MintNftSigUtils(address(protocol));
 
-        startHoax(daoCreator.addr);
-        daoId = _createTrivialDao(1, 50, 0, 0, 750, "test dao uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.mintableRound = 50;
+        daoId = _createDao(createDaoParam);
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
 

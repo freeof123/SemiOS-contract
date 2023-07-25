@@ -35,8 +35,10 @@ contract D4ARewardTest is DeployHelper {
     function setUp() public {
         setUpEnv();
 
-        hoax(daoCreator.addr);
-        daoId = _createTrivialDao(startDrb, mintableRound, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.startDrb = startDrb;
+        createDaoParam.mintableRound = mintableRound;
+        daoId = _createDao(createDaoParam);
         assertEq(daoCreator.addr, naiveOwner.ownerOf(daoId));
 
         drb.changeRound(startDrb);
@@ -212,8 +214,11 @@ contract D4ARewardTest is DeployHelper {
     }
 
     function test_case_20_MintAfterSuperLongGap() public {
-        hoax(daoCreator.addr);
-        daoId = _createTrivialDao(startDrb, 3, 0, 0, 750, "test project uri 1");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.startDrb = startDrb;
+        createDaoParam.mintableRound = 3;
+        createDaoParam.daoUri = "test dao uri 1";
+        daoId = _createDao(createDaoParam);
         assertEq(daoCreator.addr, naiveOwner.ownerOf(daoId));
 
         drb.changeRound(startDrb);
@@ -299,41 +304,16 @@ contract D4ARewardTest is DeployHelper {
 
     function test_Reward_amount() public {
         drb.changeRound(1);
-        hoax(daoCreator.addr);
-        daoId = daoProxy.createProject{ value: 0.1 ether }(
-            DaoMetadataParam({
-                startDrb: 1,
-                mintableRounds: mintableRound,
-                floorPriceRank: 0,
-                maxNftRank: 0,
-                royaltyFee: 750,
-                projectUri: "test dao uri",
-                projectIndex: 0
-            }),
-            Whitelist({
-                minterMerkleRoot: bytes32(0),
-                minterNFTHolderPasses: new address[](0),
-                canvasCreatorMerkleRoot: bytes32(0),
-                canvasCreatorNFTHolderPasses: new address[](0)
-            }),
-            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
-            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam({
-                daoCreatorERC20Ratio: 1900,
-                canvasCreatorERC20Ratio: 4000,
-                nftMinterERC20Ratio: 3900,
-                daoFeePoolETHRatio: 3000,
-                daoFeePoolETHRatioFlatPrice: 3500
-            }),
-            TemplateParam({
-                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
-                priceFactor: 20_000,
-                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
-                rewardDecayFactor: 12_600,
-                isProgressiveJackpot: true
-            }),
-            16
-        );
+
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.daoUri = "test dao uri 1";
+        createDaoParam.startDrb = 1;
+        createDaoParam.daoCreatorERC20RatioInBps = 1900;
+        createDaoParam.canvasCreatorERC20RatioInBps = 4000;
+        createDaoParam.nftMinterERC20RatioInBps = 3900;
+        createDaoParam.actionType = 16;
+        daoId = _createDao(createDaoParam);
+
         drb.changeRound(1);
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);
@@ -380,41 +360,18 @@ contract D4ARewardTest is DeployHelper {
 
     function test_claim_partial_reward_when_current_round_have_mint() public {
         drb.changeRound(1);
-        hoax(daoCreator.addr);
-        daoId = daoProxy.createProject{ value: 0.1 ether }(
-            DaoMetadataParam({
-                startDrb: 1,
-                mintableRounds: mintableRound,
-                floorPriceRank: 0,
-                maxNftRank: 0,
-                royaltyFee: 750,
-                projectUri: "test dao uri",
-                projectIndex: 0
-            }),
-            Whitelist({
-                minterMerkleRoot: bytes32(0),
-                minterNFTHolderPasses: new address[](0),
-                canvasCreatorMerkleRoot: bytes32(0),
-                canvasCreatorNFTHolderPasses: new address[](0)
-            }),
-            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
-            DaoMintCapParam({ daoMintCap: 0, userMintCapParams: new UserMintCapParam[](0) }),
-            DaoETHAndERC20SplitRatioParam({
-                daoCreatorERC20Ratio: 1900,
-                canvasCreatorERC20Ratio: 4000,
-                nftMinterERC20Ratio: 3900,
-                daoFeePoolETHRatio: 3000,
-                daoFeePoolETHRatioFlatPrice: 3500
-            }),
-            TemplateParam({
-                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
-                priceFactor: 20_000,
-                rewardTemplateType: RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE,
-                rewardDecayFactor: 12_600,
-                isProgressiveJackpot: true
-            }),
-            16
-        );
+
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.daoUri = "test dao uri 1";
+        createDaoParam.startDrb = 1;
+        createDaoParam.daoCreatorERC20RatioInBps = 1900;
+        createDaoParam.canvasCreatorERC20RatioInBps = 4000;
+        createDaoParam.nftMinterERC20RatioInBps = 3900;
+        createDaoParam.daoFeePoolETHRatioInBps = 3000;
+        createDaoParam.daoFeePoolETHRatioInBpsFlatPrice = 3500;
+        createDaoParam.actionType = 16;
+        daoId = _createDao(createDaoParam);
+
         drb.changeRound(1);
         hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 1000);

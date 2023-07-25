@@ -70,7 +70,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_createCanvas() public {
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
         vm.expectCall({
             callee: address(permissionControl),
             data: abi.encodeWithSelector(permissionControl.isCanvasCreatorBlacklisted.selector),
@@ -86,44 +87,25 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_RevertIf_createCanvas_Blacklisted() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
         address[] memory canvasCreatorAccounts = new address[](1);
         canvasCreatorAccounts[0] = address(this);
-        bytes32 daoId = _createDaoWithPermission(
-            1,
-            30,
-            0,
-            0,
-            750,
-            "test project uri",
-            bytes32(0),
-            new address[](0),
-            bytes32(0),
-            new address[](0),
-            new address[](0),
-            canvasCreatorAccounts
-        );
+        createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
+        createDaoParam.actionType = 2;
+        bytes32 daoId = _createDao(createDaoParam);
+        console2.log(permissionControl.isCanvasCreatorBlacklisted(daoId, address(this)));
         vm.expectRevert(Blacklisted.selector);
         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
     }
 
     function test_RevertIf_createCanvas_NotInWhtielist() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
         address[] memory canvasCreatorNFTHolderPasses = new address[](1);
         _testERC721.mint(protocolOwner.addr, 0);
         canvasCreatorNFTHolderPasses[0] = address(_testERC721);
-        bytes32 daoId = _createDaoWithPermission(
-            1,
-            30,
-            0,
-            0,
-            750,
-            "test project uri",
-            bytes32(0),
-            new address[](0),
-            bytes32(0),
-            canvasCreatorNFTHolderPasses,
-            new address[](0),
-            new address[](0)
-        );
+        createDaoParam.canvasCreatorNFTHolderPasses = canvasCreatorNFTHolderPasses;
+        createDaoParam.actionType = 2;
+        bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(NotInWhitelist.selector);
         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
     }
@@ -147,40 +129,18 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_exposed_checkMintEligibility() public {
         CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 1,
-            mintableRounds: 30,
-            floorPriceRank: 0,
-            maxNftRank: 0,
-            royaltyFee: 750,
-            projectUri: "test project uri",
-            projectIndex: 0
-        });
         address[] memory minters = new address[](1);
         minters[0] = address(this);
         bytes32 minterMerkleRoot = getMerkleRoot(minters);
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 1);
     }
 
     function test_RevertIf_exposed_checkMintEligibility_ExceedMaxMintAmount() public {
         CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 1,
-            mintableRounds: 30,
-            floorPriceRank: 0,
-            maxNftRank: 0,
-            royaltyFee: 750,
-            projectUri: "test project uri",
-            projectIndex: 0
-        });
         createDaoParam.mintCap = 10;
         address[] memory minters = new address[](1);
         minters[0] = address(this);
@@ -188,10 +148,6 @@ contract D4AProtocolTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 6;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
@@ -199,8 +155,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_mintNFT() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -222,8 +178,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_batchMint() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -254,8 +210,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_setMintCapAndPermission() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -275,8 +231,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -290,8 +246,8 @@ contract D4AProtocolTest is DeployHelper {
     event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
 
     function test_setMintCapAndPermission_ExpectEmit() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
@@ -309,40 +265,18 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_exposed_ableToMint() public {
         CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 1,
-            mintableRounds: 30,
-            floorPriceRank: 0,
-            maxNftRank: 0,
-            royaltyFee: 750,
-            projectUri: "test project uri",
-            projectIndex: 0
-        });
         address[] memory minters = new address[](1);
         minters[0] = address(this);
         bytes32 minterMerkleRoot = getMerkleRoot(minters);
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
     }
 
     function test_RevertIf_exposed_ableToMint_Blacklisted() public {
         CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 1,
-            mintableRounds: 30,
-            floorPriceRank: 0,
-            maxNftRank: 0,
-            royaltyFee: 750,
-            projectUri: "test project uri",
-            projectIndex: 0
-        });
         createDaoParam.minterAccounts = new address[](1);
         createDaoParam.minterAccounts[0] = address(this);
         address[] memory minters = new address[](1);
@@ -351,10 +285,6 @@ contract D4AProtocolTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(Blacklisted.selector);
         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
@@ -362,15 +292,6 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_RevertIf_exposed_ableToMint_NotInWhitelist() public {
         CreateDaoParam memory createDaoParam;
-        createDaoParam.daoMetadataParam = DaoMetadataParam({
-            startDrb: 1,
-            mintableRounds: 30,
-            floorPriceRank: 0,
-            maxNftRank: 0,
-            royaltyFee: 750,
-            projectUri: "test project uri",
-            projectIndex: 0
-        });
         createDaoParam.minterAccounts = new address[](1);
         createDaoParam.minterAccounts[0] = address(this);
         address[] memory minters = new address[](1);
@@ -379,18 +300,14 @@ contract D4AProtocolTest is DeployHelper {
         bytes32[] memory proof = getMerkleProof(minters, address(this));
         createDaoParam.minterMerkleRoot = minterMerkleRoot;
         createDaoParam.actionType = 2;
-        createDaoParam.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
-        createDaoParam.priceFactor = 20_000;
-        createDaoParam.rewardTemplateType = RewardTemplateType.LINEAR_REWARD_ISSUANCE;
-        createDaoParam.rewardDecayFactor = 0;
         bytes32 daoId = _createDao(createDaoParam);
         vm.expectRevert(NotInWhitelist.selector);
         protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
     }
 
     function test_exposed_verifySignature() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
@@ -416,8 +333,8 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_RevertIf_exposed_verifySignature_InvalidSignature() public {
-        hoax(daoCreator.addr);
-        bytes32 daoId = _createTrivialDao(1, 30, 0, 0, 750, "test project uri");
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 daoId = _createDao(createDaoParam);
 
         hoax(canvasCreator.addr);
         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
