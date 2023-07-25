@@ -226,8 +226,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         _checkDaoExist(daoId);
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(daoInfo.rewardTemplateType)]
-            .delegatecall(
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimDaoCreatorReward.selector,
                 daoId,
@@ -253,8 +252,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(daoInfo.rewardTemplateType)]
-            .delegatecall(
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimCanvasCreatorReward.selector,
                 daoId,
@@ -278,8 +276,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         _checkPauseStatus(daoId);
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = SettingsStorage.layout().rewardTemplates[uint8(daoInfo.rewardTemplateType)]
-            .delegatecall(
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
             )
