@@ -74,7 +74,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
@@ -98,8 +98,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        // _deployLinearRewardIssuance();
-        // _deployExponentialRewardIssuance();
+        _deployLinearRewardIssuance();
+        _deployExponentialRewardIssuance();
 
         // d4aProtocol_proxy.initialize();
 
@@ -368,9 +368,9 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         vm.toString(address(linearRewardIssuance)).write(path, ".D4AProtocol.LinearRewardIssuance");
 
-        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-            TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
-        );
+        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
+        // );
 
         console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
         console2.log("================================================================================\n");
@@ -385,11 +385,11 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         vm.toString(address(exponentialRewardIssuance)).write(path, ".D4AProtocol.ExponentialRewardIssuance");
 
-        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-            TemplateChoice.REWARD,
-            uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-            address(exponentialRewardIssuance)
-        );
+        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        //     TemplateChoice.REWARD,
+        //     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+        //     address(exponentialRewardIssuance)
+        // );
 
         console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
         console2.log("================================================================================\n");
