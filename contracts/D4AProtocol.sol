@@ -303,6 +303,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         uint256 currentRound = SettingsStorage.layout().drb.currentRound();
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        if (rewardInfo.rewardIssuePendingRound != 0) {
+            uint256 roundReward =
+                ID4AProtocolReadable(address(this)).getRoundReward(daoId, rewardInfo.rewardIssuePendingRound);
+            rewardInfo.rewardIssuePendingRound = 0;
+            D4AERC20(token).mint(address(this), roundReward);
+        }
         uint256 tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
 
         if (tokenCirculation == 0) return 0;
