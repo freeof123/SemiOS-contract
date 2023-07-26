@@ -13,6 +13,8 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
+import "forge-std/Test.sol";
+
 abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
@@ -220,6 +222,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 totalRound = rewardCheckpoint.totalRound - (currentRound + 1 - rewardCheckpoint.startRound);
             } else {
                 totalRound = rewardCheckpoint.totalRound - rewardCheckpoint.activeRounds.length;
+                if (rewardCheckpoint.activeRounds[rewardCheckpoint.activeRounds.length - 1] != currentRound) {
+                    totalRound -= 1;
+                }
             }
             if (rewardInfo.rewardIssuePendingRound < currentRound) {
                 _issueLastRoundReward(rewardInfo, daoId, daoInfo.token);

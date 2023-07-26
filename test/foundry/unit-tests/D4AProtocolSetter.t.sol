@@ -733,4 +733,76 @@ contract D4AProtocolSetterTest is DeployHelper {
 
         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.0398 ether);
     }
+
+    function test_setDaoMintableRound_SetThenMintInTheSameRound() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.mintableRound = 90;
+        createDaoParam.floorPriceRank = 9999;
+        bytes32 daoId = _createDao(createDaoParam);
+
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
+
+        drb.changeRound(2);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 120);
+
+        _mintNft(daoId, canvasId, "test token uri 2", 0, canvasCreator.key, nftMinter.addr);
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardTotalRound(daoId, 0), 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardTotalRound(daoId, 1), 118);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[1], 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1).length, 0);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0), 22_222_222_222_222_222_222_222_222);
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1), 977_777_777_777_777_777_777_777_778
+        );
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1), 11_111_111_111_111_111_111_111_111
+        );
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2), 22_222_222_222_222_222_222_222_222
+        );
+    }
+
+    function test_setDaoMintableRound_MintThenSetInTheSameRound() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.mintableRound = 90;
+        createDaoParam.floorPriceRank = 9999;
+        bytes32 daoId = _createDao(createDaoParam);
+
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
+
+        drb.changeRound(2);
+
+        _mintNft(daoId, canvasId, "test token uri 2", 0, canvasCreator.key, nftMinter.addr);
+
+        hoax(daoCreator.addr);
+        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 120);
+
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardTotalRound(daoId, 0), 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardTotalRound(daoId, 1), 118);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0).length, 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[0], 1);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 0)[1], 2);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoRewardActiveRounds(daoId, 1).length, 0);
+        assertEq(D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0), 22_222_222_222_222_222_222_222_222);
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1), 977_777_777_777_777_777_777_777_778
+        );
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1), 11_111_111_111_111_111_111_111_111
+        );
+        assertEq(
+            D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2), 22_222_222_222_222_222_222_222_222
+        );
+    }
 }
