@@ -13,8 +13,6 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
-import "forge-std/Test.sol";
-
 abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
@@ -29,7 +27,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             }
         } else {
             if (length != 0 && activeRounds[length - 1] != param.currentRound) {
-                if (length >= param.totalRound) revert ExceedMaxMintableRound();
+                if (length >= rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].totalRound) {
+                    revert ExceedMaxMintableRound();
+                }
             }
         }
 
@@ -41,15 +41,28 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 uint256[] storage activeRoundsOfLastCheckpoint =
                     rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2].activeRounds;
                 if (activeRoundsOfLastCheckpoint[activeRoundsOfLastCheckpoint.length - 1] != param.currentRound) {
-                    _issueLastRoundReward(rewardInfo, param.daoId, param.token);
                     if (
                         param.currentRound
                             < rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1].startRound
                     ) {
                         activeRoundsOfLastCheckpoint.push(param.currentRound);
                     } else {
+                        if (!rewardInfo.isProgressiveJackpot) {
+                            RewardStorage.RewardCheckpoint storage secondLastCheckpoint =
+                                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 2];
+                            RewardStorage.RewardCheckpoint storage lastCheckpoint =
+                                rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
+                            if (activeRoundsOfLastCheckpoint.length < secondLastCheckpoint.totalRound) {
+                                uint256 roundReward = getRoundReward(param.daoId, lastCheckpoint.startRound - 1);
+                                secondLastCheckpoint.totalRound -= 1;
+                                secondLastCheckpoint.totalReward -= roundReward;
+                                lastCheckpoint.totalRound += 1;
+                                lastCheckpoint.totalReward += roundReward;
+                            }
+                        }
                         activeRounds.push(param.currentRound);
                     }
+                    _issueLastRoundReward(rewardInfo, param.daoId, param.token);
                 }
             }
             // no old checkpoint
