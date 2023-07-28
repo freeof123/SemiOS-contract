@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { DaoMetadataParam, UserMintCapParam, TemplateParam } from "./D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam, TemplateParam, MintNftInfo } from "./D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocol {
@@ -21,6 +21,8 @@ interface ID4AProtocol {
 
     event D4AExchangeERC20ToETH(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 ethAmount);
 
+    function initialize() external;
+
     function createProject(
         uint256 startRound,
         uint256 mintableRound,
@@ -35,6 +37,39 @@ interface ID4AProtocol {
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadata) external payable returns (bytes32 daoId);
 
+    function createCanvas(
+        bytes32 daoId,
+        string calldata canvasUri,
+        bytes32[] calldata proof,
+        uint256 canvasRebateRatioInBps
+    )
+        external
+        payable
+        returns (bytes32);
+
+    function mintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 nftFlatPrice,
+        bytes calldata signature
+    )
+        external
+        payable
+        returns (uint256);
+
+    function batchMint(
+        bytes32 daoId,
+        bytes32 canvasId,
+        bytes32[] calldata proof,
+        MintNftInfo[] calldata mintNftInfos,
+        bytes[] calldata signatures
+    )
+        external
+        payable
+        returns (uint256[] memory);
+
     function claimProjectERC20Reward(bytes32 daoId) external returns (uint256);
 
     function claimCanvasReward(bytes32 canvasId) external returns (uint256);
@@ -42,4 +77,6 @@ interface ID4AProtocol {
     function claimNftMinterReward(bytes32 daoId, address minter) external returns (uint256);
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
+
+    function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) external view returns (bytes32);
 }
