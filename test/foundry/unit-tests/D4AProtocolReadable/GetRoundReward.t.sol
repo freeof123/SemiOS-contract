@@ -685,8 +685,6 @@ contract GetRoundRewardTest is DeployHelper {
         hoax(daoCreator.addr);
         D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 120);
 
-        console2.log(ID4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0));
-
         assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 1), 11_111_111_111_111_111_111_111_111);
         assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 2), 11_111_111_111_111_111_111_111_111);
         assertEq(ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, 3), 8_286_252_354_048_964_218_455_743);

@@ -22,6 +22,7 @@ import {
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { ID4AProtocolAggregate } from "contracts/interface/ID4AProtocolAggregate.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract D4AProtocolTest is DeployHelper {
@@ -93,7 +94,6 @@ contract D4AProtocolTest is DeployHelper {
         createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
         createDaoParam.actionType = 2;
         bytes32 daoId = _createDao(createDaoParam);
-        console2.log(permissionControl.isCanvasCreatorBlacklisted(daoId, address(this)));
         vm.expectRevert(Blacklisted.selector);
         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
     }
@@ -111,7 +111,7 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_initialize() public {
-        protocol = D4AProtocol(payable(new D4ADiamond()));
+        protocol = ID4AProtocolAggregate(address(new D4ADiamond()));
         ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
         protocolImpl = new D4AProtocol();
 

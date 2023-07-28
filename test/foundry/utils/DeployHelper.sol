@@ -29,6 +29,7 @@ import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
+import { ID4AProtocolAggregate } from "contracts/interface/ID4AProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
@@ -59,7 +60,7 @@ contract DeployHelper is Test {
     NaiveOwner public naiveOwnerImpl;
     D4AProtocolReadable public protocolReadable;
     D4AProtocolSetter public protocolSetter;
-    D4AProtocol public protocol;
+    ID4AProtocolAggregate public protocol;
     D4AProtocol public protocolImpl;
     D4ACreateProjectProxy public daoProxy;
     D4ACreateProjectProxy public daoProxyImpl;
@@ -241,7 +242,7 @@ contract DeployHelper is Test {
     }
 
     function _deployProtocol() internal prank(protocolOwner.addr) {
-        protocol = D4AProtocol(payable(new D4ADiamond()));
+        protocol = ID4AProtocolAggregate(payable(new D4ADiamond()));
         protocolImpl = new D4AProtocol();
 
         _deployProtocolReadable();
