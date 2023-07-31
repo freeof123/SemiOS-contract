@@ -27,6 +27,8 @@ contract MintNftTest is DeployHelper {
 
     function test_mintNFT_pay_lower_price_when_canvasRebateRatioInBps_is_set() public {
         DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.nftMinterERC20RatioInBps = 300;
+        createDaoParam.actionType = 16;
         daoId = _createDao(createDaoParam);
 
         drb.changeRound(1);

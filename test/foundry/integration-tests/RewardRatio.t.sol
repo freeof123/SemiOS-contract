@@ -356,7 +356,101 @@ contract RewardRatioTest is DeployHelper {
         assertEq(nftMinter2.addr.balance, daoFeePoolETH * nftMinter2Weight / totalWeight, "minter 2");
     }
 
-    function testFuzz_ETH_Ratio_CanvasRebateRatio(uint256 canvasRebateRatioInBps) public {
+    function testFuzz_ETHRatioWhenCanvasRebateRatioIsSetAndNotTakeEffect(uint256 canvasRebateRatioInBps) public {
+        canvasRebateRatioInBps = bound(canvasRebateRatioInBps, 0, 10_000);
+        // uint256 canvasRebateRatioInBps = 10_000;
+        startHoax(canvasCreator.addr);
+        ID4AProtocolSetter(address(protocol)).setCanvasRebateRatioInBps(canvasId1, canvasRebateRatioInBps);
+
+        string memory tokenUri = "test token uri 1";
+        uint256 flatPrice = 0;
+        bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+
+        _clearETHBalance();
+
+        startHoax(nftMinter.addr);
+        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
+        protocol.mintNFT{ value: mintPrice }(
+            daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
+
+        uint256 protocolFee = protocolFeePoolETHRatio * mintPrice / ratioBase;
+        uint256 daoFee = daoFeePoolETHRatio * mintPrice / ratioBase;
+        assertEq(protocolFeePool.addr.balance, protocolFee);
+        assertEq(daoFeePool.balance, daoFee);
+        assertEq(canvasCreator.addr.balance, (mintPrice - protocolFee - daoFee) * ratioBase / ratioBase);
+
+        tokenUri = "test token uri 1 flat price";
+        flatPrice = 1 ether;
+        digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+        (v, r, s) = vm.sign(canvasCreator.key, digest);
+
+        _clearETHBalance();
+
+        startHoax(nftMinter2.addr);
+        mintPrice = flatPrice;
+        protocol.mintNFT{ value: mintPrice }(
+            daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
+
+        protocolFee = protocolFeePoolETHRatio * mintPrice / ratioBase;
+        daoFee = daoFeePoolETHRatioFlatPrice * mintPrice / ratioBase;
+        assertEq(protocolFeePool.addr.balance, protocolFee);
+        assertEq(daoFeePool.balance, daoFee);
+        assertEq(canvasCreator.addr.balance, (mintPrice - protocolFee - daoFee) * ratioBase / ratioBase);
+
+        // change ETH ratio
+        startHoax(daoCreator.addr);
+        daoFeePoolETHRatio = 4000;
+        daoFeePoolETHRatioFlatPrice = 6000;
+        ID4AProtocolSetter(address(protocol)).setRatio(
+            daoId, 300, 9500, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+        );
+
+        tokenUri = "test token uri 2";
+        flatPrice = 0;
+        digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+        (v, r, s) = vm.sign(canvasCreator.key, digest);
+
+        _clearETHBalance();
+
+        startHoax(nftMinter.addr);
+        mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
+        protocol.mintNFT{ value: mintPrice }(
+            daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
+
+        protocolFee = protocolFeePoolETHRatio * mintPrice / ratioBase;
+        daoFee = daoFeePoolETHRatio * mintPrice / ratioBase;
+        assertEq(protocolFeePool.addr.balance, protocolFee);
+        assertEq(daoFeePool.balance, daoFee);
+        assertEq(canvasCreator.addr.balance, (mintPrice - protocolFee - daoFee) * ratioBase / ratioBase);
+
+        tokenUri = "test token uri 2 flat price";
+        flatPrice = 1 ether;
+        digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+        (v, r, s) = vm.sign(canvasCreator.key, digest);
+
+        _clearETHBalance();
+
+        startHoax(nftMinter2.addr);
+        mintPrice = flatPrice;
+        protocol.mintNFT{ value: mintPrice }(
+            daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
+
+        protocolFee = protocolFeePoolETHRatio * mintPrice / ratioBase;
+        daoFee = daoFeePoolETHRatioFlatPrice * mintPrice / ratioBase;
+        assertEq(protocolFeePool.addr.balance, protocolFee);
+        assertEq(daoFeePool.balance, daoFee);
+        assertEq(canvasCreator.addr.balance, (mintPrice - protocolFee - daoFee) * ratioBase / ratioBase);
+    }
+
+    function testFuzz_ETHRatioWhenCanvasRebateRatioIsSetAndTakeEffect(uint256 canvasRebateRatioInBps) public {
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, 300, 9000, 500, 3000, 3500);
+
         canvasRebateRatioInBps = bound(canvasRebateRatioInBps, 0, 10_000);
         // uint256 canvasRebateRatioInBps = 10_000;
         startHoax(canvasCreator.addr);
@@ -411,7 +505,7 @@ contract RewardRatioTest is DeployHelper {
         daoFeePoolETHRatio = 4000;
         daoFeePoolETHRatioFlatPrice = 6000;
         ID4AProtocolSetter(address(protocol)).setRatio(
-            daoId, 300, 9500, 0, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
+            daoId, 300, 9000, 500, daoFeePoolETHRatio, daoFeePoolETHRatioFlatPrice
         );
 
         tokenUri = "test token uri 2";
