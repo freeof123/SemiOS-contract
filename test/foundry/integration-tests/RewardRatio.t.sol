@@ -3,11 +3,15 @@ pragma solidity ^0.8.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { console2 } from "forge-std/Console2.sol";
+
 import { DeployHelper } from "../utils/DeployHelper.sol";
 import { MintNftSigUtils } from "../utils/MintNftSigUtils.sol";
-import { D4ASettingsReadable } from "contracts/D4ASettings/D4ASettingsReadable.sol";
+
+import "contracts/interface/D4AErrors.sol";
+import "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { D4ASettingsReadable } from "contracts/D4ASettings/D4ASettingsReadable.sol";
 
 contract RewardRatioTest is DeployHelper {
     MintNftSigUtils public sigUtils;
@@ -836,6 +840,202 @@ contract RewardRatioTest is DeployHelper {
             1e14,
             "total"
         );
+    }
+
+    function test_ShouldIgnoreRebateRatioWhenMintNFTAndCanvasCreatorETHRatioIs0AndNftMinterERC20RatioisNot0() public {
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, 300, 9000, 500, 9750, 9750);
+
+        hoax(canvasCreator.addr);
+        protocol.setCanvasRebateRatioInBps(canvasId1, 3000);
+
+        {
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: 0.01 ether }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        {
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            vm.expectRevert(NotEnoughEther.selector);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: 0.01 ether - 1 }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        drb.changeRound(2);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        token = IERC20(protocol.getDaoToken(daoId));
+        assertEq(token.balanceOf(daoCreator.addr), 6e23);
+        assertEq(token.balanceOf(canvasCreator.addr), 1.8e25);
+        assertEq(token.balanceOf(nftMinter.addr), 1e24);
+    }
+
+    function test_ShouldIgnoreRebateRatioWhenMintNFTAndCanvasCreatorETHRatioIsNot0AndNftMinterERC20Ratiois0() public {
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, 300, 9500, 0, 3000, 3500);
+
+        hoax(canvasCreator.addr);
+        protocol.setCanvasRebateRatioInBps(canvasId1, 3000);
+
+        {
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: 0.01 ether }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        {
+            string memory tokenUri = "test token uri 2";
+            uint256 flatPrice = 0;
+            bytes32 digest = sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+            vm.expectRevert(NotEnoughEther.selector);
+            hoax(nftMinter.addr);
+            protocol.mintNFT{ value: 0.01 ether - 1 }(
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        drb.changeRound(2);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        token = IERC20(protocol.getDaoToken(daoId));
+        assertEq(token.balanceOf(daoCreator.addr), 6e23);
+        assertEq(token.balanceOf(canvasCreator.addr), 1.9e25);
+        assertEq(token.balanceOf(nftMinter.addr), 0);
+    }
+
+    function test_ShouldIgnoreRebateRatioWhenBatchMintAndCanvasCreatorETHRatioIs0AndNftMinterERC20RatioisNot0()
+        public
+    {
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, 300, 9000, 500, 9750, 9750);
+
+        hoax(canvasCreator.addr);
+        protocol.setCanvasRebateRatioInBps(canvasId1, 3000);
+
+        {
+            MintNftInfo[] memory mintNftInfos = new MintNftInfo[](2);
+            bytes[] memory signatures = new bytes[](2);
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            mintNftInfos[0] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[0] = abi.encodePacked(r, s, v);
+            tokenUri = "test token uri 2";
+            flatPrice = 0;
+            mintNftInfos[1] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (v, r, s) = vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[1] = abi.encodePacked(r, s, v);
+
+            hoax(nftMinter.addr);
+            protocol.batchMint{ value: 0.03 ether }(daoId, canvasId1, new bytes32[](0), mintNftInfos, signatures);
+        }
+
+        {
+            MintNftInfo[] memory mintNftInfos = new MintNftInfo[](2);
+            bytes[] memory signatures = new bytes[](2);
+            string memory tokenUri = "test token uri 3";
+            uint256 flatPrice = 0;
+            mintNftInfos[0] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[0] = abi.encodePacked(r, s, v);
+            tokenUri = "test token uri 4";
+            flatPrice = 0;
+            mintNftInfos[1] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (v, r, s) = vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[1] = abi.encodePacked(r, s, v);
+
+            vm.expectRevert(NotEnoughEther.selector);
+            hoax(nftMinter.addr);
+            protocol.batchMint{ value: 0.03 ether - 1 }(daoId, canvasId1, new bytes32[](0), mintNftInfos, signatures);
+        }
+
+        drb.changeRound(2);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        token = IERC20(protocol.getDaoToken(daoId));
+        assertEq(token.balanceOf(daoCreator.addr), 6e23);
+        assertEq(token.balanceOf(canvasCreator.addr), 1.8e25);
+        assertEq(token.balanceOf(nftMinter.addr), 1e24);
+    }
+
+    function test_ShouldIgnoreRebateRatioWhenBatchMintAndCanvasCreatorETHRatioIsNot0AndNftMinterERC20Ratiois0()
+        public
+    {
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, 300, 9500, 0, 3000, 3500);
+
+        hoax(canvasCreator.addr);
+        protocol.setCanvasRebateRatioInBps(canvasId1, 3000);
+
+        {
+            MintNftInfo[] memory mintNftInfos = new MintNftInfo[](2);
+            bytes[] memory signatures = new bytes[](2);
+            string memory tokenUri = "test token uri 1";
+            uint256 flatPrice = 0;
+            mintNftInfos[0] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[0] = abi.encodePacked(r, s, v);
+            tokenUri = "test token uri 2";
+            flatPrice = 0;
+            mintNftInfos[1] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (v, r, s) = vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[1] = abi.encodePacked(r, s, v);
+
+            hoax(nftMinter.addr);
+            protocol.batchMint{ value: 0.03 ether }(daoId, canvasId1, new bytes32[](0), mintNftInfos, signatures);
+        }
+
+        {
+            MintNftInfo[] memory mintNftInfos = new MintNftInfo[](2);
+            bytes[] memory signatures = new bytes[](2);
+            string memory tokenUri = "test token uri 3";
+            uint256 flatPrice = 0;
+            mintNftInfos[0] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (uint8 v, bytes32 r, bytes32 s) =
+                vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[0] = abi.encodePacked(r, s, v);
+            tokenUri = "test token uri 4";
+            flatPrice = 0;
+            mintNftInfos[1] = MintNftInfo({ tokenUri: tokenUri, flatPrice: flatPrice });
+            (v, r, s) = vm.sign(canvasCreator.key, sigUtils.getTypedDataHash(canvasId1, tokenUri, flatPrice));
+            signatures[1] = abi.encodePacked(r, s, v);
+
+            vm.expectRevert(NotEnoughEther.selector);
+            hoax(nftMinter.addr);
+            protocol.batchMint{ value: 0.03 ether - 1 }(daoId, canvasId1, new bytes32[](0), mintNftInfos, signatures);
+        }
+
+        drb.changeRound(2);
+        protocol.claimProjectERC20Reward(daoId);
+        protocol.claimCanvasReward(canvasId1);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        token = IERC20(protocol.getDaoToken(daoId));
+        assertEq(token.balanceOf(daoCreator.addr), 6e23);
+        assertEq(token.balanceOf(canvasCreator.addr), 1.9e25);
+        assertEq(token.balanceOf(nftMinter.addr), 0);
     }
 
     function _clearETHBalance() internal {
