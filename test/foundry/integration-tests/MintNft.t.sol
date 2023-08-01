@@ -154,4 +154,24 @@ contract MintNftTest is DeployHelper {
         assertEq(daoFeePool.balance, totalPrice * 9750 / 10_000);
         assertEq(canvasCreator.addr.balance, 0);
     }
+
+    function test_PriceShouldUpdateCorrectlyWhenBatchMintAndLPV() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
+        param.priceFactor = 0.042 ether;
+        daoId = _createDao(param);
+
+        hoax(canvasCreator.addr);
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        string[] memory tokenUris = new string[](2);
+        tokenUris[0] = "test token uri 1";
+        tokenUris[1] = "test token uri 2";
+        uint256[] memory flatPrices = new uint256[](2);
+        flatPrices[0] = 0;
+        flatPrices[1] = 0;
+        _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
+
+        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether + 0.042 ether * 2);
+    }
 }

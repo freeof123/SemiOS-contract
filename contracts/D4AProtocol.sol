@@ -21,7 +21,6 @@ import {
     DaoMintInfo,
     UserMintInfo,
     MintNftInfo,
-    MintVars,
     Whitelist
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -557,6 +556,14 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         }
     }
 
+    struct BatchMintLocalVars {
+        uint256 length;
+        uint256 currentRound;
+        uint256 nftPriceFactor;
+        uint256 daoTotalShare;
+        uint256 totalPrice;
+    }
+
     function _batchMint(
         bytes32 daoId,
         bytes32 canvasId,
@@ -565,53 +572,45 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         internal
         returns (uint256[] memory)
     {
-        {
-            _checkPauseStatus();
-            _checkPauseStatus(daoId);
-            _checkCanvasExist(canvasId);
-            _checkPauseStatus(canvasId);
-        }
+        _checkPauseStatus();
+        _checkPauseStatus(daoId);
+        _checkCanvasExist(canvasId);
+        _checkPauseStatus(canvasId);
 
-        uint256 length = mintNftInfos.length;
-        {
-            for (uint256 i; i < length;) {
-                _checkUriNotExist(mintNftInfos[i].tokenUri);
-                unchecked {
-                    ++i;
-                }
+        BatchMintLocalVars memory vars;
+        vars.length = mintNftInfos.length;
+        for (uint256 i; i < vars.length;) {
+            _checkUriNotExist(mintNftInfos[i].tokenUri);
+            unchecked {
+                ++i;
             }
         }
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
-        if (daoInfo.nftTotalSupply + length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
+        if (daoInfo.nftTotalSupply + vars.length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
 
-        MintVars memory vars;
-        vars.daoId = daoId;
-        vars.canvasId = canvasId;
-        uint256 currentRound = SettingsStorage.layout().drb.currentRound();
-        uint256 nftPriceFactor = daoInfo.nftPriceFactor;
+        vars.currentRound = SettingsStorage.layout().drb.currentRound();
+        vars.nftPriceFactor = daoInfo.nftPriceFactor;
 
-        vars.price = _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, currentRound, nftPriceFactor);
-        vars.daoTotalShare;
-        vars.totalPrice;
-        uint256[] memory tokenIds = new uint256[](length);
-        daoInfo.nftTotalSupply += length;
-        for (uint256 i; i < length;) {
+        uint256[] memory tokenIds = new uint256[](vars.length);
+        daoInfo.nftTotalSupply += vars.length;
+        for (uint256 i; i < vars.length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
             tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
             canvasInfo.tokenIds.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
             if (flatPrice == 0) {
-                vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(vars.daoId) * vars.price;
-                vars.totalPrice += vars.price;
-                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, vars.price);
-                vars.price = vars.price * nftPriceFactor / BASIS_POINT;
-                vars.needUpdatePrice = true;
+                uint256 price =
+                    _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, vars.currentRound, vars.nftPriceFactor);
+                vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId) * price;
+                vars.totalPrice += price;
+                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, price);
+                _updatePrice(vars.currentRound, daoId, canvasId, price, 0, vars.nftPriceFactor);
             } else {
                 vars.daoTotalShare +=
-                    ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(vars.daoId) * flatPrice;
+                    ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId) * flatPrice;
                 vars.totalPrice += flatPrice;
                 emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, flatPrice);
             }
@@ -620,34 +619,26 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             }
         }
 
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 canvasRebateRatioInBps;
-        {
-            // split fee
-            SettingsStorage.Layout storage l = SettingsStorage.layout();
-            address protocolFeePool = l.protocolFeePool;
-            address daoFeePool = daoInfo.daoFeePool;
-            address canvasOwner = l.ownerProxy.ownerOf(vars.canvasId);
-
-            if (
-                vars.totalPrice - vars.daoTotalShare / BASIS_POINT
-                    - vars.totalPrice * l.protocolMintFeeRatioInBps / BASIS_POINT != 0
-                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(vars.daoId) != 0
-            ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
-            vars.daoFee = _splitFee(
-                protocolFeePool, daoFeePool, canvasOwner, vars.totalPrice, vars.daoTotalShare, canvasRebateRatioInBps
-            );
-        }
-
-        // update canvas price
-        if (vars.needUpdatePrice) {
-            vars.price = vars.price * BASIS_POINT / nftPriceFactor;
-            _updatePrice(currentRound, daoId, canvasId, vars.price, 0, nftPriceFactor);
-        }
+        if (
+            vars.totalPrice - vars.daoTotalShare / BASIS_POINT
+                - vars.totalPrice * l.protocolMintFeeRatioInBps / BASIS_POINT != 0
+                && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
+        ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
+        uint256 daoFee = _splitFee(
+            l.protocolFeePool,
+            daoInfo.daoFeePool,
+            l.ownerProxy.ownerOf(canvasId),
+            vars.totalPrice,
+            vars.daoTotalShare,
+            canvasRebateRatioInBps
+        );
 
         _updateReward(
             daoId,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[vars.daoId] == 0 ? 1 ether * length : vars.daoFee,
+            PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether * vars.length : daoFee,
             canvasRebateRatioInBps
         );
 
