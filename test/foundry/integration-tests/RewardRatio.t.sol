@@ -47,10 +47,10 @@ contract RewardRatioTest is DeployHelper {
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
 
-        startHoax(canvasCreator.addr);
+        hoax(canvasCreator.addr);
         canvasId1 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
 
-        startHoax(canvasCreator2.addr);
+        hoax(canvasCreator2.addr);
         canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0), 0);
     }
 

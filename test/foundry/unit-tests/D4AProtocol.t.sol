@@ -28,7 +28,7 @@ contract D4AProtocolTest is DeployHelper {
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
 
-        startHoax(canvasCreator.addr);
+        hoax(canvasCreator.addr);
         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 1", new bytes32[](0), 0);
     }
 

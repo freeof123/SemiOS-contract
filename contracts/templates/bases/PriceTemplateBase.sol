@@ -35,6 +35,9 @@ abstract contract PriceTemplateBase is IPriceTemplate {
         if (maxPrice.price == daoFloorPrice >> 1 && currentRound <= maxPrice.round + 1) {
             return daoFloorPrice;
         }
+        if (mintInfo.price == daoFloorPrice >> 1 && currentRound <= mintInfo.round + 1) {
+            return daoFloorPrice;
+        }
 
         return daoFloorPrice >> 1;
     }

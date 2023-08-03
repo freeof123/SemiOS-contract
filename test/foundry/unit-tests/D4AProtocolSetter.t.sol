@@ -731,7 +731,7 @@ contract D4AProtocolSetterTest is DeployHelper {
             daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 17_000
         );
 
-        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.0398 ether);
+        assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.051 ether);
     }
 
     function test_setDaoMintableRound_SetThenMintInTheSameRound() public {
