@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "./D4ASettingsBaseStorage.sol";
+import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 interface ID4ASettingsReadable {
     function permissionControl() external view returns (IPermissionControl);
@@ -24,5 +26,7 @@ interface ID4ASettingsReadable {
 
     function createCanvasFee() external view returns (uint256);
 
-    function defaultNftPriceMultiplyFactor() external view returns (uint256);
+    function getPriceTemplates() external view returns (address[] memory priceTemplates);
+
+    function getRewardTemplates() external view returns (address[] memory rewardTemplates);
 }

@@ -1,133 +1,82 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.10;
+pragma solidity ^0.8.18;
 
-import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, UserMintCapParam, TemplateParam, MintNftInfo } from "./D4AStructs.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
-import "../impl/D4AProject.sol";
-import "../impl/D4ACanvas.sol";
-import "../impl/D4APrice.sol";
-import "../impl/D4AReward.sol";
+interface ID4AProtocol {
+    event NewProject(
+        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
+    );
 
-abstract contract ID4AProtocol {
-    using D4AProject for mapping(bytes32 => D4AProject.project_info);
-    using D4ACanvas for mapping(bytes32 => D4ACanvas.canvas_info);
-    using D4APrice for D4APrice.project_price_info;
-    using D4AReward for mapping(bytes32 => D4AReward.reward_info);
+    event NewCanvas(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
-    // TODO: add getters for all the mappings
-    mapping(bytes32 => D4AProject.project_info) internal _allProjects;
-    mapping(bytes32 => D4ACanvas.canvas_info) internal _allCanvases;
-    mapping(bytes32 => D4APrice.project_price_info) internal _allPrices;
-    mapping(bytes32 => D4AReward.reward_info) internal _allRewards;
-    mapping(bytes32 => bytes32) public tokenid_2_canvas;
+    event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
 
-    address private __DEPRECATED_SETTINGS;
+    event D4AClaimProjectERC20Reward(bytes32 daoId, address token, uint256 amount);
+
+    event D4AClaimCanvasReward(bytes32 daoId, bytes32 canvasId, address token, uint256 amount);
+
+    event D4AClaimNftMinterReward(bytes32 daoId, address token, uint256 amount);
+
+    event D4AExchangeERC20ToETH(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 ethAmount);
+
+    function initialize() external;
 
     function createProject(
-        uint256 _start_prb,
-        uint256 _mintable_rounds,
-        uint256 _floor_price_rank,
-        uint256 _max_nft_rank,
-        uint96 _royalty_fee,
-        string memory _project_uri
+        uint256 startRound,
+        uint256 mintableRound,
+        uint256 daoFloorPriceRank,
+        uint256 maxNftRank,
+        uint96 royaltyFeeRatioInBps,
+        string memory daoUri
     )
         external
         payable
-        virtual
-        returns (bytes32 project_id);
+        returns (bytes32 daoId);
 
-    function createOwnerProject(
-        uint256 _start_prb,
-        uint256 _mintable_rounds,
-        uint256 _floor_price_rank,
-        uint256 _max_nft_rank,
-        uint96 _royalty_fee,
-        string memory _project_uri,
-        uint256 _project_index
-    )
-        external
-        payable
-        virtual
-        returns (bytes32 project_id);
+    function createOwnerProject(DaoMetadataParam calldata daoMetadata) external payable returns (bytes32 daoId);
 
-    function getProjectCanvasAt(bytes32 _project_id, uint256 _index) public view returns (bytes32) {
-        return _allProjects.getProjectCanvasAt(_project_id, _index);
-    }
-
-    function getProjectInfo(bytes32 _project_id)
-        public
-        view
-        returns (
-            uint256 start_prb,
-            uint256 mintable_rounds,
-            uint256 floor_price_rank,
-            uint256 max_nft_amount,
-            address fee_pool,
-            uint96 royalty_fee,
-            uint256 index,
-            string memory uri,
-            uint256 erc20_total_supply
-        )
-    {
-        return _allProjects.getProjectInfo(_project_id);
-    }
-
-    function getProjectFloorPrice(bytes32 _project_id) public view returns (uint256) {
-        return _allProjects.getProjectFloorPrice(_project_id);
-    }
-
-    function getProjectTokens(bytes32 _project_id) public view returns (address erc20_token, address erc721_token) {
-        erc20_token = _allProjects[_project_id].erc20_token;
-        erc721_token = _allProjects[_project_id].erc721_token;
-    }
-
-    function getCanvasNFTCount(bytes32 _canvas_id) public view returns (uint256) {
-        return _allCanvases.getCanvasNFTCount(_canvas_id);
-    }
-
-    function getTokenIDAt(bytes32 _canvas_id, uint256 _index) public view returns (uint256) {
-        return _allCanvases.getTokenIDAt(_canvas_id, _index);
-    }
-
-    function getCanvasProject(bytes32 _canvas_id) public view returns (bytes32) {
-        return _allCanvases[_canvas_id].project_id;
-    }
-
-    function getCanvasIndex(bytes32 _canvas_id) public view returns (uint256) {
-        return _allCanvases[_canvas_id].index;
-    }
-
-    function getCanvasURI(bytes32 _canvas_id) public view returns (string memory) {
-        return _allCanvases.getCanvasURI(_canvas_id);
-    }
-
-    function getCanvasLastPrice(bytes32 _canvas_id) public view returns (uint256 round, uint256 price) {
-        bytes32 proj_id = _allCanvases[_canvas_id].project_id;
-        return _allPrices[proj_id].getCanvasLastPrice(_canvas_id);
-    }
-
-    function getCanvasNextPrice(bytes32 _canvas_id) public view returns (uint256) {
-        D4ASettingsBaseStorage.Layout storage l = D4ASettingsBaseStorage.layout();
-        bytes32 project_id = _allCanvases[_canvas_id].project_id;
-        D4AProject.project_info storage pi = _allProjects[project_id];
-        return _allPrices[project_id].getCanvasNextPrice(
-            l.drb.currentRound(),
-            pi.floor_prices,
-            pi.floor_price_rank,
-            pi.start_prb,
-            _canvas_id,
-            pi.nftPriceMultiplyFactor == 0 ? l.defaultNftPriceMultiplyFactor : pi.nftPriceMultiplyFactor
-        );
-    }
-
-    function setMintCapAndPermission(
+    function createCanvas(
         bytes32 daoId,
-        uint32 daoMintCap,
-        UserMintCapParam[] calldata userMintCapParams,
-        IPermissionControl.Whitelist memory whitelist,
-        IPermissionControl.Blacklist memory blacklist,
-        IPermissionControl.Blacklist memory unblacklist
+        string calldata canvasUri,
+        bytes32[] calldata proof,
+        uint256 canvasRebateRatioInBps
     )
         external
-        virtual;
+        payable
+        returns (bytes32);
+
+    function mintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 nftFlatPrice,
+        bytes calldata signature
+    )
+        external
+        payable
+        returns (uint256);
+
+    function batchMint(
+        bytes32 daoId,
+        bytes32 canvasId,
+        bytes32[] calldata proof,
+        MintNftInfo[] calldata mintNftInfos,
+        bytes[] calldata signatures
+    )
+        external
+        payable
+        returns (uint256[] memory);
+
+    function claimProjectERC20Reward(bytes32 daoId) external returns (uint256);
+
+    function claimCanvasReward(bytes32 canvasId) external returns (uint256);
+
+    function claimNftMinterReward(bytes32 daoId, address minter) external returns (uint256);
+
+    function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
+
+    function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) external view returns (bytes32);
 }

@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import "../interface/IPermissionControl.sol";
-import "../interface/ID4AOwnerProxy.sol";
-import "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { IERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import { MerkleProofUpgradeable } from
+    "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
+import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+
+import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeable {
     mapping(bytes32 => Whitelist) internal _whitelists;
@@ -60,7 +64,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
 
     function initialize(ID4AOwnerProxy _ownerProxy) external initializer {
         ownerProxy = _ownerProxy;
-        __EIP712_init("D4APermissionControl", "1");
+        __EIP712_init("D4APermissionControl", "2");
     }
 
     function addPermissionWithSignature(
@@ -77,7 +81,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
 
     function addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist) external {
         require(
-            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == protocol || msg.sender == createProjectProxy,
+            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == createProjectProxy,
             "PermissionControl: not DAO owner"
         );
         _addPermission(daoId, whitelist, blacklist);

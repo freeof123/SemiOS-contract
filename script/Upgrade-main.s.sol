@@ -9,13 +9,15 @@ import { stdJson } from "forge-std/StdJson.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { TransparentUpgradeableProxy } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
+import { IAccessControl } from "@solidstate/contracts/access/access_control/IAccessControl.sol";
 
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
+import { getSettingsSelectors } from "contracts/utils/CutFacetFunctions.sol";
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { IPermissionControl, PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
-import { ID4ASettingsReadable, ID4ASettings, IAccessControl, D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
+import { ID4ASettings, D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4ADrb } from "contracts/D4ADrb.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
@@ -32,11 +34,9 @@ contract UpgradeTest is Test, Script {
     address public signer = 0xB5A5a0dEec823323B25533cE8129c6c0eEfa8B3c;
 
     address public weth = json.readAddress(".WETH");
-    D4AProtocolWithPermission public protocol =
-        D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission_proxy"));
+    D4AProtocol public protocol = D4AProtocol(json.readAddress(".D4AProtocol"));
 
-    D4AProtocolWithPermission public protocolImpl =
-        D4AProtocolWithPermission(json.readAddress(".D4AProtocolWithPermission_impl"));
+    D4AProtocol public protocolImpl = D4AProtocol(json.readAddress(".D4AProtocol"));
     D4ACreateProjectProxy public createProjectProxy =
         D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_proxy")));
     D4ACreateProjectProxy public createProjectProxyImpl =
@@ -61,7 +61,7 @@ contract UpgradeTest is Test, Script {
         vm.startBroadcast(deployer);
 
         // _deploy();
-        // _cutFacets();
+        // _cutSettingsFacets();
 
         _grantRole();
         _initSettings();
@@ -85,7 +85,7 @@ contract UpgradeTest is Test, Script {
         assertEq(startBlock, oldStartBlock);
         assertEq(periodBlockE18 / 1e18, periodBlock);
 
-        protocolImpl = new D4AProtocolWithPermission();
+        protocolImpl = new D4AProtocol();
         createProjectProxyImpl = new D4ACreateProjectProxy(weth);
         permissionControlImpl = new PermissionControl(address(protocol), address(createProjectProxy));
         royaltySplitterFactory =
@@ -94,41 +94,11 @@ contract UpgradeTest is Test, Script {
         settings = new D4ASettings();
     }
 
-    function _cutFacets() internal {
+    function _cutSettingsFacets() internal {
         //------------------------------------------------------------------------------------------------------
         // settings facet cut
-        bytes4[] memory selectors = new bytes4[](27);
-        uint256 selectorIndex;
-        // register AccessControl
-        selectors[selectorIndex++] = IAccessControl.getRoleAdmin.selector;
-        selectors[selectorIndex++] = IAccessControl.grantRole.selector;
-        selectors[selectorIndex++] = IAccessControl.hasRole.selector;
-        selectors[selectorIndex++] = IAccessControl.renounceRole.selector;
-        selectors[selectorIndex++] = IAccessControl.revokeRole.selector;
-        // register D4ASettingsReadable
-        selectors[selectorIndex++] = ID4ASettingsReadable.mintProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.ownerProxy.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.permissionControl.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettingsReadable.defaultNftPriceMultiplyFactor.selector;
-        // register D4ASettings
-        selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeCreateFee.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeD4APause.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeNftPriceMultiplyFactor.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
-        selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
-        selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;
-        selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
+        bytes4[] memory selectors = getSettingsSelectors();
+        console2.log("settings selectors length: %d", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -137,7 +107,7 @@ contract UpgradeTest is Test, Script {
             selectors: selectors
         });
         D4ADiamond(payable(address(protocol))).diamondCut(
-            facetCuts, address(settings), abi.encodeWithSelector(ID4ASettings.initializeD4ASettings.selector)
+            facetCuts, address(settings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector)
         );
 
         // set diamond fallback address

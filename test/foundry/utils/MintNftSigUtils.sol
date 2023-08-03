@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { D4AProtocolWithPermission } from "contracts/D4AProtocolWithPermission.sol";
-
 import "forge-std/Test.sol";
 
+import { D4AProtocol } from "contracts/D4AProtocol.sol";
+
 contract MintNftSigUtils {
-    bytes32 private _HASHED_NAME = keccak256(bytes("D4AProtocolWithPermission"));
-    bytes32 private _HASHED_VERSION = keccak256(bytes("1"));
+    bytes32 private _HASHED_NAME = keccak256(bytes("D4AProtocol"));
+    bytes32 private _HASHED_VERSION = keccak256(bytes("2"));
 
     bytes32 private _TYPE_HASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");

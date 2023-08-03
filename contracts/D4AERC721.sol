@@ -73,7 +73,7 @@ contract D4AERC721 is
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721Upgradeable, AccessControlUpgradeable, ERC721RoyaltyUpgradeable)
+        override(ERC721URIStorageUpgradeable, AccessControlUpgradeable, ERC721RoyaltyUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

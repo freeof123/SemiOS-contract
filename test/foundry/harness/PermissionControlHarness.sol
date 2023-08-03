@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 contract PermissionControlHarness is PermissionControl {

@@ -1,35 +1,40 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
     UserMintCapParam,
-    DaoETHAndERC20SplitRatioParam
+    DaoETHAndERC20SplitRatioParam,
+    TemplateParam,
+    Whitelist,
+    Blacklist
 } from "contracts/interface/D4AStructs.sol";
+import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
+import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
+import { ID4AProtocolSetter } from "../interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
 import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { IProtoDAOSettingsWritable } from "contracts/ProtoDaoSettings/IProtoDAOSettingsWritable.sol";
 
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
 contract D4ACreateProjectProxy is OwnableUpgradeable {
     ID4AProtocol public protocol;
-    ID4ARoyaltySplitterFactory public splitter_factory;
-    address public splitter_owner;
-    address internal __DEPRECATED_SETTINGS;
-    mapping(bytes32 daoId => address royaltySplitter) internal _royaltySplitters;
+    ID4ARoyaltySplitterFactory public royaltySplitterFactory;
+    address public royaltySplitterOwner;
+    mapping(bytes32 daoId => address royaltySplitter) public royaltySplitters;
 
-    IUniswapV2Factory public uniswapV2Factory;
-    address private __DEPRECATED_UNISWAP_V2_FACTORY;
+    IUniswapV2Factory public d4aswapFactory;
     address public immutable WETH;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -39,38 +44,48 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     }
 
     function initialize(
-        address uniswapV2Factory_,
+        address d4aswapFactory_,
         address protocol_,
-        address splitterFactory_,
-        address splitterOwner_
+        address royaltySplitterFactory_,
+        address royaltySplitterOwner_
     )
         external
         initializer
     {
         __Ownable_init();
-        uniswapV2Factory = IUniswapV2Factory(uniswapV2Factory_);
+        d4aswapFactory = IUniswapV2Factory(d4aswapFactory_);
         protocol = ID4AProtocol(protocol_);
-        splitter_factory = ID4ARoyaltySplitterFactory(splitterFactory_);
-        splitter_owner = splitterOwner_;
+        royaltySplitterFactory = ID4ARoyaltySplitterFactory(royaltySplitterFactory_);
+        royaltySplitterOwner = royaltySplitterOwner_;
     }
 
     function set(
         address newProtocol,
-        address newSplitterFactory,
-        address newSplitterOwner,
-        address newUniswapV2Factory
+        address newRoyaltySplitterFactory,
+        address newRoyaltySplitterOwner,
+        address newD4AswapFactory
     )
         public
         onlyOwner
     {
         protocol = ID4AProtocol(newProtocol);
-        splitter_factory = ID4ARoyaltySplitterFactory(newSplitterFactory);
-        splitter_owner = newSplitterOwner;
-        uniswapV2Factory = IUniswapV2Factory(newUniswapV2Factory);
+        royaltySplitterFactory = ID4ARoyaltySplitterFactory(newRoyaltySplitterFactory);
+        royaltySplitterOwner = newRoyaltySplitterOwner;
+        d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);
     }
 
-    event NewProject(
-        bytes32 project_id, string uri, address fee_pool, address erc20_token, address erc721_token, uint256 royalty_fee
+    event CreateProjectParamEmitted(
+        bytes32 daoId,
+        address daoFeePool,
+        address token,
+        address nft,
+        DaoMetadataParam daoMetadataParam,
+        Whitelist whitelist,
+        Blacklist blacklist,
+        DaoMintCapParam daoMintCapParam,
+        DaoETHAndERC20SplitRatioParam splitRatioParam,
+        TemplateParam templateParam,
+        uint256 actionType
     );
 
     // first bit: 0: project, 1: owner project
@@ -79,33 +94,33 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
     // fourth bit: 0: without DEX pair initialized, 1: with DEX pair initialized
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createProject(
-        DaoMetadataParam memory daoMetadataParam,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist,
+        DaoMetadataParam calldata daoMetadataParam,
+        Whitelist calldata whitelist,
+        Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        TemplateParam calldata templateParam,
         uint256 actionType
     )
         public
         payable
-        returns (bytes32 projectId)
+        returns (bytes32 daoId)
     {
+        // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
+        if (
+            daoMetadataParam.floorPriceRank == 9999
+                && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
+        ) {
+            revert ZeroFloorPriceCannotUseLinearPriceVariation();
+        }
         if ((actionType & 0x1) != 0) {
             require(
-                IAccessControlUpgradeable(address(protocol)).hasRole(keccak256("OPERATION_ROLE"), msg.sender),
+                IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
                 "only admin can specify project index"
             );
-            projectId = protocol.createOwnerProject{ value: msg.value }(
-                daoMetadataParam.startDrb,
-                daoMetadataParam.mintableRounds,
-                daoMetadataParam.floorPriceRank,
-                daoMetadataParam.maxNftRank,
-                daoMetadataParam.royaltyFee,
-                daoMetadataParam.projectUri,
-                daoMetadataParam.projectIndex
-            );
+            daoId = protocol.createOwnerProject{ value: msg.value }(daoMetadataParam);
         } else {
-            projectId = protocol.createProject{ value: msg.value }(
+            daoId = protocol.createProject{ value: msg.value }(
                 daoMetadataParam.startDrb,
                 daoMetadataParam.mintableRounds,
                 daoMetadataParam.floorPriceRank,
@@ -115,29 +130,46 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
             );
         }
 
+        address daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
+        address token = ID4AProtocolReadable(address(protocol)).getDaoToken(daoId);
+        address nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
+        emit CreateProjectParamEmitted(
+            daoId,
+            daoFeePool,
+            token,
+            nft,
+            daoMetadataParam,
+            whitelist,
+            blacklist,
+            daoMintCapParam,
+            splitRatioParam,
+            templateParam,
+            actionType
+        );
+
         if ((actionType & 0x2) != 0) {
-            _addPermission(projectId, whitelist, blacklist);
+            ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
         }
 
         if ((actionType & 0x4) != 0) {
-            _setMintCapAndPermission(
-                projectId,
+            ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+                daoId,
                 daoMintCapParam.daoMintCap,
                 daoMintCapParam.userMintCapParams,
                 whitelist,
                 blacklist,
-                IPermissionControl.Blacklist(new address[](0), new address[](0))
+                Blacklist(new address[](0), new address[](0))
             );
         }
 
         if ((actionType & 0x8) != 0) {
-            (address erc20Token,) = protocol.getProjectTokens(projectId);
-            uniswapV2Factory.createPair(erc20Token, WETH);
+            d4aswapFactory.createPair(token, WETH);
         }
 
         if ((actionType & 0x10) != 0) {
-            IProtoDAOSettingsWritable(address(protocol)).setRatio(
-                projectId,
+            ID4AProtocolSetter(address(protocol)).setRatio(
+                daoId,
+                splitRatioParam.daoCreatorERC20Ratio,
                 splitRatioParam.canvasCreatorERC20Ratio,
                 splitRatioParam.nftMinterERC20Ratio,
                 splitRatioParam.daoFeePoolETHRatio,
@@ -145,76 +177,22 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
             );
         }
 
-        _createSplitter(projectId);
-    }
+        // setup template
+        ID4AProtocolSetter(address(protocol)).setTemplate(daoId, templateParam);
 
-    function _setMintCapAndPermission(
-        bytes32 project_id,
-        uint32 mintCap,
-        UserMintCapParam[] calldata userMintCapParams,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist,
-        IPermissionControl.Blacklist memory unblacklist
-    )
-        internal
-    {
-        protocol.setMintCapAndPermission(project_id, mintCap, userMintCapParams, whitelist, blacklist, unblacklist);
-    }
-
-    function _addPermission(
-        bytes32 project_id,
-        IPermissionControl.Whitelist calldata whitelist,
-        IPermissionControl.Blacklist calldata blacklist
-    )
-        internal
-    {
-        ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(project_id, whitelist, blacklist);
-    }
-
-    function _createSplitter(bytes32 project_id) internal returns (address splitter) {
-        uint256 rf = 0;
-        address erc721_token;
-
-        uint96 royalty_fee;
-        {
-            (royalty_fee, erc721_token) = getInfo(project_id);
-            ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(project_id, msg.sender);
-            OwnableUpgradeable(erc721_token).transferOwnership(msg.sender);
-            rf = uint256(royalty_fee) - ID4ASettingsReadable(address(protocol)).mintProtocolFeeRatio();
-        }
-        splitter = splitter_factory.createD4ARoyaltySplitter(
+        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeRatioInBps(daoId);
+        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
+        ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(daoId, msg.sender);
+        OwnableUpgradeable(nft).transferOwnership(msg.sender);
+        address splitter = royaltySplitterFactory.createD4ARoyaltySplitter(
             ID4ASettingsReadable(address(protocol)).protocolFeePool(),
-            ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio(),
-            getProjectFeePool(project_id),
-            rf
+            protocolRoyaltyFeeRatioInBps,
+            daoFeePool,
+            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
         );
-        _royaltySplitters[project_id] = splitter;
-        OwnableUpgradeable(splitter).transferOwnership(splitter_owner);
-        ID4AERC721(erc721_token).setRoyaltyInfo(splitter, royalty_fee);
-    }
-
-    function getInfo(bytes32 project_id) internal view returns (uint96 royalty_fee, address erc721_token) {
-        royalty_fee = getProjectRoyaltyFee(project_id);
-        erc721_token = getProjectERC721(project_id);
-    }
-
-    function getProjectRoyaltyFee(bytes32 project_id) internal view returns (uint96) {
-        (,,,,, uint96 royalty_fee,,,) = protocol.getProjectInfo(project_id);
-        return royalty_fee;
-    }
-
-    function getProjectFeePool(bytes32 project_id) internal view returns (address) {
-        (,,,, address fee_pool,,,,) = protocol.getProjectInfo(project_id);
-        return fee_pool;
-    }
-
-    function getProjectERC721(bytes32 project_id) internal view returns (address) {
-        (, address erc721_token) = protocol.getProjectTokens(project_id);
-        return erc721_token;
-    }
-
-    function getSplitterAddress(bytes32 project_id) public view returns (address) {
-        return _royaltySplitters[project_id];
+        royaltySplitters[daoId] = splitter;
+        OwnableUpgradeable(splitter).transferOwnership(royaltySplitterOwner);
+        ID4AERC721(nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
     }
 
     receive() external payable { }

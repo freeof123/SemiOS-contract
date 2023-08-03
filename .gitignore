@@ -15,3 +15,14 @@ yarn.lock
 !broadcast
 broadcast/*
 broadcast/*/31337/
+
+# coverage report
+html/
+lcov*
+
+# deployed contracts addresses
+deployed-contracts-info
+
+docs/
+
+Error.t.sol

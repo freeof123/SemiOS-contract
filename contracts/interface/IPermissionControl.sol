@@ -1,21 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import "./ID4AOwnerProxy.sol";
+import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
 interface IPermissionControl {
-    struct Blacklist {
-        address[] minterAccounts;
-        address[] canvasCreatorAccounts;
-    }
-
-    struct Whitelist {
-        bytes32 minterMerkleRoot;
-        address[] minterNFTHolderPasses;
-        bytes32 canvasCreatorMerkleRoot;
-        address[] canvasCreatorNFTHolderPasses;
-    }
-
     event MinterBlacklisted(bytes32 indexed daoId, address indexed account);
 
     event CanvasCreatorBlacklisted(bytes32 indexed daoId, address indexed account);
