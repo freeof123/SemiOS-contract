@@ -98,8 +98,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        _deployLinearRewardIssuance();
-        _deployExponentialRewardIssuance();
+        // _deployLinearRewardIssuance();
+        // _deployExponentialRewardIssuance();
 
         // d4aProtocol_proxy.initialize();
 
@@ -332,9 +332,9 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         vm.toString(address(linearPriceVariation)).write(path, ".D4AProtocol.LinearPriceVariation");
 
-        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-            TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
-        );
+        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        //     TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
+        // );
 
         console2.log("LinearPriceVariation address: ", address(linearPriceVariation));
         console2.log("================================================================================\n");
@@ -349,11 +349,11 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         vm.toString(address(exponentialPriceVariation)).write(path, ".D4AProtocol.ExponentialPriceVariation");
 
-        ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-            TemplateChoice.PRICE,
-            uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
-            address(exponentialPriceVariation)
-        );
+        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        //     TemplateChoice.PRICE,
+        //     uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
+        //     address(exponentialPriceVariation)
+        // );
 
         console2.log("ExponentialPriceVariation address: ", address(exponentialPriceVariation));
         console2.log("================================================================================\n");
