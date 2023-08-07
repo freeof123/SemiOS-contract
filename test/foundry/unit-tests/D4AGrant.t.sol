@@ -65,6 +65,20 @@ contract D4AGrantTest is DeployHelper {
         assertTrue(protocol.isTokenAllowed(address(_testERC721)));
     }
 
+    function test_grantETH() public {
+        DeployHelper.CreateDaoParam memory param;
+        bytes32 daoId = _createDao(param);
+
+        hoax(operationRoleMember.addr);
+        protocol.addAllowedToken(address(_testERC20));
+
+        startHoax(randomGuy.addr);
+        protocol.grantETH{ value: 1 ether }(daoId);
+        vm.stopPrank();
+
+        assertEq(protocol.getVestingWallet(daoId).balance, 1 ether);
+    }
+
     function test_grant() public {
         DeployHelper.CreateDaoParam memory param;
         bytes32 daoId = _createDao(param);
