@@ -177,6 +177,7 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     bytes4 interfaceId;
     interfaceId ^= selectors[selectorIndex++] = ID4AGrant.addAllowedToken.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AGrant.removeAllowedToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantETH.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grant.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantWithPermit.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AGrant.getVestingWallet.selector;

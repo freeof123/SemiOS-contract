@@ -8,7 +8,9 @@ interface ID4AGrant {
 
     function removeAllowedToken(address token) external;
 
-    function grant(bytes32 daoId, address token, uint256 amount) external payable;
+    function grantETH(bytes32 daoId) external payable;
+
+    function grant(bytes32 daoId, address token, uint256 amount) external;
 
     function grantWithPermit(
         bytes32 daoId,
@@ -19,8 +21,7 @@ interface ID4AGrant {
         bytes32 r,
         bytes32 s
     )
-        external
-        payable;
+        external;
 
     function getVestingWallet(bytes32 daoId) external view returns (address);
 

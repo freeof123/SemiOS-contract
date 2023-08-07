@@ -41,7 +41,21 @@ contract D4AGrant is ID4AGrant {
         }
     }
 
-    function grant(bytes32 daoId, address token, uint256 amount) external payable {
+    function grantETH(bytes32 daoId) external payable {
+        GrantStorage.Layout storage grantStorage = GrantStorage.layout();
+        address vestingWallet = grantStorage.vestingWallets[daoId];
+        if (vestingWallet == address(0)) {
+            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+            ID4AProtocol(address(this)).claimProjectERC20Reward(daoId);
+            vestingWallet = address(
+                new D4AVestingWallet(daoInfo.daoFeePool, daoInfo.token, SettingsStorage.layout().tokenMaxSupply - IERC20(daoInfo.token).totalSupply())
+            );
+            grantStorage.vestingWallets[daoId] = vestingWallet;
+        }
+        if (msg.value > 0) SafeTransferLib.safeTransferETH(vestingWallet, msg.value);
+    }
+
+    function grant(bytes32 daoId, address token, uint256 amount) external {
         GrantStorage.Layout storage grantStorage = GrantStorage.layout();
         if (!grantStorage.tokensAllowed[token]) revert TokenNotAllowed(token);
         address vestingWallet = grantStorage.vestingWallets[daoId];
@@ -66,7 +80,6 @@ contract D4AGrant is ID4AGrant {
         bytes32 s
     )
         external
-        payable
     {
         GrantStorage.Layout storage grantStorage = GrantStorage.layout();
         if (!grantStorage.tokensAllowed[token]) revert TokenNotAllowed(token);
