@@ -61,12 +61,12 @@ contract D4AVestingWallet {
 
     function releasable() public view virtual returns (uint256) {
         uint256 daoTokenIncrease = IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIssuance;
-        return (daoTokenIncrease * _totalDaoTokenIssuance) / address(this).balance;
+        return daoTokenIncrease * address(this).balance / _totalDaoTokenIssuance;
     }
 
     function releasable(address token) public view virtual returns (uint256) {
         uint256 daoTokenIncrease = IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIssuance;
-        return (daoTokenIncrease * _totalDaoTokenIssuance) / IERC20(token).balanceOf(address(this));
+        return daoTokenIncrease * IERC20(token).balanceOf(address(this)) / _totalDaoTokenIssuance;
     }
 
     function beneficiary() public view virtual returns (address) {
@@ -79,6 +79,18 @@ contract D4AVestingWallet {
 
     function released(address token) public view virtual returns (uint256) {
         return _erc20Released[token];
+    }
+
+    function getDaoToken() public view virtual returns (address) {
+        return _daoToken;
+    }
+
+    function getLastUpdatedDaoTokenIssuance() public view virtual returns (uint256) {
+        return _lastUpdatedDaoTokenIssuance;
+    }
+
+    function getTotalDaoTokenIssuance() public view virtual returns (uint256) {
+        return _totalDaoTokenIssuance;
     }
 
     receive() external payable virtual { }
