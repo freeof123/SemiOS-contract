@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-contract MintNftSigUtils {
-    bytes32 private _HASHED_NAME = keccak256(bytes("D4AProtocol"));
-    bytes32 private _HASHED_VERSION = keccak256(bytes("2"));
+contract ERC20SigUtils {
+    bytes32 private _HASHED_NAME = keccak256(bytes("TestERC20"));
+    bytes32 private _HASHED_VERSION = keccak256(bytes("1"));
 
     bytes32 private _TYPE_HASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");
 
     bytes32 public DOMAIN_SEPARATOR;
 
-    bytes32 public constant MINTNFT_TYPEHASH =
-        keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
+    bytes32 private constant _PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
+
+    mapping(address account => uint256 nonce) public nonces;
 
     constructor(address verifyingContract) {
         DOMAIN_SEPARATOR = _buildDomainSeparator(_TYPE_HASH, _HASHED_NAME, _HASHED_VERSION, verifyingContract);
@@ -58,26 +60,32 @@ contract MintNftSigUtils {
     }
 
     function getStructHash(
-        bytes32 canvasId,
-        string memory tokenUri,
-        uint256 flatPrice
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline
     )
         internal
-        pure
+        view
         returns (bytes32)
     {
-        return keccak256(abi.encode(MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), flatPrice));
+        return keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, nonces[owner], deadline));
     }
 
     function getTypedDataHash(
-        bytes32 canvasId,
-        string memory tokenUri,
-        uint256 flatPrice
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline
     )
         public
         view
         returns (bytes32)
     {
-        return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, getStructHash(canvasId, tokenUri, flatPrice)));
+        return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, getStructHash(owner, spender, value, deadline)));
+    }
+
+    function incNonce(address owner) public {
+        ++nonces[owner];
     }
 }

@@ -21,7 +21,8 @@ import "contracts/interface/D4AStructs.sol";
 import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
-    getProtocolSetterSelectors
+    getProtocolSetterSelectors,
+    getGrantSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
@@ -51,6 +52,7 @@ import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.s
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
+import { D4AGrant } from "contracts/D4AGrant.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -82,6 +84,7 @@ contract DeployHelper is Test {
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
     MintNftSigUtils public mintNftSigUtils;
+    D4AGrant public grant;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -248,10 +251,12 @@ contract DeployHelper is Test {
         _deployProtocolReadable();
         _deployProtocolSetter();
         _deploySettings();
+        _deployGrant();
 
         _cutFacetsProtocolReadable();
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
+        _cutFacetsGrant();
 
         // set diamond fallback address
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
@@ -274,6 +279,11 @@ contract DeployHelper is Test {
     function _deploySettings() internal {
         settings = new D4ASettings();
         vm.label(address(settings), "Settings");
+    }
+
+    function _deployGrant() internal {
+        grant = new D4AGrant();
+        vm.label(address(grant), "Grant");
     }
 
     function _cutFacetsProtocolReadable() internal {
@@ -318,6 +328,18 @@ contract DeployHelper is Test {
         D4ADiamond(payable(address(protocol))).diamondCut(
             facetCuts, address(settings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 110)
         );
+    }
+
+    function _cutFacetsGrant() internal {
+        bytes4[] memory selectors = getGrantSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(grant),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {
