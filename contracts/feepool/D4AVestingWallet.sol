@@ -26,9 +26,12 @@ contract D4AVestingWallet {
     mapping(address => uint256) private _erc20Released;
     address private immutable _beneficiary;
 
-    address internal _daoToken;
-    uint256 internal _lastUpdatedDaoTokenIssuance;
-    uint256 internal _totalDaoTokenIssuance;
+    uint256 internal _lastUpdatedDaoTokenIncrease;
+    mapping(address token => uint256 lastUpdatedDaoTokenIssuance) internal _lastUpdatedDaoTokenIncreases;
+
+    address internal immutable _daoToken;
+    uint256 internal immutable _totalDaoTokenIssuance;
+    uint256 internal immutable _initDaoTokenBalance;
 
     constructor(address beneficiaryAddress, address daoToken, uint256 totalDaoTokenIssuance) payable {
         if (beneficiaryAddress == address(0) || daoToken == address(0)) revert ZeroAddress();
@@ -36,6 +39,7 @@ contract D4AVestingWallet {
 
         _beneficiary = beneficiaryAddress;
         _daoToken = daoToken;
+        _initDaoTokenBalance = IERC20(_daoToken).totalSupply();
         _totalDaoTokenIssuance = totalDaoTokenIssuance;
     }
 
@@ -43,7 +47,7 @@ contract D4AVestingWallet {
         uint256 amount = releasable();
         if (amount > 0) {
             _released += amount;
-            _lastUpdatedDaoTokenIssuance = IERC20(_daoToken).totalSupply();
+            _lastUpdatedDaoTokenIncrease = IERC20(_daoToken).totalSupply() - _initDaoTokenBalance;
             emit EtherReleased(amount);
             SafeTransferLib.safeTransferETH(payable(beneficiary()), amount);
         }
@@ -53,19 +57,20 @@ contract D4AVestingWallet {
         uint256 amount = releasable(token);
         if (amount > 0) {
             _erc20Released[token] += amount;
-            _lastUpdatedDaoTokenIssuance = IERC20(_daoToken).totalSupply();
+            _lastUpdatedDaoTokenIncreases[token] = IERC20(_daoToken).totalSupply() - _initDaoTokenBalance;
             emit ERC20Released(token, amount);
             SafeTransferLib.safeTransfer(token, beneficiary(), amount);
         }
     }
 
     function releasable() public view virtual returns (uint256) {
-        uint256 daoTokenIncrease = IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIssuance;
+        uint256 daoTokenIncrease = IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIncrease - _initDaoTokenBalance;
         return daoTokenIncrease * address(this).balance / _totalDaoTokenIssuance;
     }
 
     function releasable(address token) public view virtual returns (uint256) {
-        uint256 daoTokenIncrease = IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIssuance;
+        uint256 daoTokenIncrease =
+            IERC20(_daoToken).totalSupply() - _lastUpdatedDaoTokenIncreases[token] - _initDaoTokenBalance;
         return daoTokenIncrease * IERC20(token).balanceOf(address(this)) / _totalDaoTokenIssuance;
     }
 
@@ -85,8 +90,12 @@ contract D4AVestingWallet {
         return _daoToken;
     }
 
-    function getLastUpdatedDaoTokenIssuance() public view virtual returns (uint256) {
-        return _lastUpdatedDaoTokenIssuance;
+    function getLastUpdatedDaoTokenIncrease() public view virtual returns (uint256) {
+        return _lastUpdatedDaoTokenIncrease;
+    }
+
+    function getLastUpdatedDaoTokenIncrease(address token) public view virtual returns (uint256) {
+        return _lastUpdatedDaoTokenIncreases[token];
     }
 
     function getTotalDaoTokenIssuance() public view virtual returns (uint256) {
