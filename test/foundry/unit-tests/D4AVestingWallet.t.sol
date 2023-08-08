@@ -30,7 +30,31 @@ contract D4AVestingWalletTest is DeployHelper {
         assertEq(D4AVestingWallet(payable(protocol.getVestingWallet(daoId))).getDaoToken(), protocol.getDaoToken(daoId));
     }
 
-    function test_lastUpdatedDaoTokenIssuance() public {
+    function test_lastUpdatedDaoTokenIncrease_ETH() public {
+        DeployHelper.CreateDaoParam memory param;
+        bytes32 daoId = _createDao(param);
+
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        hoax(randomGuy.addr);
+        protocol.grantETH{ value: 1 ether }(daoId);
+
+        D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
+
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(), 0);
+
+        _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
+
+        drb.changeRound(2);
+
+        protocol.claimProjectERC20Reward(daoId);
+        vestingWallet.release();
+
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(), 33_333_333_333_333_333_333_333_333);
+    }
+
+    function test_lastUpdatedDaoTokenIncrease_Token() public {
         DeployHelper.CreateDaoParam memory param;
         bytes32 daoId = _createDao(param);
 
@@ -48,7 +72,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(), 0);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(address(_testERC20)), 0);
 
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -57,7 +81,7 @@ contract D4AVestingWalletTest is DeployHelper {
         protocol.claimProjectERC20Reward(daoId);
         vestingWallet.release(address(_testERC20));
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(), 33_333_333_333_333_333_333_333_333);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(address(_testERC20)), 33_333_333_333_333_333_333_333_333);
     }
 
     function test_getTotalDaoTokenIssuance() public {
