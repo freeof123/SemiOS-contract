@@ -3,6 +3,7 @@ pragma solidity >=0.8.10;
 
 // external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
@@ -40,9 +41,11 @@ import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
+import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
+import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 
 contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
     bytes32 internal constant _MINTNFT_TYPEHASH =
@@ -288,18 +291,21 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         return amount;
     }
 
+    struct ExchangeERC20ToETHLocalVars {
+        uint256 tokenCirculation;
+        uint256 tokenAmount;
+    }
+
     function exchangeERC20ToETH(bytes32 daoId, uint256 tokenAmount, address to) public nonReentrant returns (uint256) {
         _checkPauseStatus();
         _checkPauseStatus(daoId);
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         address token = daoInfo.token;
         address daoFeePool = daoInfo.daoFeePool;
 
         D4AERC20(token).burn(msg.sender, tokenAmount);
         D4AERC20(token).mint(daoFeePool, tokenAmount);
-
-        uint256 currentRound = SettingsStorage.layout().drb.currentRound();
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         if (rewardInfo.rewardIssuePendingRound != 0) {
@@ -308,13 +314,41 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             rewardInfo.rewardIssuePendingRound = 0;
             D4AERC20(token).mint(address(this), roundReward);
         }
-        uint256 tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
 
-        if (tokenCirculation == 0) return 0;
+        ExchangeERC20ToETHLocalVars memory vars;
+        vars.tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
+
+        if (vars.tokenCirculation == 0) return 0;
+
+        GrantStorage.Layout storage grantStorage = GrantStorage.layout();
+        D4AVestingWallet vestingWallet = D4AVestingWallet(payable(grantStorage.vestingWallets[daoId]));
+        vars.tokenAmount = tokenAmount;
+        if (address(vestingWallet) != address(0)) {
+            vestingWallet.release();
+            address[] memory allowedTokenList = grantStorage.allowedTokenList;
+            for (uint256 i; i < allowedTokenList.length;) {
+                vestingWallet.release(allowedTokenList[i]);
+                uint256 grantTokenAmount =
+                    vars.tokenAmount * IERC20(allowedTokenList[i]).balanceOf(daoFeePool) / vars.tokenCirculation;
+                if (grantTokenAmount > 0) {
+                    emit D4AExchangeERC20ToERC20(
+                        daoId, msg.sender, to, allowedTokenList[i], vars.tokenAmount, grantTokenAmount
+                    );
+                    D4AFeePool(payable(daoFeePool)).transfer(allowedTokenList[i], payable(to), grantTokenAmount);
+                }
+                unchecked {
+                    ++i;
+                }
+            }
+        }
 
         uint256 availableETH = daoFeePool.balance
-            - (PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 0 : rewardInfo.totalWeights[currentRound]);
-        uint256 ethAmount = tokenAmount * availableETH / tokenCirculation;
+            - (
+                PriceStorage.layout().daoFloorPrices[daoId] == 0
+                    ? 0
+                    : rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
+            );
+        uint256 ethAmount = tokenAmount * availableETH / vars.tokenCirculation;
 
         if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
 

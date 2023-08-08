@@ -19,6 +19,10 @@ interface ID4AProtocol {
 
     event D4AClaimNftMinterReward(bytes32 daoId, address token, uint256 amount);
 
+    event D4AExchangeERC20ToERC20(
+        bytes32 daoId, address owner, address to, address grantToken, uint256 tokenAmount, uint256 grantTokenAmount
+    );
+
     event D4AExchangeERC20ToETH(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 ethAmount);
 
     function initialize() external;
