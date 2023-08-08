@@ -62,3 +62,5 @@ error D4ACanvasAlreadyExist(bytes32 canvasId);
 error StartRoundAlreadyPassed();
 
 error DaoNotStarted();
+
+error NotOperationRole();

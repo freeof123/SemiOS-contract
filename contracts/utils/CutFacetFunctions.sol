@@ -7,6 +7,7 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 import { ID4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { ID4AGrant } from "contracts/interface/ID4AGrant.sol";
 
 function getSettingsSelectors() pure returns (bytes4[] memory) {
     //------------------------------------------------------------------------------------------------------
@@ -160,6 +161,29 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
     assert(interfaceId == type(ID4AProtocolSetter).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getGrantSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4AGrant
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.addAllowedToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.removeAllowedToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantETH.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grant.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantWithPermit.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.getVestingWallet.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.getAllowedTokensList.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.isTokenAllowed.selector;
+    assert(interfaceId == type(ID4AGrant).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {
