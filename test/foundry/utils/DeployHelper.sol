@@ -668,6 +668,7 @@ contract DeployHelper is Test {
         internal
         returns (uint256 tokenId)
     {
+        uint256 bal = hoaxer.balance;
         startHoax(hoaxer);
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
@@ -677,6 +678,7 @@ contract DeployHelper is Test {
         }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
 
         vm.stopPrank();
+        deal(hoaxer, bal);
     }
 
     function _batchMint(

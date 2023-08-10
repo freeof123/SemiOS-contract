@@ -42,7 +42,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(), 0);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(), 0);
 
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -51,7 +51,7 @@ contract D4AVestingWalletTest is DeployHelper {
         protocol.claimProjectERC20Reward(daoId);
         vestingWallet.release();
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(), 33_333_333_333_333_333_333_333_333);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(), 33_333_333_333_333_333_333_333_333);
     }
 
     function test_lastUpdatedDaoTokenIncrease_Token() public {
@@ -72,7 +72,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(address(_testERC20)), 0);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(address(_testERC20)), 0);
 
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -81,7 +81,7 @@ contract D4AVestingWalletTest is DeployHelper {
         protocol.claimProjectERC20Reward(daoId);
         vestingWallet.release(address(_testERC20));
 
-        assertEq(vestingWallet.getLastUpdatedDaoTokenIncrease(address(_testERC20)), 33_333_333_333_333_333_333_333_333);
+        assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(address(_testERC20)), 33_333_333_333_333_333_333_333_333);
     }
 
     function test_getTotalDaoTokenIssuance() public {

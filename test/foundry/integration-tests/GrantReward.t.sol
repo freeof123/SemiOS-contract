@@ -294,4 +294,74 @@ contract GrantRewardTest is DeployHelper {
         assertEq(_testERC20.balanceOf(nftMinter.addr), 3_601_755_072_061_766_508_988);
         assertEq(_testERC20.balanceOf(nftMinter2.addr), 5_917_169_046_958_616_407_625);
     }
+
+    function test_ShouldClaimAllGrant() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.daoCreatorERC20RatioInBps = 300;
+        param.canvasCreatorERC20RatioInBps = 9000;
+        param.nftMinterERC20RatioInBps = 500;
+        param.actionType = 16;
+        bytes32 daoId = _createDao(param);
+
+        hoax(canvasCreator.addr);
+        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
+
+        drb.changeRound(2);
+
+        protocol.claimProjectERC20Reward(daoId);
+
+        hoax(operationRoleMember.addr);
+        protocol.addAllowedToken(address(_testERC20));
+
+        startHoax(randomGuy.addr);
+        deal(address(_testERC20), randomGuy.addr, 1e6 ether);
+        _testERC20.approve(address(protocol), 1e6 ether);
+        protocol.grant(daoId, address(_testERC20), 1e6 ether);
+        protocol.grantETH{ value: 1.5 ether }(daoId);
+        vm.stopPrank();
+
+        deal(daoCreator.addr, 0);
+        deal(canvasCreator.addr, 0);
+        deal(nftMinter.addr, 0);
+        deal(protocol.getDaoFeePool(daoId), 0);
+
+        for (uint256 i; i < 29; i++) {
+            _mintNft(
+                daoId,
+                canvasId,
+                string.concat("test token uri ", vm.toString(i + 2)),
+                0,
+                canvasCreator.key,
+                nftMinter.addr
+            );
+
+            drb.changeRound(i + 3);
+
+            IERC20 token = IERC20(protocol.getDaoToken(daoId));
+            protocol.claimProjectERC20Reward(daoId);
+            protocol.claimCanvasReward(canvasId);
+            protocol.claimNftMinterReward(daoId, nftMinter.addr);
+            vm.startPrank(protocolFeePool.addr);
+            protocol.exchangeERC20ToETH(daoId, token.balanceOf(protocolFeePool.addr), protocolFeePool.addr);
+            vm.startPrank(daoCreator.addr);
+            protocol.exchangeERC20ToETH(daoId, token.balanceOf(daoCreator.addr), daoCreator.addr);
+            vm.startPrank(canvasCreator.addr);
+            protocol.exchangeERC20ToETH(daoId, token.balanceOf(canvasCreator.addr), canvasCreator.addr);
+            vm.startPrank(nftMinter.addr);
+            protocol.exchangeERC20ToETH(daoId, token.balanceOf(nftMinter.addr), nftMinter.addr);
+        }
+
+        assertApproxEqRel(daoCreator.addr.balance, 4.5e16 + 0.29 ether * 0.3 * 0.03, 1e3);
+        assertApproxEqRel(canvasCreator.addr.balance, 1.35e18 + 0.29 ether * 0.3 * 0.9 + 0.29 ether * 0.675, 1e2);
+        assertApproxEqRel(nftMinter.addr.balance, 7.5e16 + 0.29 ether * 0.3 * 0.05, 1e2);
+        assertEq(protocol.getVestingWallet(daoId).balance, 1);
+        assertEq(protocol.getDaoFeePool(daoId).balance, 1);
+        assertApproxEqRel(_testERC20.balanceOf(daoCreator.addr), 3e22, 1e2);
+        assertApproxEqRel(_testERC20.balanceOf(canvasCreator.addr), 9e23, 1e2);
+        assertApproxEqRel(_testERC20.balanceOf(nftMinter.addr), 5e22, 1e2);
+        assertEq(_testERC20.balanceOf(protocol.getVestingWallet(daoId)), 1);
+        assertEq(_testERC20.balanceOf(protocol.getDaoFeePool(daoId)), 1);
+    }
 }
