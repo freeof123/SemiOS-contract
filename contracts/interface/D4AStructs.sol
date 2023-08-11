@@ -15,6 +15,7 @@ struct DaoMetadataParam {
 
 struct DaoMintInfo {
     uint32 daoMintCap;
+    uint32 NFTHolderMintCap;
     mapping(address minter => UserMintInfo) userMintInfos;
 }
 

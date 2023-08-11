@@ -431,34 +431,26 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         view
         returns (bool)
     {
-        // check priority
-        // 1. blacklist
-        // 2. designated mint cap
-        // 3. whitelist (merkle tree || ERC721)
-        // 4. DAO mint cap
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        IPermissionControl permissionControl = l.permissionControl;
+        /*
+        Checking priority
+        1. blacklist
+        2. if whitelist on, designated user mint cap
+        3. NFT holder pass mint cap
+        4. dao mint cap
+        */
+        IPermissionControl permissionControl = SettingsStorage.layout().permissionControl;
         if (permissionControl.isMinterBlacklisted(daoId, account)) {
             revert Blacklisted();
         }
-        uint32 daoMintCap;
-        uint128 userMinted;
-        uint128 userMintCap;
-        {
-            DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
-            daoMintCap = daoMintInfo.daoMintCap;
-            UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
-            userMinted = userMintInfo.minted;
-            userMintCap = userMintInfo.mintCap;
-        }
+        DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
+        uint32 daoMintCap = daoMintInfo.daoMintCap;
+        uint32 NFTHolderMintCap = daoMintInfo.NFTHolderMintCap;
+        UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
 
-        bool isWhitelistOff;
-        {
-            Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
-            isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0;
-        }
+        Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
+        bool isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0;
 
-        uint256 expectedMinted = userMinted + amount;
+        uint256 expectedMinted = userMintInfo.minted + amount;
         // no whitelist
         if (isWhitelistOff) {
             return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
@@ -469,8 +461,12 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
             revert NotInWhitelist();
         }
 
-        // designated mint cap
-        return userMintCap != 0 ? expectedMinted <= userMintCap : daoMintCap != 0 ? expectedMinted <= daoMintCap : true;
+        if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
+        if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
+            return expectedMinted <= NFTHolderMintCap;
+        }
+        if (daoMintCap != 0) return expectedMinted <= daoMintCap;
+        return true;
     }
 
     function _verifySignature(
