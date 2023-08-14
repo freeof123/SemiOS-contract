@@ -102,7 +102,8 @@ contract ProtoDaoProtocol is
             daoMetadataParam.royaltyFee,
             _daoIndex,
             daoMetadataParam.projectUri,
-            basicDaoParam.initTokenSupplyRatio
+            basicDaoParam.initTokenSupplyRatio,
+            basicDaoParam.daoName
         );
         _daoIndex++;
 
@@ -766,7 +767,8 @@ contract ProtoDaoProtocol is
         uint96 royaltyFeeRatioInBps,
         uint256 daoIndex,
         string memory daoUri,
-        uint256 initTokenSupplyRatio
+        uint256 initTokenSupplyRatio,
+        string memory daoName
     )
         internal
         returns (bytes32 daoId)
@@ -802,7 +804,7 @@ contract ProtoDaoProtocol is
             daoInfo.daoUri = daoUri;
             daoInfo.royaltyFeeRatioInBps = royaltyFeeRatioInBps;
             daoInfo.daoIndex = daoIndex;
-            daoInfo.token = _createERC20Token(daoIndex);
+            daoInfo.token = _createERC20Token(daoIndex, daoName);
 
             D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
             D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
@@ -820,7 +822,7 @@ contract ProtoDaoProtocol is
 
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
-            daoInfo.nft = _createERC721Token(daoIndex);
+            daoInfo.nft = _createERC721Token(daoIndex, daoName);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
@@ -840,16 +842,16 @@ contract ProtoDaoProtocol is
         }
     }
 
-    function _createERC20Token(uint256 daoIndex) internal returns (address) {
+    function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        string memory name = string(abi.encodePacked("D4A Token for No.", StringsUpgradeable.toString(daoIndex)));
+        string memory name = daoName;
         string memory sym = string(abi.encodePacked("D4A.T", StringsUpgradeable.toString(daoIndex)));
         return l.erc20Factory.createD4AERC20(name, sym, address(this));
     }
 
-    function _createERC721Token(uint256 daoIndex) internal returns (address) {
+    function _createERC721Token(uint256 daoIndex, string memory daoName) internal returns (address) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        string memory name = string(abi.encodePacked("D4A NFT for No.", StringsUpgradeable.toString(daoIndex)));
+        string memory name = daoName;
         string memory sym = string(abi.encodePacked("D4A.N", StringsUpgradeable.toString(daoIndex)));
         return l.erc721Factory.createD4AERC721(name, sym);
     }

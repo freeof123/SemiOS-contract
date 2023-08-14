@@ -85,4 +85,5 @@ struct Whitelist {
 struct BasicDaoParam {
     uint256 initTokenSupplyRatio;
     string canvasUri;
+    string daoName;
 }
