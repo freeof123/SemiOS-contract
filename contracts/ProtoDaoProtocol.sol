@@ -113,12 +113,12 @@ contract ProtoDaoProtocol is
 
         _createCanvas(
             CanvasStorage.layout().canvasInfos,
-            DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
             basicDaoParam.canvasId,
             DaoStorage.layout().daoInfos[daoId].startRound,
             DaoStorage.layout().daoInfos[daoId].canvases.length,
-            basicDaoParam.canvasUri
+            basicDaoParam.canvasUri,
+            msg.sender
         );
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
@@ -129,7 +129,8 @@ contract ProtoDaoProtocol is
         bytes32 canvasId,
         string calldata canvasUri,
         bytes32[] calldata proof,
-        uint256 canvasRebateRatioInBps
+        uint256 canvasRebateRatioInBps,
+        address to
     )
         external
         payable
@@ -141,8 +142,8 @@ contract ProtoDaoProtocol is
         _checkUriNotExist(canvasUri);
 
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (l.permissionControl.isCanvasCreatorBlacklisted(daoId, msg.sender)) revert Blacklisted();
-        if (!l.permissionControl.inCanvasCreatorWhitelist(daoId, msg.sender, proof)) {
+        if (l.permissionControl.isCanvasCreatorBlacklisted(daoId, to)) revert Blacklisted();
+        if (!l.permissionControl.inCanvasCreatorWhitelist(daoId, to, proof)) {
             revert NotInWhitelist();
         }
 
@@ -150,12 +151,12 @@ contract ProtoDaoProtocol is
 
         _createCanvas(
             CanvasStorage.layout().canvasInfos,
-            DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
             canvasId,
             DaoStorage.layout().daoInfos[daoId].startRound,
             DaoStorage.layout().daoInfos[daoId].canvases.length,
-            canvasUri
+            canvasUri,
+            to
         );
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
@@ -860,12 +861,12 @@ contract ProtoDaoProtocol is
 
     function _createCanvas(
         mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos,
-        address daoFeePool,
         bytes32 daoId,
         bytes32 canvasId,
         uint256 daoStartRound,
         uint256 canvasIndex,
-        string memory canvasUri
+        string memory canvasUri,
+        address to
     )
         internal
     {
@@ -875,15 +876,6 @@ contract ProtoDaoProtocol is
             if (cur_round < daoStartRound) revert DaoNotStarted();
         }
 
-        {
-            uint256 createCanvasFeeAmount = l.createCanvasFeeAmount;
-            if (msg.value < createCanvasFeeAmount) revert NotEnoughEther();
-
-            SafeTransferLib.safeTransferETH(daoFeePool, createCanvasFeeAmount);
-
-            uint256 exchange = msg.value - createCanvasFeeAmount;
-            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
-        }
         if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
 
         {
@@ -891,7 +883,7 @@ contract ProtoDaoProtocol is
             canvasInfo.daoId = daoId;
             canvasInfo.canvasUri = canvasUri;
             canvasInfo.index = canvasIndex + 1;
-            l.ownerProxy.initOwnerOf(canvasId, msg.sender);
+            l.ownerProxy.initOwnerOf(canvasId, to);
             canvasInfo.canvasExist = true;
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
