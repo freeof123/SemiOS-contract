@@ -107,6 +107,8 @@ contract ProtoDaoProtocol is
         );
         _daoIndex++;
 
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+
         uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
 
         _createCanvas(
