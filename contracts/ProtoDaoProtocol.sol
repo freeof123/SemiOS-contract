@@ -109,20 +109,22 @@ contract ProtoDaoProtocol is
 
         uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
 
-        bytes32 canvasId = _createCanvas(
+        _createCanvas(
             CanvasStorage.layout().canvasInfos,
             DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
+            basicDaoParam.canvasId,
             DaoStorage.layout().daoInfos[daoId].startRound,
             DaoStorage.layout().daoInfos[daoId].canvases.length,
             basicDaoParam.canvasUri
         );
 
-        DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
+        DaoStorage.layout().daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
     }
 
     function createCanvas(
         bytes32 daoId,
+        bytes32 canvasId,
         string calldata canvasUri,
         bytes32[] calldata proof,
         uint256 canvasRebateRatioInBps
@@ -130,7 +132,6 @@ contract ProtoDaoProtocol is
         external
         payable
         nonReentrant
-        returns (bytes32)
     {
         _checkPauseStatus();
         _checkDaoExist(daoId);
@@ -145,10 +146,11 @@ contract ProtoDaoProtocol is
 
         uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
 
-        bytes32 canvasId = _createCanvas(
+        _createCanvas(
             CanvasStorage.layout().canvasInfos,
             DaoStorage.layout().daoInfos[daoId].daoFeePool,
             daoId,
+            canvasId,
             DaoStorage.layout().daoInfos[daoId].startRound,
             DaoStorage.layout().daoInfos[daoId].canvases.length,
             canvasUri
@@ -162,8 +164,6 @@ contract ProtoDaoProtocol is
             )
         );
         require(succ);
-
-        return canvasId;
     }
 
     function mintNFT(
@@ -860,12 +860,12 @@ contract ProtoDaoProtocol is
         mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos,
         address daoFeePool,
         bytes32 daoId,
+        bytes32 canvasId,
         uint256 daoStartRound,
         uint256 canvasIndex,
         string memory canvasUri
     )
         internal
-        returns (bytes32)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         {
@@ -882,7 +882,6 @@ contract ProtoDaoProtocol is
             uint256 exchange = msg.value - createCanvasFeeAmount;
             if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }
-        bytes32 canvasId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
         if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
 
         {
@@ -894,6 +893,5 @@ contract ProtoDaoProtocol is
             canvasInfo.canvasExist = true;
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
-        return canvasId;
     }
 }

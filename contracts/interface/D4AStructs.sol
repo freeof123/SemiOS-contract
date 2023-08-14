@@ -86,4 +86,5 @@ struct BasicDaoParam {
     uint256 initTokenSupplyRatio;
     string canvasUri;
     string daoName;
+    bytes32 canvasId;
 }

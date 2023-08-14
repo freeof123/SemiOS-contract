@@ -37,13 +37,13 @@ interface IProtoDaoProtocol {
 
     function createCanvas(
         bytes32 daoId,
+        bytes32 canvasId,
         string calldata canvasUri,
         bytes32[] calldata proof,
         uint256 canvasRebateRatioInBps
     )
         external
-        payable
-        returns (bytes32);
+        payable;
 
     function mintNFT(
         bytes32 daoId,
