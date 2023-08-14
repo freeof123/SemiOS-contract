@@ -15,6 +15,8 @@ contract D4AFeePool is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     string public name;
+    uint256 public turnover;
+
     bytes32 public constant AUTO_TRANSFER = keccak256("AUTO_TRANSFER");
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -53,7 +55,9 @@ contract D4AFeePool is AccessControlUpgradeable, ReentrancyGuardUpgradeable {
         return true;
     }
 
-    receive() external payable { }
+    receive() external payable {
+        turnover += msg.value;
+    }
 
     function changeAdmin(address new_admin) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(msg.sender != new_admin, "new admin cannot be same as old one");
