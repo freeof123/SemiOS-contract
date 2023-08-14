@@ -29,7 +29,7 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
-contract D4ACreateProjectProxy is OwnableUpgradeable {
+contract ProtoDaoCreateProjectProxy is OwnableUpgradeable {
     IProtoDaoProtocol public protocol;
     ID4ARoyaltySplitterFactory public royaltySplitterFactory;
     address public royaltySplitterOwner;
@@ -86,6 +86,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
         DaoMintCapParam daoMintCapParam,
         DaoETHAndERC20SplitRatioParam splitRatioParam,
         TemplateParam templateParam,
+        BasicDaoParam basicDaoParam,
         uint256 actionType
     );
 
@@ -139,6 +140,7 @@ contract D4ACreateProjectProxy is OwnableUpgradeable {
             daoMintCapParam,
             splitRatioParam,
             templateParam,
+            basicDaoParam,
             actionType
         );
 
