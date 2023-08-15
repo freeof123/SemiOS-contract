@@ -78,4 +78,8 @@ interface IProtoDaoProtocol {
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
 
     function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) external view returns (bytes32);
+
+    function getLastestDaoIndex() external view returns (uint256);
+
+    function getDaoId(uint256 daoIndex) external view returns (bytes32);
 }

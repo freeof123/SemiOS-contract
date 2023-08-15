@@ -68,7 +68,9 @@ contract ProtoDaoProtocol is
 
     uint256 internal _daoIndexBitMap;
 
-    uint256[46] private __gap;
+    mapping(uint256 daoIndex => bytes32 daoId) internal _daoIndexToId;
+
+    uint256[45] private __gap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -910,5 +912,13 @@ contract ProtoDaoProtocol is
             canvasInfo.canvasExist = true;
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
+    }
+
+    function getLastestDaoIndex() public view returns (uint256) {
+        return _daoIndex;
+    }
+
+    function getDaoId(uint256 daoIndex) public view returns (bytes32) {
+        return _daoIndexToId[daoIndex];
     }
 }

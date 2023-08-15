@@ -2,7 +2,12 @@
 pragma solidity ^0.8.18;
 
 library BasicDaoStorage {
+    struct BasicDaoInfo {
+        bool unlocked;
+    }
+
     struct Layout {
+        mapping(bytes32 daoId => BasicDaoInfo basicDaoInfo) basicDaoInfos;
         string specialTokenUriPrefix;
     }
 
