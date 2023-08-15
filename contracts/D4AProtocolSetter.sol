@@ -28,6 +28,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         Blacklist memory unblacklist
     )
         public
+        virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
@@ -62,6 +63,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         uint256 daoFeePoolETHRatioFlatPrice
     )
         public
+        virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
@@ -80,7 +82,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         );
     }
 
-    function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public {
+    function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
@@ -89,7 +91,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         emit DaoNftMaxSupplySet(daoId, newMaxSupply);
     }
 
-    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public {
+    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public virtual {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.mintableRound == newMintableRound) return;
 
@@ -145,7 +147,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         emit DaoMintableRoundSet(daoId, newMintableRound);
     }
 
-    function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public {
+    function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public virtual {
         PriceStorage.Layout storage priceStorage = PriceStorage.layout();
         if (priceStorage.daoFloorPrices[daoId] == newFloorPrice) return;
 
@@ -171,7 +173,14 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         emit DaoFloorPriceSet(daoId, newFloorPrice);
     }
 
-    function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor) public {
+    function setDaoPriceTemplate(
+        bytes32 daoId,
+        PriceTemplateType priceTemplateType,
+        uint256 nftPriceFactor
+    )
+        public
+        virtual
+    {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
 
@@ -184,7 +193,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         emit DaoPriceTemplateSet(daoId, priceTemplateType, nftPriceFactor);
     }
 
-    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public {
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
 
@@ -214,6 +223,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         uint256 daoFeePoolETHRatioFlatPrice
     )
         public
+        virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
@@ -244,7 +254,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         );
     }
 
-    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable {
+    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(canvasId)) revert NotCanvasOwner();
 

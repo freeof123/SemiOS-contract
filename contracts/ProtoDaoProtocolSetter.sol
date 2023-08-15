@@ -1,0 +1,139 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
+import "contracts/interface/D4AErrors.sol";
+import { DaoStorage } from "contracts/storages/DaoStorage.sol";
+import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
+
+contract ProtoDaoProtocolSetter is D4AProtocolSetter {
+    function setMintCapAndPermission(
+        bytes32 daoId,
+        uint32 daoMintCap,
+        UserMintCapParam[] calldata userMintCapParams,
+        Whitelist memory whitelist,
+        Blacklist memory blacklist,
+        Blacklist memory unblacklist
+    )
+        public
+        override
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+            revert BasicDaoLocked();
+        }
+
+        super.setMintCapAndPermission(daoId, daoMintCap, userMintCapParams, whitelist, blacklist, unblacklist);
+    }
+
+    function setDaoParams(
+        bytes32 daoId,
+        uint256 nftMaxSupplyRank,
+        uint256 mintableRoundRank,
+        uint256 daoFloorPriceRank,
+        PriceTemplateType priceTemplateType,
+        uint256 nftPriceFactor,
+        uint256 daoCreatorERC20Ratio,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+        override
+    {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+
+        super.setDaoParams(
+            daoId,
+            nftMaxSupplyRank,
+            mintableRoundRank,
+            daoFloorPriceRank,
+            priceTemplateType,
+            nftPriceFactor,
+            daoCreatorERC20Ratio,
+            canvasCreatorERC20Ratio,
+            nftMinterERC20Ratio,
+            daoFeePoolETHRatio,
+            daoFeePoolETHRatioFlatPrice
+        );
+    }
+
+    function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public override {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+
+        super.setDaoNftMaxSupply(daoId, newMaxSupply);
+    }
+
+    function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public override {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+
+        super.setDaoMintableRound(daoId, newMintableRound);
+    }
+
+    function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public override {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+
+        super.setDaoFloorPrice(daoId, newFloorPrice);
+    }
+
+    function setDaoPriceTemplate(
+        bytes32 daoId,
+        PriceTemplateType priceTemplateType,
+        uint256 nftPriceFactor
+    )
+        public
+        override
+    {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+
+        super.setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
+    }
+
+    function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public override {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+            revert BasicDaoLocked();
+        }
+
+        super.setTemplate(daoId, templateParam);
+    }
+
+    function setRatio(
+        bytes32 daoId,
+        uint256 daoCreatorERC20Ratio,
+        uint256 canvasCreatorERC20Ratio,
+        uint256 nftMinterERC20Ratio,
+        uint256 daoFeePoolETHRatio,
+        uint256 daoFeePoolETHRatioFlatPrice
+    )
+        public
+        override
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+            revert BasicDaoLocked();
+        }
+
+        super.setRatio(
+            daoId,
+            daoCreatorERC20Ratio,
+            canvasCreatorERC20Ratio,
+            nftMinterERC20Ratio,
+            daoFeePoolETHRatio,
+            daoFeePoolETHRatioFlatPrice
+        );
+    }
+
+    function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable override {
+        if (
+            !BasicDaoStorage.layout().basicDaoInfos[D4AProtocolReadable(address(this)).getCanvasDaoId(canvasId)].unlocked
+        ) revert BasicDaoLocked();
+
+        super.setCanvasRebateRatioInBps(canvasId, newCanvasRebateRatioInBps);
+    }
+}

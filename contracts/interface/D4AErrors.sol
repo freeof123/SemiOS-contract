@@ -66,3 +66,5 @@ error DaoNotStarted();
 error NotOperationRole();
 
 error UnableToUnlock();
+
+error BasicDaoLocked();
