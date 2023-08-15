@@ -10,6 +10,7 @@ import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryp
 import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import { StringsUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+import { LibString } from "solady/utils/LibString.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
 
 // D4A constants, structs, enums && errors
@@ -43,6 +44,7 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { GrantStorage } from "contracts/storages/GrantStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
@@ -185,7 +187,7 @@ contract ProtoDaoProtocol is
         {
             _checkMintEligibility(daoId, msg.sender, proof, 1);
         }
-        _verifySignature(canvasId, tokenUri, nftFlatPrice, signature);
+        _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         return _mintNft(canvasId, tokenUri, nftFlatPrice);
     }
@@ -206,7 +208,7 @@ contract ProtoDaoProtocol is
         {
             _checkMintEligibility(daoId, msg.sender, proof, length);
             for (uint256 i; i < length;) {
-                _verifySignature(canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice, signatures[i]);
+                _verifySignature(daoId, canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice, signatures[i]);
                 unchecked {
                     ++i;
                 }
@@ -464,6 +466,7 @@ contract ProtoDaoProtocol is
     }
 
     function _verifySignature(
+        bytes32 daoId,
         bytes32 canvasId,
         string calldata tokenUri,
         uint256 nftFlatPrice,
@@ -472,6 +475,9 @@ contract ProtoDaoProtocol is
         internal
         view
     {
+        // check for special token URIs first
+        if (_isSpecialTokenUri(daoId, tokenUri)) return;
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         bytes32 digest = _hashTypedDataV4(
             keccak256(abi.encode(_MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), nftFlatPrice))
@@ -481,6 +487,23 @@ contract ProtoDaoProtocol is
             !IAccessControlUpgradeable(address(this)).hasRole(SIGNER_ROLE, signer)
                 && signer != l.ownerProxy.ownerOf(canvasId)
         ) revert InvalidSignature();
+    }
+
+    function _isSpecialTokenUri(bytes32 daoId, string calldata tokenUri) internal view returns (bool) {
+        string memory specialTokenUriPrefix = BasicDaoStorage.layout().specialTokenUriPrefix;
+        string memory daoIndex = LibString.toString(DaoStorage.layout().daoInfos[daoId].daoIndex);
+        if (!LibString.startsWith(tokenUri, LibString.concat(specialTokenUriPrefix, daoIndex))) return false;
+        // strip prefix, daoIndex at the start and `.json` at the end
+        string memory tokenIndexString =
+            tokenUri[bytes(specialTokenUriPrefix).length + bytes(daoIndex).length:bytes(tokenUri).length - 5];
+        // try parse tokenIndex from string to uint256;
+        uint256 tokenIndex;
+        for (uint256 i; i < bytes(tokenIndexString).length; ++i) {
+            if (bytes(tokenIndexString)[i] <= "0" || bytes(tokenIndexString)[i] >= "9") return false;
+            tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
+        }
+        if (tokenIndex > 999) return false;
+        return true;
     }
 
     function _mintNft(
