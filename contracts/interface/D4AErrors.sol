@@ -68,3 +68,7 @@ error NotOperationRole();
 error UnableToUnlock();
 
 error BasicDaoLocked();
+
+error NotCanvasIdOfSpecialTokenUri();
+
+error NotBasicDaoNftFlatPrice();

@@ -126,6 +126,7 @@ contract ProtoDaoProtocol is
         );
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
+        BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
     }
 
     function createCanvas(
@@ -191,7 +192,7 @@ contract ProtoDaoProtocol is
         }
         _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        return _mintNft(canvasId, tokenUri, nftFlatPrice);
+        return _mintNft(daoId, canvasId, tokenUri, nftFlatPrice);
     }
 
     function batchMint(
@@ -509,6 +510,7 @@ contract ProtoDaoProtocol is
     }
 
     function _mintNft(
+        bytes32 daoId,
         bytes32 canvasId,
         string calldata tokenUri,
         uint256 flatPrice
@@ -516,6 +518,12 @@ contract ProtoDaoProtocol is
         internal
         returns (uint256 tokenId)
     {
+        if (_isSpecialTokenUri(daoId, tokenUri)) {
+            if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
+                revert NotCanvasIdOfSpecialTokenUri();
+            }
+            if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
+        }
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         {
             _checkPauseStatus();
@@ -523,7 +531,6 @@ contract ProtoDaoProtocol is
             _checkCanvasExist(canvasId);
             _checkUriNotExist(tokenUri);
         }
-        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
 
         _checkPauseStatus(daoId);
 
@@ -543,6 +550,7 @@ contract ProtoDaoProtocol is
 
         // split fee
         uint256 daoFee;
+        bytes32 tempDaoId = daoId;
         bytes32 tempCanvasId = canvasId;
         CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
         uint256 canvasRebateRatioInBps;
@@ -552,19 +560,22 @@ contract ProtoDaoProtocol is
             address canvasOwner = l.ownerProxy.ownerOf(tempCanvasId);
             uint256 daoShare = (
                 flatPrice == 0
-                    ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId)
-                    : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId)
+                    ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(tempDaoId)
+                    : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(tempDaoId)
             ) * price;
 
             if (
                 (price - daoShare / BASIS_POINT - (price * l.protocolMintFeeRatioInBps) / BASIS_POINT) != 0
-                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
+                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(tempDaoId) != 0
             ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
             daoFee = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
         }
 
         _updateReward(
-            daoId, canvasId, PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether : daoFee, canvasRebateRatioInBps
+            daoId,
+            canvasId,
+            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether : daoFee,
+            canvasRebateRatioInBps
         );
 
         // mint
@@ -572,7 +583,7 @@ contract ProtoDaoProtocol is
         {
             daoInfo.nftTotalSupply++;
             canvasInfo.tokenIds.push(tokenId);
-            _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))] = canvasId;
+            _nftHashToCanvasId[keccak256(abi.encodePacked(tempDaoId, tokenId))] = canvasId;
         }
 
         emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price);
@@ -616,7 +627,7 @@ contract ProtoDaoProtocol is
     function _batchMint(
         bytes32 daoId,
         bytes32 canvasId,
-        MintNftInfo[] memory mintNftInfos
+        MintNftInfo[] calldata mintNftInfos
     )
         internal
         returns (uint256[] memory)
@@ -630,6 +641,14 @@ contract ProtoDaoProtocol is
         vars.length = mintNftInfos.length;
         for (uint256 i; i < vars.length;) {
             _checkUriNotExist(mintNftInfos[i].tokenUri);
+            if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
+                if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
+                    revert NotCanvasIdOfSpecialTokenUri();
+                }
+                if (mintNftInfos[i].flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) {
+                    revert NotBasicDaoNftFlatPrice();
+                }
+            }
             unchecked {
                 ++i;
             }
@@ -684,10 +703,11 @@ contract ProtoDaoProtocol is
             canvasRebateRatioInBps
         );
 
+        bytes32 tempDaoId = daoId;
         _updateReward(
             daoId,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether * vars.length : daoFee,
+            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether * vars.length : daoFee,
             canvasRebateRatioInBps
         );
 

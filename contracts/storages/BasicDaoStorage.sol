@@ -4,11 +4,13 @@ pragma solidity ^0.8.18;
 library BasicDaoStorage {
     struct BasicDaoInfo {
         bool unlocked;
+        bytes32 canvasIdOfSpecialNft;
     }
 
     struct Layout {
         mapping(bytes32 daoId => BasicDaoInfo basicDaoInfo) basicDaoInfos;
         string specialTokenUriPrefix;
+        uint256 basicDaoNftFlatPrice;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.BasicDaoStorage");
