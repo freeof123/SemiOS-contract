@@ -10,7 +10,7 @@ import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
 import "contracts/interface/D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
 
 contract V2Test is Test, D4AAddress {
@@ -20,14 +20,14 @@ contract V2Test is Test, D4AAddress {
 
     function setUp() public {
         vm.createSelectFork(vm.envString("GOERLI_RPC_URL"));
-        sigUtils = new MintNftSigUtils(address(d4aProtocol_proxy));
+        sigUtils = new MintNftSigUtils(address(pdProtocol_proxy));
     }
 
     function test_CreateDao() public {
         startHoax(actor.addr);
         // create trivial DAO
         uint256 startDrb = d4aDrb.currentRound();
-        bytes32 daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject(
+        bytes32 daoId = PDCreateProjectProxy(payable(address(pdCreateProjectProxy_proxy))).createProject(
             DaoMetadataParam(startDrb, 30, 0, 0, 750, "test project uri", 0),
             Whitelist({
                 minterMerkleRoot: bytes32(0),
@@ -48,22 +48,22 @@ contract V2Test is Test, D4AAddress {
             0
         );
         bytes32 canvasId =
-            D4AProtocol(address(d4aProtocol_proxy)).createCanvas(daoId, "test canvas uri", new bytes32[](0), 100);
+            D4AProtocol(address(pdProtocol_proxy)).createCanvas(daoId, "test canvas uri", new bytes32[](0), 100);
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 0;
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(actor.key, digest);
-        uint256 tokenId = D4AProtocol(address(d4aProtocol_proxy)).mintNFT{ value: 0.1 ether }(
+        uint256 tokenId = D4AProtocol(address(pdProtocol_proxy)).mintNFT{ value: 0.1 ether }(
             daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
         assertEq(tokenId, 1);
 
         vm.prank(0xe6046371B729f23206a94DDCace89FEceBBD565c);
-        IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), actor.addr);
+        IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), actor.addr);
 
         vm.startPrank(actor.addr);
         // create complex DAO
-        daoId = D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).createProject{ value: 0.1 ether }(
+        daoId = PDCreateProjectProxy(payable(address(pdCreateProjectProxy_proxy))).createProject{ value: 0.1 ether }(
             DaoMetadataParam(startDrb, 30, 0, 0, 750, "test project uri 1", 42),
             Whitelist({
                 minterMerkleRoot: bytes32(0),
@@ -83,14 +83,14 @@ contract V2Test is Test, D4AAddress {
             }),
             31
         );
-        canvasId = D4AProtocol(address(d4aProtocol_proxy)).createCanvas{ value: 0.01 ether }(
+        canvasId = D4AProtocol(address(pdProtocol_proxy)).createCanvas{ value: 0.01 ether }(
             daoId, "test canvas uri 1", new bytes32[](0), 0
         );
         tokenUri = "test token uri 1";
         flatPrice = 0;
         digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (v, r, s) = vm.sign(actor.key, digest);
-        tokenId = D4AProtocol(address(d4aProtocol_proxy)).mintNFT{ value: 0.1 ether }(
+        tokenId = D4AProtocol(address(pdProtocol_proxy)).mintNFT{ value: 0.1 ether }(
             daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
         assertEq(tokenId, 1);

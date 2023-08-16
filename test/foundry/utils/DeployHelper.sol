@@ -37,7 +37,6 @@ import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 // import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 // import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
@@ -75,10 +74,8 @@ contract DeployHelper is Test {
     PDCreate public pdCreate;
     D4ACreate public d4aCreate;
     PDBasicDao public pdBasicDao;
-    D4ACreateProjectProxy public daoProxy;
-    D4ACreateProjectProxy public daoProxyImpl;
-    PDCreateProjectProxy public pdDaoProxy;
-    PDCreateProjectProxy public pdDaoProxyImpl;
+    PDCreateProjectProxy public daoProxy;
+    PDCreateProjectProxy public daoProxyImpl;
     PermissionControl public permissionControl;
     PermissionControl public permissionControlImpl;
     D4AERC20Factory public erc20Factory;
@@ -130,7 +127,6 @@ contract DeployHelper is Test {
         _deployProtocol();
         _deployNaiveOwner();
         _deployDaoProxy();
-        _deployPDDaoProxy();
         _deployPermissionControl();
         _deployClaimer();
         _deployTestERC20();
@@ -420,14 +416,14 @@ contract DeployHelper is Test {
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {
-        daoProxyImpl = new D4ACreateProjectProxy(address(weth));
-        daoProxy = D4ACreateProjectProxy(
+        daoProxyImpl = new PDCreateProjectProxy(address(weth));
+        daoProxy = PDCreateProjectProxy(
             payable(
                 new TransparentUpgradeableProxy(
                     address(daoProxyImpl),
                     address(proxyAdmin),
                     abi.encodeWithSelector(
-                        D4ACreateProjectProxy.initialize.selector,
+                        PDCreateProjectProxy.initialize.selector,
                         address(uniswapV2Factory),
                         address(protocol),
                         address(royaltySplitterFactory),
@@ -441,11 +437,11 @@ contract DeployHelper is Test {
     }
 
     function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
-        pdDaoProxyImpl = new PDCreateProjectProxy(address(weth));
-        pdDaoProxy = PDCreateProjectProxy(
+        daoProxyImpl = new PDCreateProjectProxy(address(weth));
+        daoProxy = PDCreateProjectProxy(
             payable(
                 new TransparentUpgradeableProxy(
-                    address(pdDaoProxyImpl),
+                    address(daoProxyImpl),
                     address(proxyAdmin),
                     abi.encodeWithSelector(
                         PDCreateProjectProxy.initialize.selector,
@@ -457,8 +453,8 @@ contract DeployHelper is Test {
                 )
             )
         );
-        vm.label(address(pdDaoProxy), "PD DAO Proxy");
-        vm.label(address(pdDaoProxyImpl), "PD DAO Proxy Impl");
+        vm.label(address(daoProxy), "PD DAO Proxy");
+        vm.label(address(daoProxyImpl), "PD DAO Proxy Impl");
     }
 
     function _deployPermissionControl() internal prank(protocolOwner.addr) {

@@ -23,7 +23,6 @@ import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.s
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 
 contract Benchmark is DeployHelper {
     using Strings for uint256;
