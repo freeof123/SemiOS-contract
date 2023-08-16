@@ -21,7 +21,7 @@ import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswa
 
 import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "../interface/ID4AProtocolSetter.sol";
-import { IProtoDaoCreate } from "../interface/IProtoDaoCreate.sol";
+import { IPDCreate } from "../interface/IPDCreate.sol";
 import { ID4AERC721 } from "../interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
@@ -29,8 +29,8 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
-contract ProtoDaoCreateProjectProxy is OwnableUpgradeable {
-    IProtoDaoCreate public protocol;
+contract PDCreateProjectProxy is OwnableUpgradeable {
+    IPDCreate public protocol;
     ID4ARoyaltySplitterFactory public royaltySplitterFactory;
     address public royaltySplitterOwner;
     mapping(bytes32 daoId => address royaltySplitter) public royaltySplitters;
@@ -55,7 +55,7 @@ contract ProtoDaoCreateProjectProxy is OwnableUpgradeable {
     {
         __Ownable_init();
         d4aswapFactory = IUniswapV2Factory(d4aswapFactory_);
-        protocol = IProtoDaoCreate(protocol_);
+        protocol = IPDCreate(protocol_);
         royaltySplitterFactory = ID4ARoyaltySplitterFactory(royaltySplitterFactory_);
         royaltySplitterOwner = royaltySplitterOwner_;
     }
@@ -69,7 +69,7 @@ contract ProtoDaoCreateProjectProxy is OwnableUpgradeable {
         public
         onlyOwner
     {
-        protocol = IProtoDaoCreate(newProtocol);
+        protocol = IPDCreate(newProtocol);
         royaltySplitterFactory = ID4ARoyaltySplitterFactory(newRoyaltySplitterFactory);
         royaltySplitterOwner = newRoyaltySplitterOwner;
         d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);

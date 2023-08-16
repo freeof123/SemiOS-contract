@@ -2,8 +2,8 @@
 pragma solidity ^0.8.13;
 
 contract MintNftSigUtils {
-    bytes32 private _HASHED_NAME = keccak256(bytes("D4AProtocol"));
-    bytes32 private _HASHED_VERSION = keccak256(bytes("2"));
+    bytes32 private _HASHED_NAME = keccak256(bytes("ProtoDaoProtocol"));
+    bytes32 private _HASHED_VERSION = keccak256(bytes("1"));
 
     bytes32 private _TYPE_HASH =
         keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)");

@@ -2,14 +2,9 @@
 pragma solidity ^0.8.18;
 
 import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { ICreate } from "contracts/interface/ICreate.sol";
 
-interface IPDCreate {
-    event NewProject(
-        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
-    );
-
-    event NewCanvas(bytes32 daoId, bytes32 canvasId, string canvasUri);
-
+interface IPDCreate is ICreate {
     function createBasicDao(
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam

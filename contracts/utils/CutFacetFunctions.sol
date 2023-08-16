@@ -3,11 +3,49 @@ pragma solidity ^0.8.18;
 
 import { IAccessControl } from "@solidstate/contracts/access/access_control/IAccessControl.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
+import { ID4ACreate } from "contracts/interface/ID4ACreate.sol";
+import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
+import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AGrant } from "contracts/interface/ID4AGrant.sol";
+
+function getD4ACreateSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4ACreate
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createProject.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createOwnerProject.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createCanvas.selector;
+    assert(interfaceId == type(ID4ACreate).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getPDCreateSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register PDCreate
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createBasicDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createCanvas.selector;
+    assert(interfaceId == type(IPDCreate).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
 
 function getSettingsSelectors() pure returns (bytes4[] memory) {
     //------------------------------------------------------------------------------------------------------
@@ -136,7 +174,11 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRoundReward.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRewardTillRound.selector;
-    assert(interfaceId == type(ID4AProtocolReadable).interfaceId);
+    // protocol related functions
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getNFTTokenCanvas.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoId.selector;
+    assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {

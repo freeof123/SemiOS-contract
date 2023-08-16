@@ -19,6 +19,8 @@ import "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AStructs.sol";
 import {
+    getD4ACreateSelectors,
+    getPDCreateSelectors,
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
@@ -27,10 +29,8 @@ import {
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
-import { ID4AProtocolAggregate } from "contracts/interface/ID4AProtocolAggregate.sol";
+import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
@@ -38,9 +38,14 @@ import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyalty
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
-import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
+// import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+// import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
+import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
+import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
+// import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { PDProtocol } from "contracts/PDProtocol.sol";
+import { PDCreate } from "contracts/PDCreate.sol";
+import { D4ACreate } from "contracts/D4ACreate.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
@@ -61,12 +66,16 @@ contract DeployHelper is Test {
     D4ASettings public settings;
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
-    D4AProtocolReadable public protocolReadable;
-    D4AProtocolSetter public protocolSetter;
-    ID4AProtocolAggregate public protocol;
-    D4AProtocol public protocolImpl;
+    PDProtocolReadable public protocolReadable;
+    PDProtocolSetter public protocolSetter;
+    IPDProtocolAggregate public protocol;
+    PDProtocol public protocolImpl;
+    PDCreate public pdCreate;
+    D4ACreate public d4aCreate;
     D4ACreateProjectProxy public daoProxy;
     D4ACreateProjectProxy public daoProxyImpl;
+    PDCreateProjectProxy public pdDaoProxy;
+    PDCreateProjectProxy public pdDaoProxyImpl;
     PermissionControl public permissionControl;
     PermissionControl public permissionControlImpl;
     D4AERC20Factory public erc20Factory;
@@ -246,14 +255,18 @@ contract DeployHelper is Test {
     }
 
     function _deployProtocol() internal prank(protocolOwner.addr) {
-        protocol = ID4AProtocolAggregate(payable(new D4ADiamond()));
-        protocolImpl = new D4AProtocol();
+        protocol = IPDProtocolAggregate(payable(new D4ADiamond()));
+        protocolImpl = new PDProtocol();
 
+        _deployD4ACreate();
+        _deployPDCreate();
         _deployProtocolReadable();
         _deployProtocolSetter();
         _deploySettings();
         _deployGrant();
 
+        _cutFacetsD4ACreate();
+        _cutFacetsPDCreate();
         _cutFacetsProtocolReadable();
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
@@ -267,13 +280,23 @@ contract DeployHelper is Test {
         vm.label(address(protocolImpl), "Protocol Impl");
     }
 
+    function _deployD4ACreate() internal {
+        d4aCreate = new D4ACreate();
+        vm.label(address(d4aCreate), "D4A Create");
+    }
+
+    function _deployPDCreate() internal {
+        pdCreate = new PDCreate();
+        vm.label(address(pdCreate), "Proto DAO Create");
+    }
+
     function _deployProtocolReadable() internal {
-        protocolReadable = new D4AProtocolReadable();
+        protocolReadable = new PDProtocolReadable();
         vm.label(address(protocolReadable), "Protocol Readable");
     }
 
     function _deployProtocolSetter() internal {
-        protocolSetter = new D4AProtocolSetter();
+        protocolSetter = new PDProtocolSetter();
         vm.label(address(protocolSetter), "Protocol Setter");
     }
 
@@ -285,6 +308,34 @@ contract DeployHelper is Test {
     function _deployGrant() internal {
         grant = new D4AGrant();
         vm.label(address(grant), "Grant");
+    }
+
+    function _cutFacetsD4ACreate() internal {
+        //------------------------------------------------------------------------------------------------------
+        // D4ACreate facet cut
+        bytes4[] memory selectors = getD4ACreateSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(d4aCreate),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDCreate() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDCreate facet cut
+        bytes4[] memory selectors = getPDCreateSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdCreate),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _cutFacetsProtocolReadable() internal {
@@ -674,9 +725,9 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFT{
-            value: flatPrice == 0 ? ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) : flatPrice
-        }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
+        tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
+            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -702,15 +753,12 @@ contract DeployHelper is Test {
             signatures[i] = abi.encodePacked(r, s, v);
         }
         uint256 totalPrice;
-        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId);
         uint256 counter;
-        uint256 priceFactor = ID4AProtocolReadable(address(protocol)).getDaoPriceFactor(daoId);
+        uint256 priceFactor = protocol.getDaoPriceFactor(daoId);
         for (uint256 i; i < tokenUris.length; i++) {
             if (flatPrices[i] == 0) {
-                if (
-                    ID4AProtocolReadable(address(protocol)).getDaoPriceTemplate(daoId)
-                        == address(exponentialPriceVariation)
-                ) {
+                if (protocol.getDaoPriceTemplate(daoId) == address(exponentialPriceVariation)) {
                     totalPrice += mintPrice * priceFactor ** counter / BASIS_POINT ** counter;
                 } else {
                     totalPrice += mintPrice + priceFactor * counter;
