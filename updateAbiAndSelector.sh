@@ -1,6 +1,5 @@
 # ABI
 forge inspect D4AUniversalClaimer abi >deployed-contracts-info/frontend-abi/D4AUniversalClaimer.json
-forge inspect D4ACreateProjectProxy abi >deployed-contracts-info/frontend-abi/D4ACreateProjectProxy.json
 forge inspect PDCreateProjectProxy abi >deployed-contracts-info/frontend-abi/PDCreateProjectProxy.json
 forge inspect PDProtocolReadable abi >deployed-contracts-info/frontend-abi/PDProtocolReadable.json
 forge inspect PDProtocolSetter abi >deployed-contracts-info/frontend-abi/PDProtocolSetter.json
