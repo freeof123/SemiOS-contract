@@ -12,7 +12,6 @@ import {
     ITransparentUpgradeableProxy,
     TransparentUpgradeableProxy
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 
 import "contracts/interface/D4AEnums.sol";
@@ -22,31 +21,8 @@ import {
     getProtocolReadableSelectors,
     getProtocolSetterSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
-import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
-import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
-import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
-import { D4AERC20Factory } from "contracts/D4AERC20.sol";
-import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
-import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
-import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
-import { D4ADrb } from "contracts/D4ADrb.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
-import { D4AAddress } from "./utils/D4AAddress.sol";
-import { D4AClaimer } from "contracts/D4AClaimer.sol";
-import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
-import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
-import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
-import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
-import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
+import "./utils/D4AAddress.sol";
 
 contract DeployDemo is Script, Test, D4AAddress {
     using stdJson for string;
@@ -101,7 +77,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
 
-        // d4aProtocol_proxy.initialize();
+        // pdProtocol_proxy.initialize();
 
         // _transferOwnership();
         _checkStatus();
@@ -144,8 +120,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         d4aRoyaltySplitterFactory = new D4ARoyaltySplitterFactory(address(WETH), uniswapV2Router, oracleRegistry);
         assertTrue(address(d4aRoyaltySplitterFactory) != address(0));
-        D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).set(
-            address(d4aProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
+        PDCreateProjectProxy(payable(address(pdCreateProjectProxy_proxy))).set(
+            address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
         );
 
         vm.toString(address(d4aRoyaltySplitterFactory)).write(path, ".factories.D4ARoyaltySplitterFactory");
@@ -195,46 +171,46 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _deployProtocolReadable() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocolReadable");
+        console2.log("Start deploy PDProtocolReadable");
 
-        d4aProtocolReadable = new D4AProtocolReadable();
-        assertTrue(address(d4aProtocolReadable) != address(0));
+        pdProtocolReadable = new PDProtocolReadable();
+        assertTrue(address(pdProtocolReadable) != address(0));
 
-        vm.toString(address(d4aProtocolReadable)).write(path, ".D4AProtocol.D4AProtocolReadable");
+        vm.toString(address(pdProtocolReadable)).write(path, ".PDProtocol.PDProtocolReadable");
 
-        console2.log("D4AProtocolReadable address: ", address(d4aProtocolReadable));
+        console2.log("PDProtocolReadable address: ", address(pdProtocolReadable));
         console2.log("================================================================================\n");
     }
 
     function _cutProtocolReadableFacet() internal {
         console2.log("\n================================================================================");
-        console2.log("Start cut D4AProtocolRedable facet");
+        console2.log("Start cut PDProtocolReadable facet");
 
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolReadableSelectors();
-        console2.log("D4AProtocolReadable facet cut selectors number: ", selectors.length);
+        console2.log("PDProtocolReadable facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aProtocolReadable),
+            target: address(pdProtocolReadable),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
 
         console2.log("================================================================================\n");
     }
 
     function _deployProtocolSetter() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocolSetter");
+        console2.log("Start deploy PDProtocolSetter");
 
-        d4aProtocolSetter = new D4AProtocolSetter();
-        assertTrue(address(d4aProtocolSetter) != address(0));
+        pdProtocolSetter = new PDProtocolSetter();
+        assertTrue(address(pdProtocolSetter) != address(0));
 
-        vm.toString(address(d4aProtocolSetter)).write(path, ".D4AProtocol.D4AProtocolSetter");
+        vm.toString(address(pdProtocolSetter)).write(path, ".PDProtocol.PDProtocolSetter");
 
-        console2.log("D4AProtocolSetter address: ", address(d4aProtocolSetter));
+        console2.log("PDProtocolSetter address: ", address(pdProtocolSetter));
         console2.log("================================================================================\n");
     }
 
@@ -245,15 +221,15 @@ contract DeployDemo is Script, Test, D4AAddress {
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolSetterSelectors();
-        console2.log("D4AProtocolSetter facet cut selectors number: ", selectors.length);
+        console2.log("PDProtocolSetter facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aProtocolSetter),
+            target: address(pdProtocolSetter),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
 
         console2.log("================================================================================\n");
     }
@@ -265,7 +241,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         d4aSettings = new D4ASettings();
         assertTrue(address(d4aSettings) != address(0));
 
-        vm.toString(address(d4aSettings)).write(path, ".D4AProtocol.D4ASettings");
+        vm.toString(address(d4aSettings)).write(path, ".PDProtocol.D4ASettings");
 
         console2.log("D4ASettings address: ", address(d4aSettings));
         console2.log("================================================================================\n");
@@ -288,7 +264,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         });
 
         // TODO: change 137 to different when deploying to mainnet
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(
+        D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
             facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 137)
         );
 
@@ -297,29 +273,29 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _deployProtocolProxy() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocol proxy");
+        console2.log("Start deploy PDProtocol proxy");
 
-        d4aProtocol_proxy = D4AProtocol(payable(new D4ADiamond()));
-        assertTrue(address(d4aProtocol_proxy) != address(0));
+        pdProtocol_proxy = PDProtocol(payable(new D4ADiamond()));
+        assertTrue(address(pdProtocol_proxy) != address(0));
 
-        vm.toString(address(d4aProtocol_proxy)).write(path, ".D4AProtocol.proxy");
+        vm.toString(address(pdProtocol_proxy)).write(path, ".PDProtocol.proxy");
 
-        console2.log("D4AProtocol proxy address: ", address(d4aProtocol_proxy));
+        console2.log("PDProtocol proxy address: ", address(pdProtocol_proxy));
         console2.log("================================================================================\n");
     }
 
     function _deployProtocol() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocol");
+        console2.log("Start deploy PDProtocol");
 
-        d4aProtocol_impl = new D4AProtocol();
-        assertTrue(address(d4aProtocol_impl) != address(0));
-        // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
-        // D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
+        pdProtocol_impl = new PDProtocol();
+        assertTrue(address(pdProtocol_impl) != address(0));
+        // proxyAdmin.upgrade(pdProtocol_proxy, address(pdProtocol_impl));
+        // D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
 
-        vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
+        vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");
 
-        console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
+        console2.log("PDProtocol implementation address: ", address(pdProtocol_impl));
         console2.log("================================================================================\n");
     }
 
@@ -330,9 +306,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         linearPriceVariation = new LinearPriceVariation();
         assertTrue(address(linearPriceVariation) != address(0));
 
-        vm.toString(address(linearPriceVariation)).write(path, ".D4AProtocol.LinearPriceVariation");
+        vm.toString(address(linearPriceVariation)).write(path, ".PDProtocol.LinearPriceVariation");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
         // );
 
@@ -347,9 +323,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         exponentialPriceVariation = new ExponentialPriceVariation();
         assertTrue(address(exponentialPriceVariation) != address(0));
 
-        vm.toString(address(exponentialPriceVariation)).write(path, ".D4AProtocol.ExponentialPriceVariation");
+        vm.toString(address(exponentialPriceVariation)).write(path, ".PDProtocol.ExponentialPriceVariation");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.PRICE,
         //     uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
         //     address(exponentialPriceVariation)
@@ -366,9 +342,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         linearRewardIssuance = new LinearRewardIssuance();
         assertTrue(address(linearRewardIssuance) != address(0));
 
-        vm.toString(address(linearRewardIssuance)).write(path, ".D4AProtocol.LinearRewardIssuance");
+        vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
         // );
 
@@ -383,9 +359,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         exponentialRewardIssuance = new ExponentialRewardIssuance();
         assertTrue(address(exponentialRewardIssuance) != address(0));
 
-        vm.toString(address(exponentialRewardIssuance)).write(path, ".D4AProtocol.ExponentialRewardIssuance");
+        vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
+        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.REWARD,
         //     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
         //     address(exponentialRewardIssuance)
@@ -399,7 +375,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AClaimer");
 
-        d4aClaimer = new D4AClaimer(address(d4aProtocol_proxy));
+        d4aClaimer = new D4AClaimer(address(pdProtocol_proxy));
 
         vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
 
@@ -421,34 +397,34 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _deployCreateProjectProxy() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4ACreateProjectProxy");
+        console2.log("Start deploy PDCreateProjectProxy");
 
-        d4aCreateProjectProxy_impl = new D4ACreateProjectProxy(address(WETH));
-        assertTrue(address(d4aCreateProjectProxy_impl) != address(0));
+        pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
+        assertTrue(address(pdCreateProjectProxy_impl) != address(0));
         // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy)), address(d4aCreateProjectProxy_impl)
+        //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
         // );
 
-        vm.toString(address(d4aCreateProjectProxy_impl)).write(path, ".D4ACreateProjectProxy.impl");
+        vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
 
-        console2.log("D4ACreateProjectProxy implementation address: ", address(d4aCreateProjectProxy_impl));
+        console2.log("PDCreateProjectProxy implementation address: ", address(pdCreateProjectProxy_impl));
         console2.log("================================================================================\n");
     }
 
     function _deployCreateProjectProxyProxy() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4ACreateProjectProxy proxy");
+        console2.log("Start deploy PDCreateProjectProxy proxy");
 
-        d4aCreateProjectProxy_proxy = D4ACreateProjectProxy(
+        pdCreateProjectProxy_proxy = PDCreateProjectProxy(
             payable(
                 address(
                     new TransparentUpgradeableProxy(
-                        address(d4aCreateProjectProxy_impl),
+                        address(pdCreateProjectProxy_impl),
                         address(proxyAdmin),
                         abi.encodeWithSignature(
                             "initialize(address,address,address,address)",
                             address(uniswapV2Factory),
-                            address(d4aProtocol_proxy),
+                            address(pdProtocol_proxy),
                             address(d4aRoyaltySplitterFactory), 
                             address(owner) 
                         )
@@ -456,11 +432,11 @@ contract DeployDemo is Script, Test, D4AAddress {
                 )
             )
         );
-        assertTrue(address(d4aCreateProjectProxy_proxy) != address(0));
+        assertTrue(address(pdCreateProjectProxy_proxy) != address(0));
 
-        vm.toString(address(d4aCreateProjectProxy_proxy)).write(path, ".D4ACreateProjectProxy.proxy");
+        vm.toString(address(pdCreateProjectProxy_proxy)).write(path, ".PDCreateProjectProxy.proxy");
 
-        console2.log("D4ACreateProjectProxy proxy address: ", address(d4aCreateProjectProxy_proxy));
+        console2.log("PDCreateProjectProxy proxy address: ", address(pdCreateProjectProxy_proxy));
         console2.log("================================================================================\n");
     }
 
@@ -468,7 +444,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl");
 
-        permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
+        permissionControl_impl = new PermissionControl(address(pdProtocol_proxy), address(pdCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
         // proxyAdmin.upgrade(
         //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
@@ -506,31 +482,31 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _initSettings() internal {
         console2.log("\n================================================================================");
-        IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+        IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
         console2.log("Start initializing D4ASetting");
         {
             console2.log("Step 1: change address");
-            ID4ASettings(address(d4aProtocol_proxy)).changeAddress(
+            D4ASettings(address(pdProtocol_proxy)).changeAddress(
                 address(d4aDrb),
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
                 json.readAddress(".NaiveOwner.proxy"),
-                address(d4aCreateProjectProxy_proxy),
+                address(pdCreateProjectProxy_proxy),
                 address(permissionControl_proxy)
             );
         }
         {
             console2.log("Step 2: change protocol fee pool");
-            ID4ASettings(address(d4aProtocol_proxy)).changeProtocolFeePool(owner);
+            D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(owner);
         }
         {
             console2.log("Step 3: change ERC20 total supply");
-            ID4ASettings(address(d4aProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
+            D4ASettings(address(pdProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
         }
         {
             console2.log("Step 4: change asset pool owner");
-            ID4ASettings(address(d4aProtocol_proxy)).changeAssetPoolOwner(owner);
+            D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(owner);
         }
         {
             console2.log("Step 5: set mintable rounds");
@@ -542,7 +518,7 @@ contract DeployDemo is Script, Test, D4AAddress {
             mintableRounds[4] = 180;
             mintableRounds[5] = 270;
             mintableRounds[6] = 360;
-            ID4ASettings(address(d4aProtocol_proxy)).setMintableRounds(mintableRounds);
+            D4ASettings(address(pdProtocol_proxy)).setMintableRounds(mintableRounds);
         }
         {
             console2.log("Step 6: change floor prices");
@@ -560,7 +536,7 @@ contract DeployDemo is Script, Test, D4AAddress {
             floorPrices[10] = 3 ether;
             floorPrices[11] = 5 ether;
             floorPrices[12] = 10 ether;
-            ID4ASettings(address(d4aProtocol_proxy)).changeFloorPrices(floorPrices);
+            D4ASettings(address(pdProtocol_proxy)).changeFloorPrices(floorPrices);
         }
         {
             console2.log("Step 7: change max NFT amounts");
@@ -570,22 +546,22 @@ contract DeployDemo is Script, Test, D4AAddress {
             maxNFTAmounts[2] = 10_000;
             maxNFTAmounts[3] = 50_000;
             maxNFTAmounts[4] = 100_000;
-            ID4ASettings(address(d4aProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
+            D4ASettings(address(pdProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
         }
         {
             console2.log("Step 8: grant INITIALIZER ROLE");
             NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
-            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocol_proxy));
+            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(pdProtocol_proxy));
         }
         {
             console2.log("Step 9: grant role");
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
         }
         {
             console2.log("Step 10: change create DOA and Canvas Fee to 0");
-            ID4ASettings(address(d4aProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
+            D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
         }
         console2.log("================================================================================\n");
     }
@@ -595,29 +571,29 @@ contract DeployDemo is Script, Test, D4AAddress {
         proxyAdmin.transferOwnership(multisig);
 
         // create project proxy
-        d4aCreateProjectProxy_proxy.set(
-            address(d4aProtocol_proxy), address(d4aRoyaltySplitterFactory), multisig, uniswapV2Factory
+        pdCreateProjectProxy_proxy.set(
+            address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), multisig, uniswapV2Factory
         );
-        d4aCreateProjectProxy_proxy.transferOwnership(multisig);
+        pdCreateProjectProxy_proxy.transferOwnership(multisig);
 
         // protocol
-        D4ADiamond(payable(address(d4aProtocol_proxy))).transferOwnership(multisig);
+        D4ADiamond(payable(address(pdProtocol_proxy))).transferOwnership(multisig);
 
         // settings
-        D4ASettings(address(d4aProtocol_proxy)).changeProtocolFeePool(multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(DEFAULT_ADMIN_ROLE);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(PROTOCOL_ROLE);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(OPERATION_ROLE);
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(multisig);
+        D4ASettings(address(pdProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
+        D4ASettings(address(pdProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
+        D4ASettings(address(pdProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
+        D4ASettings(address(pdProtocol_proxy)).renounceRole(DEFAULT_ADMIN_ROLE);
+        D4ASettings(address(pdProtocol_proxy)).renounceRole(PROTOCOL_ROLE);
+        D4ASettings(address(pdProtocol_proxy)).renounceRole(OPERATION_ROLE);
     }
 
     function _checkStatus() internal {
         // proxy admin
         assertEq(proxyAdmin.owner(), multisig);
         assertEq(
-            proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy))),
+            proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
             address(proxyAdmin)
         );
         assertEq(
@@ -625,8 +601,8 @@ contract DeployDemo is Script, Test, D4AAddress {
             address(proxyAdmin)
         );
         assertEq(
-            proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy))),
-            address(d4aCreateProjectProxy_impl)
+            proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
+            address(pdCreateProjectProxy_impl)
         );
         assertEq(
             proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(permissionControl_proxy))),
@@ -634,66 +610,63 @@ contract DeployDemo is Script, Test, D4AAddress {
         );
 
         // create project proxy
-        assertEq(d4aCreateProjectProxy_proxy.WETH(), address(WETH));
-        assertEq(address(d4aCreateProjectProxy_proxy.d4aswapFactory()), address(uniswapV2Factory));
-        assertEq(d4aCreateProjectProxy_proxy.owner(), multisig);
-        assertEq(address(d4aCreateProjectProxy_proxy.protocol()), address(d4aProtocol_proxy));
-        assertEq(address(d4aCreateProjectProxy_proxy.royaltySplitterFactory()), address(d4aRoyaltySplitterFactory));
-        assertEq(d4aCreateProjectProxy_proxy.royaltySplitterOwner(), multisig);
+        assertEq(pdCreateProjectProxy_proxy.WETH(), address(WETH));
+        assertEq(address(pdCreateProjectProxy_proxy.d4aswapFactory()), address(uniswapV2Factory));
+        assertEq(pdCreateProjectProxy_proxy.owner(), multisig);
+        assertEq(address(pdCreateProjectProxy_proxy.protocol()), address(pdProtocol_proxy));
+        assertEq(address(pdCreateProjectProxy_proxy.royaltySplitterFactory()), address(d4aRoyaltySplitterFactory));
+        assertEq(pdCreateProjectProxy_proxy.royaltySplitterOwner(), multisig);
 
         // protocol
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[0], address(d4aProtocol_proxy));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[1], address(d4aProtocolReadable));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[2], address(d4aProtocolSetter));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[3], address(d4aSettings));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[0], address(pdProtocol_proxy));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[1], address(pdProtocolReadable));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[2], address(pdProtocolSetter));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[3], address(d4aSettings));
         assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocol_proxy)).length,
-            12
+            D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocol_proxy)).length, 12
         );
         assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocolReadable)).length,
+            D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocolReadable)).length,
             59
         );
         assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocolSetter)).length, 9
+            D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocolSetter)).length, 9
         );
-        assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aSettings)).length, 34
-        );
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).getFallbackAddress(), address(d4aProtocol_impl));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(d4aSettings)).length, 34);
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).getFallbackAddress(), address(pdProtocol_impl));
         assertTrue(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).owner() == multisig
-                || D4ADiamond(payable(address(d4aProtocol_proxy))).nomineeOwner() == multisig
+            D4ADiamond(payable(address(pdProtocol_proxy))).owner() == multisig
+                || D4ADiamond(payable(address(pdProtocol_proxy))).nomineeOwner() == multisig
         );
-        (, string memory name, string memory version,,,,) = d4aProtocol_proxy.eip712Domain();
-        assertEq(name, "D4AProtocol");
-        assertEq(version, "2");
+        (, string memory name, string memory version,,,,) = pdProtocol_proxy.eip712Domain();
+        assertEq(name, "ProtoDaoProtocol");
+        assertEq(version, "1");
 
         // settings
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).createCanvasFee(), 0);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).createProjectFee(), 0);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getPriceTemplates()[0], address(exponentialPriceVariation));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getPriceTemplates()[1], address(linearPriceVariation));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getRewardTemplates()[0], address(linearRewardIssuance));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getRewardTemplates()[1], address(exponentialRewardIssuance));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(DEFAULT_ADMIN_ROLE, multisig));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(PROTOCOL_ROLE, multisig));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(OPERATION_ROLE, multisig2));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProjectFeeRatio(), 3000);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProjectFeeRatioFlatPrice(), 3500);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProtocolFeeRatio(), 250);
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).ownerProxy()), address(naiveOwner_proxy));
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).permissionControl()), address(permissionControl_proxy));
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).protocolFeePool()), multisig);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).ratioBase(), BASIS_POINT);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).tradeProtocolFeeRatio(), 250);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).createCanvasFee(), 0);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).createProjectFee(), 0);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).getPriceTemplates()[0], address(exponentialPriceVariation));
+        assertEq(D4ASettings(address(pdProtocol_proxy)).getPriceTemplates()[1], address(linearPriceVariation));
+        assertEq(D4ASettings(address(pdProtocol_proxy)).getRewardTemplates()[0], address(linearRewardIssuance));
+        assertEq(D4ASettings(address(pdProtocol_proxy)).getRewardTemplates()[1], address(exponentialRewardIssuance));
+        assertTrue(D4ASettings(address(pdProtocol_proxy)).hasRole(DEFAULT_ADMIN_ROLE, multisig));
+        assertTrue(D4ASettings(address(pdProtocol_proxy)).hasRole(PROTOCOL_ROLE, multisig));
+        assertTrue(D4ASettings(address(pdProtocol_proxy)).hasRole(OPERATION_ROLE, multisig2));
+        assertEq(D4ASettings(address(pdProtocol_proxy)).mintProjectFeeRatio(), 3000);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).mintProjectFeeRatioFlatPrice(), 3500);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).mintProtocolFeeRatio(), 250);
+        assertEq(address(D4ASettings(address(pdProtocol_proxy)).ownerProxy()), address(naiveOwner_proxy));
+        assertEq(address(D4ASettings(address(pdProtocol_proxy)).permissionControl()), address(permissionControl_proxy));
+        assertEq(address(D4ASettings(address(pdProtocol_proxy)).protocolFeePool()), multisig);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).ratioBase(), BASIS_POINT);
+        assertEq(D4ASettings(address(pdProtocol_proxy)).tradeProtocolFeeRatio(), 250);
 
         // permission control
-        assertEq(address(permissionControl_proxy.createProjectProxy()), address(d4aCreateProjectProxy_proxy));
+        assertEq(address(permissionControl_proxy.createProjectProxy()), address(pdCreateProjectProxy_proxy));
         (, name, version,,,,) = permissionControl_proxy.eip712Domain();
         assertEq(name, "D4APermissionControl");
         assertEq(version, "2");
         assertEq(address(permissionControl_proxy.ownerProxy()), address(naiveOwner_proxy));
-        assertEq(address(permissionControl_proxy.protocol()), address(d4aProtocol_proxy));
+        assertEq(address(permissionControl_proxy.protocol()), address(pdProtocol_proxy));
     }
 }
