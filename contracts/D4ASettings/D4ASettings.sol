@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { AccessControl } from "@solidstate/contracts/access/access_control/AccessControl.sol";
 import { AccessControlStorage } from "@solidstate/contracts/access/access_control/AccessControlStorage.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
 
 import { BASIS_POINT, PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";

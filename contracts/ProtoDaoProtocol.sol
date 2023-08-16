@@ -4,11 +4,10 @@ pragma solidity >=0.8.10;
 // external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
+import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
-import { StringsUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import { EIP712 } from "solady/utils/EIP712.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { LibString } from "solady/utils/LibString.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
@@ -16,15 +15,7 @@ import { Multicallable } from "solady/utils/Multicallable.sol";
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import {
-    DaoMetadataParam,
-    TemplateParam,
-    UpdateRewardParam,
-    UserMintCapParam,
-    DaoMintInfo,
-    UserMintInfo,
-    MintNftInfo,
-    Whitelist,
-    BasicDaoParam
+    UpdateRewardParam, DaoMintInfo, UserMintInfo, MintNftInfo, Whitelist
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -33,9 +24,7 @@ import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
-import { ID4AProtocolSetter } from "./interface/ID4AProtocolSetter.sol";
 import { IProtoDaoProtocol } from "./interface/IProtoDaoProtocol.sol";
-import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 
 // D4A storages && contracts
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
@@ -57,22 +46,15 @@ contract ProtoDaoProtocol is
     ProtocolChecker,
     Initializable,
     Multicallable,
-    ReentrancyGuardUpgradeable,
-    EIP712Upgradeable
+    ReentrancyGuard,
+    EIP712
 {
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize() public reinitializer(2) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        __ReentrancyGuard_init();
         ProtocolStorage.layout().daoIndex = l.reservedDaoAmount;
-        __EIP712_init("ProtoDaoProtocol", "2");
     }
 
     function mintNFT(
@@ -335,9 +317,8 @@ contract ProtoDaoProtocol is
         if (_isSpecialTokenUri(daoId, tokenUri)) return;
 
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(abi.encode(_MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), nftFlatPrice))
-        );
+        bytes32 digest =
+            _hashTypedData(keccak256(abi.encode(_MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), nftFlatPrice)));
         address signer = ECDSAUpgradeable.recover(digest, signature);
         if (
             !IAccessControlUpgradeable(address(this)).hasRole(SIGNER_ROLE, signer)
@@ -658,5 +639,10 @@ contract ProtoDaoProtocol is
         if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
         if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
         if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
+    }
+
+    function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
+        name = "ProtoDaoProtocol";
+        version = "1";
     }
 }
