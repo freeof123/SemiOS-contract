@@ -24,7 +24,7 @@ import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
-import { IProtoDaoProtocol } from "./interface/IProtoDaoProtocol.sol";
+import { IPDProtocol } from "./interface/IPDProtocol.sol";
 
 // D4A storages && contracts
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
@@ -41,14 +41,7 @@ import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
-contract ProtoDaoProtocol is
-    IProtoDaoProtocol,
-    ProtocolChecker,
-    Initializable,
-    Multicallable,
-    ReentrancyGuard,
-    EIP712
-{
+contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712 {
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 

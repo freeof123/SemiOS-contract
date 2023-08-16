@@ -37,6 +37,7 @@ import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";

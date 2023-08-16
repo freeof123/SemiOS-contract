@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
 
-interface IProtoDaoCreate {
+interface IPDCreate {
     event NewProject(
         bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
     );

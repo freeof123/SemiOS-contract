@@ -10,7 +10,7 @@ import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 
-contract ProtoDaoProtocolSetter is D4AProtocolSetter {
+contract PDProtocolSetter is D4AProtocolSetter {
     function setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,

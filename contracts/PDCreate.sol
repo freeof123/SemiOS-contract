@@ -14,7 +14,7 @@ import "contracts/interface/D4AErrors.sol";
 
 // interfaces
 import { ID4AProtocolSetter } from "./interface/ID4AProtocolSetter.sol";
-import { IProtoDaoCreate } from "./interface/IProtoDaoCreate.sol";
+import { IPDCreate } from "./interface/IPDCreate.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 
 // D4A storages && contracts
@@ -29,7 +29,7 @@ import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
-contract ProtoDaoCreate is IProtoDaoCreate, ProtocolChecker, ReentrancyGuard {
+contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function createBasicDao(
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam
