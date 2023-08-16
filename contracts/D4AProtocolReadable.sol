@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
@@ -73,6 +74,19 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
     }
 
     // new functions
+    // protocol related functions
+    function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) public view returns (bytes32) {
+        return ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))];
+    }
+
+    function getLastestDaoIndex() public view returns (uint256) {
+        return ProtocolStorage.layout().daoIndex;
+    }
+
+    function getDaoId(uint256 daoIndex) public view returns (bytes32) {
+        return ProtocolStorage.layout().daoIndexToId[daoIndex];
+    }
+
     // DAO related functions
     function getDaoStartRound(bytes32 daoId) external view returns (uint256 startRound) {
         return DaoStorage.layout().daoInfos[daoId].startRound;
