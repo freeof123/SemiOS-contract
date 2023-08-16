@@ -36,13 +36,6 @@ interface ID4AProtocolReadable {
     function getProjectCanvasCount(bytes32 daoId) external view returns (uint256);
 
     // new functions
-    // protocol related functions
-    function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) external view returns (bytes32);
-
-    function getLastestDaoIndex() external view returns (uint256);
-
-    function getDaoId(uint256 daoIndex) external view returns (bytes32);
-
     // DAO related functions
     function getDaoStartRound(bytes32 daoId) external view returns (uint256 startRound);
 
