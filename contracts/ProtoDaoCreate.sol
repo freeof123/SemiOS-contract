@@ -9,6 +9,7 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 // D4A constants, structs, enums && errors
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { DaoMetadataParam, DaoMintInfo, Whitelist, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 
 // interfaces
@@ -57,6 +58,7 @@ contract ProtoDaoCreate is IProtoDaoCreate, ProtocolChecker, ReentrancyGuard {
         ProtocolStorage.layout().daoIndex++;
 
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+        DaoStorage.layout().daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
         ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
 

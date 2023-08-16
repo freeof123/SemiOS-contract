@@ -15,3 +15,8 @@ enum TemplateChoice {
     PRICE,
     REWARD
 }
+
+enum DaoTag {
+    D4A_DAO,
+    BASIC_DAO
+}

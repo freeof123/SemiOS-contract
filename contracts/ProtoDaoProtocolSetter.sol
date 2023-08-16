@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
-import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
+import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
@@ -23,7 +23,10 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
         override
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
             revert BasicDaoLocked();
         }
 
@@ -46,7 +49,10 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
         public
         override
     {
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
 
         super.setDaoParams(
             daoId,
@@ -64,19 +70,28 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public override {
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
 
         super.setDaoNftMaxSupply(daoId, newMaxSupply);
     }
 
     function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public override {
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
 
         super.setDaoMintableRound(daoId, newMintableRound);
     }
 
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public override {
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
 
         super.setDaoFloorPrice(daoId, newFloorPrice);
     }
@@ -89,14 +104,20 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
         public
         override
     {
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) revert BasicDaoLocked();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
 
         super.setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
     }
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public override {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
             revert BasicDaoLocked();
         }
 
@@ -115,7 +136,10 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
         override
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked) {
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
             revert BasicDaoLocked();
         }
 
@@ -130,8 +154,10 @@ contract ProtoDaoProtocolSetter is D4AProtocolSetter {
     }
 
     function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable override {
+        bytes32 daoId = D4AProtocolReadable(address(this)).getCanvasDaoId(canvasId);
         if (
-            !BasicDaoStorage.layout().basicDaoInfos[D4AProtocolReadable(address(this)).getCanvasDaoId(canvasId)].unlocked
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) revert BasicDaoLocked();
 
         super.setCanvasRebateRatioInBps(canvasId, newCanvasRebateRatioInBps);
