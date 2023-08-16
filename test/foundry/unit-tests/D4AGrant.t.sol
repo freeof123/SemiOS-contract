@@ -8,7 +8,7 @@ import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 import { ERC20SigUtils } from "test/foundry/utils/ERC20SigUtils.sol";
 
 import "contracts/interface/D4AErrors.sol";
-import { ID4AGrant } from "contracts/interface/ID4AGrant.sol";
+import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 
 contract D4AGrantTest is DeployHelper {
     function setUp() public {
@@ -99,7 +99,7 @@ contract D4AGrantTest is DeployHelper {
         DeployHelper.CreateDaoParam memory param;
         bytes32 daoId = _createDao(param);
 
-        vm.expectRevert(abi.encodeWithSelector(ID4AGrant.TokenNotAllowed.selector, address(_testERC20)));
+        vm.expectRevert(abi.encodeWithSelector(IPDGrant.TokenNotAllowed.selector, address(_testERC20)));
         protocol.grant(daoId, address(_testERC20), 1e6 ether);
     }
 
@@ -130,7 +130,7 @@ contract D4AGrantTest is DeployHelper {
 
         bytes32 digest = sigUtils.getTypedDataHash(randomGuy.addr, address(protocol), 1e6 ether, block.timestamp + 3600);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(randomGuy.key, digest);
-        vm.expectRevert(abi.encodeWithSelector(ID4AGrant.TokenNotAllowed.selector, address(_testERC20)));
+        vm.expectRevert(abi.encodeWithSelector(IPDGrant.TokenNotAllowed.selector, address(_testERC20)));
         protocol.grantWithPermit(daoId, address(_testERC20), 1e6 ether, block.timestamp + 3600, v, r, s);
     }
 

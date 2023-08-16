@@ -21,6 +21,7 @@ import "contracts/interface/D4AStructs.sol";
 import {
     getD4ACreateSelectors,
     getPDCreateSelectors,
+    getPDBasicDaoSelectors,
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
@@ -46,6 +47,7 @@ import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import { D4ACreate } from "contracts/D4ACreate.sol";
+import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
@@ -58,7 +60,7 @@ import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.s
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
-import { D4AGrant } from "contracts/D4AGrant.sol";
+import { PDGrant } from "contracts/PDGrant.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -72,6 +74,7 @@ contract DeployHelper is Test {
     PDProtocol public protocolImpl;
     PDCreate public pdCreate;
     D4ACreate public d4aCreate;
+    PDBasicDao public pdBasicDao;
     D4ACreateProjectProxy public daoProxy;
     D4ACreateProjectProxy public daoProxyImpl;
     PDCreateProjectProxy public pdDaoProxy;
@@ -94,7 +97,7 @@ contract DeployHelper is Test {
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
     MintNftSigUtils public mintNftSigUtils;
-    D4AGrant public grant;
+    PDGrant public grant;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -127,6 +130,7 @@ contract DeployHelper is Test {
         _deployProtocol();
         _deployNaiveOwner();
         _deployDaoProxy();
+        _deployPDDaoProxy();
         _deployPermissionControl();
         _deployClaimer();
         _deployTestERC20();
@@ -260,6 +264,7 @@ contract DeployHelper is Test {
 
         _deployD4ACreate();
         _deployPDCreate();
+        _deployPDBasicDao();
         _deployProtocolReadable();
         _deployProtocolSetter();
         _deploySettings();
@@ -267,6 +272,7 @@ contract DeployHelper is Test {
 
         _cutFacetsD4ACreate();
         _cutFacetsPDCreate();
+        _cutFacetsPDBasicDao();
         _cutFacetsProtocolReadable();
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
@@ -290,6 +296,11 @@ contract DeployHelper is Test {
         vm.label(address(pdCreate), "Proto DAO Create");
     }
 
+    function _deployPDBasicDao() internal {
+        pdBasicDao = new PDBasicDao();
+        vm.label(address(pdBasicDao), "Proto DAO Basic DAO");
+    }
+
     function _deployProtocolReadable() internal {
         protocolReadable = new PDProtocolReadable();
         vm.label(address(protocolReadable), "Protocol Readable");
@@ -306,7 +317,7 @@ contract DeployHelper is Test {
     }
 
     function _deployGrant() internal {
-        grant = new D4AGrant();
+        grant = new PDGrant();
         vm.label(address(grant), "Grant");
     }
 
@@ -332,6 +343,20 @@ contract DeployHelper is Test {
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
             target: address(pdCreate),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDBasicDao() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDBasicDao facet cut
+        bytes4[] memory selectors = getPDBasicDaoSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdBasicDao),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
@@ -413,6 +438,27 @@ contract DeployHelper is Test {
         );
         vm.label(address(daoProxy), "DAO Proxy");
         vm.label(address(daoProxyImpl), "DAO Proxy Impl");
+    }
+
+    function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
+        pdDaoProxyImpl = new PDCreateProjectProxy(address(weth));
+        pdDaoProxy = PDCreateProjectProxy(
+            payable(
+                new TransparentUpgradeableProxy(
+                    address(pdDaoProxyImpl),
+                    address(proxyAdmin),
+                    abi.encodeWithSelector(
+                        PDCreateProjectProxy.initialize.selector,
+                        address(uniswapV2Factory),
+                        address(protocol),
+                        address(royaltySplitterFactory),
+                        royaltySplitterOwner
+                    )
+                )
+            )
+        );
+        vm.label(address(pdDaoProxy), "PD DAO Proxy");
+        vm.label(address(pdDaoProxyImpl), "PD DAO Proxy Impl");
     }
 
     function _deployPermissionControl() internal prank(protocolOwner.addr) {

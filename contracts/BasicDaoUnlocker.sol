@@ -5,7 +5,7 @@ import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/Aut
 import { LibBitmap } from "solady/utils/LibBitmap.sol";
 
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
-import { IBasicDao } from "contracts/interface/IBasicDao.sol";
+import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 
 contract BasicDaoUnlocker is AutomationCompatibleInterface {
     using LibBitmap for LibBitmap.Bitmap;
@@ -29,7 +29,7 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         for (uint256 i; i <= latestDaoIndex; ++i) {
             if (_daoIndexesUnlocked.get(i)) continue;
             bytes32 daoId = IPDProtocolReadable(PROTOCOL).getDaoId(i);
-            if (IBasicDao(PROTOCOL).ableToUnlock(daoId) && !IBasicDao(PROTOCOL).isUnlocked(daoId)) {
+            if (IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
                 upkeepNeeded = true;
                 daoIndexes[counter] = i;
                 daoIds[counter++] = daoId;
@@ -53,7 +53,7 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         uint256 length = daoIndexes.length;
         for (uint256 i; i < length;) {
             _daoIndexesUnlocked.set(daoIndexes[i]);
-            IBasicDao(PROTOCOL).unlock(daoIds[i]);
+            IPDBasicDao(PROTOCOL).unlock(daoIds[i]);
             unchecked {
                 ++i;
             }

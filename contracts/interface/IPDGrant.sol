@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-interface ID4AGrant {
+interface IPDGrant {
     error TokenNotAllowed(address token);
 
     function addAllowedToken(address token) external;
