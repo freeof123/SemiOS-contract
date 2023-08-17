@@ -56,6 +56,7 @@ function getPDBasicDaoSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.ableToUnlock.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getTurnover.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.isUnlocked.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getCanvasIdOfSpecialNft.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.setSpecialTokenUriPrefix.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getSpecialTokenUriPrefix.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.setBasicDaoNftFlatPrice.selector;

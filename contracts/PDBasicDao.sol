@@ -29,6 +29,10 @@ contract PDBasicDao is IPDBasicDao {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked;
     }
 
+    function getCanvasIdOfSpecialNft(bytes32 daoId) public view returns (bytes32) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft;
+    }
+
     function setSpecialTokenUriPrefix(string memory prefix) public {
         if (!IAccessControl(address(this)).hasRole(OPERATION_ROLE, msg.sender)) revert NotOperationRole();
 

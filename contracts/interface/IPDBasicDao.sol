@@ -12,6 +12,8 @@ interface IPDBasicDao {
 
     function isUnlocked(bytes32 daoId) external view returns (bool);
 
+    function getCanvasIdOfSpecialNft(bytes32 daoId) external view returns (bytes32);
+
     function setSpecialTokenUriPrefix(string memory prefix) external;
 
     function getSpecialTokenUriPrefix() external view returns (string memory);
