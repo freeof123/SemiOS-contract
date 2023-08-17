@@ -28,9 +28,11 @@ contract PDCreateTest is DeployHelper {
         assertEq(protocol.getDaoMintableRound(daoId), 30);
         assertEq(protocol.getDaoRewardIsProgressiveJackpot(daoId), true);
         assertEq(protocol.getDaoCreatorERC20Ratio(daoId), 4800);
-        assertEq(protocol.getCanvasCreatorERC20Ratio(canvasId), 2500);
+        assertEq(protocol.getCanvasCreatorERC20Ratio(daoId), 2500);
         assertEq(protocol.getNftMinterERC20Ratio(daoId), 2500);
         assertEq(protocol.getDaoFeePoolETHRatio(daoId), 9750);
         assertEq(protocol.getDaoFeePoolETHRatioFlatPrice(daoId), 9750);
+        assertEq(protocol.getDaoNftHolderMintCap(daoId), 5);
+        assertEq(protocol.getDaoTag(daoId), "BASIC DAO");
     }
 }
