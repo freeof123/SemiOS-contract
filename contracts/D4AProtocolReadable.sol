@@ -142,6 +142,10 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return DaoStorage.layout().daoInfos[daoId].daoMintInfo.daoMintCap;
     }
 
+    function getDaoNftHolderMintCap(bytes32 daoId) public view returns (uint32) {
+        return DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap;
+    }
+
     function getUserMintInfo(bytes32 daoId, address account) public view returns (uint32 minted, uint32 userMintCap) {
         minted = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].minted;
         userMintCap = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].mintCap;

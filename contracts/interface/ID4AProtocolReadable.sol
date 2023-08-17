@@ -69,6 +69,8 @@ interface ID4AProtocolReadable {
 
     function getDaoMintCap(bytes32 daoId) external view returns (uint32);
 
+    function getDaoNftHolderMintCap(bytes32 daoId) external view returns (uint32);
+
     function getUserMintInfo(
         bytes32 daoId,
         address account
