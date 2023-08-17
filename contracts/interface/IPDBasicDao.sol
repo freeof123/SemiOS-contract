@@ -11,4 +11,12 @@ interface IPDBasicDao {
     function getTurnover(bytes32 daoId) external view returns (uint256);
 
     function isUnlocked(bytes32 daoId) external view returns (bool);
+
+    function setSpecialTokenUriPrefix(string memory prefix) external;
+
+    function getSpecialTokenUriPrefix() external view returns (string memory);
+
+    function setBasicDaoNftFlatPrice(uint256 price) external;
+
+    function getBasicDaoNftFlatPrice() external view returns (uint256);
 }

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import "contracts/interface/D4AErrors.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
@@ -24,5 +27,25 @@ contract PDBasicDao is IPDBasicDao {
 
     function isUnlocked(bytes32 daoId) public view returns (bool) {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked;
+    }
+
+    function setSpecialTokenUriPrefix(string memory prefix) public {
+        if (!IAccessControl(address(this)).hasRole(OPERATION_ROLE, msg.sender)) revert NotOperationRole();
+
+        BasicDaoStorage.layout().specialTokenUriPrefix = prefix;
+    }
+
+    function getSpecialTokenUriPrefix() public view returns (string memory) {
+        return BasicDaoStorage.layout().specialTokenUriPrefix;
+    }
+
+    function setBasicDaoNftFlatPrice(uint256 price) public {
+        if (!IAccessControl(address(this)).hasRole(OPERATION_ROLE, msg.sender)) revert NotOperationRole();
+
+        BasicDaoStorage.layout().basicDaoNftFlatPrice = price;
+    }
+
+    function getBasicDaoNftFlatPrice() public view returns (uint256) {
+        return BasicDaoStorage.layout().basicDaoNftFlatPrice;
     }
 }
