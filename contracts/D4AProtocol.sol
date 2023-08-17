@@ -16,9 +16,7 @@ import { Multicallable } from "solady/utils/Multicallable.sol";
 import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import {
     DaoMetadataParam,
-    TemplateParam,
     UpdateRewardParam,
-    UserMintCapParam,
     DaoMintInfo,
     UserMintInfo,
     MintNftInfo,

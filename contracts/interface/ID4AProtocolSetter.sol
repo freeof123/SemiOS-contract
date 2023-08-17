@@ -3,7 +3,6 @@ pragma solidity ^0.8.18;
 
 import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
-import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 
 interface ID4AProtocolSetter {
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);

@@ -8,7 +8,7 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 // D4A constants, structs, enums && errors
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { DaoMetadataParam, DaoMintInfo, Whitelist, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 

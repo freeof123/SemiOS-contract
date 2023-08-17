@@ -6,12 +6,11 @@ import { AccessControlStorage } from "@solidstate/contracts/access/access_contro
 import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
 
 import { BASIS_POINT, PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
-import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "../interface/D4AEnums.sol";
+import { TemplateChoice } from "../interface/D4AEnums.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { ID4ASettings } from "./ID4ASettings.sol";
 import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
-import { ID4AProtocol } from "../interface/ID4AProtocol.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
 import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
 import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";

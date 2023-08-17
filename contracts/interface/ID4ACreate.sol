@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam } from "contracts/interface/D4AStructs.sol";
 import { ICreate } from "contracts/interface/ICreate.sol";
 
 interface ID4ACreate is ICreate {

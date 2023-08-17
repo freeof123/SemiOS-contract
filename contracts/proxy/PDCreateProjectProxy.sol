@@ -6,7 +6,6 @@ import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
     DaoMetadataParam,
     DaoMintCapParam,
-    UserMintCapParam,
     DaoETHAndERC20SplitRatioParam,
     TemplateParam,
     Whitelist,
@@ -25,10 +24,7 @@ import { ID4ACreate } from "contracts/interface/ID4ACreate.sol";
 import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "contracts/interface/ID4ARoyaltySplitterFactory.sol";
-import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-
-import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 
 contract PDCreateProjectProxy is OwnableUpgradeable {
     address public protocol;

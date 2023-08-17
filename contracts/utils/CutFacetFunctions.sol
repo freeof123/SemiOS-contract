@@ -2,7 +2,6 @@
 pragma solidity ^0.8.18;
 
 import { IAccessControl } from "@solidstate/contracts/access/access_control/IAccessControl.sol";
-import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
 import { ID4ACreate } from "contracts/interface/ID4ACreate.sol";
 import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";

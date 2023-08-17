@@ -2,7 +2,6 @@
 pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";

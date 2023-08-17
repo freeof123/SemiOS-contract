@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { DaoMetadataParam, UserMintCapParam, TemplateParam, MintNftInfo } from "./D4AStructs.sol";
-import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+import { DaoMetadataParam, MintNftInfo } from "./D4AStructs.sol";
 
 interface ID4AProtocol {
     event NewProject(

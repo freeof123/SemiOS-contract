@@ -14,7 +14,6 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 
