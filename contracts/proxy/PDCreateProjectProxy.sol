@@ -98,7 +98,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
     // third bit: 0: without mint cap, 1: with mint cap
     // fourth bit: 0: without DEX pair initialized, 1: with DEX pair initialized
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
-    function createProject(
+    function createBasicDao(
         DaoMetadataParam calldata daoMetadataParam,
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,

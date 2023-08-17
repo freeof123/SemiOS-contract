@@ -42,6 +42,8 @@ import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712 {
+    using LibString for string;
+
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
@@ -322,14 +324,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function _isSpecialTokenUri(bytes32 daoId, string calldata tokenUri) internal view returns (bool) {
         string memory specialTokenUriPrefix = BasicDaoStorage.layout().specialTokenUriPrefix;
         string memory daoIndex = LibString.toString(DaoStorage.layout().daoInfos[daoId].daoIndex);
-        if (!LibString.startsWith(tokenUri, LibString.concat(specialTokenUriPrefix, daoIndex))) return false;
+        if (!tokenUri.startsWith(specialTokenUriPrefix.concat(daoIndex).concat("-"))) return false;
         // strip prefix, daoIndex at the start and `.json` at the end
         string memory tokenIndexString =
-            tokenUri[bytes(specialTokenUriPrefix).length + bytes(daoIndex).length:bytes(tokenUri).length - 5];
+            tokenUri[bytes(specialTokenUriPrefix).length + bytes(daoIndex).length + 1:bytes(tokenUri).length - 5];
         // try parse tokenIndex from string to uint256;
         uint256 tokenIndex;
         for (uint256 i; i < bytes(tokenIndexString).length; ++i) {
-            if (bytes(tokenIndexString)[i] <= "0" || bytes(tokenIndexString)[i] >= "9") return false;
+            if (bytes(tokenIndexString)[i] < "0" || bytes(tokenIndexString)[i] > "9") return false;
             tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
         }
         if (tokenIndex > 999) return false;
