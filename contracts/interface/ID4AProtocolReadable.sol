@@ -83,6 +83,8 @@ interface ID4AProtocolReadable {
 
     function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
 
+    function getDaoTag(bytes32 daoId) external view returns (string memory);
+
     // canvas related functions
     function getCanvasDaoId(bytes32 canvasId) external view returns (bytes32 daoId);
 

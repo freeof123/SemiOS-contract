@@ -166,6 +166,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTag.selector;
     // canvas related functions
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasDaoId.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasTokenIds.selector;
