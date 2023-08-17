@@ -680,6 +680,7 @@ contract DeployHelper is Test {
         RewardTemplateType rewardTemplateType;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
+        bytes32 canvasId;
         uint256 actionType;
     }
 
@@ -746,6 +747,70 @@ contract DeployHelper is Test {
                 isProgressiveJackpot: createDaoParam.isProgressiveJackpot
             }),
             createDaoParam.actionType
+        );
+
+        vm.stopPrank();
+    }
+
+    function _createBasicDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        daoId = daoProxy.createBasicDao{ value: 0.1 ether }(
+            DaoMetadataParam({
+                startDrb: drb.currentRound(),
+                mintableRounds: 30,
+                floorPriceRank: 0,
+                maxNftRank: 2,
+                royaltyFee: 1000,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: createDaoParam.minterMerkleRoot,
+                minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+                canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+                canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            }),
+            Blacklist({
+                minterAccounts: createDaoParam.minterAccounts,
+                canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+            }),
+            daoMintCapParam,
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 4800,
+                canvasCreatorERC20Ratio: 2500,
+                nftMinterERC20Ratio: 2500,
+                daoFeePoolETHRatio: 9750,
+                daoFeePoolETHRatioFlatPrice: 9750
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                isProgressiveJackpot: true
+            }),
+            BasicDaoParam({
+                initTokenSupplyRatio: 500,
+                canvasId: createDaoParam.canvasId,
+                canvasUri: "test dao creator canvas uri",
+                daoName: "test dao"
+            }),
+            16
         );
 
         vm.stopPrank();
