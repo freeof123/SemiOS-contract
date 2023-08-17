@@ -5,17 +5,10 @@ import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
 
 contract PDProtocolTest is DeployHelper {
-    string public tokenUriPrefix = "https://dao4art.s3.ap-southeast-1.amazonaws.com/meta/work/";
-
     function setUp() public {
         setUpEnv();
         PDProtocolHarness temp = new PDProtocolHarness();
         vm.etch(address(protocolImpl), address(temp).code);
-
-        vm.startPrank(operationRoleMember.addr);
-        protocol.setSpecialTokenUriPrefix(tokenUriPrefix);
-        protocol.setBasicDaoNftFlatPrice(0.01 ether);
-        vm.stopPrank();
     }
 
     function testFuzz_exposed_isSpecialTokenUri(uint256 tokenId) public {

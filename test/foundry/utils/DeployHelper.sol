@@ -114,6 +114,8 @@ contract DeployHelper is Test {
     Account public nftMinter2 = makeAccount("NFT Minter 2");
     Account public randomGuy = makeAccount("Random Guy");
 
+    string public tokenUriPrefix = "https://dao4art.s3.ap-southeast-1.amazonaws.com/meta/work/";
+
     function setUpEnv() public {
         _deployeWETH();
         _deployFeedRegistry();
@@ -140,6 +142,11 @@ contract DeployHelper is Test {
         _deployRewardTemplate();
 
         _initSettings();
+
+        vm.startPrank(operationRoleMember.addr);
+        protocol.setSpecialTokenUriPrefix(tokenUriPrefix);
+        protocol.setBasicDaoNftFlatPrice(0.01 ether);
+        vm.stopPrank();
 
         drb.changeRound(1);
     }
