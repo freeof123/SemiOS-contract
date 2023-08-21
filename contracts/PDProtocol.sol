@@ -321,13 +321,13 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         ) revert InvalidSignature();
     }
 
-    function _isSpecialTokenUri(bytes32 daoId, string calldata tokenUri) internal view returns (bool) {
+    function _isSpecialTokenUri(bytes32 daoId, string memory tokenUri) internal view returns (bool) {
         string memory specialTokenUriPrefix = BasicDaoStorage.layout().specialTokenUriPrefix;
         string memory daoIndex = LibString.toString(DaoStorage.layout().daoInfos[daoId].daoIndex);
         if (!tokenUri.startsWith(specialTokenUriPrefix.concat(daoIndex).concat("-"))) return false;
         // strip prefix, daoIndex at the start and `.json` at the end
         string memory tokenIndexString =
-            tokenUri[bytes(specialTokenUriPrefix).length + bytes(daoIndex).length + 1:bytes(tokenUri).length - 5];
+            tokenUri.slice(bytes(specialTokenUriPrefix).length + bytes(daoIndex).length + 1, bytes(tokenUri).length - 5);
         // try parse tokenIndex from string to uint256;
         uint256 tokenIndex;
         for (uint256 i; i < bytes(tokenIndexString).length; ++i) {
@@ -338,21 +338,22 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return true;
     }
 
+    function _fetchRightTokenUri(bytes32 daoId, uint256 tokenId) internal view returns (string memory) {
+        string memory daoIndex = LibString.toString(DaoStorage.layout().daoInfos[daoId].daoIndex);
+        return BasicDaoStorage.layout().specialTokenUriPrefix.concat(daoIndex).concat("-").concat(
+            LibString.toString(tokenId)
+        ).concat(".json");
+    }
+
     function _mintNft(
         bytes32 daoId,
         bytes32 canvasId,
-        string calldata tokenUri,
+        string memory tokenUri,
         uint256 flatPrice
     )
         internal
         returns (uint256 tokenId)
     {
-        if (_isSpecialTokenUri(daoId, tokenUri)) {
-            if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
-                revert NotCanvasIdOfSpecialTokenUri();
-            }
-            if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
-        }
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         {
             _checkPauseStatus();
@@ -362,6 +363,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
 
         _checkPauseStatus(daoId);
+
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        ++basicDaoInfo.tokenId;
+        if (_isSpecialTokenUri(daoId, tokenUri)) {
+            if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
+                revert NotCanvasIdOfSpecialTokenUri();
+            }
+            if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
+            tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
+        }
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.nftTotalSupply >= daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
@@ -456,7 +467,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function _batchMint(
         bytes32 daoId,
         bytes32 canvasId,
-        MintNftInfo[] calldata mintNftInfos
+        MintNftInfo[] memory mintNftInfos
     )
         internal
         returns (uint256[] memory)
@@ -468,8 +479,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         BatchMintLocalVars memory vars;
         vars.length = mintNftInfos.length;
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         for (uint256 i; i < vars.length;) {
             _checkUriNotExist(mintNftInfos[i].tokenUri);
+            ++basicDaoInfo.tokenId;
             if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
                 if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
@@ -477,6 +490,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 if (mintNftInfos[i].flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) {
                     revert NotBasicDaoNftFlatPrice();
                 }
+                mintNftInfos[i].tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
             }
             unchecked {
                 ++i;
