@@ -12,7 +12,7 @@ contract PDProtocolTest is DeployHelper {
     }
 
     function testFuzz_exposed_isSpecialTokenUri(uint256 tokenId) public {
-        tokenId = bound(tokenId, 0, 999);
+        tokenId = bound(tokenId, 1, 1000);
 
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
@@ -36,7 +36,12 @@ contract PDProtocolTest is DeployHelper {
 
         assertFalse(
             PDProtocolHarness(address(protocol)).exposed_isSpecialTokenUri(
-                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "1000", ".json")
+                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "0", ".json")
+            )
+        );
+        assertFalse(
+            PDProtocolHarness(address(protocol)).exposed_isSpecialTokenUri(
+                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "1001", ".json")
             )
         );
     }

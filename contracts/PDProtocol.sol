@@ -334,7 +334,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             if (bytes(tokenIndexString)[i] < "0" || bytes(tokenIndexString)[i] > "9") return false;
             tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
         }
-        if (tokenIndex > 999) return false;
+        if (tokenIndex == 0 || tokenIndex > 1000) return false;
         return true;
     }
 
