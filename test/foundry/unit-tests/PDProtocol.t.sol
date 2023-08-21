@@ -13,9 +13,7 @@ contract PDProtocolTest is DeployHelper {
         vm.etch(address(protocolImpl), address(temp).code);
     }
 
-    function testFuzz_exposed_isSpecialTokenUri(uint256 tokenId) public {
-        tokenId = bound(tokenId, 1, 1000);
-
+    function test_exposed_isSpecialTokenUri() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 daoId = _createBasicDao(param);
@@ -24,7 +22,13 @@ contract PDProtocolTest is DeployHelper {
 
         assertTrue(
             PDProtocolHarness(address(protocol)).exposed_isSpecialTokenUri(
-                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", vm.toString(tokenId), ".json")
+                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", vm.toString(uint256(1)), ".json")
+            )
+        );
+
+        assertTrue(
+            PDProtocolHarness(address(protocol)).exposed_isSpecialTokenUri(
+                daoId, string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", vm.toString(uint256(1000)), ".json")
             )
         );
     }
@@ -89,16 +93,19 @@ contract PDProtocolTest is DeployHelper {
         uint256 daoIndex = protocol.getDaoIndex(daoId);
         address nft = protocol.getDaoNft(daoId);
         string memory tokenUri = string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "1", ".json");
+        address[] memory accounts = new address[](1);
+        accounts[0] = daoCreator.addr;
 
         vm.expectEmit(address(protocol));
         emit D4AMintNFT(daoId, param.canvasId, 1, tokenUri, 0.01 ether);
-        uint256 tokenId = _mintNft(
+        uint256 tokenId = _mintNftWithProof(
             daoId,
             param.canvasId,
             string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "999", ".json"),
             0.01 ether,
             daoCreator.key,
-            nftMinter.addr
+            daoCreator.addr,
+            getMerkleProof(accounts, daoCreator.addr)
         );
         assertEq(D4AERC721(nft).tokenURI(tokenId), tokenUri);
     }
@@ -119,12 +126,23 @@ contract PDProtocolTest is DeployHelper {
         uint256[] memory flatPrices = new uint256[](2);
         flatPrices[0] = 0.01 ether;
         flatPrices[1] = 0.01 ether;
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = daoCreator.addr;
+
         vm.expectEmit(address(protocol));
         emit D4AMintNFT(daoId, param.canvasId, 1, tokenUri1, 0.01 ether);
         vm.expectEmit(address(protocol));
         emit D4AMintNFT(daoId, param.canvasId, 2, tokenUri2, 0.01 ether);
-        uint256[] memory tokenIds =
-            _batchMint(daoId, param.canvasId, tokenUris, flatPrices, daoCreator.key, nftMinter.addr);
+        uint256[] memory tokenIds = _batchMintWithProof(
+            daoId,
+            param.canvasId,
+            tokenUris,
+            flatPrices,
+            daoCreator.key,
+            daoCreator.addr,
+            getMerkleProof(accounts, daoCreator.addr)
+        );
         assertEq(D4AERC721(nft).tokenURI(tokenIds[0]), tokenUri1);
         assertEq(D4AERC721(nft).tokenURI(tokenIds[1]), tokenUri2);
     }

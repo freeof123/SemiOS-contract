@@ -765,7 +765,7 @@ contract DeployHelper is Test {
         DaoMintCapParam memory daoMintCapParam;
         {
             uint256 length = createDaoParam.minters.length;
-            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length);
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
             for (uint256 i; i < length;) {
                 daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
                 daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
@@ -773,9 +773,14 @@ contract DeployHelper is Test {
                     ++i;
                 }
             }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
             daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
         }
 
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
         daoId = daoProxy.createBasicDao{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: drb.currentRound(),
@@ -847,6 +852,44 @@ contract DeployHelper is Test {
         deal(hoaxer, bal);
     }
 
+    struct MintNftWithProofLocalVars {
+        bytes32 daoId;
+        bytes32 canvasId;
+        string tokenUri;
+        uint256 flatPrice;
+        uint256 canvasCreatorKey;
+        address hoaxer;
+        bytes32[] proof;
+    }
+
+    function _mintNftWithProof(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice,
+        uint256 canvasCreatorKey,
+        address hoaxer,
+        bytes32[] memory proof
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        uint256 bal = hoaxer.balance;
+        startHoax(hoaxer);
+
+        MintNftWithProofLocalVars memory vars =
+            MintNftWithProofLocalVars(daoId, canvasId, tokenUri, flatPrice, canvasCreatorKey, hoaxer, proof);
+
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        tokenId = protocol.mintNFT{
+            value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.canvasId) : vars.flatPrice
+        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v));
+
+        vm.stopPrank();
+        deal(hoaxer, bal);
+    }
+
     function _batchMint(
         bytes32 daoId,
         bytes32 canvasId,
@@ -887,6 +930,64 @@ contract DeployHelper is Test {
             mintNftINfos[i] = MintNftInfo({ tokenUri: tokenUris[i], flatPrice: flatPrices[i] });
         }
         tokenIds = protocol.batchMint{ value: totalPrice }(daoId, canvasId, new bytes32[](0), mintNftINfos, signatures);
+
+        vm.stopPrank();
+    }
+
+    struct BatchMintWithProofLocalVars {
+        bytes32 daoId;
+        bytes32 canvasId;
+        string[] tokenUris;
+        uint256[] flatPrices;
+        uint256 canvasCreatorKey;
+        address hoaxer;
+        bytes32[] proof;
+    }
+
+    function _batchMintWithProof(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string[] memory tokenUris,
+        uint256[] memory flatPrices,
+        uint256 canvasCreatorKey,
+        address hoaxer,
+        bytes32[] memory proof
+    )
+        internal
+        returns (uint256[] memory tokenIds)
+    {
+        startHoax(hoaxer);
+
+        BatchMintWithProofLocalVars memory vars =
+            BatchMintWithProofLocalVars(daoId, canvasId, tokenUris, flatPrices, canvasCreatorKey, hoaxer, proof);
+
+        bytes[] memory signatures = new bytes[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUris[i], flatPrices[i]);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            signatures[i] = abi.encodePacked(r, s, v);
+        }
+        uint256 totalPrice;
+        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId);
+        uint256 counter;
+        uint256 priceFactor = protocol.getDaoPriceFactor(daoId);
+        for (uint256 i; i < tokenUris.length; i++) {
+            if (flatPrices[i] == 0) {
+                if (protocol.getDaoPriceTemplate(vars.daoId) == address(exponentialPriceVariation)) {
+                    totalPrice += mintPrice * priceFactor ** counter / BASIS_POINT ** counter;
+                } else {
+                    totalPrice += mintPrice + priceFactor * counter;
+                }
+                ++counter;
+            } else {
+                totalPrice += flatPrices[i];
+            }
+        }
+        MintNftInfo[] memory mintNftINfos = new MintNftInfo[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            mintNftINfos[i] = MintNftInfo({ tokenUri: tokenUris[i], flatPrice: flatPrices[i] });
+        }
+        tokenIds = protocol.batchMint{ value: totalPrice }(vars.daoId, vars.canvasId, proof, mintNftINfos, signatures);
 
         vm.stopPrank();
     }
