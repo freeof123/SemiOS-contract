@@ -100,7 +100,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createBasicDao(
         DaoMetadataParam calldata daoMetadataParam,
-        Whitelist calldata whitelist,
+        Whitelist memory whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
@@ -141,9 +141,10 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
             actionType
         );
 
-        if ((actionType & 0x2) != 0) {
-            ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
-        }
+        address[] memory minterNFTHolderPasses = new address[](1);
+        minterNFTHolderPasses[0] = vars.nft;
+        whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
+        ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
         if ((actionType & 0x4) != 0) {
             ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
