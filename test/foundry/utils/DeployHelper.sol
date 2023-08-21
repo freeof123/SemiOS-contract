@@ -784,7 +784,7 @@ contract DeployHelper is Test {
         daoId = daoProxy.createBasicDao{ value: 0.1 ether }(
             DaoMetadataParam({
                 startDrb: drb.currentRound(),
-                mintableRounds: 30,
+                mintableRounds: 60,
                 floorPriceRank: 0,
                 maxNftRank: 2,
                 royaltyFee: 1250,
