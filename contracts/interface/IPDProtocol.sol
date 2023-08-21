@@ -32,6 +32,19 @@ interface IPDProtocol {
         payable
         returns (uint256);
 
+    function mintNFTAndTransfer(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 nftFlatPrice,
+        bytes calldata signature,
+        address to
+    )
+        external
+        payable
+        returns (uint256);
+
     function batchMint(
         bytes32 daoId,
         bytes32 canvasId,
