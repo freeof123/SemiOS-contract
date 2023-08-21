@@ -146,4 +146,50 @@ contract PDProtocolTest is DeployHelper {
         assertEq(D4AERC721(nft).tokenURI(tokenIds[0]), tokenUri1);
         assertEq(D4AERC721(nft).tokenURI(tokenIds[1]), tokenUri2);
     }
+
+    function test_mintNFTAndTransfer() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 daoId = _createBasicDao(param);
+
+        {
+            bytes32 canvasId = param.canvasId;
+            string memory tokenUri = string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            );
+            uint256 flatPrice = 0.01 ether;
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+            hoax(daoCreator.addr);
+            protocol.mintNFTAndTransfer{ value: flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
+            );
+        }
+        address nft = protocol.getDaoNft(daoId);
+        assertEq(D4AERC721(nft).ownerOf(1), nftMinter.addr);
+    }
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+
+    function test_mintNFTAndTransfer_ExpectEmit() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 daoId = _createBasicDao(param);
+
+        {
+            bytes32 canvasId = param.canvasId;
+            string memory tokenUri = string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            );
+            uint256 flatPrice = 0.01 ether;
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+            vm.expectEmit(protocol.getDaoNft(daoId));
+            emit Transfer(address(0), address(nftMinter.addr), 1);
+            hoax(daoCreator.addr);
+            protocol.mintNFTAndTransfer{ value: flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
+            );
+        }
+    }
 }
