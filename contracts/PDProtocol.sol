@@ -25,6 +25,7 @@ import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 import { IPDProtocol } from "./interface/IPDProtocol.sol";
+import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 
 // D4A storages && contracts
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
@@ -50,6 +51,65 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function initialize() public reinitializer(2) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         ProtocolStorage.layout().daoIndex = l.reservedDaoAmount;
+    }
+
+    function createCanvasAndMintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata canvasUri,
+        address to,
+        string calldata tokenUri,
+        bytes calldata signature
+    )
+        external
+        payable
+        returns (uint256)
+    {
+        (bool succ,) = address(this).delegatecall(
+            abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), to))
+        );
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+        _checkMintEligibility(daoId, msg.sender, new bytes32[](0), 1);
+        uint256 basicDaoNftFlatPrice = BasicDaoStorage.layout().basicDaoNftFlatPrice;
+        _verifySignature(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, signature);
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        return _mintNft(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, msg.sender);
+    }
+
+    function createCanvasAndMintNFTAndTransfer(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata canvasUri,
+        address canvasOwner,
+        string calldata tokenUri,
+        bytes calldata signature,
+        address nftOwner
+    )
+        external
+        payable
+        returns (uint256)
+    {
+        (bool succ,) = address(this).delegatecall(
+            abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), canvasOwner))
+        );
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+        _checkMintEligibility(daoId, msg.sender, new bytes32[](0), 1);
+        uint256 basicDaoNftFlatPrice = BasicDaoStorage.layout().basicDaoNftFlatPrice;
+        _verifySignature(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, signature);
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        return _mintNft(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, nftOwner);
     }
 
     function mintNFT(
@@ -259,7 +319,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function _checkMintEligibility(
         bytes32 daoId,
         address account,
-        bytes32[] calldata proof,
+        bytes32[] memory proof,
         uint256 amount
     )
         internal
@@ -271,7 +331,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function _ableToMint(
         bytes32 daoId,
         address account,
-        bytes32[] calldata proof,
+        bytes32[] memory proof,
         uint256 amount
     )
         internal

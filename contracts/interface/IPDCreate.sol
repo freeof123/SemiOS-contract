@@ -18,7 +18,6 @@ interface IPDCreate is ICreate {
         bytes32 canvasId,
         string calldata canvasUri,
         bytes32[] calldata proof,
-        uint256 canvasRebateRatioInBps,
         address to
     )
         external

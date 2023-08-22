@@ -20,6 +20,31 @@ interface IPDProtocol {
 
     function initialize() external;
 
+    function createCanvasAndMintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata canvasUri,
+        address to,
+        string calldata tokenUri,
+        bytes calldata signature
+    )
+        external
+        payable
+        returns (uint256);
+
+    function createCanvasAndMintNFTAndTransfer(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata canvasUri,
+        address canvasOwner,
+        string calldata tokenUri,
+        bytes calldata signature,
+        address nftOwner
+    )
+        external
+        payable
+        returns (uint256);
+
     function mintNFT(
         bytes32 daoId,
         bytes32 canvasId,
