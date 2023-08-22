@@ -29,7 +29,7 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         for (uint256 i; i <= latestDaoIndex; ++i) {
             if (_daoIndexesUnlocked.get(i)) continue;
             bytes32 daoId = IPDProtocolReadable(PROTOCOL).getDaoId(i);
-            if (IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
+            if (daoId != 0x0 && IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
                 upkeepNeeded = true;
                 daoIndexes[counter] = i;
                 daoIds[counter++] = daoId;

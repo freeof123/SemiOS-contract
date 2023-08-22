@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity ^0.8.18;
 
-import { Test, console } from "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
@@ -15,10 +15,18 @@ import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 contract BasicDaoUnlockerTest is Test, DeployHelper {
     bytes32 basicDaoId1;
     bytes32 basicDaoId2;
-    address basicDaoFeePool1;
-    address basicDaoFeePool2;
+
+    D4AFeePool basicDaoFeePool1;
+    D4AFeePool basicDaoFeePool2;
+    address basicDaoFeePoolAddress1;
+    address basicDaoFeePoolAddress2;
+    address payable basicDaoFeePoolAddress1Payable;
+    address payable basicDaoFeePoolAddress2Payable;
+
     BasicDaoUnlocker public unlocker;
-    address public unlockerPROTOCOL;
+
+    bool upkeepNeeded;
+    bytes performData;
 
     function setUp() public {
         setUpEnv();
@@ -32,14 +40,31 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         basicDaoId1 = _createDao(basicDaoParam1);
         basicDaoId2 = _createDao(basicDaoParam2);
 
-        basicDaoFeePool1 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(basicDaoId1);
-        basicDaoFeePool2 = ID4AProtocolReadable(address(protocol)).getDaoFeePool(basicDaoId2);
+        basicDaoFeePoolAddress1 = protocol.getDaoFeePool(basicDaoId1);
+        basicDaoFeePoolAddress2 = protocol.getDaoFeePool(basicDaoId2);
+        basicDaoFeePoolAddress1Payable = payable(basicDaoFeePoolAddress1);
+        basicDaoFeePoolAddress2Payable = payable(basicDaoFeePoolAddress2);
+
+        basicDaoFeePool1 = D4AFeePool(basicDaoFeePoolAddress1Payable);
+        basicDaoFeePool2 = D4AFeePool(basicDaoFeePoolAddress2Payable);
+
+        unlocker = new BasicDaoUnlocker(address(protocol));
     }
 
-    // verify  Can't unlock when the turnover <2ETH.
-    function test_UnlockStatus() public view { }
+    function test_UnlockStatus() public {
+        (bool success1,) = basicDaoFeePoolAddress1.call{ value: 3 ether }("");
+        (bool success2,) = basicDaoFeePoolAddress2.call{ value: 1 ether }("");
+        require(success1, "Failed to increase turnover");
+        require(success2, "Failed to increase turnover");
 
-    // verify  When the turnover raise to 2ETH,can unlock the DAO.
+        (upkeepNeeded, performData) = unlocker.checkUpkeep("");
+        if (upkeepNeeded) {
+            unlocker.performUpkeep(performData);
+        }
+        // console2.log("BasicDao1Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId1));
+        // console2.log("BasicDao2Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
+    }
+
     function test_CanUnlockAfterRaiseTo2ETH() public { }
 
     //
