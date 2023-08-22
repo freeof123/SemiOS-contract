@@ -781,7 +781,7 @@ contract DeployHelper is Test {
         address[] memory minters = new address[](1);
         minters[0] = daoCreator.addr;
         createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
-        daoId = daoProxy.createBasicDao{ value: 0.1 ether }(
+        daoId = daoProxy.createBasicDao(
             DaoMetadataParam({
                 startDrb: drb.currentRound(),
                 mintableRounds: 60,
