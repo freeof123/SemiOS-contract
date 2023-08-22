@@ -433,16 +433,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         internal
         returns (uint256 tokenId)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        {
-            _checkPauseStatus();
-            _checkPauseStatus(canvasId);
-            _checkCanvasExist(canvasId);
-            _checkUriNotExist(tokenUri);
-        }
-
-        _checkPauseStatus(daoId);
-
+        // for special token uri, if two same speical token uris are passes in at the same time, should fetch right
+        // token uri first, then check for uri non-existence
         {
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
             ++basicDaoInfo.tokenId;
@@ -454,6 +446,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
             }
         }
+
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        {
+            _checkPauseStatus();
+            _checkPauseStatus(canvasId);
+            _checkCanvasExist(canvasId);
+            _checkUriNotExist(tokenUri);
+        }
+
+        _checkPauseStatus(daoId);
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.nftTotalSupply >= daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
