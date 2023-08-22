@@ -21,8 +21,6 @@ forge inspect D4ADiamond events | jq --slurpfile existing deployed-contracts-inf
 forge inspect D4ASettings events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 # Permission Control
 forge inspect PermissionControl events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
-# Create Project Proxy
-forge inspect D4ACreateProjectProxy events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 # Naive Owner
 forge inspect NaiveOwner events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 # Roayalty Splitter
