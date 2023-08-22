@@ -12,13 +12,13 @@ import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 
 contract PDBasicDao is IPDBasicDao {
     function unlock(bytes32 daoId) public {
-        if (ableToUnlock(daoId)) revert UnableToUnlock();
+        if (!ableToUnlock(daoId)) revert UnableToUnlock();
         BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked = true;
         emit BasicDaoUnlocked(daoId);
     }
 
     function ableToUnlock(bytes32 daoId) public view returns (bool) {
-        return D4AFeePool(payable(ID4AProtocolReadable(address(this)).getDaoFeePool(daoId))).turnover() < 2 ether;
+        return D4AFeePool(payable(ID4AProtocolReadable(address(this)).getDaoFeePool(daoId))).turnover() >= 2 ether;
     }
 
     function getTurnover(bytes32 daoId) public view returns (uint256) {
