@@ -81,7 +81,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         bytes32 canvasId,
         string calldata canvasUri,
         bytes32[] calldata proof,
-        uint256 canvasRebateRatioInBps,
         address to
     )
         external
@@ -112,13 +111,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         );
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
-
-        (bool succ,) = address(this).delegatecall(
-            abi.encodeWithSelector(
-                ID4AProtocolSetter.setCanvasRebateRatioInBps.selector, canvasId, canvasRebateRatioInBps
-            )
-        );
-        require(succ);
     }
 
     function _createProject(
@@ -144,14 +136,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
                     || royaltyFeeRatioInBps > l.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
             ) revert RoyaltyFeeRatioOutOfRange();
-        }
-        {
-            uint256 createDaoFeeAmount = l.createDaoFeeAmount;
-            if (msg.value < createDaoFeeAmount) revert NotEnoughEther();
-
-            SafeTransferLib.safeTransferETH(l.protocolFeePool, createDaoFeeAmount);
-            uint256 exchange = msg.value - createDaoFeeAmount;
-            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }
 
         daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
