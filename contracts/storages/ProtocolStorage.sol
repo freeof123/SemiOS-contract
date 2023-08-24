@@ -5,9 +5,9 @@ library ProtocolStorage {
     struct Layout {
         mapping(bytes32 => bytes32) nftHashToCanvasId;
         mapping(bytes32 => bool) uriExists;
-        uint256 daoIndex;
-        uint256 daoIndexBitMap;
-        mapping(uint256 daoIndex => bytes32 daoId) daoIndexToId;
+        uint256[256] lastestDaoIndexes;
+        uint256 d4aDaoIndexBitMap;
+        mapping(uint256 daoIndex => bytes32 daoId)[256] daoIndexToIds;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.ProtocolStorage");

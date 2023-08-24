@@ -6,6 +6,7 @@ import { LibString } from "solady/utils/LibString.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { DaoMetadataParam } from "contracts/interface/D4AStructs.sol";
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -45,10 +46,9 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
             daoFloorPriceRank,
             nftMaxSupplyRank,
             royaltyFeeRatioInBps,
-            ProtocolStorage.layout().daoIndex,
+            ProtocolStorage.layout().lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]++,
             daoUri
         );
-        ProtocolStorage.layout().daoIndex++;
     }
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
@@ -64,13 +64,13 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         _checkUriNotExist(daoMetadataParam.projectUri);
         {
             if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
-            if (((ProtocolStorage.layout().daoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+            if (((ProtocolStorage.layout().d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
                 revert DaoIndexAlreadyExist();
             }
         }
 
         {
-            ProtocolStorage.layout().daoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+            ProtocolStorage.layout().d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
             ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
         }
         {

@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 import { LibBitmap } from "solady/utils/LibBitmap.sol";
 
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 
@@ -22,13 +23,13 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
     }
 
     function checkUpkeep(bytes memory) public view returns (bool upkeepNeeded, bytes memory performData) {
-        uint256 latestDaoIndex = IPDProtocolReadable(PROTOCOL).getLastestDaoIndex();
+        uint256 latestDaoIndex = IPDProtocolReadable(PROTOCOL).getLastestDaoIndex(uint8(DaoTag.BASIC_DAO));
         uint256[] memory daoIndexes = new uint256[](latestDaoIndex + 1);
         bytes32[] memory daoIds = new bytes32[](latestDaoIndex + 1);
         uint256 counter;
         for (uint256 i; i <= latestDaoIndex; ++i) {
             if (_daoIndexesUnlocked.get(i)) continue;
-            bytes32 daoId = IPDProtocolReadable(PROTOCOL).getDaoId(i);
+            bytes32 daoId = IPDProtocolReadable(PROTOCOL).getDaoId(uint8(DaoTag.BASIC_DAO), i);
             if (daoId != 0x0 && IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
                 upkeepNeeded = true;
                 daoIndexes[counter] = i;

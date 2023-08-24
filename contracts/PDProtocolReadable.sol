@@ -11,11 +11,11 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))];
     }
 
-    function getLastestDaoIndex() public view returns (uint256) {
-        return ProtocolStorage.layout().daoIndex;
+    function getLastestDaoIndex(uint8 daoTag) public view returns (uint256) {
+        return ProtocolStorage.layout().lastestDaoIndexes[daoTag];
     }
 
-    function getDaoId(uint256 daoIndex) public view returns (bytes32) {
-        return ProtocolStorage.layout().daoIndexToId[daoIndex];
+    function getDaoId(uint8 daoTag, uint256 daoIndex) public view returns (bytes32) {
+        return ProtocolStorage.layout().daoIndexToIds[daoTag][daoIndex];
     }
 }

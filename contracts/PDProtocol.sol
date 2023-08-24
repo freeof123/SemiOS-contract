@@ -17,6 +17,7 @@ import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import {
     UpdateRewardParam, DaoMintInfo, UserMintInfo, MintNftInfo, Whitelist
 } from "contracts/interface/D4AStructs.sol";
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 
 // interfaces
@@ -50,7 +51,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
     function initialize() public reinitializer(2) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        ProtocolStorage.layout().daoIndex = l.reservedDaoAmount;
+        ProtocolStorage.layout().lastestDaoIndexes[uint8(DaoTag.D4A_DAO)] = l.reservedDaoAmount;
     }
 
     function createCanvasAndMintNFT(

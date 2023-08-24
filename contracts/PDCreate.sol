@@ -50,12 +50,11 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoMetadataParam.floorPriceRank,
             daoMetadataParam.maxNftRank,
             daoMetadataParam.royaltyFee,
-            ProtocolStorage.layout().daoIndex,
+            ProtocolStorage.layout().lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]++,
             daoMetadataParam.projectUri,
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
-        ProtocolStorage.layout().daoIndex++;
 
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         DaoStorage.layout().daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
