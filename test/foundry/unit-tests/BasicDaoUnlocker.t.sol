@@ -35,10 +35,12 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         DeployHelper.CreateDaoParam memory basicDaoParam2;
 
         basicDaoParam1.daoUri = "basic dao1";
+        basicDaoParam1.canvasId1 = "canvas1";
         basicDaoParam2.daoUri = "basic dao2";
+        basicDaoParam2.canvasId2 = "canvas2";
 
-        basicDaoId1 = _createDao(basicDaoParam1);
-        basicDaoId2 = _createDao(basicDaoParam2);
+        basicDaoId1 = _createBasicDao(basicDaoParam1);
+        basicDaoId2 = _createBasicDao(basicDaoParam2);
 
         basicDaoFeePoolAddress1 = protocol.getDaoFeePool(basicDaoId1);
         basicDaoFeePoolAddress2 = protocol.getDaoFeePool(basicDaoId2);
