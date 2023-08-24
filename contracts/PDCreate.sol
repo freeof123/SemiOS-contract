@@ -76,6 +76,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         DaoStorage.layout().daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
         BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
+        BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap = 10_000;
     }
 
     function createCanvas(
