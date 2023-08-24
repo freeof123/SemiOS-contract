@@ -39,14 +39,17 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         _checkUriNotExist(daoUri);
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkCaller(l.createProjectProxy);
-        ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(daoUri))] = true;
+        ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        protocolStorage.uriExists[keccak256(abi.encodePacked(daoUri))] = true;
+        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]] =
+            daoId;
         daoId = _createProject(
             startRound,
             mintableRound,
             daoFloorPriceRank,
             nftMaxSupplyRank,
             royaltyFeeRatioInBps,
-            ProtocolStorage.layout().lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]++,
+            protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]++,
             daoUri
         );
     }
@@ -62,28 +65,24 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkCaller(l.createProjectProxy);
         _checkUriNotExist(daoMetadataParam.projectUri);
-        {
-            if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
-            if (((ProtocolStorage.layout().d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
-                revert DaoIndexAlreadyExist();
-            }
+        if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
+        if (((ProtocolStorage.layout().d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+            revert DaoIndexAlreadyExist();
         }
 
-        {
-            ProtocolStorage.layout().d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
-            ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
-        }
-        {
-            return _createProject(
-                daoMetadataParam.startDrb,
-                daoMetadataParam.mintableRounds,
-                daoMetadataParam.floorPriceRank,
-                daoMetadataParam.maxNftRank,
-                daoMetadataParam.royaltyFee,
-                daoMetadataParam.projectIndex,
-                daoMetadataParam.projectUri
-            );
-        }
+        ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        protocolStorage.d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+        protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][daoMetadataParam.projectIndex] = daoId;
+        return _createProject(
+            daoMetadataParam.startDrb,
+            daoMetadataParam.mintableRounds,
+            daoMetadataParam.floorPriceRank,
+            daoMetadataParam.maxNftRank,
+            daoMetadataParam.royaltyFee,
+            daoMetadataParam.projectIndex,
+            daoMetadataParam.projectUri
+        );
     }
 
     function createCanvas(

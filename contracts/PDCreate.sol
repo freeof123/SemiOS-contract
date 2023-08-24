@@ -43,14 +43,17 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         _checkUriNotExist(daoMetadataParam.projectUri);
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkCaller(l.createProjectProxy);
-        ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+        ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
+        = daoId;
         daoId = _createProject(
             daoMetadataParam.startDrb,
             daoMetadataParam.mintableRounds,
             daoMetadataParam.floorPriceRank,
             daoMetadataParam.maxNftRank,
             daoMetadataParam.royaltyFee,
-            ProtocolStorage.layout().lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]++,
+            protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]++,
             daoMetadataParam.projectUri,
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
@@ -59,7 +62,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         DaoStorage.layout().daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
-        ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
+        protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
 
         _createCanvas(
             CanvasStorage.layout().canvasInfos,
