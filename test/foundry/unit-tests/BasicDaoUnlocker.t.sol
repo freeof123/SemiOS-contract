@@ -2,17 +2,16 @@
 pragma solidity ^0.8.18;
 
 import "forge-std/Test.sol";
-
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
-import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import "contracts/interface/D4AStructs.sol";
-import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import "contracts/interface/D4AEnums.sol";
 
+import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
+import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
+
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
-
-import "contracts/interface/D4AEnums.sol";
 
 contract BasicDaoUnlockerTest is Test, DeployHelper {
     bytes32 basicDaoId1;
@@ -55,28 +54,43 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         basicDaoFeePool2 = D4AFeePool(basicDaoFeePoolAddress2Payable);
 
         unlocker = new BasicDaoUnlocker(address(protocol));
-    }
 
-    function test_UnlockStatus() public {
         (bool success1,) = basicDaoFeePoolAddress1.call{ value: 3 ether }("");
         (bool success2,) = basicDaoFeePoolAddress2.call{ value: 1 ether }("");
         require(success1, "Failed to increase turnover");
         require(success2, "Failed to increase turnover");
+    }
+
+    function test_UnlockStatus() public {
+        assertTrue(IPDBasicDao(protocol).ableToUnlock(basicDaoId1));
+        assertTrue(!IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
 
         (upkeepNeeded, performData) = unlocker.checkUpkeep("");
-
-        console2.log("LastestDaoIndex:", IPDProtocolReadable(protocol).getLastestDaoIndex(uint8(DaoTag.BASIC_DAO)));
-
-        console2.log("upkeepNeeded:", upkeepNeeded);
+        assertTrue(upkeepNeeded);
 
         if (upkeepNeeded) {
             unlocker.performUpkeep(performData);
         }
-        console2.log("BasicDao1Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId1));
-        console2.log("BasicDao2Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
+
+        assertTrue(IPDBasicDao(protocol).isUnlocked(basicDaoId1));
+        assertTrue(!IPDBasicDao(protocol).isUnlocked(basicDaoId2));
     }
 
-    function test_CanUnlockAfterRaiseTo2ETH() public { }
+    function test_CanUnlockAfterRaiseTo2ETH() public {
+        assertTrue(!IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
 
-    //
+        (bool success2,) = basicDaoFeePoolAddress2.call{ value: 1 ether }("");
+        require(success2, "Failed to increase turnover");
+        assertTrue(IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
+
+        (upkeepNeeded, performData) = unlocker.checkUpkeep("");
+        assertTrue(upkeepNeeded);
+        assertTrue(!IPDBasicDao(protocol).isUnlocked(basicDaoId2));
+
+        if (upkeepNeeded) {
+            unlocker.performUpkeep(performData);
+        }
+
+        assertTrue(IPDBasicDao(protocol).isUnlocked(basicDaoId2));
+    }
 }

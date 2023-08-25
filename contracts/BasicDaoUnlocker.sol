@@ -34,7 +34,8 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
             if (daoId != 0x0 && IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
                 upkeepNeeded = true;
                 daoIndexes[counter] = i;
-                daoIds[counter++] = daoId;
+                daoIds[counter] = daoId;
+                counter++;
             }
         }
         /// @solidity memory-safe-assembly
@@ -53,6 +54,7 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         if (daoIndexes.length != daoIds.length) revert InvalidLength();
 
         uint256 length = daoIndexes.length;
+
         for (uint256 i; i < length;) {
             _daoIndexesUnlocked.set(daoIndexes[i]);
             IPDBasicDao(PROTOCOL).unlock(daoIds[i]);
