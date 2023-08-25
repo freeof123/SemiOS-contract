@@ -12,6 +12,8 @@ import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.s
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 
+import "contracts/interface/D4AEnums.sol";
+
 contract BasicDaoUnlockerTest is Test, DeployHelper {
     bytes32 basicDaoId1;
     bytes32 basicDaoId2;
@@ -28,6 +30,8 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
     bool upkeepNeeded;
     bytes performData;
 
+    event emitDaoId(bytes32 daoId);
+
     function setUp() public {
         setUpEnv();
 
@@ -35,9 +39,9 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         DeployHelper.CreateDaoParam memory basicDaoParam2;
 
         basicDaoParam1.daoUri = "basic dao1";
-        basicDaoParam1.canvasId1 = "canvas1";
+        basicDaoParam1.canvasId = "canvas1";
         basicDaoParam2.daoUri = "basic dao2";
-        basicDaoParam2.canvasId2 = "canvas2";
+        basicDaoParam2.canvasId = "canvas2";
 
         basicDaoId1 = _createBasicDao(basicDaoParam1);
         basicDaoId2 = _createBasicDao(basicDaoParam2);
@@ -60,11 +64,18 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         require(success2, "Failed to increase turnover");
 
         (upkeepNeeded, performData) = unlocker.checkUpkeep("");
+
+        console2.log(upkeepNeeded);
+        emit emitDaoId(basicDaoId1);
+        emit emitDaoId(basicDaoId2);
+        emit emitDaoId(IPDProtocolReadable(protocol).getDaoId(uint8(DaoTag.BASIC_DAO), 0));
+        emit emitDaoId(IPDProtocolReadable(protocol).getDaoId(uint8(DaoTag.BASIC_DAO), 1));
+
         if (upkeepNeeded) {
             unlocker.performUpkeep(performData);
         }
-        // console2.log("BasicDao1Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId1));
-        // console2.log("BasicDao2Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
+        console2.log("BasicDao1Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId1));
+        console2.log("BasicDao2Unlocker:", IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
     }
 
     function test_CanUnlockAfterRaiseTo2ETH() public { }
