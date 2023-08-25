@@ -14,8 +14,6 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
     error NoUpkeepNeeded();
     error InvalidLength();
 
-    event emitDaoId(bytes32 daoId);
-
     address public immutable PROTOCOL;
 
     LibBitmap.Bitmap internal _daoIndexesUnlocked;
@@ -24,7 +22,7 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         PROTOCOL = protocol;
     }
 
-    function checkUpkeep(bytes memory) public returns (bool upkeepNeeded, bytes memory performData) {
+    function checkUpkeep(bytes memory) public view returns (bool upkeepNeeded, bytes memory performData) {
         uint256 latestDaoIndex = IPDProtocolReadable(PROTOCOL).getLastestDaoIndex(uint8(DaoTag.BASIC_DAO));
         uint256[] memory daoIndexes = new uint256[](latestDaoIndex + 1);
         bytes32[] memory daoIds = new bytes32[](latestDaoIndex + 1);
@@ -32,9 +30,6 @@ contract BasicDaoUnlocker is AutomationCompatibleInterface {
         for (uint256 i; i < latestDaoIndex; ++i) {
             if (_daoIndexesUnlocked.get(i)) continue;
             bytes32 daoId = IPDProtocolReadable(PROTOCOL).getDaoId(uint8(DaoTag.BASIC_DAO), i);
-
-            // test if daoId store successfully
-            emit emitDaoId(daoId);
 
             if (daoId != 0x0 && IPDBasicDao(PROTOCOL).ableToUnlock(daoId) && !IPDBasicDao(PROTOCOL).isUnlocked(daoId)) {
                 upkeepNeeded = true;
