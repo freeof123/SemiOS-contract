@@ -65,11 +65,9 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
 
         (upkeepNeeded, performData) = unlocker.checkUpkeep("");
 
-        console2.log(upkeepNeeded);
-        emit emitDaoId(basicDaoId1);
-        emit emitDaoId(basicDaoId2);
-        emit emitDaoId(IPDProtocolReadable(protocol).getDaoId(uint8(DaoTag.BASIC_DAO), 0));
-        emit emitDaoId(IPDProtocolReadable(protocol).getDaoId(uint8(DaoTag.BASIC_DAO), 1));
+        console2.log("LastestDaoIndex:", IPDProtocolReadable(protocol).getLastestDaoIndex(uint8(DaoTag.BASIC_DAO)));
+
+        console2.log("upkeepNeeded:", upkeepNeeded);
 
         if (upkeepNeeded) {
             unlocker.performUpkeep(performData);

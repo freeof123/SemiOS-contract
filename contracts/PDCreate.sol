@@ -45,8 +45,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         _checkCaller(l.createProjectProxy);
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
-        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
-        = daoId;
         daoId = _createProject(
             daoMetadataParam.startDrb,
             daoMetadataParam.mintableRounds,
@@ -58,6 +56,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
+        = daoId;
 
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         DaoStorage.layout().daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
