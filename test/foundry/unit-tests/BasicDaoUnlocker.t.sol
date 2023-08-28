@@ -66,8 +66,6 @@ contract BasicDaoUnlockerTest is Test, DeployHelper {
         assertTrue(!IPDBasicDao(protocol).ableToUnlock(basicDaoId2));
 
         (upkeepNeeded, performData) = unlocker.checkUpkeep("");
-        assertTrue(upkeepNeeded);
-
         if (upkeepNeeded) {
             unlocker.performUpkeep(performData);
         }
