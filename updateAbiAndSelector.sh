@@ -8,6 +8,7 @@ forge inspect D4ACreate abi >deployed-contracts-info/frontend-abi/D4ACreate.json
 forge inspect PDCreate abi >deployed-contracts-info/frontend-abi/PDCreate.json
 forge inspect PDBasicDao abi >deployed-contracts-info/frontend-abi/PDBasicDao.json
 forge inspect PermissionControl abi >deployed-contracts-info/frontend-abi/PermissionControl.json
+forge inspect IERC721 abi >deployed-contracts-info/frontend-abi/IERC721.json
 
 # event selector
 echo "{}" >deployed-contracts-info/selector.json
