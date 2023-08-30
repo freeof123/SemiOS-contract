@@ -13,7 +13,7 @@ import { LibString } from "solady/utils/LibString.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
 
 // D4A constants, structs, enums && errors
-import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, SIGNER_ROLE, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import {
     UpdateRewardParam, DaoMintInfo, UserMintInfo, MintNftInfo, Whitelist
 } from "contracts/interface/D4AStructs.sol";
@@ -413,7 +413,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             if (bytes(tokenIndexString)[i] < "0" || bytes(tokenIndexString)[i] > "9") return false;
             tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
         }
-        if (tokenIndex == 0 || tokenIndex > 1000) return false;
+        if (tokenIndex == 0 || tokenIndex > BASIC_DAO_RESERVE_NFT_NUMBER) return false;
         return true;
     }
 
@@ -438,13 +438,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         // token uri first, then check for uri non-existence
         {
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-            ++basicDaoInfo.tokenId;
             if (_isSpecialTokenUri(daoId, tokenUri)) {
+                ++basicDaoInfo.tokenId;
                 if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
                 }
                 if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
                 tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
+                tokenId = basicDaoInfo.tokenId;
             }
         }
 
@@ -503,7 +504,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         );
 
         // mint
-        tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri);
+        tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
         {
             daoInfo.nftTotalSupply++;
             canvasInfo.tokenIds.push(tokenId);
@@ -564,10 +565,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         BatchMintLocalVars memory vars;
         vars.length = mintNftInfos.length;
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        uint256[] memory tokenIds = new uint256[](vars.length);
         for (uint256 i; i < vars.length;) {
             _checkUriNotExist(mintNftInfos[i].tokenUri);
-            ++basicDaoInfo.tokenId;
             if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
+                ++basicDaoInfo.tokenId;
                 if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
                 }
@@ -575,6 +577,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     revert NotBasicDaoNftFlatPrice();
                 }
                 mintNftInfos[i].tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
+                tokenIds[i] = basicDaoInfo.tokenId;
             }
             unchecked {
                 ++i;
@@ -588,11 +591,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         vars.currentRound = SettingsStorage.layout().drb.currentRound();
         vars.nftPriceFactor = daoInfo.nftPriceFactor;
 
-        uint256[] memory tokenIds = new uint256[](vars.length);
         daoInfo.nftTotalSupply += vars.length;
         for (uint256 i; i < vars.length;) {
             ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
+            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, tokenIds[i]);
             canvasInfo.tokenIds.push(tokenIds[i]);
             ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;

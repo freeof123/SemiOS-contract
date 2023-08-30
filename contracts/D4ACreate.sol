@@ -222,7 +222,7 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = string(abi.encodePacked("D4A NFT for No.", LibString.toString(daoIndex)));
         string memory sym = string(abi.encodePacked("D4A.N", LibString.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym);
+        return l.erc721Factory.createD4AERC721(name, sym, 0);
     }
 
     function _createCanvas(

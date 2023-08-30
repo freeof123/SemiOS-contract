@@ -6,7 +6,7 @@ import "./interface/ID4AERC721Factory.sol";
 import "./utils/DefaultOperatorFiltererUpgradeable.sol";
 
 contract D4AERC721WithFilter is D4AERC721, DefaultOperatorFiltererUpgradeable {
-    function initialize(string memory name, string memory symbol) public override initializer {
+    function initialize(string memory name, string memory symbol, uint256) public virtual override initializer {
         __D4AERC721_init(name, symbol);
         __DefaultOperatorFilterer_init();
     }
@@ -46,26 +46,5 @@ contract D4AERC721WithFilter is D4AERC721, DefaultOperatorFiltererUpgradeable {
         onlyAllowedOperator(from)
     {
         super.safeTransferFrom(from, to, tokenId, data);
-    }
-}
-
-contract D4AERC721WithFilterFactory is ID4AERC721Factory {
-    using Clones for address;
-
-    D4AERC721 impl;
-
-    event NewD4AERC721WithFilter(address addr);
-
-    constructor() {
-        impl = new D4AERC721WithFilter();
-    }
-
-    function createD4AERC721(string memory _name, string memory _symbol) public returns (address) {
-        address t = address(impl).clone();
-        D4AERC721WithFilter(t).initialize(_name, _symbol);
-        D4AERC721WithFilter(t).changeAdmin(msg.sender);
-        D4AERC721WithFilter(t).transferOwnership(msg.sender);
-        emit NewD4AERC721WithFilter(t);
-        return t;
     }
 }

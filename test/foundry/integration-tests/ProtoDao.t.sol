@@ -139,7 +139,7 @@ contract ProtoDaoTest is DeployHelper {
         );
         address nft = protocol.getDaoNft(daoId);
         vm.prank(daoCreator.addr);
-        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter.addr, 1);
+        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter.addr, 1001);
 
         drb.changeRound(2);
 
@@ -211,9 +211,9 @@ contract ProtoDaoTest is DeployHelper {
         );
         address nft = protocol.getDaoNft(daoId);
         vm.prank(daoCreator.addr);
-        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter.addr, 1);
+        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter.addr, 1001);
         vm.prank(daoCreator.addr);
-        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter2.addr, 2);
+        D4AERC721(nft).safeTransferFrom(daoCreator.addr, nftMinter2.addr, 1002);
 
         drb.changeRound(3);
 

@@ -11,7 +11,8 @@ import { D4AFeePool, D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol"
 import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
-import { D4AERC721WithFilter, D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
+import { D4AERC721WithFilter } from "contracts/D4AERC721WithFilter.sol";
+import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";

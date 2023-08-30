@@ -53,7 +53,7 @@ import { TestERC721 } from "contracts/test/TestERC721.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
-import { D4AERC721Factory } from "contracts/D4AERC721.sol";
+import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
@@ -79,7 +79,7 @@ contract DeployHelper is Test {
     PermissionControl public permissionControl;
     PermissionControl public permissionControlImpl;
     D4AERC20Factory public erc20Factory;
-    D4AERC721Factory public erc721Factory;
+    D4AERC721WithFilterFactory public erc721Factory;
     D4AFeePoolFactory public feePoolFactory;
     D4ARoyaltySplitterFactory public royaltySplitterFactory;
     address public weth;
@@ -229,7 +229,7 @@ contract DeployHelper is Test {
     }
 
     function _deployERC721Factory() internal prank(protocolOwner.addr) {
-        erc721Factory = new D4AERC721Factory();
+        erc721Factory = new D4AERC721WithFilterFactory();
         vm.label(address(erc721Factory), "ERC721 Factory");
     }
 

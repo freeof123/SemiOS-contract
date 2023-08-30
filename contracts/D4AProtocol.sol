@@ -539,7 +539,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         );
 
         // mint
-        tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri);
+        tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri, 0);
         {
             daoInfo.nftTotalSupply++;
             canvasInfo.tokenIds.push(tokenId);
@@ -617,7 +617,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         daoInfo.nftTotalSupply += vars.length;
         for (uint256 i; i < vars.length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
+            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, 0);
             canvasInfo.tokenIds.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
@@ -850,7 +850,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = string(abi.encodePacked("D4A NFT for No.", StringsUpgradeable.toString(daoIndex)));
         string memory sym = string(abi.encodePacked("D4A.N", StringsUpgradeable.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym);
+        return l.erc721Factory.createD4AERC721(name, sym, 0);
     }
 
     function _createCanvas(

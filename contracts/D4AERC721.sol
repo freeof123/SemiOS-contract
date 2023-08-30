@@ -6,8 +6,6 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Royalt
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./interface/ID4AERC721Factory.sol";
 
 contract D4AERC721 is
     Initializable,
@@ -38,7 +36,7 @@ contract D4AERC721 is
         return project_uri;
     }
 
-    function initialize(string memory name, string memory symbol) public virtual initializer {
+    function initialize(string memory name, string memory symbol, uint256) public virtual initializer {
         __D4AERC721_init(name, symbol);
     }
 
@@ -54,7 +52,7 @@ contract D4AERC721 is
         _tokenIds.reset();
     }
 
-    function mintItem(address player, string memory uri) public onlyRole(MINTER) returns (uint256) {
+    function mintItem(address player, string memory uri, uint256) public virtual onlyRole(MINTER) returns (uint256) {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _mint(player, newItemId);
@@ -92,26 +90,5 @@ contract D4AERC721 is
         require(msg.sender != new_admin, "new admin cannot be same as old one");
         _grantRole(DEFAULT_ADMIN_ROLE, new_admin);
         _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-}
-
-contract D4AERC721Factory is ID4AERC721Factory {
-    using Clones for address;
-
-    D4AERC721 impl;
-
-    event NewD4AERC721(address addr);
-
-    constructor() {
-        impl = new D4AERC721();
-    }
-
-    function createD4AERC721(string memory _name, string memory _symbol) public returns (address) {
-        address t = address(impl).clone();
-        D4AERC721(t).initialize(_name, _symbol);
-        D4AERC721(t).changeAdmin(msg.sender);
-        D4AERC721(t).transferOwnership(msg.sender);
-        emit NewD4AERC721(t);
-        return t;
     }
 }

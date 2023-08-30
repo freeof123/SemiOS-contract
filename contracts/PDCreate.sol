@@ -4,16 +4,14 @@ pragma solidity ^0.8.18;
 // external deps
 import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { LibString } from "solady/utils/LibString.sol";
-import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 // D4A constants, structs, enums && errors
-import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 
 // interfaces
-import { ID4AProtocolSetter } from "./interface/ID4AProtocolSetter.sol";
 import { IPDCreate } from "./interface/IPDCreate.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 
@@ -203,7 +201,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("D4A.N", LibString.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym);
+        return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
     }
 
     function _createCanvas(
