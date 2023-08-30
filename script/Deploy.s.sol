@@ -39,7 +39,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployDrb();
 
-        _deployFeePoolFactory();
+        // _deployFeePoolFactory();
 
         // _deployRoyaltySplitterFactory();
 
@@ -47,49 +47,49 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
-        _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocolProxy();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet();
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet();
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter();
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter();
 
-        _deployD4ACreate();
-        _cutFacetsD4ACreate();
+        // _deployD4ACreate();
+        // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate();
+        // _deployPDCreate();
+        // _cutFacetsPDCreate();
 
-        _deployPDBasicDao();
-        _cutFacetsPDBasicDao();
+        // _deployPDBasicDao();
+        // _cutFacetsPDBasicDao();
 
-        _deploySettings();
-        _cutSettingsFacet();
+        // _deploySettings();
+        // _cutSettingsFacet();
 
-        _deployClaimer();
-        _deployUniversalClaimer();
+        // _deployClaimer();
+        // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
-        _deployCreateProjectProxyProxy();
+        // _deployCreateProjectProxy();
+        // _deployCreateProjectProxyProxy();
 
-        _deployPermissionControl();
-        _deployPermissionControlProxy();
+        // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
-        _initSettings();
+        // _initSettings();
 
-        _deployLinearPriceVariation();
-        _deployExponentialPriceVariation();
-        _deployLinearRewardIssuance();
-        _deployExponentialRewardIssuance();
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
+        // _deployLinearRewardIssuance();
+        // _deployExponentialRewardIssuance();
 
-        pdProtocol_proxy.initialize();
+        // pdProtocol_proxy.initialize();
 
-        PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
-        PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
-            "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
-        );
+        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
+        // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
+        //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+        // );
 
         vm.stopBroadcast();
     }
@@ -162,6 +162,17 @@ contract Deploy is Script, Test, D4AAddress {
         vm.toString(address(d4aERC721WithFilterFactory)).write(path, ".factories.D4AERC721WithFilterFactory");
 
         console2.log("D4AERC721WithFilterFactory address: ", address(d4aERC721WithFilterFactory));
+
+        console2.log("set D4AERC721WithFilterFactory address in D4ASettings");
+        D4ASettings(address(pdProtocol_proxy)).changeAddress(
+            address(d4aDrb),
+            address(d4aERC20Factory),
+            address(d4aERC721WithFilterFactory),
+            address(d4aFeePoolFactory),
+            json.readAddress(".NaiveOwner.proxy"),
+            address(pdCreateProjectProxy_proxy),
+            address(permissionControl_proxy)
+        );
         console2.log("================================================================================\n");
     }
 
