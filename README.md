@@ -1,66 +1,15 @@
-## Foundry
+### ProtoDAO
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+1.  D4AERC721 为 721 的基类，D4AERC721WithFilter 继承了 D4AERC721，现在 PDERC721WithFilter 继承了 D4AERC721WithFilter，
+    重写了 mintItem 和 initialize 方法，但是 721Factory 为 D4AERC721WithFilterFactory。
 
-Foundry consists of:
+2.  创建 DAO 和 Canvas，ProtoDAO 有两个切面，分别为 `PDCreate` 和 `D4ACreate`，两个合约是代码复制粘贴的，无继承关系，因
+    为代码逻辑改动的地方比较零散。
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+3.  在 Foundry 框架中，任何需要用到 `--rpc-url` 的地方，如果没有指定 `--rpc-url`，
 
-## Documentation
+        - 如果设置了 `ETH_RPC_URL` 的环境变量 ，则会优先使用该变量作为 `rpc url`,
 
-https://book.getfoundry.sh/
+        - 否则会使用 `localhost:8545` 端口
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+    如果指定了 `--rpc-url`，则优先使用指定的 `url`。
