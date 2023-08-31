@@ -193,15 +193,15 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = daoName;
-        string memory sym = string(abi.encodePacked("D4A.T", LibString.toString(daoIndex)));
+        string memory sym = string(abi.encodePacked("PDAO.T", LibString.toString(daoIndex)));
         return l.erc20Factory.createD4AERC20(name, sym, address(this));
     }
 
     function _createERC721Token(uint256 daoIndex, string memory daoName) internal returns (address) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = daoName;
-        string memory sym = string(abi.encodePacked("D4A.N", LibString.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
+        string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
+        return l.erc721Factory.createD4AERC721(name, sym);
     }
 
     function _createCanvas(
