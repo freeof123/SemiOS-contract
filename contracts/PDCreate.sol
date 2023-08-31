@@ -201,7 +201,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym);
+        return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
     }
 
     function _createCanvas(
