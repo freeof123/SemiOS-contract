@@ -28,7 +28,8 @@
     "lint": "pnpm lint:sol && pnpm prettier:check",
     "lint:sol": "forge fmt --check && pnpm solhint \"{script,src,test}/**/*.sol\"",
     "prettier:check": "prettier --check \"**/*.{json,md,yml}\"",
-    "prettier:write": "prettier --write \"**/*.{json,md,yml}\""
+    "prettier:write": "prettier --write \"**/*.{json,md,yml}\"",
+    "deploy-test": "source .env && ENV=test forge script script/Deploy.s.sol --rpc-url $GOERLI_RPC_URL -vvvv --broadcast --verify"
   },
   "dependencies": {
     "solady": "^0.0.113"
