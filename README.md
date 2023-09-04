@@ -13,3 +13,8 @@
         - 否则会使用 `localhost:8545` 端口
 
     如果指定了 `--rpc-url`，则优先使用指定的 `url`。
+
+4.  调用 `createCanvasAndMintNFT` 接口时，参数 to 地址为 canvas creator，由于调用者可以任意指定 to 地址，但如果对应的，
+    不将 signature 也改变的话，在 mint NFT 时，会导致 signature 还原出来的 signer 和 canvas creator 不一致，导致交易
+    revert，如果调用者将 to 地址和 signature 同时改变，使得 signature 为指定的 to 地址的私钥对正确参数签名后得到的
+    signature，则交易可以正常执行，同时修改了 canvas 的 creator。但是这种攻击风险不考虑。
