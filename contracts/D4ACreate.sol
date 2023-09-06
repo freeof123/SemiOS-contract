@@ -41,17 +41,18 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         _checkCaller(l.createProjectProxy);
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoUri))] = true;
-        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]] =
-            daoId;
         daoId = _createProject(
             startRound,
             mintableRound,
             daoFloorPriceRank,
             nftMaxSupplyRank,
             royaltyFeeRatioInBps,
-            protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]++,
+            protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)],
             daoUri
         );
+        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)]] =
+            daoId;
+        ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)];
     }
 
     function createOwnerProject(DaoMetadataParam calldata daoMetadataParam)
@@ -66,15 +67,15 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
         _checkCaller(l.createProjectProxy);
         _checkUriNotExist(daoMetadataParam.projectUri);
         if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
-        if (((ProtocolStorage.layout().d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
-            revert DaoIndexAlreadyExist();
-        }
 
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        if (((protocolStorage.d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+            revert DaoIndexAlreadyExist();
+        }
         protocolStorage.d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
-        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][daoMetadataParam.projectIndex] = daoId;
-        return _createProject(
+
+        daoId = _createProject(
             daoMetadataParam.startDrb,
             daoMetadataParam.mintableRounds,
             daoMetadataParam.floorPriceRank,
@@ -83,6 +84,7 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
             daoMetadataParam.projectIndex,
             daoMetadataParam.projectUri
         );
+        protocolStorage.daoIndexToIds[uint8(DaoTag.D4A_DAO)][daoMetadataParam.projectIndex] = daoId;
     }
 
     function createCanvas(
