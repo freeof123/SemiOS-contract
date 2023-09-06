@@ -49,7 +49,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
-    function initialize() public reinitializer(2) {
+    function initialize() public reinitializer(4) {
         uint256 reservedDaoAmount = SettingsStorage.layout().reservedDaoAmount;
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)] = reservedDaoAmount;
