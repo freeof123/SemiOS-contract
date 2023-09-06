@@ -56,10 +56,11 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         );
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;
-        protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]++;
+        ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
 
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
-        DaoStorage.layout().daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
+        DaoStorage.Layout storage daoStorage = DaoStorage.layout();
+        daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+        daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
         protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
 
@@ -67,15 +68,73 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             CanvasStorage.layout().canvasInfos,
             daoId,
             basicDaoParam.canvasId,
-            DaoStorage.layout().daoInfos[daoId].startRound,
-            DaoStorage.layout().daoInfos[daoId].canvases.length,
+            daoStorage.daoInfos[daoId].startRound,
+            daoStorage.daoInfos[daoId].canvases.length,
             basicDaoParam.canvasUri,
             msg.sender
         );
 
-        DaoStorage.layout().daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
-        BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
-        BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap = 10_000;
+        daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
+    }
+
+    function createOwnerBasicDao(
+        DaoMetadataParam memory daoMetadataParam,
+        BasicDaoParam memory basicDaoParam
+    )
+        public
+        payable
+        nonReentrant
+        returns (bytes32 daoId)
+    {
+        _checkPauseStatus();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        _checkCaller(l.createProjectProxy);
+        _checkUriNotExist(daoMetadataParam.projectUri);
+        if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
+
+        ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        if (((protocolStorage.basicDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+            revert DaoIndexAlreadyExist();
+        }
+        protocolStorage.basicDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+        protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+
+        daoId = _createProject(
+            daoMetadataParam.startDrb,
+            daoMetadataParam.mintableRounds,
+            daoMetadataParam.floorPriceRank,
+            daoMetadataParam.maxNftRank,
+            daoMetadataParam.royaltyFee,
+            daoMetadataParam.projectIndex,
+            daoMetadataParam.projectUri,
+            basicDaoParam.initTokenSupplyRatio,
+            basicDaoParam.daoName
+        );
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoMetadataParam.projectIndex] = daoId;
+
+        DaoStorage.Layout storage daoStorage = DaoStorage.layout();
+        daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+        daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
+
+        protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
+
+        _createCanvas(
+            CanvasStorage.layout().canvasInfos,
+            daoId,
+            basicDaoParam.canvasId,
+            daoStorage.daoInfos[daoId].startRound,
+            daoStorage.daoInfos[daoId].canvases.length,
+            basicDaoParam.canvasUri,
+            msg.sender
+        );
+
+        daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
     }
 
     function createCanvas(

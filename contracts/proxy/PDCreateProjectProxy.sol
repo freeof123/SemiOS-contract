@@ -120,7 +120,15 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
             revert ZeroFloorPriceCannotUseLinearPriceVariation();
         }
 
-        daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        if ((actionType & 0x1) != 0) {
+            require(
+                IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
+                "only admin can specify project index"
+            );
+            daoId = IPDCreate(protocol).createOwnerBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        } else {
+            daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        }
 
         CreateProjectLocalVars memory vars;
         vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);

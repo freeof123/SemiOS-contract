@@ -36,6 +36,7 @@ function getPDCreateSelectors() pure returns (bytes4[] memory) {
     // register PDCreate
     bytes4 interfaceId;
     interfaceId ^= selectors[selectorIndex++] = IPDCreate.createBasicDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createOwnerBasicDao.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDCreate.createCanvas.selector;
     assert(interfaceId == type(IPDCreate).interfaceId);
 

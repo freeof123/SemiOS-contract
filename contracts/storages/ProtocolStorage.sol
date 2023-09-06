@@ -7,6 +7,7 @@ library ProtocolStorage {
         mapping(bytes32 => bool) uriExists;
         uint256[256] lastestDaoIndexes;
         uint256 d4aDaoIndexBitMap;
+        uint256 basicDaoIndexBitMap;
         mapping(uint256 daoIndex => bytes32 daoId)[256] daoIndexToIds;
     }
 
