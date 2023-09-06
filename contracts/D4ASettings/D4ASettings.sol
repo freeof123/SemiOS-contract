@@ -236,4 +236,8 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
             l.rewardTemplates[index] = template;
         }
     }
+
+    function setReservedDaoAmount(uint256 reservedDaoAmount) public onlyRole(PROTOCOL_ROLE) {
+        SettingsStorage.layout().reservedDaoAmount = reservedDaoAmount;
+    }
 }

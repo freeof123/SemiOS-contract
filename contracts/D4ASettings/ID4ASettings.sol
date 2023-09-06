@@ -100,4 +100,6 @@ interface ID4ASettings {
     function transferMembership(bytes32 role, address previousMember, address newMember) external;
 
     function setTemplateAddress(TemplateChoice templateChoice, uint8 index, address template) external;
+
+    function setReservedDaoAmount(uint256 reservedDaoAmount) external;
 }
