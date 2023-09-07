@@ -8,14 +8,14 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { NotOperationRole } from "contracts/interface/D4AErrors.sol";
-import { ID4AGrant } from "contracts/interface/ID4AGrant.sol";
+import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 
-contract D4AGrant is ID4AGrant {
+contract PDGrant is IPDGrant {
     function addAllowedToken(address token) external {
         if (!IAccessControl(address(this)).hasRole(OPERATION_ROLE, msg.sender)) revert NotOperationRole();
 

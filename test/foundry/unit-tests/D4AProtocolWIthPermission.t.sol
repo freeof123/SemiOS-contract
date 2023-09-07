@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ISafeOwnable } from "@solidstate/contracts/access/ownable/ISafeOwnable.sol";
+import { IInitializableInternal } from "@solidstate/contracts/security/initializable/IInitializableInternal.sol";
 
 import {
     IPermissionControl,
@@ -22,8 +23,8 @@ import {
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { ID4AProtocolAggregate } from "contracts/interface/ID4AProtocolAggregate.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
+import { PDProtocol } from "contracts/PDProtocol.sol";
 
 contract D4AProtocolTest is DeployHelper {
     using stdStorage for StdStorage;
@@ -111,9 +112,9 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_initialize() public {
-        protocol = ID4AProtocolAggregate(address(new D4ADiamond()));
+        protocol = IPDProtocolAggregate(address(new D4ADiamond()));
         ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
-        protocolImpl = new D4AProtocol();
+        protocolImpl = new PDProtocol();
 
         vm.startPrank(protocolOwner.addr);
         ISafeOwnable(address(protocol)).acceptOwnership();
@@ -123,7 +124,7 @@ contract D4AProtocolTest is DeployHelper {
     }
 
     function test_RevertIf_AlreadyInitialized() public {
-        vm.expectRevert("Initializable: contract is already initialized");
+        vm.expectRevert(IInitializableInternal.Initializable__AlreadyInitialized.selector);
         protocol.initialize();
     }
 

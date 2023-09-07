@@ -2,7 +2,6 @@
 pragma solidity ^0.8.18;
 
 import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
-import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 
 interface IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) external payable;

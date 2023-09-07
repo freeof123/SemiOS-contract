@@ -81,3 +81,10 @@ struct Whitelist {
     bytes32 canvasCreatorMerkleRoot;
     address[] canvasCreatorNFTHolderPasses;
 }
+
+struct BasicDaoParam {
+    uint256 initTokenSupplyRatio;
+    bytes32 canvasId;
+    string canvasUri;
+    string daoName;
+}

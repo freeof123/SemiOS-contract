@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
+import { PriceTemplateType, RewardTemplateType, DaoTag } from "../interface/D4AEnums.sol";
 import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
 library DaoStorage {
@@ -24,6 +24,7 @@ library DaoStorage {
         bool daoExist;
         PriceTemplateType priceTemplateType;
         RewardTemplateType rewardTemplateType;
+        DaoTag daoTag;
         DaoMintInfo daoMintInfo;
         bytes32[] canvases;
         uint256 nftPriceFactor;

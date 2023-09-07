@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { FixedPointMathLib as MathLady } from "solady/utils/FixedPointMathLib.sol";
 import { FixedPointMathLib as MathMate } from "solmate/utils/FixedPointMathLib.sol";
 
 import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";

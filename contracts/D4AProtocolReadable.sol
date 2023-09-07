@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
@@ -142,6 +143,10 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return DaoStorage.layout().daoInfos[daoId].daoMintInfo.daoMintCap;
     }
 
+    function getDaoNftHolderMintCap(bytes32 daoId) public view returns (uint32) {
+        return DaoStorage.layout().daoInfos[daoId].daoMintInfo.NFTHolderMintCap;
+    }
+
     function getUserMintInfo(bytes32 daoId, address account) public view returns (uint32 minted, uint32 userMintCap) {
         minted = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].minted;
         userMintCap = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].mintCap;
@@ -161,6 +166,13 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
             return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
         }
         return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
+    }
+
+    function getDaoTag(bytes32 daoId) public view returns (string memory) {
+        DaoTag tag = DaoStorage.layout().daoInfos[daoId].daoTag;
+        if (tag == DaoTag.D4A_DAO) return "D4A DAO";
+        else if (tag == DaoTag.BASIC_DAO) return "BASIC DAO";
+        else return "";
     }
 
     // canvas related functions

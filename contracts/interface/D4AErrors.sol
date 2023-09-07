@@ -64,3 +64,11 @@ error StartRoundAlreadyPassed();
 error DaoNotStarted();
 
 error NotOperationRole();
+
+error UnableToUnlock();
+
+error BasicDaoLocked();
+
+error NotCanvasIdOfSpecialTokenUri();
+
+error NotBasicDaoNftFlatPrice();

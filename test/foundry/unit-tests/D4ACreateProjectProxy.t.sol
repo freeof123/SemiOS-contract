@@ -6,7 +6,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {
     IPermissionControl,
-    D4ACreateProjectProxy,
+    PDCreateProjectProxy,
     DeployHelper,
     TransparentUpgradeableProxy
 } from "test/foundry/utils/DeployHelper.sol";
@@ -51,14 +51,14 @@ contract D4ACreateProjectProxyTest is DeployHelper {
     }
 
     function test_initialize() public {
-        daoProxyImpl = new D4ACreateProjectProxy(address(weth));
-        daoProxy = D4ACreateProjectProxy(
+        daoProxyImpl = new PDCreateProjectProxy(address(weth));
+        daoProxy = PDCreateProjectProxy(
             payable(
                 new TransparentUpgradeableProxy(
                     address(daoProxyImpl),
                     address(proxyAdmin),
                     abi.encodeWithSelector(
-                        D4ACreateProjectProxy.initialize.selector,
+                        PDCreateProjectProxy.initialize.selector,
                         address(uniswapV2Factory),
                         address(uniswapV2Router),
                         address(protocol),

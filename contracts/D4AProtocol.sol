@@ -4,11 +4,11 @@ pragma solidity >=0.8.10;
 // external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
+import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import { EIP712Upgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import { StringsUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import { EIP712 } from "solady/utils/EIP712.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
 
@@ -16,9 +16,7 @@ import { Multicallable } from "solady/utils/Multicallable.sol";
 import { BASIS_POINT, SIGNER_ROLE } from "contracts/interface/D4AConstants.sol";
 import {
     DaoMetadataParam,
-    TemplateParam,
     UpdateRewardParam,
-    UserMintCapParam,
     DaoMintInfo,
     UserMintInfo,
     MintNftInfo,
@@ -47,7 +45,7 @@ import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 
-contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGuardUpgradeable, EIP712Upgradeable {
+contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGuard, EIP712 {
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
@@ -61,16 +59,9 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
 
     uint256[46] private __gap;
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize() public reinitializer(2) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        __ReentrancyGuard_init();
         _daoIndex = l.reservedDaoAmount;
-        __EIP712_init("D4AProtocol", "2");
     }
 
     function createProject(
@@ -479,9 +470,8 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         view
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        bytes32 digest = _hashTypedDataV4(
-            keccak256(abi.encode(_MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), nftFlatPrice))
-        );
+        bytes32 digest =
+            _hashTypedData(keccak256(abi.encode(_MINTNFT_TYPEHASH, canvasId, keccak256(bytes(tokenUri)), nftFlatPrice)));
         address signer = ECDSAUpgradeable.recover(digest, signature);
         if (
             !IAccessControlUpgradeable(address(this)).hasRole(SIGNER_ROLE, signer)
@@ -549,7 +539,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         );
 
         // mint
-        tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri);
+        tokenId = D4AERC721(daoInfo.nft).mintItem(msg.sender, tokenUri, 0);
         {
             daoInfo.nftTotalSupply++;
             canvasInfo.tokenIds.push(tokenId);
@@ -627,7 +617,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         daoInfo.nftTotalSupply += vars.length;
         for (uint256 i; i < vars.length;) {
             uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri);
+            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, 0);
             canvasInfo.tokenIds.push(tokenIds[i]);
             _nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
             uint256 flatPrice = mintNftInfos[i].flatPrice;
@@ -860,7 +850,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = string(abi.encodePacked("D4A NFT for No.", StringsUpgradeable.toString(daoIndex)));
         string memory sym = string(abi.encodePacked("D4A.N", StringsUpgradeable.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym);
+        return l.erc721Factory.createD4AERC721(name, sym, 0);
     }
 
     function _createCanvas(
@@ -902,5 +892,10 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
         return canvasId;
+    }
+
+    function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
+        name = "ProtoDaoProtocol";
+        version = "1";
     }
 }

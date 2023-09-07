@@ -13,7 +13,7 @@ import { IAccessControl } from "@solidstate/contracts/access/access_control/IAcc
 
 import { getSettingsSelectors } from "contracts/utils/CutFacetFunctions.sol";
 import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { IPermissionControl, PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -37,10 +37,10 @@ contract UpgradeTest is Test, Script {
     D4AProtocol public protocol = D4AProtocol(json.readAddress(".D4AProtocol"));
 
     D4AProtocol public protocolImpl = D4AProtocol(json.readAddress(".D4AProtocol"));
-    D4ACreateProjectProxy public createProjectProxy =
-        D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_proxy")));
-    D4ACreateProjectProxy public createProjectProxyImpl =
-        D4ACreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_impl")));
+    PDCreateProjectProxy public createProjectProxy =
+        PDCreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_proxy")));
+    PDCreateProjectProxy public createProjectProxyImpl =
+        PDCreateProjectProxy(payable(json.readAddress(".D4ACreateProjectProxy_impl")));
     PermissionControl public permissionControl = PermissionControl(json.readAddress(".PermissionControl_proxy"));
     PermissionControl public permissionControlImpl = PermissionControl(json.readAddress(".PermissionControl_impl"));
     D4ARoyaltySplitterFactory public royaltySplitterFactory =
@@ -86,7 +86,7 @@ contract UpgradeTest is Test, Script {
         assertEq(periodBlockE18 / 1e18, periodBlock);
 
         protocolImpl = new D4AProtocol();
-        createProjectProxyImpl = new D4ACreateProjectProxy(weth);
+        createProjectProxyImpl = new PDCreateProjectProxy(weth);
         permissionControlImpl = new PermissionControl(address(protocol), address(createProjectProxy));
         royaltySplitterFactory =
             new D4ARoyaltySplitterFactory(weth, uniswapV2Router, json.readAddress(".OracleRegistry"));

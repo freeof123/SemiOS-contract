@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { FixedPointMathLib as Math } from "solady/utils/FixedPointMathLib.sol";
-
-import { BASIS_POINT, RewardTemplateBase } from "./bases/RewardTemplateBase.sol";
+import { RewardTemplateBase } from "./bases/RewardTemplateBase.sol";
 import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 

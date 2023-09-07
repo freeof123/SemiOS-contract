@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { RewardStorage } from "contracts/storages/RewardStorage.sol";
-
 interface ID4AProtocolReadable {
     // legacy functions
     function getProjectCanvasAt(bytes32 daoId, uint256 index) external view returns (bytes32);
@@ -71,6 +69,8 @@ interface ID4AProtocolReadable {
 
     function getDaoMintCap(bytes32 daoId) external view returns (uint32);
 
+    function getDaoNftHolderMintCap(bytes32 daoId) external view returns (uint32);
+
     function getUserMintInfo(
         bytes32 daoId,
         address account
@@ -82,6 +82,8 @@ interface ID4AProtocolReadable {
     function getDaoFeePoolETHRatio(bytes32 daoId) external view returns (uint256);
 
     function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
+
+    function getDaoTag(bytes32 daoId) external view returns (string memory);
 
     // canvas related functions
     function getCanvasDaoId(bytes32 canvasId) external view returns (bytes32 daoId);

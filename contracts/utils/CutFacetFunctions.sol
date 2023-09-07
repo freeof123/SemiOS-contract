@@ -2,12 +2,75 @@
 pragma solidity ^0.8.18;
 
 import { IAccessControl } from "@solidstate/contracts/access/access_control/IAccessControl.sol";
-import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
+import { ID4ACreate } from "contracts/interface/ID4ACreate.sol";
+import { IPDCreate } from "contracts/interface/IPDCreate.sol";
+import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
+import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { ID4AGrant } from "contracts/interface/ID4AGrant.sol";
+import { IPDGrant } from "contracts/interface/IPDGrant.sol";
+
+function getD4ACreateSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4ACreate
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createProject.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createOwnerProject.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ACreate.createCanvas.selector;
+    assert(interfaceId == type(ID4ACreate).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getPDCreateSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register PDCreate
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createBasicDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createOwnerBasicDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createCanvas.selector;
+    assert(interfaceId == type(IPDCreate).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getPDBasicDaoSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register PDCreate
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.unlock.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.ableToUnlock.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getTurnover.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.isUnlocked.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getCanvasIdOfSpecialNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.setSpecialTokenUriPrefix.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getSpecialTokenUriPrefix.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.setBasicDaoNftFlatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDBasicDao.getBasicDaoNftFlatPrice.selector;
+    assert(interfaceId == type(IPDBasicDao).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
 
 function getSettingsSelectors() pure returns (bytes4[] memory) {
     //------------------------------------------------------------------------------------------------------
@@ -56,6 +119,7 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setCanvasPause.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setReservedDaoAmount.selector;
     assert(interfaceId == type(ID4ASettings).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -100,9 +164,11 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoPriceFactor.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardTemplate.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftHolderMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTag.selector;
     // canvas related functions
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasDaoId.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasTokenIds.selector;
@@ -136,7 +202,11 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRoundReward.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRewardTillRound.selector;
-    assert(interfaceId == type(ID4AProtocolReadable).interfaceId);
+    // protocol related functions
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getNFTTokenCanvas.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoId.selector;
+    assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {
@@ -175,15 +245,15 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     uint256 selectorIndex;
     // register D4AGrant
     bytes4 interfaceId;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.addAllowedToken.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.removeAllowedToken.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantETH.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grant.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.grantWithPermit.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.getVestingWallet.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.getAllowedTokensList.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AGrant.isTokenAllowed.selector;
-    assert(interfaceId == type(ID4AGrant).interfaceId);
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.addAllowedToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.removeAllowedToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantETH.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grant.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantWithPermit.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.getVestingWallet.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.getAllowedTokensList.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.isTokenAllowed.selector;
+    assert(interfaceId == type(IPDGrant).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {

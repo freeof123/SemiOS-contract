@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 
 contract D4AUniversalClaimer {

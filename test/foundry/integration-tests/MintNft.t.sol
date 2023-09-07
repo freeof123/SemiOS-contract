@@ -326,4 +326,19 @@ contract MintNftTest is DeployHelper {
         assertEq(canvasCreator.addr.balance, 0 ether);
         assertEq(protocol.getCanvasNextPrice(canvasId), 1 ether);
     }
+
+    function test_TokenIdShouldStartAtOne() public {
+        DeployHelper.CreateDaoParam memory param;
+        daoId = _createDao(param);
+
+        hoax(canvasCreator.addr);
+        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+
+        uint256 tokenId = _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
+        assertEq(tokenId, 1);
+        tokenId = _mintNft(daoId, canvasId, "test token uri 2", 0, canvasCreator.key, nftMinter.addr);
+        assertEq(tokenId, 2);
+        tokenId = _mintNft(daoId, canvasId, "test token uri 3", 0, canvasCreator.key, nftMinter.addr);
+        assertEq(tokenId, 3);
+    }
 }

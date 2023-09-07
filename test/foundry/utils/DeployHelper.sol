@@ -19,6 +19,9 @@ import "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AStructs.sol";
 import {
+    getD4ACreateSelectors,
+    getPDCreateSelectors,
+    getPDBasicDaoSelectors,
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
@@ -27,32 +30,36 @@ import {
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
-import { ID4AProtocolAggregate } from "contracts/interface/ID4AProtocolAggregate.sol";
+import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
-import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
+// import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+// import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
+import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
+import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
+// import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { PDProtocol } from "contracts/PDProtocol.sol";
+import { PDCreate } from "contracts/PDCreate.sol";
+import { D4ACreate } from "contracts/D4ACreate.sol";
+import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
-import { D4AERC721Factory } from "contracts/D4AERC721.sol";
+import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
-import { D4AGrant } from "contracts/D4AGrant.sol";
+import { PDGrant } from "contracts/PDGrant.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -60,16 +67,19 @@ contract DeployHelper is Test {
     D4ASettings public settings;
     NaiveOwner public naiveOwner;
     NaiveOwner public naiveOwnerImpl;
-    D4AProtocolReadable public protocolReadable;
-    D4AProtocolSetter public protocolSetter;
-    ID4AProtocolAggregate public protocol;
-    D4AProtocol public protocolImpl;
-    D4ACreateProjectProxy public daoProxy;
-    D4ACreateProjectProxy public daoProxyImpl;
+    PDProtocolReadable public protocolReadable;
+    PDProtocolSetter public protocolSetter;
+    IPDProtocolAggregate public protocol;
+    PDProtocol public protocolImpl;
+    PDCreate public pdCreate;
+    D4ACreate public d4aCreate;
+    PDBasicDao public pdBasicDao;
+    PDCreateProjectProxy public daoProxy;
+    PDCreateProjectProxy public daoProxyImpl;
     PermissionControl public permissionControl;
     PermissionControl public permissionControlImpl;
     D4AERC20Factory public erc20Factory;
-    D4AERC721Factory public erc721Factory;
+    D4AERC721WithFilterFactory public erc721Factory;
     D4AFeePoolFactory public feePoolFactory;
     D4ARoyaltySplitterFactory public royaltySplitterFactory;
     address public weth;
@@ -84,7 +94,7 @@ contract DeployHelper is Test {
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
     MintNftSigUtils public mintNftSigUtils;
-    D4AGrant public grant;
+    PDGrant public grant;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -103,6 +113,8 @@ contract DeployHelper is Test {
     Account public nftMinter = makeAccount("NFT Minter 1");
     Account public nftMinter2 = makeAccount("NFT Minter 2");
     Account public randomGuy = makeAccount("Random Guy");
+
+    string public tokenUriPrefix = "https://dao4art.s3.ap-southeast-1.amazonaws.com/meta/work/";
 
     function setUpEnv() public {
         _deployeWETH();
@@ -130,6 +142,11 @@ contract DeployHelper is Test {
         _deployRewardTemplate();
 
         _initSettings();
+
+        vm.startPrank(operationRoleMember.addr);
+        protocol.setSpecialTokenUriPrefix(tokenUriPrefix);
+        protocol.setBasicDaoNftFlatPrice(0.01 ether);
+        vm.stopPrank();
 
         drb.changeRound(1);
     }
@@ -212,7 +229,7 @@ contract DeployHelper is Test {
     }
 
     function _deployERC721Factory() internal prank(protocolOwner.addr) {
-        erc721Factory = new D4AERC721Factory();
+        erc721Factory = new D4AERC721WithFilterFactory();
         vm.label(address(erc721Factory), "ERC721 Factory");
     }
 
@@ -245,14 +262,20 @@ contract DeployHelper is Test {
     }
 
     function _deployProtocol() internal prank(protocolOwner.addr) {
-        protocol = ID4AProtocolAggregate(payable(new D4ADiamond()));
-        protocolImpl = new D4AProtocol();
+        protocol = IPDProtocolAggregate(payable(new D4ADiamond()));
+        protocolImpl = new PDProtocol();
 
+        _deployD4ACreate();
+        _deployPDCreate();
+        _deployPDBasicDao();
         _deployProtocolReadable();
         _deployProtocolSetter();
         _deploySettings();
         _deployGrant();
 
+        _cutFacetsD4ACreate();
+        _cutFacetsPDCreate();
+        _cutFacetsPDBasicDao();
         _cutFacetsProtocolReadable();
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
@@ -266,13 +289,28 @@ contract DeployHelper is Test {
         vm.label(address(protocolImpl), "Protocol Impl");
     }
 
+    function _deployD4ACreate() internal {
+        d4aCreate = new D4ACreate();
+        vm.label(address(d4aCreate), "D4A Create");
+    }
+
+    function _deployPDCreate() internal {
+        pdCreate = new PDCreate();
+        vm.label(address(pdCreate), "Proto DAO Create");
+    }
+
+    function _deployPDBasicDao() internal {
+        pdBasicDao = new PDBasicDao();
+        vm.label(address(pdBasicDao), "Proto DAO Basic DAO");
+    }
+
     function _deployProtocolReadable() internal {
-        protocolReadable = new D4AProtocolReadable();
+        protocolReadable = new PDProtocolReadable();
         vm.label(address(protocolReadable), "Protocol Readable");
     }
 
     function _deployProtocolSetter() internal {
-        protocolSetter = new D4AProtocolSetter();
+        protocolSetter = new PDProtocolSetter();
         vm.label(address(protocolSetter), "Protocol Setter");
     }
 
@@ -282,8 +320,50 @@ contract DeployHelper is Test {
     }
 
     function _deployGrant() internal {
-        grant = new D4AGrant();
+        grant = new PDGrant();
         vm.label(address(grant), "Grant");
+    }
+
+    function _cutFacetsD4ACreate() internal {
+        //------------------------------------------------------------------------------------------------------
+        // D4ACreate facet cut
+        bytes4[] memory selectors = getD4ACreateSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(d4aCreate),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDCreate() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDCreate facet cut
+        bytes4[] memory selectors = getPDCreateSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdCreate),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDBasicDao() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDBasicDao facet cut
+        bytes4[] memory selectors = getPDBasicDaoSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdBasicDao),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _cutFacetsProtocolReadable() internal {
@@ -343,14 +423,14 @@ contract DeployHelper is Test {
     }
 
     function _deployDaoProxy() internal prank(protocolOwner.addr) {
-        daoProxyImpl = new D4ACreateProjectProxy(address(weth));
-        daoProxy = D4ACreateProjectProxy(
+        daoProxyImpl = new PDCreateProjectProxy(address(weth));
+        daoProxy = PDCreateProjectProxy(
             payable(
                 new TransparentUpgradeableProxy(
                     address(daoProxyImpl),
                     address(proxyAdmin),
                     abi.encodeWithSelector(
-                        D4ACreateProjectProxy.initialize.selector,
+                        PDCreateProjectProxy.initialize.selector,
                         address(uniswapV2Factory),
                         address(protocol),
                         address(royaltySplitterFactory),
@@ -361,6 +441,27 @@ contract DeployHelper is Test {
         );
         vm.label(address(daoProxy), "DAO Proxy");
         vm.label(address(daoProxyImpl), "DAO Proxy Impl");
+    }
+
+    function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
+        daoProxyImpl = new PDCreateProjectProxy(address(weth));
+        daoProxy = PDCreateProjectProxy(
+            payable(
+                new TransparentUpgradeableProxy(
+                    address(daoProxyImpl),
+                    address(proxyAdmin),
+                    abi.encodeWithSelector(
+                        PDCreateProjectProxy.initialize.selector,
+                        address(uniswapV2Factory),
+                        address(protocol),
+                        address(royaltySplitterFactory),
+                        royaltySplitterOwner
+                    )
+                )
+            )
+        );
+        vm.label(address(daoProxy), "PD DAO Proxy");
+        vm.label(address(daoProxyImpl), "PD DAO Proxy Impl");
     }
 
     function _deployPermissionControl() internal prank(protocolOwner.addr) {
@@ -586,6 +687,7 @@ contract DeployHelper is Test {
         RewardTemplateType rewardTemplateType;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
+        bytes32 canvasId;
         uint256 actionType;
     }
 
@@ -657,6 +759,75 @@ contract DeployHelper is Test {
         vm.stopPrank();
     }
 
+    function _createBasicDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+        daoId = daoProxy.createBasicDao(
+            DaoMetadataParam({
+                startDrb: drb.currentRound(),
+                mintableRounds: 60,
+                floorPriceRank: 0,
+                maxNftRank: 2,
+                royaltyFee: 1250,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: createDaoParam.minterMerkleRoot,
+                minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+                canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+                canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            }),
+            Blacklist({
+                minterAccounts: createDaoParam.minterAccounts,
+                canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+            }),
+            daoMintCapParam,
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 4800,
+                canvasCreatorERC20Ratio: 2500,
+                nftMinterERC20Ratio: 2500,
+                daoFeePoolETHRatio: 9750,
+                daoFeePoolETHRatioFlatPrice: 9750
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                isProgressiveJackpot: true
+            }),
+            BasicDaoParam({
+                initTokenSupplyRatio: 500,
+                canvasId: createDaoParam.canvasId,
+                canvasUri: "test dao creator canvas uri",
+                daoName: "test dao"
+            }),
+            16
+        );
+
+        vm.stopPrank();
+    }
+
     function _mintNft(
         bytes32 daoId,
         bytes32 canvasId,
@@ -673,9 +844,47 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
+            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
+
+        vm.stopPrank();
+        deal(hoaxer, bal);
+    }
+
+    struct MintNftWithProofLocalVars {
+        bytes32 daoId;
+        bytes32 canvasId;
+        string tokenUri;
+        uint256 flatPrice;
+        uint256 canvasCreatorKey;
+        address hoaxer;
+        bytes32[] proof;
+    }
+
+    function _mintNftWithProof(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice,
+        uint256 canvasCreatorKey,
+        address hoaxer,
+        bytes32[] memory proof
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        uint256 bal = hoaxer.balance;
+        startHoax(hoaxer);
+
+        MintNftWithProofLocalVars memory vars =
+            MintNftWithProofLocalVars(daoId, canvasId, tokenUri, flatPrice, canvasCreatorKey, hoaxer, proof);
+
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
         tokenId = protocol.mintNFT{
-            value: flatPrice == 0 ? ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) : flatPrice
-        }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
+            value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.canvasId) : vars.flatPrice
+        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v));
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -701,15 +910,12 @@ contract DeployHelper is Test {
             signatures[i] = abi.encodePacked(r, s, v);
         }
         uint256 totalPrice;
-        uint256 mintPrice = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId);
         uint256 counter;
-        uint256 priceFactor = ID4AProtocolReadable(address(protocol)).getDaoPriceFactor(daoId);
+        uint256 priceFactor = protocol.getDaoPriceFactor(daoId);
         for (uint256 i; i < tokenUris.length; i++) {
             if (flatPrices[i] == 0) {
-                if (
-                    ID4AProtocolReadable(address(protocol)).getDaoPriceTemplate(daoId)
-                        == address(exponentialPriceVariation)
-                ) {
+                if (protocol.getDaoPriceTemplate(daoId) == address(exponentialPriceVariation)) {
                     totalPrice += mintPrice * priceFactor ** counter / BASIS_POINT ** counter;
                 } else {
                     totalPrice += mintPrice + priceFactor * counter;
@@ -724,6 +930,64 @@ contract DeployHelper is Test {
             mintNftINfos[i] = MintNftInfo({ tokenUri: tokenUris[i], flatPrice: flatPrices[i] });
         }
         tokenIds = protocol.batchMint{ value: totalPrice }(daoId, canvasId, new bytes32[](0), mintNftINfos, signatures);
+
+        vm.stopPrank();
+    }
+
+    struct BatchMintWithProofLocalVars {
+        bytes32 daoId;
+        bytes32 canvasId;
+        string[] tokenUris;
+        uint256[] flatPrices;
+        uint256 canvasCreatorKey;
+        address hoaxer;
+        bytes32[] proof;
+    }
+
+    function _batchMintWithProof(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string[] memory tokenUris,
+        uint256[] memory flatPrices,
+        uint256 canvasCreatorKey,
+        address hoaxer,
+        bytes32[] memory proof
+    )
+        internal
+        returns (uint256[] memory tokenIds)
+    {
+        startHoax(hoaxer);
+
+        BatchMintWithProofLocalVars memory vars =
+            BatchMintWithProofLocalVars(daoId, canvasId, tokenUris, flatPrices, canvasCreatorKey, hoaxer, proof);
+
+        bytes[] memory signatures = new bytes[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUris[i], flatPrices[i]);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            signatures[i] = abi.encodePacked(r, s, v);
+        }
+        uint256 totalPrice;
+        uint256 mintPrice = protocol.getCanvasNextPrice(canvasId);
+        uint256 counter;
+        uint256 priceFactor = protocol.getDaoPriceFactor(daoId);
+        for (uint256 i; i < tokenUris.length; i++) {
+            if (flatPrices[i] == 0) {
+                if (protocol.getDaoPriceTemplate(vars.daoId) == address(exponentialPriceVariation)) {
+                    totalPrice += mintPrice * priceFactor ** counter / BASIS_POINT ** counter;
+                } else {
+                    totalPrice += mintPrice + priceFactor * counter;
+                }
+                ++counter;
+            } else {
+                totalPrice += flatPrices[i];
+            }
+        }
+        MintNftInfo[] memory mintNftINfos = new MintNftInfo[](tokenUris.length);
+        for (uint256 i; i < tokenUris.length; i++) {
+            mintNftINfos[i] = MintNftInfo({ tokenUri: tokenUris[i], flatPrice: flatPrices[i] });
+        }
+        tokenIds = protocol.batchMint{ value: totalPrice }(vars.daoId, vars.canvasId, proof, mintNftINfos, signatures);
 
         vm.stopPrank();
     }

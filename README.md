@@ -1,186 +1,20 @@
-# Foundry Template [![Open in Gitpod][gitpod-badge]][gitpod] [![Github Actions][gha-badge]][gha] [![Foundry][foundry-badge]][foundry] [![License: MIT][license-badge]][license]
+### ProtoDAO
 
-[gitpod]: https://gitpod.io/#https://github.com/WEI-NERD/d4a-contract-v2
-[gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
-[gha]: https://github.com/WEI-NERD/d4a-contract-v2/actions
-[gha-badge]: https://github.com/WEI-NERD/d4a-contract-v2/actions/workflows/ci.yml/badge.svg
-[foundry]: https://getfoundry.sh/
-[foundry-badge]: https://img.shields.io/badge/Built%20with-Foundry-FFDB1C.svg
-[license]: https://opensource.org/licenses/MIT
-[license-badge]: https://img.shields.io/badge/License-MIT-blue.svg
+1.  D4AERC721 为 721 的基类，D4AERC721WithFilter 继承了 D4AERC721，现在 PDERC721WithFilter 继承了 D4AERC721WithFilter，
+    重写了 mintItem 和 initialize 方法，但是 721Factory 为 D4AERC721WithFilterFactory。
 
-A Foundry-based template for developing Solidity smart contracts, with sensible defaults.
+2.  创建 DAO 和 Canvas，ProtoDAO 有两个切面，分别为 `PDCreate` 和 `D4ACreate`，两个合约是代码复制粘贴的，无继承关系，因
+    为代码逻辑改动的地方比较零散。
 
-## What's Inside
+3.  在 Foundry 框架中，任何需要用到 `--rpc-url` 的地方，如果没有指定 `--rpc-url`，
 
-- [Forge](https://github.com/foundry-rs/foundry/blob/master/forge): compile, test, fuzz, format, and deploy smart
-  contracts
-- [Forge Std](https://github.com/foundry-rs/forge-std): collection of helpful contracts and cheatcodes for testing
-- [PRBTest](https://github.com/PaulRBerg/prb-test): modern collection of testing assertions and logging utilities
-- [Prettier](https://github.com/prettier/prettier): code formatter for non-Solidity files
-- [Solhint Community](https://github.com/solhint-community/solhint-community): linter for Solidity code
+        - 如果设置了 `ETH_RPC_URL` 的环境变量 ，则会优先使用该变量作为 `rpc url`,
 
-## Getting Started
+        - 否则会使用 `localhost:8545` 端口
 
-Click the [`Use this template`](https://github.com/PaulRBerg/foundry-template/generate) button at the top of the page to
-create a new repository with this repo as the initial state.
+    如果指定了 `--rpc-url`，则优先使用指定的 `url`。
 
-Or, if you prefer to install the template manually:
-
-```sh
-forge init my-project --template https://github.com/PaulRBerg/foundry-template
-cd my-project
-pnpm install # install Solhint, Prettier, and other Node.js deps
-```
-
-If this is your first time with Foundry, check out the
-[installation](https://github.com/foundry-rs/foundry#installation) instructions.
-
-## Features
-
-This template builds upon the frameworks and libraries mentioned above, so for details about their specific features,
-please consult their respective documentation.
-
-For example, if you're interested in exploring Foundry in more detail, you should look at the
-[Foundry Book](https://book.getfoundry.sh/). In particular, you may be interested in reading the
-[Writing Tests](https://book.getfoundry.sh/forge/writing-tests.html) tutorial.
-
-### Sensible Defaults
-
-This template comes with a set of sensible default configurations for you to use. These defaults can be found in the
-following files:
-
-```text
-├── .editorconfig
-├── .gitignore
-├── .prettierignore
-├── .prettierrc.yml
-├── .solhint.json
-├── foundry.toml
-└── remappings.txt
-```
-
-### VSCode Integration
-
-This template is IDE agnostic, but for the best user experience, you may want to use it in VSCode alongside Nomic
-Foundation's [Solidity extension](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity).
-
-For guidance on how to integrate a Foundry project in VSCode, please refer to this
-[guide](https://book.getfoundry.sh/config/vscode).
-
-### GitHub Actions
-
-This template comes with GitHub Actions pre-configured. Your contracts will be linted and tested on every push and pull
-request made to the `main` branch.
-
-You can edit the CI script in [.github/workflows/ci.yml](./.github/workflows/ci.yml).
-
-## Writing Tests
-
-To write a new test contract, you start by importing [PRBTest](https://github.com/PaulRBerg/prb-test) and inherit from
-it in your test contract. PRBTest comes with a pre-instantiated [cheatcodes](https://book.getfoundry.sh/cheatcodes/)
-environment accessible via the `vm` property. If you would like to view the logs in the terminal output you can add the
-`-vvv` flag and use [console.log](https://book.getfoundry.sh/faq?highlight=console.log#how-do-i-use-consolelog).
-
-This template comes with an example test contract [Foo.t.sol](./test/Foo.t.sol)
-
-## Usage
-
-This is a list of the most frequently needed commands.
-
-### Build
-
-Build the contracts:
-
-```sh
-$ forge build
-```
-
-### Clean
-
-Delete the build artifacts and cache directories:
-
-```sh
-$ forge clean
-```
-
-### Compile
-
-Compile the contracts:
-
-```sh
-$ forge build
-```
-
-### Coverage
-
-Get a test coverage report:
-
-```sh
-$ forge coverage
-```
-
-### Deploy
-
-Deploy to Anvil:
-
-```sh
-$ forge script script/Deploy.s.sol --broadcast --fork-url http://localhost:8545
-```
-
-For this script to work, you need to have a `MNEMONIC` environment variable set to a valid
-[BIP39 mnemonic](https://iancoleman.io/bip39/).
-
-For instructions on how to deploy to a testnet or mainnet, check out the
-[Solidity Scripting](https://book.getfoundry.sh/tutorials/solidity-scripting.html) tutorial.
-
-### Format
-
-Format the contracts:
-
-```sh
-$ forge fmt
-```
-
-### Gas Usage
-
-Get a gas report:
-
-```sh
-$ forge test --gas-report
-```
-
-### Lint
-
-Lint the contracts:
-
-```sh
-$ pnpm lint
-```
-
-### Test
-
-Run the tests:
-
-```sh
-$ forge test
-```
-
-## Notes
-
-1. Foundry uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) to manage dependencies. For
-   detailed instructions on working with dependencies, please refer to the
-   [guide](https://book.getfoundry.sh/projects/dependencies.html) in the book
-2. You don't have to create a `.env` file, but filling in the environment variables may be useful when debugging and
-   testing against a fork.
-
-## Related Efforts
-
-- [abigger87/femplate](https://github.com/abigger87/femplate)
-- [cleanunicorn/ethereum-smartcontract-template](https://github.com/cleanunicorn/ethereum-smartcontract-template)
-- [foundry-rs/forge-template](https://github.com/foundry-rs/forge-template)
-- [FrankieIsLost/forge-template](https://github.com/FrankieIsLost/forge-template)
-
-## License
-
-This project is licensed under MIT.
+4.  调用 `createCanvasAndMintNFT` 接口时，参数 to 地址为 canvas creator，由于调用者可以任意指定 to 地址，但如果对应的，
+    不将 signature 也改变的话，在 mint NFT 时，会导致 signature 还原出来的 signer 和 canvas creator 不一致，导致交易
+    revert，如果调用者将 to 地址和 signature 同时改变，使得 signature 为指定的 to 地址的私钥对正确参数签名后得到的
+    signature，则交易可以正常执行，同时修改了 canvas 的 creator。但是这种攻击风险不考虑。
