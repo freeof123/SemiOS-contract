@@ -201,7 +201,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdProtocolReadable),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: selectors
             });
@@ -209,7 +209,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdProtocolReadable),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -217,7 +217,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdProtocolReadable),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -305,7 +305,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aCreate),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: selectors
             });
@@ -313,7 +313,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aCreate),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -321,7 +321,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aCreate),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -357,7 +357,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdCreate),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: selectors
             });
@@ -365,7 +365,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdCreate),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -373,7 +373,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdCreate),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -409,7 +409,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdBasicDao),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: selectors
             });
@@ -417,7 +417,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdBasicDao),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -425,7 +425,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(pdBasicDao),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -461,7 +461,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aSettings),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: selectors
             });
@@ -469,7 +469,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aSettings),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -477,7 +477,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(d4aSettings),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
