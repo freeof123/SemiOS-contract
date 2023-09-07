@@ -33,13 +33,15 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-    address public owner = vm.addr(deployerPrivateKey);
+    address public owner = 0x778c35DEc2f75dC959c53B6929C74efb0043358A;
+    // address public owner = vm.addr(deployerPrivateKey);
 
     address multisig = json.readAddress(".MultiSig1");
     address multisig2 = json.readAddress(".MultiSig2");
 
     function run() public {
-        vm.startBroadcast(deployerPrivateKey);
+        // vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(owner);
 
         // _deployDrb();
 
@@ -53,23 +55,23 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployProxyAdmin();
 
-        _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocolProxy();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet();
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet();
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter();
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter();
 
-        _deployD4ACreate();
-        _cutFacetsD4ACreate();
+        // _deployD4ACreate();
+        // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate();
+        // _deployPDCreate();
+        // _cutFacetsPDCreate();
 
-        _deployPDBasicDao();
-        _cutFacetsPDBasicDao();
+        // _deployPDBasicDao();
+        // _cutFacetsPDBasicDao();
 
         // _deploySettings();
         // _cutSettingsFacet();
@@ -94,10 +96,10 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
-        //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+        //     "https://protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
         // );
 
-        // _transferOwnership();
+        _transferOwnership();
 
         _checkStatus();
         vm.stopBroadcast();
@@ -381,16 +383,14 @@ contract DeployDemo is Script, Test, D4AAddress {
         });
 
         // TODO: change 137 to different when deploying to mainnet
-        (bool succ, bytes memory data) =
-            address(0x7995198FE6A9668911927c67C8184BbF24E42774).call(abi.encodeWithSignature("project_num()"));
-        assertTrue(succ);
-        uint256 daoIndex = abi.decode(data, (uint256));
-        assertEq(daoIndex, 127);
-        console2.log("daoIndex: %s", daoIndex);
+        // (bool succ, bytes memory data) =
+        //     address(0x7995198FE6A9668911927c67C8184BbF24E42774).call(abi.encodeWithSignature("project_num()"));
+        // assertTrue(succ);
+        // uint256 daoIndex = abi.decode(data, (uint256));
+        // assertEq(daoIndex, 127);
+        // console2.log("daoIndex: %s", daoIndex);
         D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
-            facetCuts,
-            address(d4aSettings),
-            abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, daoIndex)
+            facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 111)
         );
 
         console2.log("================================================================================\n");
@@ -703,6 +703,7 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // settings
         D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(multisig);
+        D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(multisig2);
         D4ASettings(address(pdProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
         D4ASettings(address(pdProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
         D4ASettings(address(pdProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
@@ -743,26 +744,31 @@ contract DeployDemo is Script, Test, D4AAddress {
         assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[0], address(pdProtocol_proxy));
         assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[1], address(pdProtocolReadable));
         assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[2], address(pdProtocolSetter));
-        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[3], address(d4aSettings));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[3], address(d4aCreate));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[4], address(pdCreate));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[5], address(pdBasicDao));
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[6], address(d4aSettings));
         assertEq(
             D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocol_proxy)).length, 12
         );
         assertEq(
             D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocolReadable)).length,
-            59
+            64
         );
         assertEq(
             D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdProtocolSetter)).length, 9
         );
-        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(d4aSettings)).length, 34);
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(d4aCreate)).length, 3);
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(pdCreate)).length, 3);
+        assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(address(d4aSettings)).length, 35);
         assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).getFallbackAddress(), address(pdProtocol_impl));
         assertTrue(
             D4ADiamond(payable(address(pdProtocol_proxy))).owner() == multisig
                 || D4ADiamond(payable(address(pdProtocol_proxy))).nomineeOwner() == multisig
         );
         (, string memory name, string memory version,,,,) = pdProtocol_proxy.eip712Domain();
-        assertEq(name, "PDProtocol");
-        assertEq(version, "2");
+        assertEq(name, "ProtoDaoProtocol");
+        assertEq(version, "1");
 
         // settings
         assertEq(D4ASettings(address(pdProtocol_proxy)).createCanvasFee(), 0);
