@@ -110,11 +110,11 @@ contract D4ARoyaltySplitter is Initializable, OwnableUpgradeable, AutomationComp
         uint256 daoFee = address(this).balance - protocolFee;
 
         if (protocolFee > 0) {
-            SafeTransferLib.safeTransferETH(protocolFeePool_, protocolFee);
+            SafeTransferLib.existFeePoolAddress(protocolFeePool_, protocolFee);
             emit ETHTransfered(protocolFeePool_, protocolFee);
         }
         if (daoFee > 0) {
-            SafeTransferLib.safeTransferETH(daoFeePool_, daoFee);
+            SafeTransferLib.existFeePoolAddress(daoFeePool_, daoFee);
             emit ETHTransfered(daoFeePool_, daoFee);
         }
     }

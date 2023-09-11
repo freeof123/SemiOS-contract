@@ -49,7 +49,7 @@ contract D4AVestingWallet {
             _released += amount;
             _lastUpdatedDaoTokenIssuance = IERC20(_daoToken).totalSupply() - _initDaoTokenBalance;
             emit EtherReleased(amount);
-            SafeTransferLib.safeTransferETH(payable(beneficiary()), amount);
+            SafeTransferLib.existFeePoolAddress(payable(beneficiary()), amount);
         }
     }
 

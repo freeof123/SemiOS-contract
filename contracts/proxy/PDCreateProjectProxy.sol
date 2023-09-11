@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10;
 
+import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import {
@@ -26,7 +27,7 @@ import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { ID4ARoyaltySplitterFactory } from "contracts/interface/ID4ARoyaltySplitterFactory.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 
-contract PDCreateProjectProxy is OwnableUpgradeable {
+contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
     address public protocol;
     ID4ARoyaltySplitterFactory public royaltySplitterFactory;
     address public royaltySplitterOwner;
@@ -87,6 +88,23 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
         uint256 actionType
     );
 
+    event CreateContinuousProjectParamEmitted(
+        bytes32 existDaoId,
+        bytes32 daoId,
+        address daoFeePool,
+        address token,
+        address nft,
+        DaoMetadataParam daoMetadataParam,
+        Whitelist whitelist,
+        Blacklist blacklist,
+        DaoMintCapParam daoMintCapParam,
+        DaoETHAndERC20SplitRatioParam splitRatioParam,
+        TemplateParam templateParam,
+        BasicDaoParam basicDaoParam,
+        uint256 actionType,
+        bool needMintableWork
+    );
+
     struct CreateProjectLocalVars {
         address daoFeePool;
         address token;
@@ -110,6 +128,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
     )
         public
         payable
+        nonReentrant
         returns (bytes32 daoId)
     {
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
@@ -178,6 +197,121 @@ contract PDCreateProjectProxy is OwnableUpgradeable {
                 splitRatioParam.daoFeePoolETHRatio,
                 splitRatioParam.daoFeePoolETHRatioFlatPrice
             );
+        }
+
+        // setup template
+        ID4AProtocolSetter(address(protocol)).setTemplate(daoId, templateParam);
+
+        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(address(protocol)).getDaoNftRoyaltyFeeRatioInBps(daoId);
+        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
+        ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(daoId, msg.sender);
+        ID4ASettingsReadable(address(protocol)).ownerProxy().transferOwnership(basicDaoParam.canvasId, msg.sender);
+        OwnableUpgradeable(vars.nft).transferOwnership(msg.sender);
+        address splitter = royaltySplitterFactory.createD4ARoyaltySplitter(
+            ID4ASettingsReadable(address(protocol)).protocolFeePool(),
+            protocolRoyaltyFeeRatioInBps,
+            vars.daoFeePool,
+            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
+        );
+        royaltySplitters[daoId] = splitter;
+        OwnableUpgradeable(splitter).transferOwnership(royaltySplitterOwner);
+        ID4AERC721(vars.nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
+    }
+
+    function createContinuousDao(
+        bytes32 existDaoId,
+        DaoMetadataParam calldata daoMetadataParam,
+        Whitelist memory whitelist,
+        Blacklist calldata blacklist,
+        DaoMintCapParam calldata daoMintCapParam,
+        DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        TemplateParam calldata templateParam,
+        BasicDaoParam calldata basicDaoParam,
+        uint256 actionType,
+        bool needMintableWork
+    )
+        public
+        payable
+        nonReentrant
+        returns (bytes32 daoId)
+    {
+        // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
+        if (
+            daoMetadataParam.floorPriceRank == 9999
+                && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
+        ) {
+            revert ZeroFloorPriceCannotUseLinearPriceVariation();
+        }
+
+        if ((actionType & 0x1) != 0) {
+            require(
+                IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
+                "only admin can specify project index"
+            );
+            daoId = IPDCreate(protocol).createOwnerBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        } else {
+            daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        }
+
+        CreateProjectLocalVars memory vars;
+
+        // Use the exist DaoFeePool and DaoToken
+        vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(existDaoId);
+        vars.token = ID4AProtocolReadable(address(protocol)).getDaoToken(existDaoId);
+        vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
+
+        emit CreateContinuousProjectParamEmitted(
+            existDaoId,
+            daoId,
+            vars.daoFeePool,
+            vars.token,
+            vars.nft,
+            daoMetadataParam,
+            whitelist,
+            blacklist,
+            daoMintCapParam,
+            splitRatioParam,
+            templateParam,
+            basicDaoParam,
+            actionType,
+            needMintableWork
+        );
+
+        address[] memory minterNFTHolderPasses = new address[](1);
+        minterNFTHolderPasses[0] = vars.nft;
+        whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
+        ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
+
+        if ((actionType & 0x4) != 0) {
+            ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+                daoId,
+                daoMintCapParam.daoMintCap,
+                daoMintCapParam.userMintCapParams,
+                whitelist,
+                blacklist,
+                Blacklist(new address[](0), new address[](0))
+            );
+        }
+
+        if ((actionType & 0x8) != 0) {
+            d4aswapFactory.createPair(vars.token, WETH);
+        }
+
+        if ((actionType & 0x10) != 0) {
+            ID4AProtocolSetter(address(protocol)).setRatio(
+                daoId,
+                splitRatioParam.daoCreatorERC20Ratio,
+                splitRatioParam.canvasCreatorERC20Ratio,
+                splitRatioParam.nftMinterERC20Ratio,
+                splitRatioParam.daoFeePoolETHRatio,
+                splitRatioParam.daoFeePoolETHRatioFlatPrice
+            );
+        }
+
+        if (needMintableWork) {
+            // 预留1000，具体方法参考PDCreate.sol 里面的 function _createERC721Token
+        } else {
+            // 同上同样方法，把 BASIC_DAO_RESERVE_NFT_NUMBER 改为 0
         }
 
         // setup template

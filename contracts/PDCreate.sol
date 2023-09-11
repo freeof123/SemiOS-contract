@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 // external deps
 import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { LibString } from "solady/utils/LibString.sol";
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
@@ -137,6 +138,67 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
     }
 
+    function createContinuousDao(
+        bytes32 existDaoId,
+        DaoMetadataParam memory daoMetadataParam,
+        BasicDaoParam memory basicDaoParam,
+        bool needMintableWork
+    )
+        public
+        payable
+        nonReentrant
+        returns (bytes32 daoId)
+    {
+        address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
+        address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
+
+        _checkPauseStatus();
+        _checkUriNotExist(daoMetadataParam.projectUri);
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        _checkCaller(l.createProjectProxy);
+        ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
+        protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+
+        daoId = _createContinuousProject(
+            daoMetadataParam.startDrb,
+            daoMetadataParam.mintableRounds,
+            daoMetadataParam.floorPriceRank,
+            daoMetadataParam.maxNftRank,
+            daoMetadataParam.royaltyFee,
+            protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
+            daoMetadataParam.projectUri,
+            basicDaoParam.initTokenSupplyRatio,
+            basicDaoParam.daoName,
+            tokenAddress,
+            feePoolAddress,
+            needMintableWork
+        );
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
+        = daoId;
+        ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+
+        DaoStorage.Layout storage daoStorage = DaoStorage.layout();
+        daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+        daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
+
+        protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
+
+        _createCanvas(
+            CanvasStorage.layout().canvasInfos,
+            daoId,
+            basicDaoParam.canvasId,
+            daoStorage.daoInfos[daoId].startRound,
+            daoStorage.daoInfos[daoId].canvases.length,
+            basicDaoParam.canvasUri,
+            msg.sender
+        );
+
+        daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
+    }
+
     function createCanvas(
         bytes32 daoId,
         bytes32 canvasId,
@@ -229,7 +291,85 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
-            daoInfo.nft = _createERC721Token(daoIndex, daoName);
+            bool needMintableWork = true;
+            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
+            D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
+
+            D4AERC721(daoInfo.nft).setContractUri(daoUri);
+            ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.assetOwner);
+            ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
+            //We copy from setting in case setting may change later.
+            daoInfo.tokenMaxSupply = (l.tokenMaxSupply * initTokenSupplyRatio) / BASIS_POINT;
+
+            if (daoFloorPriceRank != 9999) {
+                // 9999 is specified for 0 floor price
+                PriceStorage.layout().daoFloorPrices[daoId] = l.daoFloorPrices[daoFloorPriceRank];
+            }
+
+            daoInfo.daoExist = true;
+            emit NewProject(daoId, daoUri, daoFeePool, daoInfo.token, daoInfo.nft, royaltyFeeRatioInBps);
+        }
+    }
+
+    function _createContinuousProject(
+        uint256 startRound,
+        uint256 mintableRound,
+        uint256 daoFloorPriceRank,
+        uint256 nftMaxSupplyRank,
+        uint96 royaltyFeeRatioInBps,
+        uint256 daoIndex,
+        string memory daoUri,
+        uint256 initTokenSupplyRatio,
+        string memory daoName,
+        address tokenAddress,
+        address feePoolAddress,
+        bool needMintableWork
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        if (mintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
+        {
+            uint256 protocolRoyaltyFeeRatioInBps = l.protocolRoyaltyFeeRatioInBps;
+            if (
+                royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                    || royaltyFeeRatioInBps > l.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+            ) revert RoyaltyFeeRatioOutOfRange();
+        }
+
+        daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
+        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
+        {
+            if (startRound < l.drb.currentRound()) revert StartRoundAlreadyPassed();
+            daoInfo.startRound = startRound;
+            daoInfo.mintableRound = mintableRound;
+            daoInfo.nftMaxSupply = l.nftMaxSupplies[nftMaxSupplyRank];
+            daoInfo.daoUri = daoUri;
+            daoInfo.royaltyFeeRatioInBps = royaltyFeeRatioInBps;
+            daoInfo.daoIndex = daoIndex;
+            daoInfo.token = tokenAddress;
+
+            D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
+            D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
+
+            address daoFeePool = feePoolAddress;
+
+            D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
+
+            ID4AChangeAdmin(daoFeePool).changeAdmin(l.assetOwner);
+            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.assetOwner);
+
+            daoInfo.daoFeePool = daoFeePool;
+
+            l.ownerProxy.initOwnerOf(daoId, msg.sender);
+
+            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork);
+
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
@@ -256,11 +396,22 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         return l.erc20Factory.createD4AERC20(name, sym, address(this));
     }
 
-    function _createERC721Token(uint256 daoIndex, string memory daoName) internal returns (address) {
+    function _createERC721Token(
+        uint256 daoIndex,
+        string memory daoName,
+        bool needMintableWork
+    )
+        internal
+        returns (address)
+    {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
-        return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
+        if (needMintableWork) {
+            return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
+        } else {
+            return l.erc721Factory.createD4AERC721(name, sym, 0);
+        }
     }
 
     function _createCanvas(
