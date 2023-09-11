@@ -7,6 +7,7 @@ import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
 import "contracts/interface/D4AStructs.sol";
+import "forge-std/Test.sol";
 
 contract PDCreateTest is DeployHelper {
     function setUp() public {
@@ -127,5 +128,25 @@ contract PDCreateTest is DeployHelper {
         assertEq(protocol.getDaoNftHolderMintCap(daoId), 5);
         assertEq(protocol.getDaoTag(daoId), "BASIC DAO");
         assertEq(protocol.getDaoIndex(daoId), 42);
+    }
+
+    function test_createContinuousDao() public {
+        // 首先创建一个完整的basicDao用于创建之后延续的Dao
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        bytes32 daoId = _createBasicDao(createDaoParam);
+
+        // 创建延续到Dao
+        bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        // bytes32 continuousDaoId =
+
+        console2.logBytes32(canvasId);
+        console2.logBytes32(canvasId2);
+        // 测试延续的Dao的FeePool和Erc20是否正确
+
+        // 测试1000个mintable work是否可以自定义预留
+
+        // 测试奖励分配以及其他相关内容
     }
 }

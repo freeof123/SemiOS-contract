@@ -158,9 +158,9 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
             uint256 createDaoFeeAmount = l.createDaoFeeAmount;
             if (msg.value < createDaoFeeAmount) revert NotEnoughEther();
 
-            SafeTransferLib.existFeePoolAddress(l.protocolFeePool, createDaoFeeAmount);
+            SafeTransferLib.safeTransferETH(l.protocolFeePool, createDaoFeeAmount);
             uint256 exchange = msg.value - createDaoFeeAmount;
-            if (exchange > 0) SafeTransferLib.existFeePoolAddress(msg.sender, exchange);
+            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }
 
         daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
@@ -248,10 +248,10 @@ contract D4ACreate is ID4ACreate, ProtocolChecker, ReentrancyGuard {
             uint256 createCanvasFeeAmount = l.createCanvasFeeAmount;
             if (msg.value < createCanvasFeeAmount) revert NotEnoughEther();
 
-            SafeTransferLib.existFeePoolAddress(daoFeePool, createCanvasFeeAmount);
+            SafeTransferLib.safeTransferETH(daoFeePool, createCanvasFeeAmount);
 
             uint256 exchange = msg.value - createCanvasFeeAmount;
-            if (exchange > 0) SafeTransferLib.existFeePoolAddress(msg.sender, exchange);
+            if (exchange > 0) SafeTransferLib.safeTransferETH(msg.sender, exchange);
         }
         bytes32 canvasId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
         if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);

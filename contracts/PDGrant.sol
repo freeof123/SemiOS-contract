@@ -52,7 +52,7 @@ contract PDGrant is IPDGrant {
             );
             grantStorage.vestingWallets[daoId] = vestingWallet;
         }
-        if (msg.value > 0) SafeTransferLib.existFeePoolAddress(vestingWallet, msg.value);
+        if (msg.value > 0) SafeTransferLib.safeTransferETH(vestingWallet, msg.value);
     }
 
     function grant(bytes32 daoId, address token, uint256 amount) external {

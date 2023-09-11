@@ -732,10 +732,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         if (msg.value < price - rebateAmount) revert NotEnoughEther();
         uint256 dust = msg.value + rebateAmount - price;
 
-        if (protocolFee > 0) SafeTransferLib.existFeePoolAddress(protocolFeePool, protocolFee);
-        if (daoFee > 0) SafeTransferLib.existFeePoolAddress(daoFeePool, daoFee);
-        if (canvasFee > 0) SafeTransferLib.existFeePoolAddress(canvasOwner, canvasFee);
-        if (dust > 0) SafeTransferLib.existFeePoolAddress(msg.sender, dust);
+        if (protocolFee > 0) SafeTransferLib.safeTransferETH(protocolFeePool, protocolFee);
+        if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
+        if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
+        if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
     }
 
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
