@@ -828,6 +828,84 @@ contract DeployHelper is Test {
         vm.stopPrank();
     }
 
+    function _createContinuousDao(
+        CreateDaoParam memory createDaoParam,
+        bytes32 existDaoId,
+        bool needMintableWork
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+        daoId = daoProxy.createContinuousDao(
+            existDaoId,
+            DaoMetadataParam({
+                startDrb: drb.currentRound(),
+                mintableRounds: 60,
+                floorPriceRank: 0,
+                maxNftRank: 2,
+                royaltyFee: 1250,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: createDaoParam.minterMerkleRoot,
+                minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+                canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+                canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            }),
+            Blacklist({
+                minterAccounts: createDaoParam.minterAccounts,
+                canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+            }),
+            daoMintCapParam,
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 4800,
+                canvasCreatorERC20Ratio: 2500,
+                nftMinterERC20Ratio: 2500,
+                daoFeePoolETHRatio: 9750,
+                daoFeePoolETHRatioFlatPrice: 9750
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                isProgressiveJackpot: true
+            }),
+            BasicDaoParam({
+                initTokenSupplyRatio: 500,
+                canvasId: createDaoParam.canvasId,
+                canvasUri: "test dao creator canvas uri",
+                daoName: "test dao"
+            }),
+            16,
+            needMintableWork
+        );
+
+        vm.stopPrank();
+    }
+
     function _mintNft(
         bytes32 daoId,
         bytes32 canvasId,

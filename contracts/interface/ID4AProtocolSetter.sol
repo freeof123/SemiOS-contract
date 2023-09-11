@@ -7,6 +7,8 @@ import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 interface ID4AProtocolSetter {
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 
+    event DailyMintCapSet(bytes32 indexed daoId, uint256 dailyMintCap);
+
     event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);

@@ -9,6 +9,7 @@ import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } fr
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
@@ -46,6 +47,17 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         emit MintCapSet(daoId, daoMintCap, userMintCapParams);
 
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
+    }
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
+
+        emit DailyMintCapSet(daoId, dailyMintCap);
     }
 
     function setDaoParams(

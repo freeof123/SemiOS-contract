@@ -29,6 +29,21 @@ import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
+    struct CreateContinuousDaoParam {
+        uint256 startRound;
+        uint256 mintableRound;
+        uint256 daoFloorPriceRank;
+        uint256 nftMaxSupplyRank;
+        uint96 royaltyFeeRatioInBps;
+        uint256 daoIndex;
+        string daoUri;
+        uint256 initTokenSupplyRatio;
+        string daoName;
+        address tokenAddress;
+        address feePoolAddress;
+        bool needMintableWork;
+    }
+
     function createBasicDao(
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam
@@ -159,20 +174,23 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
 
-        daoId = _createContinuousProject(
-            daoMetadataParam.startDrb,
-            daoMetadataParam.mintableRounds,
-            daoMetadataParam.floorPriceRank,
-            daoMetadataParam.maxNftRank,
-            daoMetadataParam.royaltyFee,
-            protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
-            daoMetadataParam.projectUri,
-            basicDaoParam.initTokenSupplyRatio,
-            basicDaoParam.daoName,
-            tokenAddress,
-            feePoolAddress,
-            needMintableWork
-        );
+        CreateContinuousDaoParam memory createContinuousDaoParam;
+        {
+            createContinuousDaoParam.startRound = daoMetadataParam.startDrb;
+            createContinuousDaoParam.mintableRound = daoMetadataParam.mintableRounds;
+            createContinuousDaoParam.daoFloorPriceRank = daoMetadataParam.floorPriceRank;
+            createContinuousDaoParam.nftMaxSupplyRank = daoMetadataParam.maxNftRank;
+            createContinuousDaoParam.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
+            createContinuousDaoParam.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
+            createContinuousDaoParam.initTokenSupplyRatio;
+            createContinuousDaoParam.daoName = basicDaoParam.daoName;
+            createContinuousDaoParam.tokenAddress = tokenAddress;
+            createContinuousDaoParam.feePoolAddress = feePoolAddress;
+            createContinuousDaoParam.needMintableWork = needMintableWork;
+        }
+        daoId = _createContinuousProject(createContinuousDaoParam);
+
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;
         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
@@ -312,31 +330,19 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         }
     }
 
-    function _createContinuousProject(
-        uint256 startRound,
-        uint256 mintableRound,
-        uint256 daoFloorPriceRank,
-        uint256 nftMaxSupplyRank,
-        uint96 royaltyFeeRatioInBps,
-        uint256 daoIndex,
-        string memory daoUri,
-        uint256 initTokenSupplyRatio,
-        string memory daoName,
-        address tokenAddress,
-        address feePoolAddress,
-        bool needMintableWork
-    )
+    function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam)
         internal
         returns (bytes32 daoId)
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        if (mintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
+        if (createContinuousDaoParam.mintableRound > l.maxMintableRound) revert ExceedMaxMintableRound();
         {
             uint256 protocolRoyaltyFeeRatioInBps = l.protocolRoyaltyFeeRatioInBps;
             if (
-                royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
-                    || royaltyFeeRatioInBps > l.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                createContinuousDaoParam.royaltyFeeRatioInBps < l.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                    || createContinuousDaoParam.royaltyFeeRatioInBps
+                        > l.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
             ) revert RoyaltyFeeRatioOutOfRange();
         }
 
@@ -345,19 +351,19 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
         {
-            if (startRound < l.drb.currentRound()) revert StartRoundAlreadyPassed();
-            daoInfo.startRound = startRound;
-            daoInfo.mintableRound = mintableRound;
-            daoInfo.nftMaxSupply = l.nftMaxSupplies[nftMaxSupplyRank];
-            daoInfo.daoUri = daoUri;
-            daoInfo.royaltyFeeRatioInBps = royaltyFeeRatioInBps;
-            daoInfo.daoIndex = daoIndex;
-            daoInfo.token = tokenAddress;
+            if (createContinuousDaoParam.startRound < l.drb.currentRound()) revert StartRoundAlreadyPassed();
+            daoInfo.startRound = createContinuousDaoParam.startRound;
+            daoInfo.mintableRound = createContinuousDaoParam.mintableRound;
+            daoInfo.nftMaxSupply = l.nftMaxSupplies[createContinuousDaoParam.nftMaxSupplyRank];
+            daoInfo.daoUri = createContinuousDaoParam.daoUri;
+            daoInfo.royaltyFeeRatioInBps = createContinuousDaoParam.royaltyFeeRatioInBps;
+            daoInfo.daoIndex = createContinuousDaoParam.daoIndex;
+            daoInfo.token = createContinuousDaoParam.tokenAddress;
 
             D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
             D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
 
-            address daoFeePool = feePoolAddress;
+            address daoFeePool = createContinuousDaoParam.feePoolAddress;
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
@@ -368,24 +374,36 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
-            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork);
+            daoInfo.nft = _createERC721Token(
+                createContinuousDaoParam.daoIndex,
+                createContinuousDaoParam.daoName,
+                createContinuousDaoParam.needMintableWork
+            );
 
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
-            D4AERC721(daoInfo.nft).setContractUri(daoUri);
+            D4AERC721(daoInfo.nft).setContractUri(createContinuousDaoParam.daoUri);
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(l.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
-            daoInfo.tokenMaxSupply = (l.tokenMaxSupply * initTokenSupplyRatio) / BASIS_POINT;
+            daoInfo.tokenMaxSupply = (l.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
 
-            if (daoFloorPriceRank != 9999) {
+            if (createContinuousDaoParam.daoFloorPriceRank != 9999) {
                 // 9999 is specified for 0 floor price
-                PriceStorage.layout().daoFloorPrices[daoId] = l.daoFloorPrices[daoFloorPriceRank];
+                PriceStorage.layout().daoFloorPrices[daoId] =
+                    l.daoFloorPrices[createContinuousDaoParam.daoFloorPriceRank];
             }
 
             daoInfo.daoExist = true;
-            emit NewProject(daoId, daoUri, daoFeePool, daoInfo.token, daoInfo.nft, royaltyFeeRatioInBps);
+            emit NewProject(
+                daoId,
+                createContinuousDaoParam.daoUri,
+                daoFeePool,
+                daoInfo.token,
+                daoInfo.nft,
+                createContinuousDaoParam.royaltyFeeRatioInBps
+            );
         }
     }
 

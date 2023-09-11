@@ -33,6 +33,18 @@ contract PDProtocolSetter is D4AProtocolSetter {
         super.setMintCapAndPermission(daoId, daoMintCap, userMintCapParams, whitelist, blacklist, unblacklist);
     }
 
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public override {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
+            revert BasicDaoLocked();
+        }
+
+        super.setDailyMintCap(daoId, dailyMintCap);
+    }
+
     function setDaoParams(
         bytes32 daoId,
         uint256 nftMaxSupplyRank,

@@ -102,13 +102,26 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
         uint256 actionType,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 dailyMintCap
     );
 
     struct CreateProjectLocalVars {
+        bytes32 existDaoId;
+        bytes32 daoId;
         address daoFeePool;
         address token;
         address nft;
+        DaoMetadataParam daoMetadataParam;
+        Whitelist whitelist;
+        Blacklist blacklist;
+        DaoMintCapParam daoMintCapParam;
+        DaoETHAndERC20SplitRatioParam splitRatioParam;
+        TemplateParam templateParam;
+        BasicDaoParam basicDaoParam;
+        uint256 actionType;
+        bool needMintableWork;
+        uint256 dailyMintCap;
     }
 
     // first bit: 0: project, 1: owner project
@@ -235,6 +248,19 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         nonReentrant
         returns (bytes32 daoId)
     {
+        CreateProjectLocalVars memory vars;
+        vars.existDaoId = existDaoId;
+        vars.daoMetadataParam = daoMetadataParam;
+        vars.whitelist = whitelist;
+        vars.blacklist = blacklist;
+        vars.daoMintCapParam = daoMintCapParam;
+        vars.splitRatioParam = splitRatioParam;
+        vars.templateParam = templateParam;
+        vars.basicDaoParam = basicDaoParam;
+        vars.actionType = actionType;
+        vars.needMintableWork = needMintableWork;
+        vars.dailyMintCap = 10_000;
+
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
         if (
             daoMetadataParam.floorPriceRank == 9999
@@ -252,8 +278,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         } else {
             daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
         }
-
-        CreateProjectLocalVars memory vars;
+        vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
         vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(existDaoId);
@@ -261,20 +286,21 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
 
         emit CreateContinuousProjectParamEmitted(
-            existDaoId,
-            daoId,
+            vars.existDaoId,
+            vars.daoId,
             vars.daoFeePool,
             vars.token,
             vars.nft,
-            daoMetadataParam,
-            whitelist,
-            blacklist,
-            daoMintCapParam,
-            splitRatioParam,
-            templateParam,
-            basicDaoParam,
-            actionType,
-            needMintableWork
+            vars.daoMetadataParam,
+            vars.whitelist,
+            vars.blacklist,
+            vars.daoMintCapParam,
+            vars.splitRatioParam,
+            vars.templateParam,
+            vars.basicDaoParam,
+            vars.actionType,
+            vars.needMintableWork,
+            vars.dailyMintCap
         );
 
         address[] memory minterNFTHolderPasses = new address[](1);
@@ -287,8 +313,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
                 daoId,
                 daoMintCapParam.daoMintCap,
                 daoMintCapParam.userMintCapParams,
-                whitelist,
-                blacklist,
+                vars.whitelist,
+                vars.blacklist,
                 Blacklist(new address[](0), new address[](0))
             );
         }
@@ -306,12 +332,6 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
                 splitRatioParam.daoFeePoolETHRatio,
                 splitRatioParam.daoFeePoolETHRatioFlatPrice
             );
-        }
-
-        if (needMintableWork) {
-            // 预留1000，具体方法参考PDCreate.sol 里面的 function _createERC721Token
-        } else {
-            // 同上同样方法，把 BASIC_DAO_RESERVE_NFT_NUMBER 改为 0
         }
 
         // setup template
