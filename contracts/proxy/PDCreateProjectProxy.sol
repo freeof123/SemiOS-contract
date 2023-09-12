@@ -89,20 +89,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
     );
 
     event CreateContinuousProjectParamEmitted(
-        bytes32 existDaoId,
-        bytes32 daoId,
-        address daoFeePool,
-        address token,
-        address nft,
-        DaoMetadataParam daoMetadataParam,
-        Whitelist whitelist,
-        Blacklist blacklist,
-        DaoMintCapParam daoMintCapParam,
-        DaoETHAndERC20SplitRatioParam splitRatioParam,
-        TemplateParam templateParam,
-        BasicDaoParam basicDaoParam,
-        uint256 actionType,
-        bool needMintableWork
+        bytes32 existDaoId, bytes32 daoId, uint256 dailyMintCap, bool needMintableWork
     );
 
     struct CreateProjectLocalVars {
@@ -287,8 +274,9 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.token = ID4AProtocolReadable(address(protocol)).getDaoToken(existDaoId);
         vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
 
-        emit CreateContinuousProjectParamEmitted(
-            vars.existDaoId,
+        vars.dailyMintCap = 10_000;
+
+        emit CreateProjectParamEmitted(
             vars.daoId,
             vars.daoFeePool,
             vars.token,
@@ -300,9 +288,10 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             vars.splitRatioParam,
             vars.templateParam,
             vars.basicDaoParam,
-            vars.actionType,
-            vars.needMintableWork
+            vars.actionType
         );
+
+        emit CreateContinuousProjectParamEmitted(vars.existDaoId, vars.daoId, vars.dailyMintCap, vars.needMintableWork);
 
         address[] memory minterNFTHolderPasses = new address[](1);
         minterNFTHolderPasses[0] = vars.nft;

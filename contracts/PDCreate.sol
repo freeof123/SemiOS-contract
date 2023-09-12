@@ -360,15 +360,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoInfo.daoIndex = createContinuousDaoParam.daoIndex;
             daoInfo.token = createContinuousDaoParam.tokenAddress;
 
-            D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
-            D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
-
             address daoFeePool = createContinuousDaoParam.feePoolAddress;
-
-            D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
-
-            ID4AChangeAdmin(daoFeePool).changeAdmin(l.assetOwner);
-            ID4AChangeAdmin(daoInfo.token).changeAdmin(l.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
 

@@ -136,24 +136,19 @@ contract PDCreateTest is DeployHelper {
         address originalTokenAddress;
         address continuousTokenAddress;
 
-        // 首先创建一个完整的basicDao用于创建之后延续的Dao
         DeployHelper.CreateDaoParam memory createDaoParam;
         bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         createDaoParam.canvasId = canvasId;
         bytes32 daoId = _createBasicDao(createDaoParam);
-        // console2.log("daoId:");
-        // console2.logBytes32(daoId);
 
-        // 创建延续到Dao
         bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
         createDaoParam.canvasId = canvasId2;
         createDaoParam.daoUri = "continuous dao";
-        bool needMintableWork = true;
-        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
-        // console2.log("continuousDaoId:");
-        // console2.logBytes32(continuousDaoId);
+        bool needMintableWork = false;
+        // CreateContinuousDaoParam.initTokenSupplyRatio = 1000;
 
-        // 测试延续的Dao的FeePool和Erc20是否与原Dao保持一致
+        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
+
         originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
         continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);
         assertEq(originalDaoFeePoolAddress, continuousDaoFeePoolAddress);
@@ -162,8 +157,6 @@ contract PDCreateTest is DeployHelper {
         continuousTokenAddress = protocol.getDaoToken(continuousDaoId);
         assertEq(originalTokenAddress, continuousTokenAddress);
 
-        // 测试1000个mintable work是否可以自定义预留
-
-        // 测试奖励分配以及其他相关内容
+        // 默认basicDao是有1000个预留的，所以这里测试的是没有预留的情况
     }
 }

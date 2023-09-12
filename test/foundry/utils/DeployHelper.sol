@@ -905,7 +905,7 @@ contract DeployHelper is Test {
             isProgressiveJackpot: true
         });
         vars.basicDaoParam = BasicDaoParam({
-            initTokenSupplyRatio: 500,
+            initTokenSupplyRatio: 1000,
             canvasId: createDaoParam.canvasId,
             canvasUri: "test dao creator canvas uri",
             daoName: "test dao"
