@@ -131,21 +131,36 @@ contract PDCreateTest is DeployHelper {
     }
 
     function test_createContinuousDao() public {
+        address originalDaoFeePoolAddress;
+        address continuousDaoFeePoolAddress;
+        address originalTokenAddress;
+        address continuousTokenAddress;
+
         // 首先创建一个完整的basicDao用于创建之后延续的Dao
-        // DeployHelper.CreateDaoParam memory createDaoParam;
-        // bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        // createDaoParam.canvasId = canvasId;
-        // bytes32 daoId = _createBasicDao(createDaoParam);
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        bytes32 daoId = _createBasicDao(createDaoParam);
+        // console2.log("daoId:");
+        // console2.logBytes32(daoId);
 
         // 创建延续到Dao
-        // bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        // createDaoParam.canvasId = canvasId2;
-        //bytes32 continuousDaoId = _createContinuousDao();
-        // bytes32 continuousDaoId =
+        bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        createDaoParam.canvasId = canvasId2;
+        createDaoParam.daoUri = "continuous dao";
+        bool needMintableWork = true;
+        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
+        // console2.log("continuousDaoId:");
+        // console2.logBytes32(continuousDaoId);
 
-        // console2.logBytes32(canvasId);
-        // console2.logBytes32(canvasId2);
-        // 测试延续的Dao的FeePool和Erc20是否正确
+        // 测试延续的Dao的FeePool和Erc20是否与原Dao保持一致
+        originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
+        continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);
+        assertEq(originalDaoFeePoolAddress, continuousDaoFeePoolAddress);
+
+        originalTokenAddress = protocol.getDaoToken(daoId);
+        continuousTokenAddress = protocol.getDaoToken(continuousDaoId);
+        assertEq(originalTokenAddress, continuousTokenAddress);
 
         // 测试1000个mintable work是否可以自定义预留
 

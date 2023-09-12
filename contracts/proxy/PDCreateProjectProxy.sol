@@ -102,8 +102,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
         uint256 actionType,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        bool needMintableWork
     );
 
     struct CreateProjectLocalVars {
@@ -269,15 +268,18 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             revert ZeroFloorPriceCannotUseLinearPriceVariation();
         }
 
-        if ((actionType & 0x1) != 0) {
-            require(
-                IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
-                "only admin can specify project index"
-            );
-            daoId = IPDCreate(protocol).createOwnerBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
-        } else {
-            daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
-        }
+        // if ((actionType & 0x1) != 0) {
+        //     require(
+        //         IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
+        //         "only admin can specify project index"
+        //     );
+        //     daoId = IPDCreate(protocol).createOwnerBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        // } else {
+        //     daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
+        // }
+        daoId = IPDCreate(protocol).createContinuousDao{ value: msg.value }(
+            existDaoId, daoMetadataParam, basicDaoParam, needMintableWork
+        );
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
@@ -299,8 +301,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             vars.templateParam,
             vars.basicDaoParam,
             vars.actionType,
-            vars.needMintableWork,
-            vars.dailyMintCap
+            vars.needMintableWork
         );
 
         address[] memory minterNFTHolderPasses = new address[](1);

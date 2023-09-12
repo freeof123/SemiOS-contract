@@ -38,6 +38,7 @@ function getPDCreateSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDCreate.createBasicDao.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDCreate.createOwnerBasicDao.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDCreate.createCanvas.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createContinuousDao.selector;
     assert(interfaceId == type(IPDCreate).interfaceId);
 
     /// @solidity memory-safe-assembly
