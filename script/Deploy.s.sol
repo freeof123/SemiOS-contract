@@ -14,6 +14,7 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
+import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 import "contracts/interface/D4AEnums.sol";
 import {
@@ -63,7 +64,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutFacetsPDCreate();
 
         // _deployPDBasicDao();
-        // _cutFacetsPDBasicDao();
+        // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
         // _deploySettings();
         // _cutSettingsFacet();
@@ -89,6 +90,8 @@ contract Deploy is Script, Test, D4AAddress {
         // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+
+        _deployUnlocker();
         // );
 
         vm.stopBroadcast();
@@ -780,6 +783,19 @@ contract Deploy is Script, Test, D4AAddress {
             console2.log("Step 10: change create DOA and Canvas Fee to 0");
             D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
         }
+        console2.log("================================================================================\n");
+    }
+
+    function _deployUnlocker() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy BasicDaoUnlocker");
+
+        basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
+        assertTrue(address(basicDaoUnlocker) != address(0));
+
+        vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
+
+        console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
         console2.log("================================================================================\n");
     }
 }
