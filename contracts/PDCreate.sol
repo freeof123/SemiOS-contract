@@ -42,6 +42,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         address tokenAddress;
         address feePoolAddress;
         bool needMintableWork;
+        uint256 dailyMintCap;
     }
 
     function createBasicDao(
@@ -157,7 +158,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         bytes32 existDaoId,
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 dailyMintCap
     )
         public
         payable
@@ -188,6 +190,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
             createContinuousDaoParam.needMintableWork = needMintableWork;
+            createContinuousDaoParam.dailyMintCap = dailyMintCap;
         }
         daoId = _createContinuousProject(createContinuousDaoParam);
 
@@ -214,7 +217,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
-        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
+        // dailyMintCap
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
     }
 
     function createCanvas(

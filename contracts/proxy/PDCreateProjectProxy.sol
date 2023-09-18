@@ -227,7 +227,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         uint256 actionType,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 dailyMintCap
     )
         public
         payable
@@ -245,7 +246,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.basicDaoParam = basicDaoParam;
         vars.actionType = actionType;
         vars.needMintableWork = needMintableWork;
-        vars.dailyMintCap = 10_000;
+        vars.dailyMintCap = dailyMintCap;
 
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
         if (
@@ -265,16 +266,14 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         //     daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
         // }
         daoId = IPDCreate(protocol).createContinuousDao{ value: msg.value }(
-            existDaoId, daoMetadataParam, basicDaoParam, needMintableWork
-        );
+            existDaoId, daoMetadataParam, basicDaoParam, needMintableWork, dailyMintCap
+        ); //这个地方需要加上dailyMintCap
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
         vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(existDaoId);
         vars.token = ID4AProtocolReadable(address(protocol)).getDaoToken(existDaoId);
         vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
-
-        vars.dailyMintCap = 10_000;
 
         emit CreateProjectParamEmitted(
             vars.daoId,

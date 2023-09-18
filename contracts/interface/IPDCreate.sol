@@ -25,7 +25,8 @@ interface IPDCreate is ICreate {
         bytes32 existDaoId,
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 dailyMintCap
     )
         external
         payable

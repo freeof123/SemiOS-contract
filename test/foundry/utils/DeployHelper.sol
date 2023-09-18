@@ -121,10 +121,10 @@ contract DeployHelper is Test {
         DaoMetadataParam daoMetadataParam;
         Whitelist whitelist;
         Blacklist blacklist;
-        // DaoMintCapParam daoMintcapParam;
         DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
         TemplateParam templateParam;
         BasicDaoParam basicDaoParam;
+        uint256 dailyMintCap;
     }
 
     function setUpEnv() public {
@@ -921,7 +921,8 @@ contract DeployHelper is Test {
             vars.templateParam,
             vars.basicDaoParam,
             16,
-            needMintableWork
+            needMintableWork,
+            vars.dailyMintCap
         );
 
         vm.stopPrank();

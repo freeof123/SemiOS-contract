@@ -60,8 +60,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate();
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
@@ -72,7 +72,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        // _deployCreateProjectProxy();
+        _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();
@@ -91,7 +91,7 @@ contract Deploy is Script, Test, D4AAddress {
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
 
-        _deployUnlocker();
+        // _deployUnlocker();
         // );
 
         vm.stopBroadcast();
@@ -360,10 +360,12 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreate),
+                target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-                selectors: selectors
-            });
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x179Ca19bf3331Aa5d940787eB7272E30E2E3847A
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
@@ -620,9 +622,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
-        // );
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
+        );
 
         vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
 
