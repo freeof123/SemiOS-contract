@@ -14,9 +14,9 @@ struct DaoMetadataParam {
 }
 
 struct DaoMintInfo {
-    uint32 daoMintCap;
-    uint32 NFTHolderMintCap;
-    mapping(address minter => UserMintInfo) userMintInfos;
+    uint32 daoMintCap; // Dao的铸造上限
+    uint32 NFTHolderMintCap; // NftHolder的铸造上限
+    mapping(address minter => UserMintInfo) userMintInfos; // 给定minter的地址，获取已经mint的个数以及mintCap
 }
 
 struct UserMintInfo {

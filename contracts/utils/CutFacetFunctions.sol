@@ -231,6 +231,10 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setTemplate.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDailyMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoTokenSupply.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setWhitelistMintCap.selector;
+
     assert(interfaceId == type(ID4AProtocolSetter).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -263,3 +267,5 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
 
     return selectors;
 }
+
+// 是否要添加selector

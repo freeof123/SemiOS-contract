@@ -54,17 +54,17 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter();
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate();
 
         // _deployPDBasicDao();
-        // _cutFacetsPDBasicDao(DeployMethod.ADD);
+        // _cutFacetsPDBasicDao();
 
         // _deploySettings();
         // _cutSettingsFacet();
@@ -72,7 +72,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();
@@ -256,9 +256,11 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-                selectors: selectors
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xDf0A47223F73CE3B3CD4FEA5c5B999775cd2eEBD
+                    )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -620,6 +622,7 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDCreateProjectProxy");
 
+        // 下面这段有时候需要注释掉
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
         proxyAdmin.upgrade(

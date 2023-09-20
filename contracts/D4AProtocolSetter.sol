@@ -49,17 +49,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
-    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
-            revert NotDaoOwner();
-        }
-        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
-        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
-
-        emit DailyMintCapSet(daoId, dailyMintCap);
-    }
-
+    // 修改Dao参数
     function setDaoParams(
         bytes32 daoId,
         uint256 nftMaxSupplyRank,
@@ -273,5 +263,46 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps = newCanvasRebateRatioInBps;
 
         emit CanvasRebateRatioInBpsSet(canvasId, newCanvasRebateRatioInBps);
+    }
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
+
+        emit DailyMintCapSet(daoId, dailyMintCap);
+    }
+
+    function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
+        // 追加tokenMaxSupply并判断总数小于10亿
+        if (daoInfo.tokenMaxSupply + addedDaoToken > 1_000_000_000) {
+            revert SupplyOutOfRange();
+        } else {
+            daoInfo.tokenMaxSupply += addedDaoToken;
+        }
+
+        emit DaoTokenSupplySet(daoId, addedDaoToken);
+    }
+
+    function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+
+        DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
+
+        daoMintInfo.userMintInfos[whitelistUser].mintCap = whitelistUserMintCap;
+
+        emit WhiteListMintCapSet(daoId, whitelistUser, whitelistUserMintCap);
     }
 }

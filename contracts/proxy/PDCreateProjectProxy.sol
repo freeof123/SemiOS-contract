@@ -267,7 +267,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         // }
         daoId = IPDCreate(protocol).createContinuousDao{ value: msg.value }(
             existDaoId, daoMetadataParam, basicDaoParam, needMintableWork, dailyMintCap
-        ); //这个地方需要加上dailyMintCap
+        );
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken

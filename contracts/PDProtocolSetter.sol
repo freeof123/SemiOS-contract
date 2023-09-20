@@ -11,6 +11,7 @@ import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 
 contract PDProtocolSetter is D4AProtocolSetter {
+    // 修改黑白名单方法
     function setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,
@@ -33,18 +34,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         super.setMintCapAndPermission(daoId, daoMintCap, userMintCapParams, whitelist, blacklist, unblacklist);
     }
 
-    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public override {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
-
-        super.setDailyMintCap(daoId, dailyMintCap);
-    }
-
+    // 修改Dao参数方法
     function setDaoParams(
         bytes32 daoId,
         uint256 nftMaxSupplyRank,
@@ -173,5 +163,39 @@ contract PDProtocolSetter is D4AProtocolSetter {
         ) revert BasicDaoLocked();
 
         super.setCanvasRebateRatioInBps(canvasId, newCanvasRebateRatioInBps);
+    }
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public override {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
+            revert BasicDaoLocked();
+        }
+
+        super.setDailyMintCap(daoId, dailyMintCap);
+    }
+
+    function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) public override {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
+            revert BasicDaoLocked();
+        }
+        super.setDaoTokenSupply(daoId, addedDaoToken);
+    }
+
+    function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) public override {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) {
+            revert BasicDaoLocked();
+        }
+        super.setWhitelistMintCap(daoId, whitelistUser, whitelistUserMintCap);
     }
 }

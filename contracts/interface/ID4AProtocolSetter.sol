@@ -7,8 +7,6 @@ import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 interface ID4AProtocolSetter {
     event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
 
-    event DailyMintCapSet(bytes32 indexed daoId, uint256 dailyMintCap);
-
     event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
 
     event CanvasRebateRatioInBpsSet(bytes32 indexed canvasId, uint256 newCanvasRebateRatioInBps);
@@ -29,6 +27,12 @@ interface ID4AProtocolSetter {
         uint256 daoFeePoolETHRatio,
         uint256 daoFeePoolETHRatioFlatPrice
     );
+
+    event DailyMintCapSet(bytes32 indexed daoId, uint256 dailyMintCap);
+
+    event DaoTokenSupplySet(bytes32 daoId, uint256 addedDaoToken);
+
+    event WhiteListMintCapSet(bytes32 daoId, address whitelistUser, uint256 whitelistUserMintCap);
 
     function setMintCapAndPermission(
         bytes32 daoId,
@@ -64,6 +68,12 @@ interface ID4AProtocolSetter {
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) external;
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) external;
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) external;
+
+    function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) external;
+
+    function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) external;
 
     function setRatio(
         bytes32 daoId,
