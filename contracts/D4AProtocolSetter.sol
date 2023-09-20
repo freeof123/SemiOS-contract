@@ -5,7 +5,14 @@ import { FixedPointMathLib as Math } from "solady/utils/FixedPointMathLib.sol";
 import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    TemplateParam,
+    DaoMintInfo,
+    Whitelist,
+    Blacklist,
+    SetDaoParam
+} from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -50,37 +57,24 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     // 修改Dao参数
-    function setDaoParams(
-        bytes32 daoId,
-        uint256 nftMaxSupplyRank,
-        uint256 mintableRoundRank,
-        uint256 daoFloorPriceRank,
-        PriceTemplateType priceTemplateType,
-        uint256 nftPriceFactor,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        public
-        virtual
-    {
+    function setDaoParams(SetDaoParam memory vars) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
+        if (msg.sender != l.ownerProxy.ownerOf(vars.daoId)) revert NotDaoOwner();
 
-        setDaoNftMaxSupply(daoId, l.nftMaxSupplies[nftMaxSupplyRank]);
-        setDaoMintableRound(daoId, l.mintableRounds[mintableRoundRank]);
-        setDaoFloorPrice(daoId, daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[daoFloorPriceRank]);
-        setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
+        setDaoNftMaxSupply(vars.daoId, l.nftMaxSupplies[vars.nftMaxSupplyRank]);
+        setDaoMintableRound(vars.daoId, l.mintableRounds[vars.mintableRoundRank]);
+        setDaoFloorPrice(vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[vars.daoFloorPriceRank]);
+        setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor);
         setRatio(
-            daoId,
-            daoCreatorERC20Ratio,
-            canvasCreatorERC20Ratio,
-            nftMinterERC20Ratio,
-            daoFeePoolETHRatio,
-            daoFeePoolETHRatioFlatPrice
+            vars.daoId,
+            vars.daoCreatorERC20Ratio,
+            vars.canvasCreatorERC20Ratio,
+            vars.nftMinterERC20Ratio,
+            vars.daoFeePoolETHRatio,
+            vars.daoFeePoolETHRatioFlatPrice
         );
+        setDailyMintCap(vars.daoId, vars.dailyMintCap);
+        setDaoTokenSupply(vars.daoId, vars.addedDaoToken);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {

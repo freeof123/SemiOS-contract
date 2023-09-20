@@ -88,3 +88,20 @@ struct BasicDaoParam {
     string canvasUri;
     string daoName;
 }
+
+// 修改Dao中参数的结构体，被用于setDaoParams方法
+struct SetDaoParam {
+    bytes32 daoId;
+    uint256 nftMaxSupplyRank;
+    uint256 mintableRoundRank;
+    uint256 daoFloorPriceRank;
+    PriceTemplateType priceTemplateType;
+    uint256 nftPriceFactor;
+    uint256 daoCreatorERC20Ratio;
+    uint256 canvasCreatorERC20Ratio;
+    uint256 nftMinterERC20Ratio;
+    uint256 daoFeePoolETHRatio;
+    uint256 daoFeePoolETHRatioFlatPrice;
+    uint256 dailyMintCap;
+    uint256 addedDaoToken;
+}

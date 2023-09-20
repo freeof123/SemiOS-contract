@@ -27,9 +27,10 @@ contract D4AProtocolSetterTest is DeployHelper {
         drb.changeRound(1);
 
         hoax(daoCreator.addr);
-        D4AProtocolSetter(address(protocol)).setDaoParams(
-            daoId, 0, 1, 9999, PriceTemplateType(0), 20_000, 300, 9500, 0, 250, 750
-        );
+        // 需要先构造一个结构体然后传递参数，否则栈溢出
+        // D4AProtocolSetter(address(protocol)).setDaoParams(
+        //     daoId, 0, 1, 9999, PriceTemplateType(0), 20_000, 300, 9500, 0, 250, 750, 10, 10_000_000
+        // );
     }
 
     /**

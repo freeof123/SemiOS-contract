@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, TemplateParam, Whitelist, Blacklist, SetDaoParam } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 
 interface ID4AProtocolSetter {
@@ -44,20 +44,7 @@ interface ID4AProtocolSetter {
     )
         external;
 
-    function setDaoParams(
-        bytes32 daoId,
-        uint256 nftMaxSupplyRank,
-        uint256 mintableRoundRank,
-        uint256 daoFloorPriceRank,
-        PriceTemplateType priceTemplateType,
-        uint256 nftPriceFactor,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        external;
+    function setDaoParams(SetDaoParam memory vars) external;
 
     function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 priceFactor) external;
 

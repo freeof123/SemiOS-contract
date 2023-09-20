@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, TemplateParam, Whitelist, Blacklist, SetDaoParam } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -35,40 +35,13 @@ contract PDProtocolSetter is D4AProtocolSetter {
     }
 
     // 修改Dao参数方法
-    function setDaoParams(
-        bytes32 daoId,
-        uint256 nftMaxSupplyRank,
-        uint256 mintableRoundRank,
-        uint256 daoFloorPriceRank,
-        PriceTemplateType priceTemplateType,
-        uint256 nftPriceFactor,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        public
-        override
-    {
+    function setDaoParams(SetDaoParam memory vars) public override {
         if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+            DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[vars.daoId].unlocked
         ) revert BasicDaoLocked();
 
-        super.setDaoParams(
-            daoId,
-            nftMaxSupplyRank,
-            mintableRoundRank,
-            daoFloorPriceRank,
-            priceTemplateType,
-            nftPriceFactor,
-            daoCreatorERC20Ratio,
-            canvasCreatorERC20Ratio,
-            nftMinterERC20Ratio,
-            daoFeePoolETHRatio,
-            daoFeePoolETHRatioFlatPrice
-        );
+        super.setDaoParams(vars);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public override {
