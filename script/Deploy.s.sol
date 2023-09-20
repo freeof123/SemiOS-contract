@@ -54,8 +54,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -622,7 +622,7 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDCreateProjectProxy");
 
-        // 下面这段有时候需要注释掉
+        // 下面这段在部署失败重新部署时需要被注释掉
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
         proxyAdmin.upgrade(
