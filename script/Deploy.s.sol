@@ -54,14 +54,14 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate();
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -72,13 +72,13 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        // _deployCreateProjectProxy();
-        // _deployCreateProjectProxyProxy();
+        _deployCreateProjectProxy();
+        //_deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();
         // _deployPermissionControlProxy();
 
-        // _initSettings();
+        //_initSettings();
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
@@ -259,7 +259,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xDf0A47223F73CE3B3CD4FEA5c5B999775cd2eEBD
+                    0x92b577E1Bc21606a48cf89137f0F348a24424845
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -365,7 +365,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x179Ca19bf3331Aa5d940787eB7272E30E2E3847A
+                    0x14b7bBaf01FF058Da569Fc1dff72edA7600F48ab
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -625,6 +625,8 @@ contract Deploy is Script, Test, D4AAddress {
         // 下面这段在部署失败重新部署时需要被注释掉
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
+        //pdCreateProjectProxy_impl = PDCreateProjectProxy(payable(0x23951139124dd1803BE081e781Ba563C554D0542));
+
         proxyAdmin.upgrade(
             ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
         );

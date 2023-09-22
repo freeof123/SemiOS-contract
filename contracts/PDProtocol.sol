@@ -371,10 +371,17 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             revert NotInWhitelist();
         }
 
+        // 用户MintCap不为0，检查请求铸造的数量如果小于等于MintCap则返回true，否则false
         if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
+
+        // 用户没有铸造上限，但是NFTHolder有铸造上限，并且持有拥有铸造权限的NFT，检查请求铸造的数量是否小于等于NFTHolderMintCap
         if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
             return expectedMinted <= NFTHolderMintCap;
         }
+
+        // 检测用户是否持有带有铸造上限的白名单ERC-721
+
+        // 检查是否达到Dao的全局上限
         if (daoMintCap != 0) return expectedMinted <= daoMintCap;
         return true;
     }

@@ -1,11 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam, Whitelist, Blacklist, SetDaoParam } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    TemplateParam,
+    Whitelist,
+    Blacklist,
+    SetDaoParam,
+    NftMinterCapInfo
+} from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 
 interface ID4AProtocolSetter {
-    event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
+    event MintCapSet(
+        bytes32 indexed daoId,
+        uint32 daoMintCap,
+        UserMintCapParam[] userMintCapParams,
+        NftMinterCapInfo[] nftMinterCapInfo
+    );
 
     event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
 
@@ -38,6 +50,7 @@ interface ID4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist

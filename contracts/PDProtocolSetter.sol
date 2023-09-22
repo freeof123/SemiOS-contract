@@ -1,7 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam, Whitelist, Blacklist, SetDaoParam } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    TemplateParam,
+    Whitelist,
+    Blacklist,
+    SetDaoParam,
+    NftMinterCapInfo
+} from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -16,6 +23,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
@@ -31,7 +39,9 @@ contract PDProtocolSetter is D4AProtocolSetter {
             revert BasicDaoLocked();
         }
 
-        super.setMintCapAndPermission(daoId, daoMintCap, userMintCapParams, whitelist, blacklist, unblacklist);
+        super.setMintCapAndPermission(
+            daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, whitelist, blacklist, unblacklist
+        );
     }
 
     // 修改Dao参数方法

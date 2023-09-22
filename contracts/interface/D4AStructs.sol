@@ -19,6 +19,18 @@ struct DaoMintInfo {
     mapping(address minter => UserMintInfo) userMintInfos; // 给定minter的地址，获取已经mint的个数以及mintCap
 }
 
+struct NftMinterCapInfo {
+    address nftAddress;
+    uint256 nftMintCap;
+}
+
+struct NftMinterCap {
+    // nftExistInMapping[address] = true;
+    mapping(address nftAddress => bool) nftExistInMapping;
+    // nftHolderMintCap[address] = <MintCap>
+    mapping(address nftAddress => uint256) nftHolderMintCap;
+}
+
 struct UserMintInfo {
     uint32 minted;
     uint32 mintCap;
@@ -104,4 +116,23 @@ struct SetDaoParam {
     uint256 daoFeePoolETHRatioFlatPrice;
     uint256 dailyMintCap;
     uint256 addedDaoToken;
+}
+
+struct SetMintCapAndPermissionParam {
+    bytes32 daoId;
+    uint32 daoMintCap;
+    UserMintCapParam[] userMintCapParams;
+    NftMinterCapInfo[] nftMinterCapInfo;
+    Whitelist whitelist;
+    Blacklist blacklist;
+    Blacklist unblacklist;
+}
+
+struct SetRatioParam {
+    bytes32 daoId;
+    uint256 daoCreatorERC20Ratio;
+    uint256 canvasCreatorERC20Ratio;
+    uint256 nftMinterERC20Ratio;
+    uint256 daoFeePoolETHRatio;
+    uint256 daoFeePoolETHRatioFlatPrice;
 }

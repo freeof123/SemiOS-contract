@@ -11,7 +11,10 @@ import {
     TemplateParam,
     Whitelist,
     Blacklist,
-    BasicDaoParam
+    BasicDaoParam,
+    NftMinterCapInfo,
+    SetMintCapAndPermissionParam,
+    SetRatioParam
 } from "contracts/interface/D4AStructs.sol";
 import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
@@ -172,14 +175,24 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
+        SetMintCapAndPermissionParam memory permissionVars;
+        permissionVars.daoId = daoId;
+        permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
+        permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
+        NftMinterCapInfo[] memory nftMinterCapInfo;
+        permissionVars.nftMinterCapInfo = nftMinterCapInfo;
+        permissionVars.whitelist = whitelist;
+        permissionVars.blacklist = blacklist;
+        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
         if ((actionType & 0x4) != 0) {
             ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-                daoId,
-                daoMintCapParam.daoMintCap,
-                daoMintCapParam.userMintCapParams,
-                whitelist,
-                blacklist,
-                Blacklist(new address[](0), new address[](0))
+                permissionVars.daoId,
+                permissionVars.daoMintCap,
+                permissionVars.userMintCapParams,
+                permissionVars.nftMinterCapInfo,
+                permissionVars.whitelist,
+                permissionVars.blacklist,
+                permissionVars.unblacklist
             );
         }
 
@@ -187,14 +200,21 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             d4aswapFactory.createPair(vars.token, WETH);
         }
 
+        SetRatioParam memory ratioVars;
+        ratioVars.daoId = daoId;
+        ratioVars.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId,
-                splitRatioParam.daoCreatorERC20Ratio,
-                splitRatioParam.canvasCreatorERC20Ratio,
-                splitRatioParam.nftMinterERC20Ratio,
-                splitRatioParam.daoFeePoolETHRatio,
-                splitRatioParam.daoFeePoolETHRatioFlatPrice
+                ratioVars.daoId,
+                ratioVars.daoCreatorERC20Ratio,
+                ratioVars.canvasCreatorERC20Ratio,
+                ratioVars.nftMinterERC20Ratio,
+                ratioVars.daoFeePoolETHRatio,
+                ratioVars.daoFeePoolETHRatioFlatPrice
             );
         }
 
@@ -297,14 +317,24 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
+        SetMintCapAndPermissionParam memory permissionVars;
+        permissionVars.daoId = daoId;
+        permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
+        permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
+        NftMinterCapInfo[] memory nftMinterCapInfo;
+        permissionVars.nftMinterCapInfo = nftMinterCapInfo;
+        permissionVars.whitelist = whitelist;
+        permissionVars.blacklist = blacklist;
+        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
         if ((actionType & 0x4) != 0) {
             ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-                daoId,
-                daoMintCapParam.daoMintCap,
-                daoMintCapParam.userMintCapParams,
-                vars.whitelist,
-                vars.blacklist,
-                Blacklist(new address[](0), new address[](0))
+                permissionVars.daoId,
+                permissionVars.daoMintCap,
+                permissionVars.userMintCapParams,
+                permissionVars.nftMinterCapInfo,
+                permissionVars.whitelist,
+                permissionVars.blacklist,
+                permissionVars.unblacklist
             );
         }
 
@@ -312,14 +342,21 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             d4aswapFactory.createPair(vars.token, WETH);
         }
 
+        SetRatioParam memory ratioVars;
+        ratioVars.daoId = daoId;
+        ratioVars.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId,
-                splitRatioParam.daoCreatorERC20Ratio,
-                splitRatioParam.canvasCreatorERC20Ratio,
-                splitRatioParam.nftMinterERC20Ratio,
-                splitRatioParam.daoFeePoolETHRatio,
-                splitRatioParam.daoFeePoolETHRatioFlatPrice
+                ratioVars.daoId,
+                ratioVars.daoCreatorERC20Ratio,
+                ratioVars.canvasCreatorERC20Ratio,
+                ratioVars.nftMinterERC20Ratio,
+                ratioVars.daoFeePoolETHRatio,
+                ratioVars.daoFeePoolETHRatioFlatPrice
             );
         }
 
@@ -419,14 +456,24 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
         }
 
+        SetMintCapAndPermissionParam memory permissionVars;
+        permissionVars.daoId = daoId;
+        permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
+        permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
+        NftMinterCapInfo[] memory nftMinterCapInfo;
+        permissionVars.nftMinterCapInfo = nftMinterCapInfo;
+        permissionVars.whitelist = whitelist;
+        permissionVars.blacklist = blacklist;
+        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
         if ((actionType & 0x4) != 0) {
             ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-                daoId,
-                daoMintCapParam.daoMintCap,
-                daoMintCapParam.userMintCapParams,
-                whitelist,
-                blacklist,
-                Blacklist(new address[](0), new address[](0))
+                permissionVars.daoId,
+                permissionVars.daoMintCap,
+                permissionVars.userMintCapParams,
+                permissionVars.nftMinterCapInfo,
+                permissionVars.whitelist,
+                permissionVars.blacklist,
+                permissionVars.unblacklist
             );
         }
 
@@ -434,14 +481,21 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             d4aswapFactory.createPair(token, WETH);
         }
 
+        SetRatioParam memory ratioVars;
+        ratioVars.daoId = daoId;
+        ratioVars.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
-                daoId,
-                splitRatioParam.daoCreatorERC20Ratio,
-                splitRatioParam.canvasCreatorERC20Ratio,
-                splitRatioParam.nftMinterERC20Ratio,
-                splitRatioParam.daoFeePoolETHRatio,
-                splitRatioParam.daoFeePoolETHRatioFlatPrice
+                ratioVars.daoId,
+                ratioVars.daoCreatorERC20Ratio,
+                ratioVars.canvasCreatorERC20Ratio,
+                ratioVars.nftMinterERC20Ratio,
+                ratioVars.daoFeePoolETHRatio,
+                ratioVars.daoFeePoolETHRatioFlatPrice
             );
         }
 

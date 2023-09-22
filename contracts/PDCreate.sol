@@ -186,7 +186,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
             createContinuousDaoParam.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
             createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
-            createContinuousDaoParam.initTokenSupplyRatio;
+            createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
@@ -441,10 +441,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         internal
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        {
-            uint256 cur_round = l.drb.currentRound();
-            if (cur_round < daoStartRound) revert DaoNotStarted();
-        }
 
         if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
 

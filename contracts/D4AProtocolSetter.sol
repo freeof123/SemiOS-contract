@@ -11,7 +11,9 @@ import {
     DaoMintInfo,
     Whitelist,
     Blacklist,
-    SetDaoParam
+    SetDaoParam,
+    NftMinterCapInfo,
+    NftMinterCap
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -30,6 +32,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
@@ -50,8 +53,17 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
                 ++i;
             }
         }
+        NftMinterCap storage nftMinterCap = DaoStorage.layout().daoInfos[daoId].nftMinterCap;
+        length = nftMinterCapInfo.length;
+        for (uint256 i; i < length;) {
+            nftMinterCap.nftExistInMapping[nftMinterCapInfo[i].nftAddress] = true;
+            nftMinterCap.nftHolderMintCap[nftMinterCapInfo[i].nftAddress] = nftMinterCapInfo[i].nftMintCap;
+            unchecked {
+                ++i;
+            }
+        }
 
-        emit MintCapSet(daoId, daoMintCap, userMintCapParams);
+        emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo);
 
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
