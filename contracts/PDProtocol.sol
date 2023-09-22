@@ -8,6 +8,7 @@ import { Initializable } from "@solidstate/contracts/security/initializable/Init
 import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { ECDSAUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 import { EIP712 } from "solady/utils/EIP712.sol";
+import { IERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { LibString } from "solady/utils/LibString.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
@@ -15,7 +16,12 @@ import { Multicallable } from "solady/utils/Multicallable.sol";
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, SIGNER_ROLE, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import {
-    UpdateRewardParam, DaoMintInfo, UserMintInfo, MintNftInfo, Whitelist
+    UpdateRewardParam,
+    DaoMintInfo,
+    UserMintInfo,
+    MintNftInfo,
+    Whitelist,
+    NftMinterCapInfo
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -349,24 +355,26 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         4. dao mint cap
         */
         IPermissionControl permissionControl = SettingsStorage.layout().permissionControl;
+
+        // 在黑名单中，无法铸造，revert
         if (permissionControl.isMinterBlacklisted(daoId, account)) {
             revert Blacklisted();
         }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         uint32 daoMintCap = daoMintInfo.daoMintCap;
-        uint32 NFTHolderMintCap = daoMintInfo.NFTHolderMintCap;
         UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
 
         Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
         bool isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0;
 
         uint256 expectedMinted = userMintInfo.minted + amount;
-        // no whitelist
+
+        // 没有白名单，判断铸造请求与全局铸造上限的大小
         if (isWhitelistOff) {
             return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
         }
 
-        // whitelist on && not in whitelist
+        // 开启白名单 && 未在白名单中
         if (!permissionControl.inMinterWhitelist(daoId, account, proof)) {
             revert NotInWhitelist();
         }
@@ -374,12 +382,41 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         // 用户MintCap不为0，检查请求铸造的数量如果小于等于MintCap则返回true，否则false
         if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
 
-        // 用户没有铸造上限，但是NFTHolder有铸造上限，并且持有拥有铸造权限的NFT，检查请求铸造的数量是否小于等于NFTHolderMintCap
-        if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
-            return expectedMinted <= NFTHolderMintCap;
-        }
+        // // 用户没有铸造上限，但是NFTHolder有铸造上限，并且持有拥有铸造权限的NFT，检查请求铸造的数量是否小于等于NFTHolderMintCap
+        // if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
+        //     return expectedMinted <= NFTHolderMintCap;
+        // }
 
         // 检测用户是否持有带有铸造上限的白名单ERC-721
+        return _ableToMintFor721(daoId, expectedMinted, account, daoMintCap);
+    }
+
+    function _ableToMintFor721(
+        bytes32 daoId,
+        uint256 expectedMinted,
+        address account,
+        uint32 daoMintCap
+    )
+        internal
+        view
+        returns (bool)
+    {
+        NftMinterCapInfo[] memory nftMinterCapInfo = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo;
+        uint256 length = nftMinterCapInfo.length;
+        uint256 minMintCap = 1_000_000;
+        bool hasMinterCapNft = false;
+        for (uint256 i; i < length;) {
+            // 判断用户是否拥有列表中的ERC721
+            if (IERC721Upgradeable(nftMinterCapInfo[i].nftAddress).balanceOf(account) > 0) {
+                hasMinterCapNft = true;
+                if (nftMinterCapInfo[i].nftMintCap < minMintCap) {
+                    minMintCap = nftMinterCapInfo[i].nftMintCap;
+                }
+            }
+        }
+        if (hasMinterCapNft) {
+            return expectedMinted <= minMintCap;
+        }
 
         // 检查是否达到Dao的全局上限
         if (daoMintCap != 0) return expectedMinted <= daoMintCap;

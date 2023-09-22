@@ -53,11 +53,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
                 ++i;
             }
         }
-        NftMinterCap storage nftMinterCap = DaoStorage.layout().daoInfos[daoId].nftMinterCap;
+
         length = nftMinterCapInfo.length;
         for (uint256 i; i < length;) {
-            nftMinterCap.nftExistInMapping[nftMinterCapInfo[i].nftAddress] = true;
-            nftMinterCap.nftHolderMintCap[nftMinterCapInfo[i].nftAddress] = nftMinterCapInfo[i].nftMintCap;
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo[i] = nftMinterCapInfo[i];
             unchecked {
                 ++i;
             }

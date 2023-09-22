@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { PriceTemplateType, RewardTemplateType, DaoTag } from "../interface/D4AEnums.sol";
-import { DaoMintInfo, NftMinterCap } from "contracts/interface/D4AStructs.sol";
+import { DaoMintInfo, NftMinterCapInfo, NftMinterCap } from "contracts/interface/D4AStructs.sol";
 
 library DaoStorage {
     struct DaoInfo {
@@ -31,6 +31,7 @@ library DaoStorage {
         uint256 daoFeePoolETHRatioInBps;
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
         NftMinterCap nftMinterCap;
+        NftMinterCapInfo[] nftMinterCapInfo;
     }
 
     struct Layout {

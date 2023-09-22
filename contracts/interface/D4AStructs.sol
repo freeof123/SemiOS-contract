@@ -25,9 +25,7 @@ struct NftMinterCapInfo {
 }
 
 struct NftMinterCap {
-    // nftExistInMapping[address] = true;
     mapping(address nftAddress => bool) nftExistInMapping;
-    // nftHolderMintCap[address] = <MintCap>
     mapping(address nftAddress => uint256) nftHolderMintCap;
 }
 
