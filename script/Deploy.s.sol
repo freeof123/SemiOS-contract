@@ -48,7 +48,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
-        //_deployProtocolProxy();
+        // _deployProtocolProxy();
         _deployProtocol();
 
         // _deployProtocolReadable();
@@ -72,7 +72,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        //_deployCreateProjectProxy();
+        _deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();
@@ -259,7 +259,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x47817353e3C103AF68b70defa0626EbDFB094793
+                    0xD1223FD25d42015a46d4A69d99C52Ce324906Eb0
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

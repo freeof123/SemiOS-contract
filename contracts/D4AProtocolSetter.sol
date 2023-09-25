@@ -289,7 +289,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
         // 追加tokenMaxSupply并判断总数小于10亿
-        if (daoInfo.tokenMaxSupply + addedDaoToken > 1_000_000_000) {
+        if (daoInfo.tokenMaxSupply + addedDaoToken > 1_000_000_000 ether) {
             revert SupplyOutOfRange();
         } else {
             daoInfo.tokenMaxSupply += addedDaoToken;
