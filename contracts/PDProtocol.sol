@@ -334,6 +334,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         internal
         view
     {
+        if (SettingsStorage.layout().drb.currentRound() < DaoStorage.layout().daoInfos[daoId].startRound) {
+            revert DaoNotStarted();
+        }
         if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();
     }
 

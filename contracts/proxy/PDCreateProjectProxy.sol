@@ -202,11 +202,11 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
 
         SetRatioParam memory ratioVars;
         ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice;
+        ratioVars.daoCreatorERC20Ratio = splitRatioParam.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio = splitRatioParam.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio = splitRatioParam.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio = splitRatioParam.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice = splitRatioParam.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
                 ratioVars.daoId,
@@ -344,11 +344,11 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
 
         SetRatioParam memory ratioVars;
         ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice;
+        ratioVars.daoCreatorERC20Ratio = splitRatioParam.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio = splitRatioParam.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio = splitRatioParam.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio = splitRatioParam.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice = splitRatioParam.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
                 ratioVars.daoId,
@@ -483,11 +483,11 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
 
         SetRatioParam memory ratioVars;
         ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice;
+        ratioVars.daoCreatorERC20Ratio = splitRatioParam.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio = splitRatioParam.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio = splitRatioParam.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio = splitRatioParam.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice = splitRatioParam.daoFeePoolETHRatioFlatPrice;
         if ((actionType & 0x10) != 0) {
             ID4AProtocolSetter(address(protocol)).setRatio(
                 ratioVars.daoId,
