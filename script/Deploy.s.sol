@@ -52,7 +52,7 @@ contract Deploy is Script, Test, D4AAddress {
         _deployProtocol();
 
         // _deployProtocolReadable();
-        // _cutProtocolReadableFacet();
+        // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
         _deployProtocolSetter();
         _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
@@ -259,7 +259,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xD1223FD25d42015a46d4A69d99C52Ce324906Eb0
+                    0xC13EAc9ACA32f0144B55E9FdEd1C7603Af39793d
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

@@ -169,11 +169,15 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             basicDaoParam,
             actionType
         );
-
-        address[] memory minterNFTHolderPasses = new address[](1);
-        minterNFTHolderPasses[0] = vars.nft;
+        address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
+        minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
         whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
+
+        // address[] memory minterNFTHolderPasses = new address[](1);
+        // minterNFTHolderPasses[0] = vars.nft;
+        // whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
+        // ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
         SetMintCapAndPermissionParam memory permissionVars;
         permissionVars.daoId = daoId;
@@ -312,9 +316,6 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
 
         emit CreateContinuousProjectParamEmitted(vars.existDaoId, vars.daoId, vars.dailyMintCap, vars.needMintableWork);
 
-        address[] memory minterNFTHolderPasses = new address[](1);
-        minterNFTHolderPasses[0] = vars.nft;
-        whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
         SetMintCapAndPermissionParam memory permissionVars;

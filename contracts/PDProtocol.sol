@@ -157,6 +157,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         _checkMintEligibility(daoId, msg.sender, proof, 1);
         _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
         tokenId = _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, to);
     }
 
@@ -183,6 +185,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             }
         }
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += uint32(length);
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += uint32(length);
         return _batchMint(daoId, canvasId, mintNftInfos);
     }
 
@@ -337,7 +341,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         if (SettingsStorage.layout().drb.currentRound() < DaoStorage.layout().daoInfos[daoId].startRound) {
             revert DaoNotStarted();
         }
-        if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (
+            DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] + amount
+                > BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap
+        ) revert ExceedDailyMintCap();
+        {
+            if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();
+        }
     }
 
     function _ableToMint(

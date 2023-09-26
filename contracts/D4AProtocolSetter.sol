@@ -46,6 +46,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         daoMintInfo.daoMintCap = daoMintCap;
+
         uint256 length = userMintCapParams.length;
         for (uint256 i; i < length;) {
             daoMintInfo.userMintInfos[userMintCapParams[i].minter].mintCap = userMintCapParams[i].mintCap;
@@ -54,9 +55,17 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             }
         }
 
+        length = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length;
+        for (uint256 i; i < length;) {
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.pop();
+            unchecked {
+                ++i;
+            }
+        }
+
         length = nftMinterCapInfo.length;
         for (uint256 i; i < length;) {
-            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo[i] = nftMinterCapInfo[i];
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(nftMinterCapInfo[i]);
             unchecked {
                 ++i;
             }
