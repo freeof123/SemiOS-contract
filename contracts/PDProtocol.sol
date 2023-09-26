@@ -79,9 +79,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     {
         _createCanvas(daoId, canvasId, canvasUri, to);
         if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO 
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked &&
-                 flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice
         ) {
             revert NotBasicDaoNftFlatPrice();
         }
@@ -91,10 +91,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return _mintNft(daoId, canvasId, tokenUri, flatPrice, nftOwner);
     }
 
-    function _createCanvas(bytes32 daoId,
-        bytes32 canvasId,
-        string memory canvasUri,
-        address to) internal{
+    function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
         (bool succ,) = address(this).delegatecall(
             abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), to))
         );
@@ -348,8 +345,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] + amount
-                > BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap && 
-                BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap != 0
+                > BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap
+                && BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap != 0
         ) revert ExceedDailyMintCap();
         {
             if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();
