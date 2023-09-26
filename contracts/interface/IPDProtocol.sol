@@ -26,19 +26,9 @@ interface IPDProtocol {
         string calldata canvasUri,
         address to,
         string calldata tokenUri,
-        bytes calldata signature
-    )
-        external
-        payable
-        returns (uint256);
-
-    function createCanvasAndMintNFTAndTransfer(
-        bytes32 daoId,
-        bytes32 canvasId,
-        string calldata canvasUri,
-        address canvasOwner,
-        string calldata tokenUri,
         bytes calldata signature,
+        uint256 flatPrice,
+        bytes32[] calldata proof,
         address nftOwner
     )
         external

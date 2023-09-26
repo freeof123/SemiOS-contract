@@ -55,7 +55,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
         _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -72,7 +72,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();

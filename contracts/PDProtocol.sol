@@ -65,15 +65,36 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     function createCanvasAndMintNFT(
         bytes32 daoId,
         bytes32 canvasId,
-        string calldata canvasUri,
+        string memory canvasUri,
         address to,
         string calldata tokenUri,
-        bytes calldata signature
+        bytes calldata signature,
+        uint256 flatPrice,
+        bytes32[] memory proof,
+        address nftOwner
     )
         external
         payable
         returns (uint256)
     {
+        _createCanvas(daoId, canvasId, canvasUri, to);
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO 
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked &&
+                 flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice
+        ) {
+            revert NotBasicDaoNftFlatPrice();
+        }
+        _checkMintEligibility(daoId, msg.sender, proof, 1);
+        _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        return _mintNft(daoId, canvasId, tokenUri, flatPrice, nftOwner);
+    }
+
+    function _createCanvas(bytes32 daoId,
+        bytes32 canvasId,
+        string memory canvasUri,
+        address to) internal{
         (bool succ,) = address(this).delegatecall(
             abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), to))
         );
@@ -84,42 +105,25 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 revert(0, returndatasize())
             }
         }
-        _checkMintEligibility(daoId, msg.sender, new bytes32[](0), 1);
-        uint256 basicDaoNftFlatPrice = BasicDaoStorage.layout().basicDaoNftFlatPrice;
-        _verifySignature(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        return _mintNft(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, msg.sender);
     }
 
-    function createCanvasAndMintNFTAndTransfer(
-        bytes32 daoId,
-        bytes32 canvasId,
-        string calldata canvasUri,
-        address canvasOwner,
-        string calldata tokenUri,
-        bytes calldata signature,
-        address nftOwner
-    )
-        external
-        payable
-        returns (uint256)
-    {
-        (bool succ,) = address(this).delegatecall(
-            abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), canvasOwner))
-        );
-        if (!succ) {
-            /// @solidity memory-safe-assembly
-            assembly {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
-            }
-        }
-        _checkMintEligibility(daoId, msg.sender, new bytes32[](0), 1);
-        uint256 basicDaoNftFlatPrice = BasicDaoStorage.layout().basicDaoNftFlatPrice;
-        _verifySignature(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        return _mintNft(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, nftOwner);
-    }
+    // function createCanvasAndMintNFTAndTransfer(
+    //     bytes32 daoId,
+    //     bytes32 canvasId,
+    //     string calldata canvasUri,
+    //     address canvasOwner,
+    //     string calldata tokenUri,
+    //     bytes calldata signature,
+    //     uint256 flatPrice,
+    //     bytes32[] calldata proof,
+    //     address nftOwner
+    // )
+    //     external
+    //     payable
+    //     returns (uint256)
+    // {
+    //     return _mintNft(daoId, canvasId, tokenUri, basicDaoNftFlatPrice, nftOwner);
+    // }
 
     function mintNFT(
         bytes32 daoId,
@@ -344,7 +348,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] + amount
-                > BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap
+                > BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap && 
+                BasicDaoStorage.layout().basicDaoInfos[daoId].dailyMintCap != 0
         ) revert ExceedDailyMintCap();
         {
             if (!_ableToMint(daoId, account, proof, amount)) revert ExceedMinterMaxMintAmount();

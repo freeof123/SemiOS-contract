@@ -304,6 +304,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             daoInfo.tokenMaxSupply += addedDaoToken;
         }
 
+        (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0)
+        );
+
         emit DaoTokenSupplySet(daoId, addedDaoToken);
     }
 
