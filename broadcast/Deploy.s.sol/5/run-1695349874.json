@@ -1,0 +1,37 @@
+{
+  "transactions": [
+    {
+      "hash": "0x9f2855f9b8eecf4bcc417953b7bb4dd5d40688a7bcf554838528b3c61bd150aa",
+      "transactionType": "CALL",
+      "contractName": "ProxyAdmin",
+      "contractAddress": "0x36741238e42BDFAe14Dacb4af6dA88d03490d67f",
+      "function": "upgrade(address,address)",
+      "arguments": [
+        "0xB4448bb8673B99749A6bc9f03c589D05D141a615",
+        "0x23951139124dd1803BE081e781Ba563C554D0542"
+      ],
+      "transaction": {
+        "type": "0x02",
+        "from": "0xe6046371b729f23206a94ddcace89fecebbd565c",
+        "to": "0x36741238e42bdfae14dacb4af6da88d03490d67f",
+        "gas": "0xdf22",
+        "value": "0x0",
+        "data": "0x99a88ec4000000000000000000000000b4448bb8673b99749a6bc9f03c589d05d141a61500000000000000000000000023951139124dd1803be081e781ba563c554d0542",
+        "nonce": "0x6c2",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x9f2855f9b8eecf4bcc417953b7bb4dd5d40688a7bcf554838528b3c61bd150aa"
+  ],
+  "returns": {},
+  "timestamp": 1695349874,
+  "chain": 5,
+  "multi": false,
+  "commit": "1c9ef46"
+}
