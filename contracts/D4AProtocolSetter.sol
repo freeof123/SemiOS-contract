@@ -155,7 +155,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoInfo.mintableRound = newMintableRound;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, mintableRoundDelta)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, mintableRoundDelta, 0)
         );
         require(succ);
 
@@ -222,7 +222,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, 0)
         );
         require(succ);
 
@@ -305,8 +305,9 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         }
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, addedDaoToken)
         );
+        require(succ);
 
         emit DaoTokenSupplySet(daoId, addedDaoToken);
     }
