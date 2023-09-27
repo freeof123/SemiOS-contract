@@ -42,7 +42,7 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function run() public {
         // vm.startBroadcast(deployerPrivateKey);
-        vm.startBroadcast(owner);
+        //vm.startBroadcast(owner);
 
         // _deployDrb();
 
@@ -58,19 +58,19 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployProtocolProxy();
         console2.log("start deploy: ");
-        _deployProtocol();
+        //_deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter();
+        //_deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate();
+        //_deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -91,8 +91,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        _deployLinearRewardIssuance();
-        _deployExponentialRewardIssuance();
+        //_deployLinearRewardIssuance();
+        //_deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -100,11 +100,11 @@ contract DeployDemo is Script, Test, D4AAddress {
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
         // );
-        _deployUnlocker();
+        //_deployUnlocker();
         //_transferOwnership();
 
-        _checkStatus();
-        vm.stopBroadcast();
+        //_checkStatus();
+        //vm.stopBroadcast();
     }
 
     function _deployDrb() internal {
@@ -236,7 +236,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _cutFacetsProtocolSetter() internal {
+    function _cutFacetsProtocolSetter(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
         console2.log("Start cut PDProtocolSetter facet");
 
@@ -246,14 +246,38 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("PDProtocolSetter facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(pdProtocolSetter),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
-        console2.log("Cut ProtocolSetter Data:");
-        console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
-        //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x8a90968A033C32e71cc777BA71a98a07404AC025
+                    )
+            });
+            console2.log("Remove PDProtocolSetter Facet Data:");
+            console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolSetter),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            console2.log("new pdProtocolSetter address:", address(pdProtocolSetter));
+            console2.log("Add PDProtocolSetter Facet Data:");
+            console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolSetter),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
 
         console2.log("================================================================================\n");
     }
@@ -286,7 +310,9 @@ contract DeployDemo is Script, Test, D4AAddress {
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
-        D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        console2.log("Cut PDCreate Data:");
+        console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
+        //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
 
         console2.log("================================================================================\n");
     }
@@ -304,25 +330,48 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _cutFacetsPDCreate() internal {
+    function _cutFacetsPDCreate(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
         console2.log("Start cut PDCreate facet");
 
         //------------------------------------------------------------------------------------------------------
-        // PDCreate facet cut
+        // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getPDCreateSelectors();
         console2.log("PDCreate facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(pdCreate),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
 
-        console2.log("Cut PDCreate Data:");
-        console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
-        //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x617bB36F62a4B72fa561220FB3643e55EF38b29c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            console2.log("Remove PDCreate Facet Data:");
+            console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdCreate),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            console2.log("new pdProtocolSetter address:", address(pdCreate));
+            console2.log("Add PDCreate Facet Data:");
+            console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdCreate),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
 
         console2.log("================================================================================\n");
     }
