@@ -88,6 +88,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         _checkMintEligibility(daoId, msg.sender, proof, 1);
         _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
         return _mintNft(daoId, canvasId, tokenUri, flatPrice, nftOwner);
     }
 
@@ -138,6 +140,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         _checkMintEligibility(daoId, msg.sender, proof, 1);
         _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
         return _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, msg.sender);
     }
 

@@ -54,14 +54,14 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        //_deployProtocolSetter();
+        //_cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        //_deployPDCreate();
-        //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -82,8 +82,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        // _deployLinearRewardIssuance();
-        // _deployExponentialRewardIssuance();
+         _deployLinearRewardIssuance();
+         _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -449,7 +449,7 @@ contract Deploy is Script, Test, D4AAddress {
         d4aSettings = new D4ASettings();
         assertTrue(address(d4aSettings) != address(0));
 
-        vm.toString(address(d4aSettings)).write(path, ".D4AProtocol.D4ASettings");
+        vm.toString(address(d4aSettings)).write(path, ".PDProtocol.D4ASettings");
 
         console2.log("D4ASettings address: ", address(d4aSettings));
         console2.log("================================================================================\n");
@@ -529,7 +529,7 @@ contract Deploy is Script, Test, D4AAddress {
         linearPriceVariation = new LinearPriceVariation();
         assertTrue(address(linearPriceVariation) != address(0));
 
-        vm.toString(address(linearPriceVariation)).write(path, ".D4AProtocol.LinearPriceVariation");
+        vm.toString(address(linearPriceVariation)).write(path, ".PDProtocol.LinearPriceVariation");
 
         D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
             TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
@@ -546,7 +546,7 @@ contract Deploy is Script, Test, D4AAddress {
         exponentialPriceVariation = new ExponentialPriceVariation();
         assertTrue(address(exponentialPriceVariation) != address(0));
 
-        vm.toString(address(exponentialPriceVariation)).write(path, ".D4AProtocol.ExponentialPriceVariation");
+        vm.toString(address(exponentialPriceVariation)).write(path, ".PDProtocol.ExponentialPriceVariation");
 
         D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
             TemplateChoice.PRICE,
@@ -565,7 +565,7 @@ contract Deploy is Script, Test, D4AAddress {
         linearRewardIssuance = new LinearRewardIssuance();
         assertTrue(address(linearRewardIssuance) != address(0));
 
-        vm.toString(address(linearRewardIssuance)).write(path, ".D4AProtocol.LinearRewardIssuance");
+        vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
 
         D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
             TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
@@ -582,7 +582,7 @@ contract Deploy is Script, Test, D4AAddress {
         exponentialRewardIssuance = new ExponentialRewardIssuance();
         assertTrue(address(exponentialRewardIssuance) != address(0));
 
-        vm.toString(address(exponentialRewardIssuance)).write(path, ".D4AProtocol.ExponentialRewardIssuance");
+        vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
 
         D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
             TemplateChoice.REWARD,

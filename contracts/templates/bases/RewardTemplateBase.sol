@@ -226,6 +226,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[length - 1].totalRound = SafeCast.toUint256(
                 SafeCastLib.toInt256(rewardInfo.rewardCheckpoints[length - 1].totalRound) + mintableRoundDelta
             );
+            rewardInfo.rewardCheckpoints[0].totalReward = daoInfo.tokenMaxSupply;
         } else {
             // new checkpoint start at current round + 1
             uint256 currentRound = settingsStorage.drb.currentRound();

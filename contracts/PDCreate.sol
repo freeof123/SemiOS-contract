@@ -200,7 +200,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
-        daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
+        //daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
         protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
