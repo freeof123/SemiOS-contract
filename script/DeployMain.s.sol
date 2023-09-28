@@ -14,7 +14,7 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
-import { DiamondWritable, IDiamondWritable } from '@solidstate/contracts/proxy/diamond/writable/DiamondWritable.sol';
+import { DiamondWritable, IDiamondWritable } from "@solidstate/contracts/proxy/diamond/writable/DiamondWritable.sol";
 import { DiamondFallback } from "@solidstate/contracts/proxy/diamond/fallback/DiamondFallback.sol";
 import "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AConstants.sol";
@@ -58,19 +58,19 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployProtocolProxy();
         console2.log("start deploy: ");
-        //_deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
 
         //_deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        //_cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
         //_deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -81,10 +81,10 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        // _deployCreateProjectProxy();
+        _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
-        // _deployPermissionControl();
+        _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         // _initSettings();
@@ -472,7 +472,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         pdProtocol_impl = new PDProtocol();
         assertTrue(address(pdProtocol_impl) != address(0));
         // proxyAdmin.upgrade(pdProtocol_proxy, address(pdProtocol_impl));
-        
+
         console2.log("Set Fallback Address Data:");
         console2.logBytes(abi.encodeCall(DiamondFallback.setFallbackAddress, (address(pdProtocol_impl))));
         //D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
@@ -529,9 +529,12 @@ contract DeployDemo is Script, Test, D4AAddress {
         vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
 
         console2.log("Set Linear Reward Template Data:");
-        console2.logBytes(abi.encodeCall(D4ASettings.setTemplateAddress, (
-            TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
-        )));
+        console2.logBytes(
+            abi.encodeCall(
+                D4ASettings.setTemplateAddress,
+                (TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance))
+            )
+        );
         // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
         // );
@@ -550,9 +553,16 @@ contract DeployDemo is Script, Test, D4AAddress {
         vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
 
         console2.log("Set Exponential Reward Template Data:");
-        console2.logBytes(abi.encodeCall(D4ASettings.setTemplateAddress, (
-            TemplateChoice.REWARD, uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE), address(exponentialRewardIssuance)
-        )));
+        console2.logBytes(
+            abi.encodeCall(
+                D4ASettings.setTemplateAddress,
+                (
+                    TemplateChoice.REWARD,
+                    uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+                    address(exponentialRewardIssuance)
+                )
+            )
+        );
 
         // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
         //     TemplateChoice.REWARD,
@@ -594,6 +604,15 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
+
+        console2.log("Update Create Project Proxy Data:");
+        console2.logBytes(
+            abi.encodeCall(
+                ProxyAdmin.upgrade,
+                (ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl))
+            )
+        );
+
         // proxyAdmin.upgrade(
         //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
         // );
@@ -639,6 +658,14 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy), address(pdCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
+
+        console2.log("Update Permission Control Data:");
+        console2.logBytes(
+            abi.encodeCall(
+                ProxyAdmin.upgrade,
+                (ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl))
+            )
+        );
         // proxyAdmin.upgrade(
         //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
         // );
