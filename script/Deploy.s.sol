@@ -72,10 +72,10 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        // _deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
-        _deployPermissionControl();
+        //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
         //_initSettings();

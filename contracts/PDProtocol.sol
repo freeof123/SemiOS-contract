@@ -425,6 +425,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     minMintCap = nftMinterCapInfo[i].nftMintCap;
                 }
             }
+            unchecked {
+                ++i;
+            }
         }
         if (hasMinterCapNft) {
             return expectedMinted <= minMintCap;
