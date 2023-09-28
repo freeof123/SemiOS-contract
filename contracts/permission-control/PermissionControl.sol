@@ -245,6 +245,31 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
      * @param _account The address to check
      * @param _proof The merkle proof
      */
+    // function inMinterWhitelist(
+    //     bytes32 daoId,
+    //     address _account,
+    //     bytes32[] calldata _proof
+    // )
+    //     external
+    //     view
+    //     returns (bool)
+    // {
+    //     Whitelist memory whitelist = _whitelists[daoId];
+
+    //     if (whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0) return true;
+    //     if (
+    //         MerkleProofUpgradeable.verifyCalldata(
+    //             _proof, whitelist.minterMerkleRoot, keccak256(bytes.concat(keccak256(abi.encode(_account))))
+    //         )
+    //     ) {
+    //         return true;
+    //     }
+    //     if (whitelist.minterNFTHolderPasses.length != 0 && inMinterNFTHolderPasses(whitelist, _account)) {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
     function inMinterWhitelist(
         bytes32 daoId,
         address _account,
@@ -256,7 +281,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     {
         Whitelist memory whitelist = _whitelists[daoId];
 
-        if (whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0) return true;
+        if (whitelist.minterMerkleRoot == bytes32(0)) return false;
         if (
             MerkleProofUpgradeable.verifyCalldata(
                 _proof, whitelist.minterMerkleRoot, keccak256(bytes.concat(keccak256(abi.encode(_account))))
@@ -264,10 +289,6 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         ) {
             return true;
         }
-        if (whitelist.minterNFTHolderPasses.length != 0 && inMinterNFTHolderPasses(whitelist, _account)) {
-            return true;
-        }
-
         return false;
     }
 

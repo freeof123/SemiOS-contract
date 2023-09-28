@@ -120,7 +120,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
     // fifth bit: modify DAO ETH and ERC20 Split Ratio when minting NFTs or not
     function createBasicDao(
         DaoMetadataParam calldata daoMetadataParam,
-        Whitelist memory whitelist,
+        Whitelist memory whitelist, //creator is in whitelist
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
@@ -169,23 +169,17 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             basicDaoParam,
             actionType
         );
-        address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
-
-        // 铸造上限之前这个地方设置的值为5
-        minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
-
-        whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
+        //不需要把新建nft放到无铸造上限白名单里
+        //address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
+        //minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
+        //whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
-
-        // address[] memory minterNFTHolderPasses = new address[](1);
-        // minterNFTHolderPasses[0] = vars.nft;
-        // whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
-        // ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
         SetMintCapAndPermissionParam memory permissionVars;
         permissionVars.daoId = daoId;
         permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
         permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
+        //把新建nft放到有铸造上限白名单里并设置cap为5
         NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](1);
         nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
         permissionVars.nftMinterCapInfo = nftMinterCapInfo;

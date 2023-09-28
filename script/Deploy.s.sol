@@ -49,7 +49,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        //_deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
@@ -75,7 +75,7 @@ contract Deploy is Script, Test, D4AAddress {
         _deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
-        // _deployPermissionControl();
+        _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         //_initSettings();
@@ -672,9 +672,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy), address(pdCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        // );
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
 
