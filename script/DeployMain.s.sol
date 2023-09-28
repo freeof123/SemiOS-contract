@@ -41,7 +41,7 @@ contract DeployDemo is Script, Test, D4AAddress {
     address multisig2 = json.readAddress(".MultiSig2");
 
     function run() public {
-        // vm.startBroadcast(deployerPrivateKey);
+        //vm.startBroadcast(deployerPrivateKey);
         //vm.startBroadcast(owner);
 
         // _deployDrb();
@@ -58,7 +58,7 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployProtocolProxy();
         console2.log("start deploy: ");
-        _deployProtocol();
+        //_deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet();
@@ -81,10 +81,10 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        //_deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
-        _deployPermissionControl();
+        //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
         // _initSettings();
@@ -469,12 +469,15 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDProtocol");
 
-        pdProtocol_impl = new PDProtocol();
+        //pdProtocol_impl = new PDProtocol();
         assertTrue(address(pdProtocol_impl) != address(0));
         // proxyAdmin.upgrade(pdProtocol_proxy, address(pdProtocol_impl));
 
         console2.log("Set Fallback Address Data:");
         console2.logBytes(abi.encodeCall(DiamondFallback.setFallbackAddress, (address(pdProtocol_impl))));
+        console2.logBytes(abi.encodeWithSelector(
+                ID4AProtocolSetter.setCanvasRebateRatioInBps.selector, canvasId, canvasRebateRatioInBps
+            ));
         //D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
 
         vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");
