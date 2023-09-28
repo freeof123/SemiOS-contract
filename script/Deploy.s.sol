@@ -55,7 +55,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
         //_deployProtocolSetter();
-       // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -72,7 +72,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        //_deployCreateProjectProxy();
+        _deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
         // _deployPermissionControl();
@@ -82,8 +82,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-         _deployLinearRewardIssuance();
-         _deployExponentialRewardIssuance();
+        //  _deployLinearRewardIssuance();
+        //  _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 

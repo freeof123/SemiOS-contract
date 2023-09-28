@@ -170,7 +170,10 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             actionType
         );
         address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
+
+        // 铸造上限之前这个地方设置的值为5
         minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
+
         whitelist.minterNFTHolderPasses = minterNFTHolderPasses;
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
@@ -183,7 +186,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         permissionVars.daoId = daoId;
         permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
         permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
-        NftMinterCapInfo[] memory nftMinterCapInfo;
+        NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](1);
+        nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
         permissionVars.nftMinterCapInfo = nftMinterCapInfo;
         permissionVars.whitelist = whitelist;
         permissionVars.blacklist = blacklist;
