@@ -475,9 +475,6 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         console2.log("Set Fallback Address Data:");
         console2.logBytes(abi.encodeCall(DiamondFallback.setFallbackAddress, (address(pdProtocol_impl))));
-        console2.logBytes(abi.encodeWithSelector(
-                ID4AProtocolSetter.setCanvasRebateRatioInBps.selector, canvasId, canvasRebateRatioInBps
-            ));
         //D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
 
         vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");

@@ -116,7 +116,8 @@ contract ProtoDaoTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
 
         // 在新的逻辑中，在以上参数传递的情况下，这个地方应该是可以铸造超过5个的，所以注释掉下面的selector
-        // vm.expectRevert(ExceedMinterMaxMintAmount.selector);
+        //同理，不需要注释，
+        vm.expectRevert(ExceedMinterMaxMintAmount.selector);
 
         vm.prank(daoCreator.addr);
         protocol.mintNFT{ value: flatPrice }(

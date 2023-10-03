@@ -833,7 +833,7 @@ contract DeployHelper is Test {
                 canvasUri: "test dao creator canvas uri",
                 daoName: "test dao"
             }),
-            16
+            20
         );
 
         vm.stopPrank();
@@ -920,7 +920,7 @@ contract DeployHelper is Test {
             vars.daoETHAndERC20SplitRatioParam,
             vars.templateParam,
             vars.basicDaoParam,
-            16,
+            20,
             needMintableWork,
             vars.dailyMintCap
         );

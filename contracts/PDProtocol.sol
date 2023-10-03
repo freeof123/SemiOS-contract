@@ -163,8 +163,114 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256[] memory)
     {
-        uint256[] memory ret = new uint256[](0);
-        return ret;
+        uint256 length = mintNftInfos.length;
+        {
+            _checkMintEligibility(daoId, msg.sender, proof, length);
+            for (uint256 i; i < length;) {
+                _verifySignature(daoId, canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice, signatures[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+        }
+        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += uint32(length);
+        return _batchMint(daoId, canvasId, mintNftInfos);
+        // uint256[] memory ret = new uint256[](0);
+        // return ret;
+    }
+
+    function _batchMint(
+        bytes32 daoId,
+        bytes32 canvasId,
+        MintNftInfo[] memory mintNftInfos
+    )
+        internal
+        returns (uint256[] memory)
+    {
+        _checkPauseStatus();
+        _checkPauseStatus(daoId);
+        _checkCanvasExist(canvasId);
+        _checkPauseStatus(canvasId);
+
+        BatchMintLocalVars memory vars;
+        vars.length = mintNftInfos.length;
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        uint256[] memory tokenIds = new uint256[](vars.length);
+        for (uint256 i; i < vars.length;) {
+            _checkUriNotExist(mintNftInfos[i].tokenUri);
+            if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
+                ++basicDaoInfo.tokenId;
+                if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
+                    revert NotCanvasIdOfSpecialTokenUri();
+                }
+                if (mintNftInfos[i].flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) {
+                    revert NotBasicDaoNftFlatPrice();
+                }
+                mintNftInfos[i].tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
+                tokenIds[i] = basicDaoInfo.tokenId;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
+        if (daoInfo.nftTotalSupply + vars.length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
+
+        vars.currentRound = SettingsStorage.layout().drb.currentRound();
+        vars.nftPriceFactor = daoInfo.nftPriceFactor;
+
+        daoInfo.nftTotalSupply += vars.length;
+        for (uint256 i; i < vars.length;) {
+            ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
+            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, tokenIds[i]);
+            canvasInfo.tokenIds.push(tokenIds[i]);
+            ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
+            uint256 flatPrice = mintNftInfos[i].flatPrice;
+            if (flatPrice == 0) {
+                uint256 price =
+                    _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, vars.currentRound, vars.nftPriceFactor);
+                vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId) * price;
+                vars.totalPrice += price;
+                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, price);
+                _updatePrice(vars.currentRound, daoId, canvasId, price, 0, vars.nftPriceFactor);
+            } else {
+                vars.daoTotalShare +=
+                    ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId) * flatPrice;
+                vars.totalPrice += flatPrice;
+                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, flatPrice);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        uint256 canvasRebateRatioInBps;
+        if (
+            vars.totalPrice - vars.daoTotalShare / BASIS_POINT
+                - (vars.totalPrice * l.protocolMintFeeRatioInBps) / BASIS_POINT != 0
+                && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
+        ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
+        uint256 daoFee = _splitFee(
+            l.protocolFeePool,
+            daoInfo.daoFeePool,
+            l.ownerProxy.ownerOf(canvasId),
+            vars.totalPrice,
+            vars.daoTotalShare,
+            canvasRebateRatioInBps
+        );
+
+        bytes32 tempDaoId = daoId;
+        _updateReward(
+            daoId,
+            canvasId,
+            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether * vars.length : daoFee,
+            canvasRebateRatioInBps
+        );
+
+        return tokenIds;
     }
 
     function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256 daoCreatorReward) {
@@ -390,11 +496,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 length = nftMinterCapInfo.length;
         uint256 minMintCap = 1_000_000;
         bool hasMinterCapNft = false;
-        console2.log("length:", length);
         for (uint256 i; i < length;) {
             // 判断用户是否拥有列表中的ERC721
-            console2.log("erc721:", nftMinterCapInfo[i].nftAddress);
-
             if (IERC721Upgradeable(nftMinterCapInfo[i].nftAddress).balanceOf(account) > 0) {
                 hasMinterCapNft = true;
                 if (nftMinterCapInfo[i].nftMintCap < minMintCap) {
