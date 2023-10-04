@@ -1,11 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UserMintCapParam, TemplateParam, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    TemplateParam,
+    Whitelist,
+    Blacklist,
+    SetDaoParam,
+    NftMinterCapInfo
+} from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 
 interface ID4AProtocolSetter {
-    event MintCapSet(bytes32 indexed daoId, uint32 daoMintCap, UserMintCapParam[] userMintCapParams);
+    event MintCapSet(
+        bytes32 indexed daoId,
+        uint32 daoMintCap,
+        UserMintCapParam[] userMintCapParams,
+        NftMinterCapInfo[] nftMinterCapInfo
+    );
 
     event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
 
@@ -28,30 +40,24 @@ interface ID4AProtocolSetter {
         uint256 daoFeePoolETHRatioFlatPrice
     );
 
+    event DailyMintCapSet(bytes32 indexed daoId, uint256 dailyMintCap);
+
+    event DaoTokenSupplySet(bytes32 daoId, uint256 addedDaoToken);
+
+    event WhiteListMintCapSet(bytes32 daoId, address whitelistUser, uint256 whitelistUserMintCap);
+
     function setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
     )
         external;
 
-    function setDaoParams(
-        bytes32 daoId,
-        uint256 nftMaxSupplyRank,
-        uint256 mintableRoundRank,
-        uint256 daoFloorPriceRank,
-        PriceTemplateType priceTemplateType,
-        uint256 nftPriceFactor,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        external;
+    function setDaoParams(SetDaoParam memory vars) external;
 
     function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 priceFactor) external;
 
@@ -62,6 +68,12 @@ interface ID4AProtocolSetter {
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) external;
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) external;
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) external;
+
+    function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) external;
+
+    function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) external;
 
     function setRatio(
         bytes32 daoId,

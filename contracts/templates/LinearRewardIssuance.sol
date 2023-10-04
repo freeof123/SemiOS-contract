@@ -5,7 +5,8 @@ import { RewardTemplateBase } from "./bases/RewardTemplateBase.sol";
 import { ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 
-contract LinearRewardIssuance is RewardTemplateBase {
+
+contract LinearRewardIssuance is RewardTemplateBase{
     /**
      * @dev denote decay factor to be `k`, reward per round to be x,
      * decay period to be `n`, total reward to be `T`, then

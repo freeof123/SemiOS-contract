@@ -13,7 +13,7 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
-abstract contract RewardTemplateBase is IRewardTemplate {
+abstract contract RewardTemplateBase is IRewardTemplate  {
     function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
@@ -211,7 +211,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
     }
 
-    function setRewardCheckpoint(bytes32 daoId, int256 mintableRoundDelta) public payable {
+    function setRewardCheckpoint(bytes32 daoId, int256 mintableRoundDelta, uint256 totalRewardDelta) public payable {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
@@ -226,6 +226,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[length - 1].totalRound = SafeCast.toUint256(
                 SafeCastLib.toInt256(rewardInfo.rewardCheckpoints[length - 1].totalRound) + mintableRoundDelta
             );
+            rewardInfo.rewardCheckpoints[length - 1].totalReward = 
+                rewardInfo.rewardCheckpoints[length - 1].totalReward + totalRewardDelta;
         } else {
             // new checkpoint start at current round + 1
             uint256 currentRound = settingsStorage.drb.currentRound();
@@ -247,7 +249,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
             // modify old checkpoint
             rewardCheckpoint.totalRound -= totalRound;
-            rewardCheckpoint.totalReward -= totalReward;
+            rewardCheckpoint.totalReward = rewardCheckpoint.totalReward + totalRewardDelta - totalReward;
 
             // set new checkpoint
             rewardInfo.rewardCheckpoints.push();
@@ -255,6 +257,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
             rewardInfo.rewardCheckpoints[length].totalRound =
                 SafeCast.toUint256(SafeCastLib.toInt256(totalRound) + mintableRoundDelta);
             rewardInfo.rewardCheckpoints[length].totalReward = totalReward;
+                
         }
     }
 

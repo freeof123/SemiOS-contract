@@ -72,3 +72,7 @@ error BasicDaoLocked();
 error NotCanvasIdOfSpecialTokenUri();
 
 error NotBasicDaoNftFlatPrice();
+
+error SupplyOutOfRange();
+
+error ExceedDailyMintCap();

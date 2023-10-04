@@ -5,10 +5,20 @@ import { FixedPointMathLib as Math } from "solady/utils/FixedPointMathLib.sol";
 import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
 
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
-import { UserMintCapParam, TemplateParam, DaoMintInfo, Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    TemplateParam,
+    DaoMintInfo,
+    Whitelist,
+    Blacklist,
+    SetDaoParam,
+    NftMinterCapInfo,
+    NftMinterCap
+} from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
@@ -22,6 +32,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         bytes32 daoId,
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
@@ -35,6 +46,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         daoMintInfo.daoMintCap = daoMintCap;
+
         uint256 length = userMintCapParams.length;
         for (uint256 i; i < length;) {
             daoMintInfo.userMintInfos[userMintCapParams[i].minter].mintCap = userMintCapParams[i].mintCap;
@@ -43,42 +55,46 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             }
         }
 
-        emit MintCapSet(daoId, daoMintCap, userMintCapParams);
+        length = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length;
+        for (uint256 i; i < length;) {
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.pop();
+            unchecked {
+                ++i;
+            }
+        }
+
+        length = nftMinterCapInfo.length;
+        for (uint256 i; i < length;) {
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(nftMinterCapInfo[i]);
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo);
 
         l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
-    function setDaoParams(
-        bytes32 daoId,
-        uint256 nftMaxSupplyRank,
-        uint256 mintableRoundRank,
-        uint256 daoFloorPriceRank,
-        PriceTemplateType priceTemplateType,
-        uint256 nftPriceFactor,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        public
-        virtual
-    {
+    // 修改Dao参数
+    function setDaoParams(SetDaoParam memory vars) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
+        if (msg.sender != l.ownerProxy.ownerOf(vars.daoId)) revert NotDaoOwner();
 
-        setDaoNftMaxSupply(daoId, l.nftMaxSupplies[nftMaxSupplyRank]);
-        setDaoMintableRound(daoId, l.mintableRounds[mintableRoundRank]);
-        setDaoFloorPrice(daoId, daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[daoFloorPriceRank]);
-        setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
+        setDaoNftMaxSupply(vars.daoId, l.nftMaxSupplies[vars.nftMaxSupplyRank]);
+        setDaoMintableRound(vars.daoId, l.mintableRounds[vars.mintableRoundRank]);
+        setDaoFloorPrice(vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[vars.daoFloorPriceRank]);
+        setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor);
         setRatio(
-            daoId,
-            daoCreatorERC20Ratio,
-            canvasCreatorERC20Ratio,
-            nftMinterERC20Ratio,
-            daoFeePoolETHRatio,
-            daoFeePoolETHRatioFlatPrice
+            vars.daoId,
+            vars.daoCreatorERC20Ratio,
+            vars.canvasCreatorERC20Ratio,
+            vars.nftMinterERC20Ratio,
+            vars.daoFeePoolETHRatio,
+            vars.daoFeePoolETHRatioFlatPrice
         );
+        setDailyMintCap(vars.daoId, vars.dailyMintCap);
+        setDaoTokenSupply(vars.daoId, vars.addedDaoToken);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {
@@ -139,7 +155,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoInfo.mintableRound = newMintableRound;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, mintableRoundDelta)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, mintableRoundDelta, 0)
         );
         require(succ);
 
@@ -206,7 +222,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
 
         (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0)
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, 0)
         );
         require(succ);
 
@@ -261,5 +277,51 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps = newCanvasRebateRatioInBps;
 
         emit CanvasRebateRatioInBpsSet(canvasId, newCanvasRebateRatioInBps);
+    }
+
+    function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
+
+        emit DailyMintCapSet(daoId, dailyMintCap);
+    }
+
+    function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
+        // 追加tokenMaxSupply并判断总数小于10亿
+        if (daoInfo.tokenMaxSupply + addedDaoToken > 1_000_000_000 ether) {
+            revert SupplyOutOfRange();
+        } else {
+            daoInfo.tokenMaxSupply += addedDaoToken;
+        }
+
+        (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, addedDaoToken)
+        );
+        require(succ);
+
+        emit DaoTokenSupplySet(daoId, addedDaoToken);
+    }
+
+    function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+
+        DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
+
+        daoMintInfo.userMintInfos[whitelistUser].mintCap = whitelistUserMintCap;
+
+        emit WhiteListMintCapSet(daoId, whitelistUser, whitelistUserMintCap);
     }
 }

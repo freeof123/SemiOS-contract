@@ -21,6 +21,17 @@ interface IPDCreate is ICreate {
         payable
         returns (bytes32 daoId);
 
+    function createContinuousDao(
+        bytes32 existDaoId,
+        DaoMetadataParam memory daoMetadataParam,
+        BasicDaoParam memory basicDaoParam,
+        bool needMintableWork,
+        uint256 dailyMintCap
+    )
+        external
+        payable
+        returns (bytes32 daoId);
+
     function createCanvas(
         bytes32 daoId,
         bytes32 canvasId,

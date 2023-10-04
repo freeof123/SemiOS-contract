@@ -114,7 +114,11 @@ contract ProtoDaoTest is DeployHelper {
         uint256 flatPrice = 0.01 ether;
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+
+        // 在新的逻辑中，在以上参数传递的情况下，这个地方应该是可以铸造超过5个的，所以注释掉下面的selector
+        //同理，不需要注释，
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
+
         vm.prank(daoCreator.addr);
         protocol.mintNFT{ value: flatPrice }(
             daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
@@ -153,7 +157,15 @@ contract ProtoDaoTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             hoax(nftMinter.addr);
             protocol.createCanvasAndMintNFT{ value: flatPrice }(
-                daoId, canvasId1, "test canvas uri 1", canvasCreator.addr, tokenUri, abi.encodePacked(r, s, v)
+                daoId,
+                canvasId1,
+                "test canvas uri 1",
+                canvasCreator.addr,
+                tokenUri,
+                abi.encodePacked(r, s, v),
+                0.01 ether,
+                new bytes32[](0),
+                address(this)
             );
         }
         {
@@ -163,7 +175,15 @@ contract ProtoDaoTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator2.key, digest);
             hoax(nftMinter.addr);
             protocol.createCanvasAndMintNFT{ value: flatPrice }(
-                daoId, canvasId2, "test canvas uri 2", canvasCreator2.addr, tokenUri, abi.encodePacked(r, s, v)
+                daoId,
+                canvasId2,
+                "test canvas uri 2",
+                canvasCreator2.addr,
+                tokenUri,
+                abi.encodePacked(r, s, v),
+                0.01 ether,
+                new bytes32[](0),
+                address(this)
             );
         }
         _mintNft(daoId, canvasId2, "test token uri 4", 0.01 ether, canvasCreator2.key, nftMinter.addr);
@@ -227,7 +247,15 @@ contract ProtoDaoTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             hoax(nftMinter.addr);
             protocol.createCanvasAndMintNFT{ value: flatPrice }(
-                daoId, canvasId1, "test canvas uri 1", canvasCreator.addr, tokenUri, abi.encodePacked(r, s, v)
+                daoId,
+                canvasId1,
+                "test canvas uri 1",
+                canvasCreator.addr,
+                tokenUri,
+                abi.encodePacked(r, s, v),
+                0.01 ether,
+                new bytes32[](0),
+                address(this)
             );
         }
         _mintNft(daoId, canvasId1, "test token uri 4", 0.01 ether, canvasCreator.key, nftMinter.addr);
@@ -238,7 +266,15 @@ contract ProtoDaoTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator2.key, digest);
             hoax(nftMinter.addr);
             protocol.createCanvasAndMintNFT{ value: flatPrice }(
-                daoId, canvasId2, "test canvas uri 2", canvasCreator2.addr, tokenUri, abi.encodePacked(r, s, v)
+                daoId,
+                canvasId2,
+                "test canvas uri 2",
+                canvasCreator2.addr,
+                tokenUri,
+                abi.encodePacked(r, s, v),
+                flatPrice,
+                new bytes32[](0),
+                address(this)
             );
         }
         _mintNft(daoId, canvasId1, "test token uri 6", 0.01 ether, canvasCreator.key, nftMinter2.addr);

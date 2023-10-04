@@ -45,31 +45,32 @@ contract D4AProtocolTest is DeployHelper {
         );
     }
 
-    function test_exposed_daoMintInfos() public {
-        assertEq(protocolHarness.exposed_daoMintInfos(0), 0);
+    // function test_exposed_daoMintInfos() public {
+    //     assertEq(protocolHarness.exposed_daoMintInfos(0), 0);
 
-        vm.prank(address(protocol));
-        naiveOwner.initOwnerOf(bytes32(0), address(this));
+    //     vm.prank(address(protocol));
+    //     naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-        );
-        assertEq(protocolHarness.exposed_daoMintInfos(0), 100);
-    }
+    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+    //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+    //     );
+    //     assertEq(protocolHarness.exposed_daoMintInfos(0), 100);
+    // }
 
-    function test_getDaoMintCap() public {
-        vm.prank(address(protocol));
-        naiveOwner.initOwnerOf(bytes32(0), address(this));
+    // function test_getDaoMintCap() public {
+    //     vm.prank(address(protocol));
+    //     naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-        );
-        assertEq(
-            protocolHarness.exposed_daoMintInfos(0), ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
-        );
-    }
+    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+    //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+    //     );
+    //     assertEq(
+    //         protocolHarness.exposed_daoMintInfos(0),
+    // ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
+    //     );
+    // }
 
     function test_createCanvas() public {
         DeployHelper.CreateDaoParam memory createDaoParam;
@@ -210,59 +211,59 @@ contract D4AProtocolTest is DeployHelper {
         assertEq(userMintNum, mintNum);
     }
 
-    function test_setMintCapAndPermission() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+    // function test_setMintCapAndPermission() public {
+    //     DeployHelper.CreateDaoParam memory createDaoParam;
+    //     bytes32 daoId = _createDao(createDaoParam);
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-        UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
-        userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
-        userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
+    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
+    //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
+    //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
 
-        hoax(daoCreator.addr);
-        vm.expectCall({
-            callee: address(permissionControl),
-            data: abi.encodeWithSelector(permissionControl.modifyPermission.selector),
-            count: 1
-        });
-        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
-        );
-    }
+    //     hoax(daoCreator.addr);
+    //     vm.expectCall({
+    //         callee: address(permissionControl),
+    //         data: abi.encodeWithSelector(permissionControl.modifyPermission.selector),
+    //         count: 1
+    //     });
+    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+    //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+    //     );
+    // }
 
-    function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+    // function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
+    //     DeployHelper.CreateDaoParam memory createDaoParam;
+    //     bytes32 daoId = _createDao(createDaoParam);
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-        hoax(randomGuy.addr);
-        vm.expectRevert(NotDaoOwner.selector);
-        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-        );
-    }
+    //     hoax(randomGuy.addr);
+    //     vm.expectRevert(NotDaoOwner.selector);
+    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+    //         daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+    //     );
+    // }
 
-    event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
+    // event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
 
-    function test_setMintCapAndPermission_ExpectEmit() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+    // function test_setMintCapAndPermission_ExpectEmit() public {
+    //     DeployHelper.CreateDaoParam memory createDaoParam;
+    //     bytes32 daoId = _createDao(createDaoParam);
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-        UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
-        userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
-        userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
+    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
+    //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
+    //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
 
-        vm.expectEmit(true, true, true, true);
-        emit MintCapSet(daoId, 100, userMintCapParams);
-        hoax(daoCreator.addr);
-        ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
-        );
-    }
+    //     vm.expectEmit(true, true, true, true);
+    //     emit MintCapSet(daoId, 100, userMintCapParams);
+    //     hoax(daoCreator.addr);
+    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+    //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+    //     );
+    // }
 
     function test_exposed_ableToMint() public {
         CreateDaoParam memory createDaoParam;

@@ -116,6 +116,17 @@ contract DeployHelper is Test {
 
     string public tokenUriPrefix = "https://dao4art.s3.ap-southeast-1.amazonaws.com/meta/work/";
 
+    struct CreateContinuousDaoParam {
+        bytes32 existDaoId;
+        DaoMetadataParam daoMetadataParam;
+        Whitelist whitelist;
+        Blacklist blacklist;
+        DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
+        TemplateParam templateParam;
+        BasicDaoParam basicDaoParam;
+        uint256 dailyMintCap;
+    }
+
     function setUpEnv() public {
         _deployeWETH();
         _deployFeedRegistry();
@@ -822,7 +833,96 @@ contract DeployHelper is Test {
                 canvasUri: "test dao creator canvas uri",
                 daoName: "test dao"
             }),
-            16
+            20
+        );
+
+        vm.stopPrank();
+    }
+
+    function _createContinuousDao(
+        CreateDaoParam memory createDaoParam,
+        bytes32 existDaoId,
+        bool needMintableWork
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+
+        CreateContinuousDaoParam memory vars;
+        vars.existDaoId = existDaoId;
+        vars.daoMetadataParam = DaoMetadataParam({
+            startDrb: drb.currentRound(),
+            mintableRounds: 60,
+            floorPriceRank: 0,
+            maxNftRank: 2,
+            royaltyFee: 1250,
+            projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+            projectIndex: 0
+        });
+        vars.whitelist = Whitelist({
+            minterMerkleRoot: createDaoParam.minterMerkleRoot,
+            minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+            canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+        });
+        vars.blacklist = Blacklist({
+            minterAccounts: createDaoParam.minterAccounts,
+            canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+        });
+        vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
+            daoCreatorERC20Ratio: 4800,
+            canvasCreatorERC20Ratio: 2500,
+            nftMinterERC20Ratio: 2500,
+            daoFeePoolETHRatio: 9750,
+            daoFeePoolETHRatioFlatPrice: 9750
+        });
+        vars.templateParam = TemplateParam({
+            priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+            priceFactor: 20_000,
+            rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+            rewardDecayFactor: 0,
+            isProgressiveJackpot: true
+        });
+        vars.basicDaoParam = BasicDaoParam({
+            initTokenSupplyRatio: 1000,
+            canvasId: createDaoParam.canvasId,
+            canvasUri: "test dao creator canvas uri",
+            daoName: "test dao"
+        });
+
+        daoId = daoProxy.createContinuousDao(
+            vars.existDaoId,
+            vars.daoMetadataParam,
+            vars.whitelist,
+            vars.blacklist,
+            daoMintCapParam,
+            vars.daoETHAndERC20SplitRatioParam,
+            vars.templateParam,
+            vars.basicDaoParam,
+            20,
+            needMintableWork,
+            vars.dailyMintCap
         );
 
         vm.stopPrank();

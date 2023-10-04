@@ -7,6 +7,7 @@ import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
 import "contracts/interface/D4AStructs.sol";
+import "forge-std/Test.sol";
 
 contract PDCreateTest is DeployHelper {
     function setUp() public {
@@ -127,5 +128,35 @@ contract PDCreateTest is DeployHelper {
         assertEq(protocol.getDaoNftHolderMintCap(daoId), 5);
         assertEq(protocol.getDaoTag(daoId), "BASIC DAO");
         assertEq(protocol.getDaoIndex(daoId), 42);
+    }
+
+    function test_createContinuousDao() public {
+        address originalDaoFeePoolAddress;
+        address continuousDaoFeePoolAddress;
+        address originalTokenAddress;
+        address continuousTokenAddress;
+
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        bytes32 daoId = _createBasicDao(createDaoParam);
+
+        bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        createDaoParam.canvasId = canvasId2;
+        createDaoParam.daoUri = "continuous dao";
+        bool needMintableWork = false;
+        // CreateContinuousDaoParam.initTokenSupplyRatio = 1000;
+
+        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
+
+        originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
+        continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);
+        assertEq(originalDaoFeePoolAddress, continuousDaoFeePoolAddress);
+
+        originalTokenAddress = protocol.getDaoToken(daoId);
+        continuousTokenAddress = protocol.getDaoToken(continuousDaoId);
+        assertEq(originalTokenAddress, continuousTokenAddress);
+
+        // 默认basicDao是有1000个预留的，所以这里测试的是没有预留的情况
     }
 }

@@ -14,6 +14,7 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
+import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 import "contracts/interface/D4AEnums.sol";
 import {
@@ -48,19 +49,19 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
-        // _cutProtocolReadableFacet();
+        // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter();
+        //_deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
         // _deployPDCreate();
-        // _cutFacetsPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -72,23 +73,25 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployUniversalClaimer();
 
         // _deployCreateProjectProxy();
-        // _deployCreateProjectProxyProxy();
+        //_deployCreateProjectProxyProxy();
 
-        // _deployPermissionControl();
+        //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
-        // _initSettings();
+        //_initSettings();
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        // _deployLinearRewardIssuance();
-        // _deployExponentialRewardIssuance();
+        //  _deployLinearRewardIssuance();
+        //  _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
         // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+
+        // _deployUnlocker();
         // );
 
         vm.stopBroadcast();
@@ -253,9 +256,11 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdProtocolSetter),
+                target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-                selectors: selectors
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xC13EAc9ACA32f0144B55E9FdEd1C7603Af39793d
+                    )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -357,10 +362,12 @@ contract Deploy is Script, Test, D4AAddress {
 
         if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreate),
+                target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-                selectors: selectors
-            });
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x14b7bBaf01FF058Da569Fc1dff72edA7600F48ab
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
@@ -615,11 +622,14 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDCreateProjectProxy");
 
+        // 下面这段在部署失败重新部署时需要被注释掉
         pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
         assertTrue(address(pdCreateProjectProxy_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
-        // );
+        //pdCreateProjectProxy_impl = PDCreateProjectProxy(payable(0x23951139124dd1803BE081e781Ba563C554D0542));
+
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
+        );
 
         vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
 
@@ -662,9 +672,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy), address(pdCreateProjectProxy_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        // );
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
 
@@ -780,6 +790,19 @@ contract Deploy is Script, Test, D4AAddress {
             console2.log("Step 10: change create DOA and Canvas Fee to 0");
             D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
         }
+        console2.log("================================================================================\n");
+    }
+
+    function _deployUnlocker() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy BasicDaoUnlocker");
+
+        basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
+        assertTrue(address(basicDaoUnlocker) != address(0));
+
+        vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
+
+        console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
         console2.log("================================================================================\n");
     }
 }

@@ -83,6 +83,9 @@ contract D4AAddress is CommonBase {
     PDCreateProjectProxy public pdCreateProjectProxy_impl =
         PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.impl")));
 
+    // Basic Dao Unlocker
+    BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));
+
     // naive owner proxy
     NaiveOwner public naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
     NaiveOwner public naiveOwner_impl = NaiveOwner(json.readAddress(".NaiveOwner.impl"));
