@@ -4,4 +4,4 @@ solmate/=lib/solmate/src
 @openzeppelin/=node_modules/@openzeppelin/
 @solidstate/=node_modules/@solidstate/
 @uniswap/=node_modules/@uniswap/
-@chainlink/=node_modules/@chainlink/
+@chainlink/=lib/chainlink
