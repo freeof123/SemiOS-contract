@@ -124,6 +124,7 @@ contract DeployHelper is Test {
         DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
         TemplateParam templateParam;
         BasicDaoParam basicDaoParam;
+        ContinuousDaoParam continuousDaoParam;
         uint256 dailyMintCap;
     }
 
@@ -910,6 +911,13 @@ contract DeployHelper is Test {
             canvasUri: "test dao creator canvas uri",
             daoName: "test dao"
         });
+        vars.continuousDaoParam = ContinuousDaoParam({
+            reserveNftNumber: 1000,
+            unifiedPriceModeOff: true,
+            unifiedPrice: 0.01 ether,
+            needMintableWork: true,
+            dailyMintCap: 100
+        });
 
         daoId = daoProxy.createContinuousDao(
             vars.existDaoId,
@@ -920,9 +928,8 @@ contract DeployHelper is Test {
             vars.daoETHAndERC20SplitRatioParam,
             vars.templateParam,
             vars.basicDaoParam,
-            20,
-            needMintableWork,
-            vars.dailyMintCap
+            vars.continuousDaoParam,
+            20
         );
 
         vm.stopPrank();
@@ -944,9 +951,9 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-        );
+        tokenId = protocol.mintNFTAndTransfer{
+            value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice
+        }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), address(this));
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -982,9 +989,17 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFT{
+        tokenId = protocol.mintNFTAndTransfer{
             value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.canvasId) : vars.flatPrice
-        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v));
+        }(
+            vars.daoId,
+            vars.canvasId,
+            vars.tokenUri,
+            vars.proof,
+            vars.flatPrice,
+            abi.encodePacked(r, s, v),
+            address(this)
+        );
 
         vm.stopPrank();
         deal(hoaxer, bal);

@@ -107,6 +107,14 @@ interface ID4AProtocolReadable {
 
     function getDaoFloorPrice(bytes32 daoId) external view returns (uint256 floorPrice);
 
+    function getDaoDailyMintCap(bytes32 daoId) external view returns (uint256);
+
+    function getDaoUnifiedPriceModeOff(bytes32 daoId) external view returns (bool);
+
+    function getDaoUnifiedPrice(bytes32 daoId) external view returns (uint256);
+
+    function getDaoReserveNftNumber(bytes32 daoId) external view returns (uint256);
+
     // reward related functions
     function getDaoRewardStartRound(
         bytes32 daoId,

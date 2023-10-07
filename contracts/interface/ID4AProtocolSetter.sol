@@ -46,6 +46,8 @@ interface ID4AProtocolSetter {
 
     event WhiteListMintCapSet(bytes32 daoId, address whitelistUser, uint256 whitelistUserMintCap);
 
+    event DaoUnifiedPriceSet(bytes32 daoId, uint256 newUnifiedPrice);
+
     function setMintCapAndPermission(
         bytes32 daoId,
         uint32 daoMintCap,
@@ -86,4 +88,6 @@ interface ID4AProtocolSetter {
         external;
 
     function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) external payable;
+
+    function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) external;
 }

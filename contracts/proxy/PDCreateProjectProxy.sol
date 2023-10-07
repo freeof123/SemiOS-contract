@@ -14,7 +14,8 @@ import {
     BasicDaoParam,
     NftMinterCapInfo,
     SetMintCapAndPermissionParam,
-    SetRatioParam
+    SetRatioParam,
+    ContinuousDaoParam
 } from "contracts/interface/D4AStructs.sol";
 import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
 
@@ -248,9 +249,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
-        uint256 actionType,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        ContinuousDaoParam calldata continuousDaoParam,
+        uint256 actionType
     )
         public
         payable
@@ -267,8 +267,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.templateParam = templateParam;
         vars.basicDaoParam = basicDaoParam;
         vars.actionType = actionType;
-        vars.needMintableWork = needMintableWork;
-        vars.dailyMintCap = dailyMintCap;
+        vars.needMintableWork = continuousDaoParam.needMintableWork;
+        vars.dailyMintCap = continuousDaoParam.dailyMintCap;
 
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
         if (
@@ -288,7 +288,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         //     daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
         // }
         daoId = IPDCreate(protocol).createContinuousDao{ value: msg.value }(
-            existDaoId, daoMetadataParam, basicDaoParam, needMintableWork, dailyMintCap
+            existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam
         );
         vars.daoId = daoId;
 

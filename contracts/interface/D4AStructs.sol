@@ -99,7 +99,15 @@ struct BasicDaoParam {
     string daoName;
 }
 
+struct ContinuousDaoParam {
+    uint256 reserveNftNumber;
+    bool unifiedPriceModeOff;
+    uint256 unifiedPrice;
+    bool needMintableWork;
+    uint256 dailyMintCap;
+}
 // 修改Dao中参数的结构体，被用于setDaoParams方法
+
 struct SetDaoParam {
     bytes32 daoId;
     uint256 nftMaxSupplyRank;

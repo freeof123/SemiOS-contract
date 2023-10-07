@@ -324,4 +324,14 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         emit WhiteListMintCapSet(daoId, whitelistUser, whitelistUserMintCap);
     }
+
+    function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = newUnifiedPrice;
+        emit DaoUnifiedPriceSet(daoId, newUnifiedPrice);
+    }
 }

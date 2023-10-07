@@ -38,7 +38,7 @@ contract CreateDaoTest is DeployHelper {
         assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0);
 
         hoax(nftMinter.addr);
-        protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
+        protocol.mintNFTAndTransfer(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature, address(this));
 
         assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0);
     }

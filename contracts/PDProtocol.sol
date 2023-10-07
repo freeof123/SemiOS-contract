@@ -72,7 +72,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         string calldata tokenUri,
         bytes calldata signature,
         uint256 flatPrice,
-        bytes32[] memory proof,
+        bytes32[] calldata proof,
         address nftOwner
     )
         external
@@ -80,19 +80,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         returns (uint256)
     {
         _createCanvas(daoId, canvasId, canvasUri, to);
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-                && flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice
-        ) {
-            revert NotBasicDaoNftFlatPrice();
-        }
-        _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        return _mintNft(daoId, canvasId, tokenUri, flatPrice, nftOwner);
+        return mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, nftOwner);
     }
 
     function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
@@ -113,20 +101,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 canvasId,
         string calldata tokenUri,
         bytes32[] calldata proof,
-        uint256 nftFlatPrice,
+        uint256 flatPrice,
         bytes calldata signature
     )
-        external
+        public
         payable
         nonReentrant
         returns (uint256)
     {
-        _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        return _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, msg.sender);
+        return mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
     function mintNFTAndTransfer(
@@ -134,21 +117,35 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 canvasId,
         string calldata tokenUri,
         bytes32[] calldata proof,
-        uint256 nftFlatPrice,
+        uint256 flatPrice,
         bytes calldata signature,
         address to
     )
-        external
+        public
         payable
         nonReentrant
         returns (uint256 tokenId)
     {
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        if (DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
+            if (
+                flatPrice
+                    != (
+                        basicDaoInfo.unifiedPrice == 0
+                            ? BasicDaoStorage.layout().basicDaoNftFlatPrice
+                            : basicDaoInfo.unifiedPrice
+                    )
+            ) {
+                revert NotBasicDaoNftFlatPrice();
+            }
+        } else {
+            _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
+        }
         _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        tokenId = _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, to);
+        tokenId = _mintNft(daoId, canvasId, tokenUri, flatPrice, to);
     }
 
     function batchMint(
@@ -553,7 +550,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             if (bytes(tokenIndexString)[i] < "0" || bytes(tokenIndexString)[i] > "9") return false;
             tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
         }
-        if (tokenIndex == 0 || tokenIndex > BASIC_DAO_RESERVE_NFT_NUMBER) return false;
+        if (tokenIndex == 0 || tokenIndex > ID4AProtocolReadable(address(this)).getDaoReserveNftNumber(daoId)) {
+            return false;
+        }
         return true;
     }
 

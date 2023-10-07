@@ -8,7 +8,7 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
-import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, BasicDaoParam, ContinuousDaoParam } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -158,8 +158,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         bytes32 existDaoId,
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        ContinuousDaoParam memory continuousDaoParam
     )
         public
         payable
@@ -190,8 +189,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
-            createContinuousDaoParam.needMintableWork = needMintableWork;
-            createContinuousDaoParam.dailyMintCap = dailyMintCap;
+            createContinuousDaoParam.needMintableWork = continuousDaoParam.needMintableWork;
+            createContinuousDaoParam.dailyMintCap = continuousDaoParam.dailyMintCap;
         }
         daoId = _createContinuousProject(createContinuousDaoParam);
 
@@ -219,7 +218,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
         // dailyMintCap
-        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = continuousDaoParam.dailyMintCap;
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff = continuousDaoParam.unifiedPriceModeOff;
+        basicDaoStorage.basicDaoInfos[daoId].reserveNftNumber = continuousDaoParam.reserveNftNumber;
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
     }
 
     function createCanvas(

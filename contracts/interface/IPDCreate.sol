@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, BasicDaoParam, ContinuousDaoParam } from "contracts/interface/D4AStructs.sol";
 import { ICreate } from "contracts/interface/ICreate.sol";
 
 interface IPDCreate is ICreate {
@@ -25,8 +25,7 @@ interface IPDCreate is ICreate {
         bytes32 existDaoId,
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        ContinuousDaoParam memory continuousDaoParam
     )
         external
         payable

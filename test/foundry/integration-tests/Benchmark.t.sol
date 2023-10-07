@@ -90,7 +90,7 @@ contract Benchmark is DeployHelper {
             signature = bytes.concat(r, s, bytes1(v));
         }
         uint256 value = 0.01 ether;
-        protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature);
+        protocol.mintNFTAndTransfer{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature, address(this));
         vm.stopPrank();
         protocolFeePoolBalance = protocolFeePool.addr.balance;
     }
@@ -112,7 +112,7 @@ contract Benchmark is DeployHelper {
             signature = bytes.concat(r, s, bytes1(v));
         }
         uint256 value = 0.02 ether;
-        protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature);
+        protocol.mintNFTAndTransfer{ value: value }(daoId, canvasId, tokenUri, proof, flatPrice, signature, address(this));
         assertEq(nft.balanceOf(nftMinter.addr), 2);
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = (value * 3000) / 10_000;

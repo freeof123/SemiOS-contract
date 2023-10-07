@@ -7,6 +7,9 @@ library BasicDaoStorage {
         bytes32 canvasIdOfSpecialNft;
         uint256 tokenId;
         uint256 dailyMintCap;
+        uint256 reserveNftNumber;
+        bool unifiedPriceModeOff;
+        uint256 unifiedPrice;
     }
 
     struct Layout {
