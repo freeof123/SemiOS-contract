@@ -80,7 +80,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         returns (uint256)
     {
         _createCanvas(daoId, canvasId, canvasUri, to);
-        return mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, nftOwner);
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, nftOwner);
     }
 
     function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
@@ -104,12 +104,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 flatPrice,
         bytes calldata signature
     )
-        public
+        external
         payable
         nonReentrant
         returns (uint256)
     {
-        return mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
     function mintNFTAndTransfer(
@@ -121,9 +121,24 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes calldata signature,
         address to
     )
-        public
+        external
         payable
         nonReentrant
+        returns (uint256 tokenId)
+    {
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, to);
+    }
+
+    function _mintNFTAndTransfer(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 flatPrice,
+        bytes calldata signature,
+        address to
+    )
+        internal
         returns (uint256 tokenId)
     {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];

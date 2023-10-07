@@ -239,6 +239,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDailyMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoTokenSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setWhitelistMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoUnifiedPrice.selector;
 
     assert(interfaceId == type(ID4AProtocolSetter).interfaceId);
 

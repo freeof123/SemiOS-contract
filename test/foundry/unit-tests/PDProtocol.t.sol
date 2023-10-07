@@ -3,8 +3,12 @@ pragma solidity ^0.8.18;
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
+import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
+import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 
 import { D4AERC721 } from "contracts/D4AERC721.sol";
+import { console2 } from "forge-std/Console2.sol";
+import "contracts/interface/D4AErrors.sol";
 
 contract PDProtocolTest is DeployHelper {
     function setUp() public {
@@ -191,5 +195,46 @@ contract PDProtocolTest is DeployHelper {
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
             );
         }
+    }
+
+    function test_mintNFTAndTransfer_ExpectRevertWhenNftFlatPriceIsNot001() public {
+        // 创建一个BasicDao
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 daoId = _createBasicDao(param);
+
+        // MintAndTransfer一个NFT，NftFlatPrice不等于0.01，签名传空，然后expectRevert
+        {
+            bytes32 canvasId = param.canvasId;
+            string memory tokenUri = string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            );
+
+            // 传入一个不是0.01的flatPrice期望revert
+            uint256 flatPrice = 0.02 ether;
+            vm.expectRevert(NotBasicDaoNftFlatPrice.selector);
+
+            emit Transfer(address(0), address(nftMinter.addr), 1);
+            hoax(daoCreator.addr);
+            protocol.mintNFTAndTransfer{ value: flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
+            );
+        }
+
+        bool upkeepNeeded;
+        bytes memory performData;
+
+        address basicDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
+        BasicDaoUnlocker unlocker = new BasicDaoUnlocker(address(protocol));
+
+        (bool success,) = basicDaoFeePoolAddress.call{ value: 3 ether }("");
+        (upkeepNeeded, performData) = unlocker.checkUpkeep("");
+        if (upkeepNeeded) {
+            unlocker.performUpkeep(performData);
+        }
+
+        // 使用setDaoUnifiedPrice方法更改全局一口价，并测试更改后的价格能够正确铸造
+
+        // 在上面的Dao基础上创建一个延续的Dao，该Dao也要按照上面设置的价格正确铸造
     }
 }

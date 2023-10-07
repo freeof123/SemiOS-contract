@@ -912,10 +912,10 @@ contract DeployHelper is Test {
             daoName: "test dao"
         });
         vars.continuousDaoParam = ContinuousDaoParam({
-            reserveNftNumber: 1000,
-            unifiedPriceModeOff: true,
+            reserveNftNumber: 1000, // 传一个500进来，spetialTokenUri应该501会Revert
+            unifiedPriceModeOff: true, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: 0.01 ether,
-            needMintableWork: true,
+            needMintableWork: needMintableWork,
             dailyMintCap: 100
         });
 
@@ -951,9 +951,9 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFTAndTransfer{
-            value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice
-        }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), address(this));
+        tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
+            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+        );
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -989,17 +989,9 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFTAndTransfer{
+        tokenId = protocol.mintNFT{
             value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.canvasId) : vars.flatPrice
-        }(
-            vars.daoId,
-            vars.canvasId,
-            vars.tokenUri,
-            vars.proof,
-            vars.flatPrice,
-            abi.encodePacked(r, s, v),
-            address(this)
-        );
+        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v));
 
         vm.stopPrank();
         deal(hoaxer, bal);
