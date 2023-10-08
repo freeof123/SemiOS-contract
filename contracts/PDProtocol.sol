@@ -597,7 +597,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
                 }
-                if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
+                if (flatPrice != PriceStorage.layout().daoFloorPrices[daoId]) revert NotBasicDaoFloorPrice();
                 tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
                 tokenId = basicDaoInfo.tokenId;
             }
