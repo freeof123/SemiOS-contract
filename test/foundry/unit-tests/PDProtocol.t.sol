@@ -197,7 +197,7 @@ contract PDProtocolTest is DeployHelper {
         }
     }
 
-    function test_mintNFTAndTransfer_ExpectRevertWhenNftFlatPriceIsNot001() public {
+    function test_mintNFTAndTransfer_UnifiedPriceMintTest() public {
         // 创建一个BasicDao
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
@@ -234,6 +234,23 @@ contract PDProtocolTest is DeployHelper {
         }
 
         // 使用setDaoUnifiedPrice方法更改全局一口价，并测试更改后的价格能够正确铸造
+        hoax(daoCreator.addr);
+        protocol.setDaoUnifiedPrice(daoId, 0.03 ether);
+        assertEq(protocol.getDaoUnifiedPrice(daoId), 0.03 ether);
+
+        {
+            bytes32 canvasId = param.canvasId;
+            string memory tokenUri1 = string("NormalTokenUri");
+            string memory tokenUri = string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
+            );
+            uint256 flatPrice = 0.03 ether;
+            emit Transfer(address(0), address(nftMinter.addr), 1);
+            hoax(daoCreator.addr);
+            protocol.mintNFTAndTransfer{ value: flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
+            );
+        }
 
         // 在上面的Dao基础上创建一个延续的Dao，该Dao也要按照上面设置的价格正确铸造
     }

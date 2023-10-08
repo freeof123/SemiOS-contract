@@ -578,7 +578,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         // token uri first, then check for uri non-existence
         {
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-            if (_isSpecialTokenUri(daoId, tokenUri)) {
+            if (_isSpecialTokenUri(daoId, tokenUri) && basicDaoInfo.unifiedPriceModeOff) {
                 ++basicDaoInfo.tokenId;
                 if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
