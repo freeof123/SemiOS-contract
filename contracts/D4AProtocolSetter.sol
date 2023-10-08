@@ -95,6 +95,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         );
         setDailyMintCap(vars.daoId, vars.dailyMintCap);
         setDaoTokenSupply(vars.daoId, vars.addedDaoToken);
+        setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {

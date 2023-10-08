@@ -78,3 +78,5 @@ error SupplyOutOfRange();
 error ExceedDailyMintCap();
 
 error NotBasicDaoFloorPrice();
+
+error NotBasicDaoOwner();

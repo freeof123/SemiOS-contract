@@ -28,6 +28,8 @@ import {
 import "./utils/D4AAddress.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 
+import "contracts/interface/D4AStructs.sol";
+
 contract Deploy is Script, Test, D4AAddress {
     using stdJson for string;
 
@@ -35,8 +37,53 @@ contract Deploy is Script, Test, D4AAddress {
 
     address public owner = vm.addr(deployerPrivateKey);
 
+    struct CreateDaoParam {
+        uint256 startDrb;
+        uint256 mintableRound;
+        uint256 floorPriceRank;
+        uint256 maxNftRank;
+        uint96 royaltyFee;
+        string daoUri;
+        uint256 projectIndex;
+        bytes32 minterMerkleRoot;
+        address[] minterNFTHolderPasses;
+        bytes32 canvasCreatorMerkleRoot;
+        address[] canvasCreatorNFTHolderPasses;
+        address[] minterAccounts;
+        address[] canvasCreatorAccounts;
+        uint256 mintCap;
+        address[] minters;
+        uint256[] userMintCaps;
+        uint256 daoCreatorERC20RatioInBps;
+        uint256 canvasCreatorERC20RatioInBps;
+        uint256 nftMinterERC20RatioInBps;
+        uint256 daoFeePoolETHRatioInBps;
+        uint256 daoFeePoolETHRatioInBpsFlatPrice;
+        PriceTemplateType priceTemplateType;
+        uint256 priceFactor;
+        RewardTemplateType rewardTemplateType;
+        uint256 rewardDecayFactor;
+        bool isProgressiveJackpot;
+        bytes32 canvasId;
+        uint256 actionType;
+    }
+
+    struct CreateContinuousDaoParam {
+        bytes32 existDaoId;
+        DaoMetadataParam daoMetadataParam;
+        Whitelist whitelist;
+        Blacklist blacklist;
+        DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
+        TemplateParam templateParam;
+        BasicDaoParam basicDaoParam;
+        ContinuousDaoParam continuousDaoParam;
+        uint256 dailyMintCap;
+    }
+
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
+
+        //_eventEmiter();
 
         // _deployDrb();
 
@@ -49,10 +96,10 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         _deployProtocolSetter();
         _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
@@ -60,8 +107,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -95,6 +142,134 @@ contract Deploy is Script, Test, D4AAddress {
         // );
 
         vm.stopBroadcast();
+    }
+
+    function getMerkleRoot(address[] memory accounts) public returns (bytes32) {
+        string[] memory inputs = new string[](5);
+        inputs[0] = "pnpm";
+        inputs[1] = "exec";
+        inputs[2] = "node";
+        inputs[3] = "./test/helper/getMerkleRootFoundry.js";
+        inputs[4] = _arrayToString(accounts);
+
+        bytes memory output = vm.ffi(inputs);
+        bytes32 res = abi.decode(output, (bytes32));
+        return res;
+    }
+
+    function _arrayToString(address[] memory accounts) internal pure returns (string memory) {
+        uint256 length = accounts.length;
+        string memory res;
+        for (uint256 i = 0; i < length; i++) {
+            res = string.concat(res, vm.toString(accounts[i]));
+            if (i + 1 < length) res = string.concat(res, " ");
+        }
+        return res;
+    }
+
+    function _createContinuousDao(
+        CreateDaoParam memory createDaoParam,
+        bytes32 existDaoId,
+        bool needMintableWork,
+        bool unifiedPriceModeOff
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = address(this);
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = address(this);
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+
+        CreateContinuousDaoParam memory vars;
+        vars.existDaoId = existDaoId;
+        vars.daoMetadataParam = DaoMetadataParam({
+            startDrb: d4aDrb.currentRound(),
+            mintableRounds: 60,
+            floorPriceRank: 0,
+            maxNftRank: 2,
+            royaltyFee: 1250,
+            projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri1" : createDaoParam.daoUri,
+            projectIndex: 0
+        });
+        vars.whitelist = Whitelist({
+            minterMerkleRoot: createDaoParam.minterMerkleRoot,
+            minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+            canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+        });
+        vars.blacklist = Blacklist({
+            minterAccounts: createDaoParam.minterAccounts,
+            canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+        });
+        vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
+            daoCreatorERC20Ratio: 4800,
+            canvasCreatorERC20Ratio: 2500,
+            nftMinterERC20Ratio: 2500,
+            daoFeePoolETHRatio: 9750,
+            daoFeePoolETHRatioFlatPrice: 9750
+        });
+        vars.templateParam = TemplateParam({
+            priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+            priceFactor: 20_000,
+            rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+            rewardDecayFactor: 0,
+            isProgressiveJackpot: true
+        });
+        vars.basicDaoParam = BasicDaoParam({
+            initTokenSupplyRatio: 1000,
+            canvasId: createDaoParam.canvasId,
+            canvasUri: "test dao creator canvas uri",
+            daoName: "test dao"
+        });
+        vars.continuousDaoParam = ContinuousDaoParam({
+            reserveNftNumber: 1000,
+            unifiedPriceModeOff: unifiedPriceModeOff,
+            unifiedPrice: 0.01 ether,
+            needMintableWork: needMintableWork,
+            dailyMintCap: 100
+        });
+
+        daoId = pdCreateProjectProxy_proxy.createContinuousDao(
+            vars.existDaoId,
+            vars.daoMetadataParam,
+            vars.whitelist,
+            vars.blacklist,
+            daoMintCapParam,
+            vars.daoETHAndERC20SplitRatioParam,
+            vars.templateParam,
+            vars.basicDaoParam,
+            vars.continuousDaoParam,
+            20
+        );
+    }
+
+    function _eventEmiter() internal {
+        CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(address(this), block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        //bytes32 daoId = _createBasicDao(createDaoParam);
+        bytes32 continuousDaoId = _createContinuousDao(
+            createDaoParam, 0x6d6e29b989aebea8e1ee5dc00f93150c9baad666f2b199c2fbc083c6047f9853, true, false
+        );
+        console2.log("subdao:");
+        console2.logBytes32(continuousDaoId);
+        //bytes32 subdao = 0xeee88695213bbf892778cfc35e64f30a8988ca4580d71ddaf4b4e12fea19ad60;
     }
 
     function _deployDrb() internal {
@@ -261,7 +436,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xec35a9aE4a2219B4146CC40688B09a11c2F5Bc29
+                    0x0ad5552b1ee49f8B15dAA1e8A14CaA97c6BD4862
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

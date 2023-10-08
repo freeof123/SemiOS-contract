@@ -466,7 +466,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         */
         IPermissionControl permissionControl = SettingsStorage.layout().permissionControl;
 
-        // 在黑名单中，无法铸造，revert
         if (permissionControl.isMinterBlacklisted(daoId, account)) {
             revert Blacklisted();
         }
@@ -480,25 +479,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         uint256 expectedMinted = userMintInfo.minted + amount;
 
-        // 没有白名单，判断铸造请求与全局铸造上限的大小
         if (isWhitelistOff) {
             return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
         }
 
-        // 开启白名单 && 在白名单中
         if (permissionControl.inMinterWhitelist(daoId, account, proof)) {
             //revert NotInWhitelist();
             if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
             return true;
         }
-        // 用户MintCap不为0，检查请求铸造的数量如果小于等于MintCap则返回true，否则false
-
-        // // 用户没有铸造上限，但是NFTHolder有铸造上限，并且持有拥有铸造权限的NFT，检查请求铸造的数量是否小于等于NFTHolderMintCap
-        // if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
-        //     return expectedMinted <= NFTHolderMintCap;
-        // }
-
-        // 检测用户是否持有带有铸造上限的白名单ERC-721
         return _ableToMintFor721(daoId, expectedMinted, account);
     }
 
@@ -509,7 +498,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 minMintCap = 1_000_000;
         bool hasMinterCapNft = false;
         for (uint256 i; i < length;) {
-            // 判断用户是否拥有列表中的ERC721
             if (IERC721Upgradeable(nftMinterCapInfo[i].nftAddress).balanceOf(account) > 0) {
                 hasMinterCapNft = true;
                 if (nftMinterCapInfo[i].nftMintCap < minMintCap) {
@@ -525,8 +513,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
         Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
         return permissionControl.inMinterNFTHolderPasses(whitelist, account);
-        // 检查是否达到Dao的全局上限
-        //if (daoMintCap != 0) return expectedMinted <= daoMintCap;
     }
 
     function _verifySignature(

@@ -122,6 +122,7 @@ struct SetDaoParam {
     uint256 daoFeePoolETHRatioFlatPrice;
     uint256 dailyMintCap;
     uint256 addedDaoToken;
+    uint256 unifiedPrice;
 }
 
 struct SetMintCapAndPermissionParam {

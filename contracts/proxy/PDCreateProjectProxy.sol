@@ -17,7 +17,7 @@ import {
     SetRatioParam,
     ContinuousDaoParam
 } from "contracts/interface/D4AStructs.sol";
-import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
+import { ZeroFloorPriceCannotUseLinearPriceVariation, NotBasicDaoOwner } from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -263,6 +263,11 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         nonReentrant
         returns (bytes32 daoId)
     {
+        {
+            if (ID4ASettingsReadable(address(protocol)).ownerProxy().ownerOf(existDaoId) != msg.sender) {
+                revert NotBasicDaoOwner();
+            }
+        }
         CreateProjectLocalVars memory vars;
         vars.existDaoId = existDaoId;
         vars.daoMetadataParam = daoMetadataParam;
