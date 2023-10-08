@@ -93,7 +93,13 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
     );
 
     event CreateContinuousProjectParamEmitted(
-        bytes32 existDaoId, bytes32 daoId, uint256 dailyMintCap, bool needMintableWork
+        bytes32 existDaoId,
+        bytes32 daoId,
+        uint256 dailyMintCap,
+        bool needMintableWork,
+        bool unifiedPriceModeOff,
+        uint256 unifiedPrice,
+        uint256 reserveNftNumber
     );
 
     struct CreateProjectLocalVars {
@@ -312,7 +318,15 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             vars.actionType
         );
 
-        emit CreateContinuousProjectParamEmitted(vars.existDaoId, vars.daoId, vars.dailyMintCap, vars.needMintableWork);
+        emit CreateContinuousProjectParamEmitted(
+            vars.existDaoId,
+            vars.daoId,
+            vars.dailyMintCap,
+            vars.needMintableWork,
+            continuousDaoParam.unifiedPriceModeOff,
+            continuousDaoParam.unifiedPrice,
+            continuousDaoParam.reserveNftNumber
+        );
 
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 
