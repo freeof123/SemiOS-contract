@@ -51,7 +51,7 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 //import "forge-std/Test.sol";
 
-contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712, Test {
+contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712 {
     using LibString for string;
 
     bytes32 internal constant _MINTNFT_TYPEHASH =
