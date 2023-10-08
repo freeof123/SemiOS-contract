@@ -49,7 +49,7 @@ import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
 contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712, Test {
     using LibString for string;
@@ -578,12 +578,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         // token uri first, then check for uri non-existence
         {
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-            if (_isSpecialTokenUri(daoId, tokenUri) && basicDaoInfo.unifiedPriceModeOff) {
+            if (_isSpecialTokenUri(daoId, tokenUri)) {
                 ++basicDaoInfo.tokenId;
                 if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
                 }
-                if (flatPrice != PriceStorage.layout().daoFloorPrices[daoId]) revert NotBasicDaoFloorPrice();
+                if (flatPrice != PriceStorage.layout().daoFloorPrices[daoId] && basicDaoInfo.unifiedPriceModeOff) {
+                    revert NotBasicDaoFloorPrice();
+                }
                 tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
                 tokenId = basicDaoInfo.tokenId;
             }
