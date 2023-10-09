@@ -43,6 +43,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         address feePoolAddress;
         bool needMintableWork;
         uint256 dailyMintCap;
+        uint256 reserveNftNumber;
     }
 
     function createBasicDao(
@@ -191,6 +192,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
             createContinuousDaoParam.needMintableWork = continuousDaoParam.needMintableWork;
             createContinuousDaoParam.dailyMintCap = continuousDaoParam.dailyMintCap;
+            createContinuousDaoParam.reserveNftNumber = continuousDaoParam.reserveNftNumber;
         }
         daoId = _createContinuousProject(createContinuousDaoParam);
 
@@ -317,7 +319,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
             bool needMintableWork = true;
-            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork);
+            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
@@ -376,7 +378,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoInfo.nft = _createERC721Token(
                 createContinuousDaoParam.daoIndex,
                 createContinuousDaoParam.daoName,
-                createContinuousDaoParam.needMintableWork
+                createContinuousDaoParam.needMintableWork,
+                createContinuousDaoParam.reserveNftNumber
             );
 
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
@@ -416,7 +419,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function _createERC721Token(
         uint256 daoIndex,
         string memory daoName,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 startIndex
     )
         internal
         returns (address)
@@ -425,7 +429,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
         if (needMintableWork) {
-            return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
+            return l.erc721Factory.createD4AERC721(name, sym, startIndex);
         } else {
             return l.erc721Factory.createD4AERC721(name, sym, 0);
         }

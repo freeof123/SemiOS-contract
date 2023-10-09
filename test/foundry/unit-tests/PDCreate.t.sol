@@ -147,7 +147,7 @@ contract PDCreateTest is DeployHelper {
         bool needMintableWork = false;
         // CreateContinuousDaoParam.initTokenSupplyRatio = 1000;
 
-        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
+        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork, true, 1000);
 
         originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
         continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);

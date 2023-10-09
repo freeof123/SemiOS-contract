@@ -96,7 +96,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
@@ -107,8 +107,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -542,7 +542,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xd7F7f02a0F30EE7bFaf1dfA338CbA6b28D93FE65
+                    0x6027C2Ac203f12cf03e5FdeC098740FC393729BE
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

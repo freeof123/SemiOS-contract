@@ -843,7 +843,9 @@ contract DeployHelper is Test {
     function _createContinuousDao(
         CreateDaoParam memory createDaoParam,
         bytes32 existDaoId,
-        bool needMintableWork
+        bool needMintableWork,
+        bool uniPriceModeOff,
+        uint256 reserveNftNumber
     )
         internal
         returns (bytes32 daoId)
@@ -912,8 +914,8 @@ contract DeployHelper is Test {
             daoName: "test dao"
         });
         vars.continuousDaoParam = ContinuousDaoParam({
-            reserveNftNumber: 1000, // 传一个500进来，spetialTokenUri应该501会Revert
-            unifiedPriceModeOff: true, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
+            reserveNftNumber: reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
+            unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: 0.01 ether,
             needMintableWork: needMintableWork,
             dailyMintCap: 100
