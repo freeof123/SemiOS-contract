@@ -6,6 +6,10 @@ import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 
+import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
+import { PDCreate } from "contracts/PDCreate.sol";
+import "contracts/interface/D4AStructs.sol";
+
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { console2 } from "forge-std/Console2.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -195,5 +199,117 @@ contract PDProtocolTest is DeployHelper {
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
             );
         }
+    }
+
+    event CreateContinuousProjectParamEmitted(
+        bytes32 existDaoId,
+        bytes32 daoId,
+        uint256 dailyMintCap,
+        bool needMintableWork,
+        bool unifiedPriceModeOff,
+        uint256 unifiedPrice,
+        uint256 reserveNftNumber
+    );
+
+    // TODO: expect emit Event CreateContinuousProjectParamEmitted
+    function test_createBasicDaoEvent() public {
+        // init create dao param
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        {
+            bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+            createDaoParam.canvasId = canvasId;
+        }
+        createDaoParam.projectIndex = 42;
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+
+        bytes memory datas = abi.encodeCall(
+            PDCreate.createBasicDao,
+            (
+                DaoMetadataParam({
+                    startDrb: drb.currentRound(),
+                    mintableRounds: 60,
+                    floorPriceRank: 0,
+                    maxNftRank: 2,
+                    royaltyFee: 1250,
+                    projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                    projectIndex: createDaoParam.projectIndex
+                }),
+                BasicDaoParam({
+                    initTokenSupplyRatio: 500,
+                    canvasId: createDaoParam.canvasId,
+                    canvasUri: "test dao creator canvas uri",
+                    daoName: "test dao"
+                })
+            )
+        );
+
+        bytes32 _daoId = keccak256(abi.encodePacked(block.number, address(daoProxy), datas, msg.sender));
+
+        vm.expectEmit();
+        emit CreateContinuousProjectParamEmitted(_daoId, _daoId, 10_000, true, false, 0.01 ether, 1000);
+
+        hoax(daoCreator.addr);
+        bytes32 daoId = daoProxy.createBasicDao(
+            DaoMetadataParam({
+                startDrb: drb.currentRound(),
+                mintableRounds: 60,
+                floorPriceRank: 0,
+                maxNftRank: 2,
+                royaltyFee: 1250,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: createDaoParam.projectIndex
+            }),
+            Whitelist({
+                minterMerkleRoot: createDaoParam.minterMerkleRoot,
+                minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+                canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+                canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            }),
+            Blacklist({
+                minterAccounts: createDaoParam.minterAccounts,
+                canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+            }),
+            daoMintCapParam,
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 4800,
+                canvasCreatorERC20Ratio: 2500,
+                nftMinterERC20Ratio: 2500,
+                daoFeePoolETHRatio: 9750,
+                daoFeePoolETHRatioFlatPrice: 9750
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                isProgressiveJackpot: true
+            }),
+            BasicDaoParam({
+                initTokenSupplyRatio: 500,
+                canvasId: createDaoParam.canvasId,
+                canvasUri: "test dao creator canvas uri",
+                daoName: "test dao"
+            }),
+            20
+        );
+        assertEq(_daoId, daoId);
     }
 }

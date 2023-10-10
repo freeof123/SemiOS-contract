@@ -162,6 +162,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
         vars.token = ID4AProtocolReadable(address(protocol)).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
+
         emit CreateProjectParamEmitted(
             daoId,
             vars.daoFeePool,
@@ -176,6 +177,16 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             basicDaoParam,
             actionType
         );
+
+        vars.dailyMintCap = ID4AProtocolReadable(address(protocol)).getDaoDailyMintCap(daoId);
+        bool _unifiedPriceModeOff = ID4AProtocolReadable(address(protocol)).getDaoUnifiedPriceModeOff(daoId);
+        uint256 _unifiedPrice = ID4AProtocolReadable(address(protocol)).getDaoUnifiedPrice(daoId);
+        uint256 _reserveNftNumber = ID4AProtocolReadable(address(protocol)).getDaoReserveNftNumber(daoId);
+
+        emit CreateContinuousProjectParamEmitted(
+            daoId, daoId, vars.dailyMintCap, true, _unifiedPriceModeOff, _unifiedPrice, _reserveNftNumber
+        );
+
         //不需要把新建nft放到无铸造上限白名单里
         //address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
         //minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
