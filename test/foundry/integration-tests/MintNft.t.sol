@@ -355,7 +355,6 @@ contract MintNftTest is DeployHelper {
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         daoId = _createBasicDao(param);
 
-        console2.log("Basic Dao Unified Price Off:", protocol.getDaoUnifiedPriceModeOff(daoId));
         // MintAndTransfer一个NFT，铸造的NftFlatPrice不等于0.01，签名传空，然后expectRevert
         {
             canvasId = param.canvasId;
@@ -415,8 +414,7 @@ contract MintNftTest is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setDaoUnifiedPrice(daoId, 0.03 ether);
         assertEq(protocol.getDaoUnifiedPrice(daoId), 0.03 ether);
-        console2.log("Continuous Dao 1 Unified Price Off:", protocol.getDaoUnifiedPriceModeOff(continuousDaoId));
-        // 关闭了全局一口价的铸造
+        // 关闭全局一口价的铸造
         // 1.关闭全局一口价，SpetialTokenUri，无签名，可以成功铸造
         {
             canvasId = param.canvasId;
@@ -436,12 +434,12 @@ contract MintNftTest is DeployHelper {
             );
         }
 
-        // 2.关闭全局一口价，一般TokenUri，无签名。铸造失败（原因：签名无法验证）
+        // 2.关闭全局一口价，一般TokenUri，无签名。铸造失败（原因："ECDSA: invalid signature length"）
         {
             canvasId = param.canvasId;
             string memory normalTokenUri = "NormalTokenUri";
             uint256 flatPrice = 0.01 ether;
-            vm.expectRevert();
+            vm.expectRevert("ECDSA: invalid signature length");
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId, canvasId, normalTokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
@@ -459,7 +457,7 @@ contract MintNftTest is DeployHelper {
                 ".json"
             );
             uint256 flatPrice = 0.01 ether;
-            vm.expectRevert();
+            vm.expectRevert("ECDSA: invalid signature length");
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
@@ -477,9 +475,6 @@ contract MintNftTest is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setDaoUnifiedPrice(continuousDaoId2, 0.03 ether);
         assertEq(protocol.getDaoUnifiedPrice(continuousDaoId2), 0.03 ether);
-        console2.log("Continuous Dao 2 Unified Price Off:", protocol.getDaoUnifiedPriceModeOff(continuousDaoId2));
-        console2.log("Continuous Dao 2 Reserve NFT number:", protocol.getDaoReserveNftNumber(continuousDaoId2));
-        console2.log("Continuous Dao 2 Unified Price:", protocol.getDaoUnifiedPrice(continuousDaoId2));
 
         // 铸造两个预留编号的Dao
         {
@@ -492,13 +487,13 @@ contract MintNftTest is DeployHelper {
                 ".json"
             );
             uint256 flatPrice = 0.03 ether;
-            // vm.expectRevert();
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId2, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
         }
 
+        // 两个一致的Uri，下一个被创建的将自动编号+1，所以这个地方不报错
         {
             canvasId = param.canvasId;
             string memory tokenUri = string.concat(
@@ -509,7 +504,6 @@ contract MintNftTest is DeployHelper {
                 ".json"
             );
             uint256 flatPrice = 0.03 ether;
-            // vm.expectRevert();
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId2, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
@@ -523,17 +517,11 @@ contract MintNftTest is DeployHelper {
             uint256 flatPrice = 0.03 ether;
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
-                continuousDaoId2,
-                canvasId,
-                normalTokenUri,
-                new bytes32[](0),
-                flatPrice,
-                "0x0", // abi.encodePacked(r, s, v)
-                nftMinter.addr
+                continuousDaoId2, canvasId, normalTokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
         }
 
-        // 创建另一个延续的Dao，开启全局一口价，全局一口价设为0.03 , 预留数量更改为2000
+        // 创建另一个延续的Dao，开启全局一口价，全局一口价设为0.03 , 预留数量更改为2000，该Dao用于验证预留以及非预留的TokenId是否正常分配
         param.daoUri = "ContinuousDaoUri3";
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 3));
         bytes32 continuousDaoId3 = _createContinuousDao(param, daoId, true, false, 500);
@@ -554,7 +542,6 @@ contract MintNftTest is DeployHelper {
                 ".json"
             );
             uint256 flatPrice = 0.03 ether;
-            // vm.expectRevert();
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId3, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
@@ -567,13 +554,7 @@ contract MintNftTest is DeployHelper {
             uint256 flatPrice = 0.03 ether;
             hoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
-                continuousDaoId3,
-                canvasId,
-                normalTokenUri,
-                new bytes32[](0),
-                flatPrice,
-                "0x0", // abi.encodePacked(r, s, v)
-                nftMinter.addr
+                continuousDaoId3, canvasId, normalTokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
         }
     }
