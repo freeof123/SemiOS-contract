@@ -428,10 +428,16 @@ contract MintNftTest is DeployHelper {
             uint256 flatPrice = 0.01 ether;
             vm.expectEmit(protocol.getDaoNft(continuousDaoId));
             emit Transfer(address(0), address(nftMinter.addr), 1);
-            hoax(daoCreator.addr);
+            startHoax(daoCreator.addr);
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
+            protocol.setDaoFloorPrice(continuousDaoId, 0.02 ether);
+            vm.expectRevert(NotBasicDaoFloorPrice.selector);
+            protocol.mintNFTAndTransfer{ value: flatPrice }(
+                continuousDaoId, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
+            );
+            vm.stopPrank();
         }
 
         // 2.关闭全局一口价，一般TokenUri，无签名。铸造失败（原因："ECDSA: invalid signature length"）
