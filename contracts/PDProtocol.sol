@@ -143,14 +143,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         if (DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
-            if (
-                flatPrice
-                    != (
-                        basicDaoInfo.unifiedPrice == 0
-                            ? BasicDaoStorage.layout().basicDaoNftFlatPrice
-                            : basicDaoInfo.unifiedPrice
-                    )
-            ) {
+            if (flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId)) {
                 revert NotBasicDaoNftFlatPrice();
             }
         } else {
@@ -626,7 +619,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             address daoFeePool = daoInfo.daoFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(tempCanvasId);
             uint256 daoShare = (
-                flatPrice == 0
+                flatPrice == 0 // Todo:
                     ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(tempDaoId)
                     : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(tempDaoId)
             ) * price;
@@ -641,7 +634,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         _updateReward(
             daoId,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether : daoFee,
+            //如果mint的价格为0，为了达到以数量为权重分配reward的目的，统一传1 ether作为daoFeeAmount
+            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0
+                || (BasicDaoStorage.layout().basicDaoInfos[tempDaoId].unifiedPriceModeOff && flatPrice == 0)
+                ? 1 ether
+                : daoFee,
             canvasRebateRatioInBps
         );
 
@@ -707,7 +704,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 daoFloorPrice = priceStorage.daoFloorPrices[daoId];
         PriceStorage.MintInfo memory maxPrice = priceStorage.daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = priceStorage.canvasLastMintInfos[canvasId];
-        if (flatPrice == 0) {
+        if (flatPrice == 0 && BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff) {
             price = IPriceTemplate(
                 SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
             ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);

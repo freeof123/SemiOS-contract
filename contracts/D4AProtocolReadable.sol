@@ -423,10 +423,16 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff;
     }
 
+    //9999 = 0, 0 = 0.01,
     function getDaoUnifiedPrice(bytes32 daoId) public view returns (uint256) {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        return
-            basicDaoInfo.unifiedPrice == 0 ? BasicDaoStorage.layout().basicDaoNftFlatPrice : basicDaoInfo.unifiedPrice;
+        if (basicDaoInfo.unifiedPrice == 9999 ether) {
+            return 0;
+        } else {
+            return basicDaoInfo.unifiedPrice == 0
+                ? BasicDaoStorage.layout().basicDaoNftFlatPrice
+                : basicDaoInfo.unifiedPrice;
+        }
     }
 
     function getDaoReserveNftNumber(bytes32 daoId) public view returns (uint256) {

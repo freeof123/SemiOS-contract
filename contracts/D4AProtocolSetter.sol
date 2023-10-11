@@ -26,6 +26,7 @@ import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
@@ -333,6 +334,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = newUnifiedPrice;
-        emit DaoUnifiedPriceSet(daoId, newUnifiedPrice);
+        emit DaoUnifiedPriceSet(daoId, ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId));
     }
 }

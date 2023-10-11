@@ -536,8 +536,8 @@ contract MintNftTest is DeployHelper {
             unlocker.performUpkeep(performData);
         }
         hoax(daoCreator.addr);
-        protocol.setDaoUnifiedPrice(continuousDaoId3, 0.03 ether);
-        assertEq(protocol.getDaoUnifiedPrice(continuousDaoId3), 0.03 ether);
+        protocol.setDaoUnifiedPrice(continuousDaoId3, 0 ether);
+        assertEq(protocol.getDaoUnifiedPrice(continuousDaoId3), 0.01 ether);
         {
             canvasId = param.canvasId;
             string memory tokenUri = string.concat(
@@ -547,21 +547,43 @@ contract MintNftTest is DeployHelper {
                 vm.toString(uint256(200)),
                 ".json"
             );
-            uint256 flatPrice = 0.03 ether;
+            uint256 flatPrice = 0 ether;
             hoax(daoCreator.addr);
+            vm.expectRevert();
             protocol.mintNFTAndTransfer{ value: flatPrice }(
                 continuousDaoId3, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
         }
 
+        //  9999 eth
+        hoax(daoCreator.addr);
+        protocol.setDaoUnifiedPrice(continuousDaoId3, 9999 ether);
+        assertEq(protocol.getDaoUnifiedPrice(continuousDaoId3), 0);
         {
             canvasId = param.canvasId;
-            string memory normalTokenUri = "ContinuousDao3NormalTokenUri";
-            uint256 flatPrice = 0.03 ether;
+            string memory tokenUri = string.concat(
+                tokenUriPrefix,
+                vm.toString(protocol.getDaoIndex(continuousDaoId3)),
+                "-",
+                vm.toString(uint256(201)),
+                ".json"
+            );
+            uint256 flatPrice = 0 ether;
             hoax(daoCreator.addr);
+
             protocol.mintNFTAndTransfer{ value: flatPrice }(
-                continuousDaoId3, canvasId, normalTokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
+                continuousDaoId3, canvasId, tokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
             );
         }
+
+        // {
+        //     canvasId = param.canvasId;
+        //     string memory normalTokenUri = "ContinuousDao3NormalTokenUri";
+        //     uint256 flatPrice = 0 ether;
+        //     hoax(daoCreator.addr);
+        //     protocol.mintNFTAndTransfer{ value: flatPrice }(
+        //         continuousDaoId3, canvasId, normalTokenUri, new bytes32[](0), flatPrice, "0x0", nftMinter.addr
+        //     );
+        // }
     }
 }

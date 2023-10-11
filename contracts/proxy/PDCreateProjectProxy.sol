@@ -17,7 +17,11 @@ import {
     SetRatioParam,
     ContinuousDaoParam
 } from "contracts/interface/D4AStructs.sol";
-import { ZeroFloorPriceCannotUseLinearPriceVariation, NotBasicDaoOwner } from "contracts/interface/D4AErrors.sol";
+import {
+    ZeroFloorPriceCannotUseLinearPriceVariation,
+    NotBasicDaoOwner,
+    ZeroNftReserveNumber
+} from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -299,7 +303,9 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         ) {
             revert ZeroFloorPriceCannotUseLinearPriceVariation();
         }
-
+        if (continuousDaoParam.reserveNftNumber == 0) {
+            revert ZeroNftReserveNumber();
+        }
         // if ((actionType & 0x1) != 0) {
         //     require(
         //         IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
@@ -340,7 +346,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             vars.dailyMintCap,
             vars.needMintableWork,
             continuousDaoParam.unifiedPriceModeOff,
-            continuousDaoParam.unifiedPrice,
+            ID4AProtocolReadable(address(protocol)).getDaoUnifiedPrice(daoId),
             continuousDaoParam.reserveNftNumber
         );
 

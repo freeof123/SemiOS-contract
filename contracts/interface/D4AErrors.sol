@@ -80,3 +80,5 @@ error ExceedDailyMintCap();
 error NotBasicDaoFloorPrice();
 
 error NotBasicDaoOwner();
+
+error ZeroNftReserveNumber();
