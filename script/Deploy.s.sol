@@ -96,13 +96,13 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -129,8 +129,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        //  _deployLinearRewardIssuance();
-        //  _deployExponentialRewardIssuance();
+        _deployLinearRewardIssuance();
+        _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 

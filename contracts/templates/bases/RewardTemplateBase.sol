@@ -13,7 +13,9 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
-abstract contract RewardTemplateBase is IRewardTemplate  {
+import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+
+abstract contract RewardTemplateBase is IRewardTemplate {
     function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
@@ -226,7 +228,7 @@ abstract contract RewardTemplateBase is IRewardTemplate  {
             rewardInfo.rewardCheckpoints[length - 1].totalRound = SafeCast.toUint256(
                 SafeCastLib.toInt256(rewardInfo.rewardCheckpoints[length - 1].totalRound) + mintableRoundDelta
             );
-            rewardInfo.rewardCheckpoints[length - 1].totalReward = 
+            rewardInfo.rewardCheckpoints[length - 1].totalReward =
                 rewardInfo.rewardCheckpoints[length - 1].totalReward + totalRewardDelta;
         } else {
             // new checkpoint start at current round + 1
@@ -244,7 +246,10 @@ abstract contract RewardTemplateBase is IRewardTemplate  {
             if (rewardInfo.rewardIssuePendingRound < currentRound) {
                 _issueLastRoundReward(rewardInfo, daoId, daoInfo.token);
             }
-            uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
+            //uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
+            uint256 totalReward =
+                daoInfo.tokenMaxSupply - ID4AProtocolReadable(address(this)).getRewardTillRound(daoId, currentRound - 1);
+
             totalReward -= getRoundReward(daoId, currentRound);
 
             // modify old checkpoint
@@ -257,7 +262,6 @@ abstract contract RewardTemplateBase is IRewardTemplate  {
             rewardInfo.rewardCheckpoints[length].totalRound =
                 SafeCast.toUint256(SafeCastLib.toInt256(totalRound) + mintableRoundDelta);
             rewardInfo.rewardCheckpoints[length].totalReward = totalReward;
-                
         }
     }
 

@@ -297,6 +297,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
             revert NotDaoOwner();
         }
+        if (addedDaoToken == 0) return;
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
         // 追加tokenMaxSupply并判断总数小于10亿
