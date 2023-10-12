@@ -211,7 +211,6 @@ contract PDProtocolTest is DeployHelper {
         uint256 reserveNftNumber
     );
 
-    // TODO: expect emit Event CreateContinuousProjectParamEmitted
     function test_createBasicDaoEvent() public {
         // init create dao param
         DeployHelper.CreateDaoParam memory createDaoParam;
@@ -311,5 +310,40 @@ contract PDProtocolTest is DeployHelper {
             20
         );
         assertEq(_daoId, daoId);
+    }
+
+    /**
+     * @dev expect succeed when invoking createContinuousDao with arg (needMintableWork = false, reserveNftNumber = 0)
+     */
+    function test_createContinuousDao_needMintableWork_reserveNftNumber() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        bytes32 daoId = super._createBasicDao(createDaoParam);
+        bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        createDaoParam.canvasId = canvasId2;
+        createDaoParam.daoUri = "continuous dao";
+        bool uniPriceModeOff = false;
+        uint256 reserveNftNumber = 0;
+
+        super._createContinuousDao(createDaoParam, daoId, false, uniPriceModeOff, reserveNftNumber);
+    }
+
+    /**
+     * @dev expect revert when invoking createContinuousDao with arg (needMintableWork = true, reserveNftNumber = 0)
+     */
+    function testFail_createContinuousDao_needMintableWork_reserveNftNumber() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        createDaoParam.canvasId = canvasId;
+        bytes32 daoId = super._createBasicDao(createDaoParam);
+        bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        createDaoParam.canvasId = canvasId2;
+        createDaoParam.daoUri = "continuous dao";
+        bool uniPriceModeOff = false;
+        uint256 reserveNftNumber = 0;
+
+        vm.expectRevert(ZeroNftReserveNumber.selector);
+        super._createContinuousDao(createDaoParam, daoId, true, uniPriceModeOff, reserveNftNumber);
     }
 }
