@@ -96,7 +96,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
@@ -119,7 +119,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
         //_deployPermissionControl();

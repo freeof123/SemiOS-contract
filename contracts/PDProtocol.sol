@@ -635,10 +635,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             daoId,
             canvasId,
             //如果mint的价格为0，为了达到以数量为权重分配reward的目的，统一传1 ether作为daoFeeAmount
-            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0
-                || (BasicDaoStorage.layout().basicDaoInfos[tempDaoId].unifiedPriceModeOff && flatPrice == 0)
-                ? 1 ether
-                : daoFee,
+            price == 0 ? 1 ether : daoFee,
             canvasRebateRatioInBps
         );
 
@@ -704,7 +701,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 daoFloorPrice = priceStorage.daoFloorPrices[daoId];
         PriceStorage.MintInfo memory maxPrice = priceStorage.daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = priceStorage.canvasLastMintInfos[canvasId];
-        if (flatPrice == 0 && BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff) {
+        //对于D4A的DAO,还是按原来逻辑
+        if (
+            flatPrice == 0
+                && (
+                    BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff
+                        || DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.D4A_DAO
+                )
+        ) {
             price = IPriceTemplate(
                 SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
             ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);
