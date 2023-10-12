@@ -303,8 +303,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         ) {
             revert ZeroFloorPriceCannotUseLinearPriceVariation();
         }
-        if (continuousDaoParam.reserveNftNumber == 0) {
-            revert ZeroNftReserveNumber();
+        if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
+            revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
         // if ((actionType & 0x1) != 0) {
         //     require(
