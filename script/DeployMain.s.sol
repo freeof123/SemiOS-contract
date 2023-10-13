@@ -41,8 +41,8 @@ contract DeployDemo is Script, Test, D4AAddress {
     address multisig2 = json.readAddress(".MultiSig2");
 
     function run() public {
-        //vm.startBroadcast(deployerPrivateKey);
-        vm.startPrank(owner);
+        vm.startBroadcast(owner);
+        //vm.startPrank(owner);
 
         // _deployDrb();
 
@@ -90,8 +90,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        //_deployLinearRewardIssuance();
-        //_deployExponentialRewardIssuance();
+        _deployLinearRewardIssuance();
+        _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -103,8 +103,8 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_transferOwnership();
 
         //_checkStatus();
-        //vm.stopBroadcast();
-        vm.stopPrank();
+        vm.stopBroadcast();
+        //vm.stopPrank();
     }
 
     function _deployDrb() internal {
@@ -198,7 +198,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         pdProtocolReadable = new PDProtocolReadable();
         assertTrue(address(pdProtocolReadable) != address(0));
 
-        //vm.toString(address(pdProtocolReadable)).write(path, ".PDProtocol.PDProtocolReadable");
+        vm.toString(address(pdProtocolReadable)).write(path, ".PDProtocol.PDProtocolReadable");
 
         console2.log("PDProtocolReadable address: ", address(pdProtocolReadable));
         console2.log("================================================================================\n");
@@ -251,7 +251,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         pdProtocolSetter = new PDProtocolSetter();
         assertTrue(address(pdProtocolSetter) != address(0));
 
-        //vm.toString(address(pdProtocolSetter)).write(path, ".PDProtocol.PDProtocolSetter");
+        vm.toString(address(pdProtocolSetter)).write(path, ".PDProtocol.PDProtocolSetter");
 
         console2.log("PDProtocolSetter address: ", address(pdProtocolSetter));
         console2.log("================================================================================\n");
@@ -342,7 +342,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         pdCreate = new PDCreate();
         assertTrue(address(pdCreate) != address(0));
 
-        //vm.toString(address(pdCreate)).write(path, ".PDProtocol.PDCreate");
+        vm.toString(address(pdCreate)).write(path, ".PDProtocol.PDCreate");
 
         console2.log("PDCreate address: ", address(pdCreate));
         console2.log("================================================================================\n");
@@ -482,15 +482,15 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDProtocol");
 
-        //pdProtocol_impl = new PDProtocol();
+        pdProtocol_impl = new PDProtocol();
         assertTrue(address(pdProtocol_impl) != address(0));
         // proxyAdmin.upgrade(pdProtocol_proxy, address(pdProtocol_impl));
 
-        console2.log("Set Fallback Address Data:");
-        console2.logBytes(abi.encodeCall(DiamondFallback.setFallbackAddress, (address(pdProtocol_impl))));
-        //D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
+        // console2.log("Set Fallback Address Data:");
+        // console2.logBytes(abi.encodeCall(DiamondFallback.setFallbackAddress, (address(pdProtocol_impl))));
 
-        //vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");
+        D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
+        vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");
 
         console2.log("PDProtocol implementation address: ", address(pdProtocol_impl));
         console2.log("================================================================================\n");
@@ -630,7 +630,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
         // );
 
-        //vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
+        vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
 
         console2.log("PDCreateProjectProxy implementation address: ", address(pdCreateProjectProxy_impl));
         console2.log("================================================================================\n");
