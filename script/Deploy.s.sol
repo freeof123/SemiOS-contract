@@ -96,13 +96,13 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        //_deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();

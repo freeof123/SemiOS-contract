@@ -11,6 +11,9 @@ import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErr
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
+
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
+
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
@@ -84,6 +87,8 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         }
 
         rewardInfo.rewardIssuePendingRound = param.currentRound;
+
+        PoolStorage.layout().poolInfos[param.daoFeePool].roundTotalETH[param.currentRound] += param.daoFeeAmount;
 
         rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
         rewardInfo.protocolWeights[param.currentRound] +=

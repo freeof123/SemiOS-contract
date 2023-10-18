@@ -43,6 +43,7 @@ import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
@@ -267,13 +268,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasRebateRatioInBps
         );
 
-        bytes32 tempDaoId = daoId;
-        _updateReward(
-            daoId,
-            canvasId,
-            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether * vars.length : daoFee,
-            canvasRebateRatioInBps
-        );
+        _updateReward(daoId, canvasId, vars.totalPrice == 0 ? 1 ether * vars.length : daoFee, canvasRebateRatioInBps);
 
         return tokenIds;
     }
@@ -400,10 +395,18 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         uint256 availableETH = daoFeePool.balance
             - (
-                PriceStorage.layout().daoFloorPrices[daoId] == 0
+                (
+                    PriceStorage.layout().daoFloorPrices[daoId] == 0
+                        || (
+                            !BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff
+                                && ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId) == 0
+                        )
+                )
                     ? 0
-                    : rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
+                    : PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()]
             );
+        //rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
+
         uint256 ethAmount = (tokenAmount * availableETH) / vars.tokenCirculation;
 
         if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
@@ -745,7 +748,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
-                    canvasRebateRatioInBps
+                    canvasRebateRatioInBps,
+                    daoInfo.daoFeePool
                 )
             )
         );

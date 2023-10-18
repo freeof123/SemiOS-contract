@@ -718,7 +718,8 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                     ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
-                    canvasRebateRatioInBps
+                    canvasRebateRatioInBps,
+                    daoInfo.daoFeePool
                 )
             )
         );
