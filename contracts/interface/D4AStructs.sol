@@ -74,6 +74,7 @@ struct UpdateRewardParam {
     uint256 nftMinterERC20RatioInBps;
     uint256 canvasRebateRatioInBps;
     address daoFeePool;
+    bool zeroPrice;
 }
 
 struct MintNftInfo {

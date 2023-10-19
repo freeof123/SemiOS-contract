@@ -268,7 +268,13 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasRebateRatioInBps
         );
 
-        _updateReward(daoId, canvasId, vars.totalPrice == 0 ? 1 ether * vars.length : daoFee, canvasRebateRatioInBps);
+        _updateReward(
+            daoId,
+            canvasId,
+            vars.totalPrice == 0 ? 1 ether * vars.length : daoFee,
+            canvasRebateRatioInBps,
+            vars.totalPrice == 0
+        );
 
         return tokenIds;
     }
@@ -398,17 +404,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
 
         uint256 availableETH = daoFeePool.balance
-            - (
-                (
-                    PriceStorage.layout().daoFloorPrices[daoId] == 0
-                        || (
-                            !BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff
-                                && ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId) == 0
-                        )
-                )
-                    ? 0
-                    : PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()]
-            );
+            - PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()];
 
         //rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
 
@@ -644,7 +640,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasId,
             //如果mint的价格为0，为了达到以数量为权重分配reward的目的，统一传1 ether作为daoFeeAmount
             price == 0 ? 1 ether : daoFee,
-            canvasRebateRatioInBps
+            canvasRebateRatioInBps,
+            price == 0
         );
         // mint
         tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
@@ -728,7 +725,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 daoId,
         bytes32 canvasId,
         uint256 daoFeeAmount,
-        uint256 canvasRebateRatioInBps
+        uint256 canvasRebateRatioInBps,
+        bool zeroPrice
     )
         internal
     {
@@ -753,7 +751,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
                     canvasRebateRatioInBps,
-                    daoInfo.daoFeePool
+                    daoInfo.daoFeePool,
+                    zeroPrice
                 )
             )
         );

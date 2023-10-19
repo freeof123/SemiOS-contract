@@ -10,4 +10,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getLastestDaoIndex(uint8 daoTag) external view returns (uint256);
 
     function getDaoId(uint8 daoTag, uint256 daoIndex) external view returns (bytes32);
+
+    function getDaoAncestor(bytes32 daoId) external view returns (bytes32);
 }

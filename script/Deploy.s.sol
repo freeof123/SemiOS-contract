@@ -98,8 +98,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolProxy();
         _deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet(DeployMethod.REPLACE);
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
@@ -107,8 +107,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -382,7 +382,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x8f9bE810f75Fd1E64d845DEB5E3fEAA2A512d8B3
+                    0x382103Ca4E152a8880D426c56753BAb721deB080
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

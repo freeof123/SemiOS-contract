@@ -31,7 +31,6 @@ contract DaoNftRedeem is DeployHelper {
         super._unlocker(basicDaoId, 2 ether);
 
         daos[0] = basicDaoId;
-        console2.log("basic DAO created successfully");
 
         uint256 basicDaoFlatPrice = protocol.getDaoUnifiedPrice(basicDaoId);
 
@@ -39,16 +38,14 @@ contract DaoNftRedeem is DeployHelper {
             basicDaoId, createDaoParam.canvasId, "uri:round1-1", basicDaoFlatPrice, daoCreator.key, daoCreator.addr
         );
 
-        console2.log("round reward: %s", protocol.getRoundReward(basicDaoId, 1));
-
         createDaoParam.daoUri = "continuous dao uri";
         createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
         canvases[1] = createDaoParam.canvasId;
         createDaoParam.mintableRound = 360;
         createDaoParam.unifiedPrice = 0.0099 ether;
+        createDaoParam.isProgressiveJackpot = false;
 
         bytes32 continuousDaoId = super._createContinuousDao(createDaoParam, basicDaoId, true, false, 1000);
-        console2.log("created continuous dao successfully");
 
         daos[1] = continuousDaoId;
 
@@ -59,17 +56,15 @@ contract DaoNftRedeem is DeployHelper {
         // basic dao mint NFT
         drb.changeRound(2);
 
-        address basicDaoERC20 = protocol.getDaoToken(basicDaoId);
+        //address basicDaoERC20 = protocol.getDaoToken(basicDaoId);
         hoax(daoCreator.addr);
         uint256 amount = claimer.claimMultiReward(canvases, daos);
-        console2.log("balance %s", IERC20(basicDaoERC20).balanceOf(daoCreator.addr));
-        console2.log("amount %s", amount);
 
-        address basicDaoFeePoolAddress = protocol.getDaoFeePool(basicDaoId);
+        console2.log("ancestor:");
+        console2.logBytes32(protocol.getDaoAncestor(continuousDaoId));
+        assertEq(protocol.getDaoAncestor(continuousDaoId), basicDaoId);
 
-        console2.log("fee pool bal before mint:", basicDaoFeePoolAddress.balance);
-
-        console2.log("erc20 supply before mint:", IERC20(basicDaoERC20).totalSupply());
+        //address basicDaoFeePoolAddress = protocol.getDaoFeePool(basicDaoId);
 
         // hoax(daoCreator.addr);
         // amount = protocol.exchangeERC20ToETH(continuousDaoId, 100 ether, daoCreator.addr);
@@ -79,18 +74,77 @@ contract DaoNftRedeem is DeployHelper {
             continuousDaoId, createDaoParam.canvasId, "uri:round1-3", 0.0099 ether, daoCreator.key, daoCreator.addr
         );
 
-        console2.log("erc20 supply after mint:", IERC20(basicDaoERC20).totalSupply());
-
-        console2.log("fee pool bal after mint:", basicDaoFeePoolAddress.balance);
-
         hoax(daoCreator.addr);
         amount = protocol.exchangeERC20ToETH(continuousDaoId, 100 ether, daoCreator.addr);
-        console2.log("claimed eth amount after mint: %s", amount);
         assertEq(amount, 207_709_971_428_571);
-
         // claim Basic DAO reward
         // uint256 baiscDaoCreatorReward = protocol.claimProjectERC20Reward(basicDaoId);
         // console2.log("basic dao creator ERC20 reward: ", baiscDaoCreatorReward);
+    }
+
+    function test_redeemWithZeroUnifiedPrice() public {
+        DeployHelper.CreateDaoParam memory createDaoParam;
+        createDaoParam.floorPriceRank = 9999;
+        createDaoParam.isProgressiveJackpot = true;
+        createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+
+        bytes32[] memory daos = new bytes32[](2);
+        bytes32[] memory canvases = new bytes32[](2);
+        canvases[0] = createDaoParam.canvasId;
+
+        drb.changeRound(1);
+
+        // create Basic DAO
+        bytes32 basicDaoId = super._createBasicDao(createDaoParam);
+        //unlock Basic DAO
+        super._unlocker(basicDaoId, 2 ether);
+
+        daos[0] = basicDaoId;
+        console2.log("basic DAO created successfully");
+
+        uint256 basicDaoFlatPrice = protocol.getDaoUnifiedPrice(basicDaoId);
+        assertEq(basicDaoFlatPrice, 0.01 ether);
+
+        super._mintNft(
+            basicDaoId, createDaoParam.canvasId, "uri:round1-1", basicDaoFlatPrice, daoCreator.key, daoCreator.addr
+        );
+
+        console2.log("round reward: %s", protocol.getRoundReward(basicDaoId, 1));
+
+        createDaoParam.daoUri = "continuous dao uri";
+        createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        canvases[1] = createDaoParam.canvasId;
+        createDaoParam.unifiedPrice = 9999 ether;
+        createDaoParam.isProgressiveJackpot = false;
+
+        bytes32 continuousDaoId = super._createContinuousDao(createDaoParam, basicDaoId, true, false, 1000);
+        assertEq(protocol.getDaoUnifiedPrice(continuousDaoId), 0);
+
+        daos[1] = continuousDaoId;
+
+        super._mintNft(
+            continuousDaoId, createDaoParam.canvasId, "uri:round1-2", 0 ether, daoCreator.key, daoCreator.addr
+        );
+
+        drb.changeRound(2);
+        super._mintNft(
+            continuousDaoId, createDaoParam.canvasId, "uri:round1-3", 0 ether, daoCreator.key, daoCreator.addr
+        );
+        address basicDaoERC20 = protocol.getDaoToken(basicDaoId);
+        console2.log("token supply before:", IERC20(basicDaoERC20).totalSupply());
+        uint256 mintedTokenAmount = IERC20(basicDaoERC20).totalSupply();
+
+        hoax(daoCreator.addr);
+        claimer.claimMultiReward(canvases, daos);
+        console2.log("token supply after:", IERC20(basicDaoERC20).totalSupply());
+        assertEq(mintedTokenAmount, IERC20(basicDaoERC20).totalSupply());
+
+        uint256 amount;
+        hoax(daoCreator.addr);
+        //amount = protocol.exchangeERC20ToETH(basicDaoId, 100 ether, daoCreator.addr);
+        amount = protocol.exchangeERC20ToETH(continuousDaoId, 100 ether, daoCreator.addr);
+        console2.log("redeemed ETH: ", amount);
+        assertEq(amount, 120_585_000_000_000);
     }
 
     // mint NFT and redeem in different round

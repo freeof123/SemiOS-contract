@@ -20,7 +20,9 @@ import { D4AERC20 } from "contracts/D4AERC20.sol";
 
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
-abstract contract RewardTemplateBase is IRewardTemplate {
+import "forge-std/Test.sol";
+
+abstract contract RewardTemplateBase is IRewardTemplate, Test {
     function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
 
@@ -90,7 +92,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
 
         rewardInfo.rewardIssuePendingRound = param.currentRound;
 
-        PoolStorage.layout().poolInfos[param.daoFeePool].roundTotalETH[param.currentRound] += param.daoFeeAmount;
+        if (!param.zeroPrice) {
+            PoolStorage.layout().poolInfos[param.daoFeePool].roundTotalETH[param.currentRound] += param.daoFeeAmount;
+        }
 
         rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
         rewardInfo.protocolWeights[param.currentRound] +=
@@ -391,7 +395,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
      * `mint` or `claim reward`, we can assure that only one pending round reward is issued at a time
      */
     function _issueLastRoundReward(bytes32 daoId, address token) internal {
-        InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        InheritTreeStorage.InheritTreeInfo memory treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        uint256 currentRound = SettingsStorage.layout().drb.currentRound();
+
         if (treeInfo.ancestor != bytes32(0)) {
             treeInfo = InheritTreeStorage.layout().inheritTreeInfos[treeInfo.ancestor];
         }
@@ -401,7 +407,9 @@ abstract contract RewardTemplateBase is IRewardTemplate {
                 RewardStorage.RewardInfo storage rewardInfoTemp =
                     RewardStorage.layout().rewardInfos[treeInfo.familyDaos[i]];
                 // get reward of the pending round
-                if (rewardInfoTemp.rewardIssuePendingRound != 0) {
+                if (
+                    rewardInfoTemp.rewardIssuePendingRound != 0 && currentRound > rewardInfoTemp.rewardIssuePendingRound
+                ) {
                     uint256 roundReward = getRoundReward(treeInfo.familyDaos[i], rewardInfoTemp.rewardIssuePendingRound);
                     rewardInfoTemp.rewardIssuePendingRound = 0;
                     D4AERC20(token).mint(address(this), roundReward);
@@ -413,7 +421,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
         } else {
             RewardStorage.RewardInfo storage rewardInfoTemp = RewardStorage.layout().rewardInfos[daoId];
             // get reward of the pending round
-            if (rewardInfoTemp.rewardIssuePendingRound != 0) {
+            if (rewardInfoTemp.rewardIssuePendingRound != 0 && currentRound > rewardInfoTemp.rewardIssuePendingRound) {
                 uint256 roundReward = getRoundReward(daoId, rewardInfoTemp.rewardIssuePendingRound);
                 rewardInfoTemp.rewardIssuePendingRound = 0;
                 D4AERC20(token).mint(address(this), roundReward);
