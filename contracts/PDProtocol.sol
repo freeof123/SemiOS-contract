@@ -359,11 +359,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         D4AERC20(token).mint(daoFeePool, tokenAmount);
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        if (rewardInfo.rewardIssuePendingRound != 0) {
-            uint256 roundReward =
-                ID4AProtocolReadable(address(this)).getRoundReward(daoId, rewardInfo.rewardIssuePendingRound);
-            rewardInfo.rewardIssuePendingRound = 0;
-            D4AERC20(token).mint(address(this), roundReward);
+        if (
+            rewardInfo.rewardIssuePendingRound != 0
+                && rewardInfo.rewardIssuePendingRound < SettingsStorage.layout().drb.currentRound()
+        ) {
+            SettingsStorage.Layout storage l = SettingsStorage.layout();
+            (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+                abi.encodeWithSelector(IRewardTemplate.issueLastRoundReward.selector, daoId, daoInfo.token)
+            );
+            require(succ);
         }
 
         ExchangeERC20ToETHLocalVars memory vars;
@@ -405,6 +409,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     ? 0
                     : PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()]
             );
+
         //rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
 
         uint256 ethAmount = (tokenAmount * availableETH) / vars.tokenCirculation;
@@ -641,7 +646,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             price == 0 ? 1 ether : daoFee,
             canvasRebateRatioInBps
         );
-
         // mint
         tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
         {

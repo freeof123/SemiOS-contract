@@ -18,6 +18,7 @@ contract PDCreateTest is DeployHelper {
         DeployHelper.CreateDaoParam memory param;
         bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.canvasId = canvasId;
+        param.isProgressiveJackpot = true;
         bytes32 daoId = _createBasicDao(param);
 
         assertEq(protocol.getCanvasIdOfSpecialNft(daoId), canvasId);

@@ -21,6 +21,9 @@ import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+
+import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
@@ -72,6 +75,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.isAncestorDao = true;
+            treeInfo.familyDaos.push(daoId);
+        }
+
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;
         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
@@ -131,6 +141,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.isAncestorDao = true;
+            treeInfo.familyDaos.push(daoId);
+        }
+
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoMetadataParam.projectIndex] = daoId;
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
@@ -195,6 +212,12 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.reserveNftNumber = continuousDaoParam.reserveNftNumber;
         }
         daoId = _createContinuousProject(createContinuousDaoParam);
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.ancestor = existDaoId;
+            InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+        }
 
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;

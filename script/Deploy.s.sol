@@ -107,8 +107,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();

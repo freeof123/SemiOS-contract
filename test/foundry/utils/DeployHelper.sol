@@ -11,6 +11,8 @@ import { IUniswapV2Router02 as IUniswapV2Router } from
     "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 
+import { LibString } from "solady/utils/LibString.sol";
+
 import { FeedRegistryMock } from "test/foundry/utils/mocks/FeedRegistryMock.sol";
 import { AggregatorV3Mock } from "test/foundry/utils/mocks/AggregatorV3Mock.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
@@ -30,9 +32,13 @@ import {
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
+
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
+
+import { DaoTag } from "contracts/interface/D4AEnums.sol";
+
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
@@ -60,6 +66,8 @@ import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceV
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
+
+import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract DeployHelper is Test {
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
@@ -701,6 +709,8 @@ contract DeployHelper is Test {
         bool isProgressiveJackpot;
         bytes32 canvasId;
         uint256 actionType;
+        uint256 unifiedPrice;
+        uint256 initTokenSupplyRatio;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -796,7 +806,7 @@ contract DeployHelper is Test {
         daoId = daoProxy.createBasicDao(
             DaoMetadataParam({
                 startDrb: drb.currentRound(),
-                mintableRounds: 60,
+                mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
                 floorPriceRank: 0,
                 maxNftRank: 2,
                 royaltyFee: 1250,
@@ -826,10 +836,10 @@ contract DeployHelper is Test {
                 priceFactor: 20_000,
                 rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
                 rewardDecayFactor: 0,
-                isProgressiveJackpot: true
+                isProgressiveJackpot: createDaoParam.isProgressiveJackpot
             }),
             BasicDaoParam({
-                initTokenSupplyRatio: 500,
+                initTokenSupplyRatio: createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio,
                 canvasId: createDaoParam.canvasId,
                 canvasUri: "test dao creator canvas uri",
                 daoName: "test dao"
@@ -876,7 +886,7 @@ contract DeployHelper is Test {
         vars.existDaoId = existDaoId;
         vars.daoMetadataParam = DaoMetadataParam({
             startDrb: drb.currentRound(),
-            mintableRounds: 60,
+            mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
             floorPriceRank: 0,
             maxNftRank: 2,
             royaltyFee: 1250,
@@ -905,10 +915,10 @@ contract DeployHelper is Test {
             priceFactor: 20_000,
             rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
             rewardDecayFactor: 0,
-            isProgressiveJackpot: true
+            isProgressiveJackpot: createDaoParam.isProgressiveJackpot
         });
         vars.basicDaoParam = BasicDaoParam({
-            initTokenSupplyRatio: 1000,
+            initTokenSupplyRatio: createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio,
             canvasId: createDaoParam.canvasId,
             canvasUri: "test dao creator canvas uri",
             daoName: "test dao"
@@ -916,7 +926,7 @@ contract DeployHelper is Test {
         vars.continuousDaoParam = ContinuousDaoParam({
             reserveNftNumber: reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
             unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
-            unifiedPrice: 0.01 ether,
+            unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
             needMintableWork: needMintableWork,
             dailyMintCap: 100
         });
@@ -953,9 +963,16 @@ contract DeployHelper is Test {
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-        );
+        if (
+            flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
+                && !protocol.getDaoUnifiedPriceModeOff(daoId)
+        ) {
+            tokenId = protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, abi.encodePacked(r, s, v));
+        } else {
+            tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -1099,5 +1116,20 @@ contract DeployHelper is Test {
         tokenIds = protocol.batchMint{ value: totalPrice }(vars.daoId, vars.canvasId, proof, mintNftINfos, signatures);
 
         vm.stopPrank();
+    }
+
+    function _unlocker(bytes32 basicDaoId, uint256 amount) internal {
+        address basicDaoFeePoolAddress = protocol.getDaoFeePool(basicDaoId);
+        (bool success,) = basicDaoFeePoolAddress.call{ value: amount }("");
+        require(success, "Failed to increase turnover");
+        // should unlock basic dao first
+        BasicDaoUnlocker basicDaoUnlocker = new BasicDaoUnlocker(address(protocol));
+        assertTrue(protocol.ableToUnlock(basicDaoId));
+        (bool upkeepNeeded, bytes memory performData) = basicDaoUnlocker.checkUpkeep("");
+        assertTrue(upkeepNeeded);
+        assertTrue(!protocol.isUnlocked(basicDaoId));
+        if (upkeepNeeded) {
+            basicDaoUnlocker.performUpkeep(performData);
+        }
     }
 }
