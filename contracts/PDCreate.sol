@@ -216,6 +216,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         {
             InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
             treeInfo.ancestor = existDaoId;
+            require(
+                InheritTreeStorage.layout().inheritTreeInfos[existDaoId].ancestor == bytes32(0),
+                "must inherit basic dao"
+            );
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
         }
 

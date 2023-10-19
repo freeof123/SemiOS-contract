@@ -96,10 +96,10 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
@@ -107,8 +107,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -129,8 +129,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
-        _deployLinearRewardIssuance();
-        _deployExponentialRewardIssuance();
+        // _deployLinearRewardIssuance();
+        // _deployExponentialRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
