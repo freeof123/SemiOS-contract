@@ -169,6 +169,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256[] memory)
     {
+        require(false);
         uint256 length = mintNftInfos.length;
         {
             _checkMintEligibility(daoId, msg.sender, proof, length);

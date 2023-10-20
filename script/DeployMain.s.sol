@@ -41,7 +41,7 @@ contract DeployDemo is Script, Test, D4AAddress {
     address multisig2 = json.readAddress(".MultiSig2");
 
     function run() public {
-        vm.startBroadcast(owner);
+        //vm.startBroadcast(owner);
         //vm.startPrank(owner);
 
         // _deployDrb();
@@ -57,19 +57,19 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        //_deployProtocolReadable();
+        //_cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        //_deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -80,7 +80,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployClaimer();
         // _deployUniversalClaimer();
 
-        _deployCreateProjectProxy();
+        //_deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
         //_deployPermissionControl();
@@ -103,7 +103,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_transferOwnership();
 
         //_checkStatus();
-        vm.stopBroadcast();
+        //vm.stopBroadcast();
         //vm.stopPrank();
     }
 
@@ -219,7 +219,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xF5e87c08Be5e08BAd4C8C63Df9383f829ecDB470
+                    0xce6a9F68ae3c2cA5212018190D31fa0E7C78D1b8
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -536,16 +536,20 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy LinearRewardIssuance");
 
-        linearRewardIssuance = new LinearRewardIssuance();
-        assertTrue(address(linearRewardIssuance) != address(0));
+        //linearRewardIssuance = new LinearRewardIssuance();
+        //assertTrue(address(linearRewardIssuance) != address(0));
 
-        vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
+        //vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
 
         console2.log("Set Linear Reward Template Data:");
         console2.logBytes(
             abi.encodeCall(
                 D4ASettings.setTemplateAddress,
-                (TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance))
+                (
+                    TemplateChoice.REWARD,
+                    uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE),
+                    0xAc8362825D4bC08d50F7B195Bcebe4E302C7965a
+                )
             )
         );
         // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
@@ -560,10 +564,10 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy ExponentialRewardIssuance");
 
-        exponentialRewardIssuance = new ExponentialRewardIssuance();
-        assertTrue(address(exponentialRewardIssuance) != address(0));
+        //exponentialRewardIssuance = new ExponentialRewardIssuance();
+        //assertTrue(address(exponentialRewardIssuance) != address(0));
 
-        vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
+        //vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
 
         console2.log("Set Exponential Reward Template Data:");
         console2.logBytes(
@@ -572,7 +576,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 (
                     TemplateChoice.REWARD,
                     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-                    address(exponentialRewardIssuance)
+                    0x555D5FdC1fcbEB86d404D9D861A4481876c65524
                 )
             )
         );
