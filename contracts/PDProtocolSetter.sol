@@ -181,4 +181,13 @@ contract PDProtocolSetter is D4AProtocolSetter {
         }
         super.setWhitelistMintCap(daoId, whitelistUser, whitelistUserMintCap);
     }
+
+    function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) public override {
+        if (
+            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+        ) revert BasicDaoLocked();
+
+        super.setDaoUnifiedPrice(daoId, newUnifiedPrice);
+    }
 }

@@ -43,15 +43,16 @@ import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
-contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712, Test {
+contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712 {
     using LibString for string;
 
     bytes32 internal constant _MINTNFT_TYPEHASH =
@@ -72,7 +73,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         string calldata tokenUri,
         bytes calldata signature,
         uint256 flatPrice,
-        bytes32[] memory proof,
+        bytes32[] calldata proof,
         address nftOwner
     )
         external
@@ -80,19 +81,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         returns (uint256)
     {
         _createCanvas(daoId, canvasId, canvasUri, to);
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-                && flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice
-        ) {
-            revert NotBasicDaoNftFlatPrice();
-        }
-        _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        return _mintNft(daoId, canvasId, tokenUri, flatPrice, nftOwner);
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, nftOwner);
     }
 
     function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
@@ -113,7 +102,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 canvasId,
         string calldata tokenUri,
         bytes32[] calldata proof,
-        uint256 nftFlatPrice,
+        uint256 flatPrice,
         bytes calldata signature
     )
         external
@@ -121,12 +110,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256)
     {
-        _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        return _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, msg.sender);
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
     function mintNFTAndTransfer(
@@ -134,7 +118,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 canvasId,
         string calldata tokenUri,
         bytes32[] calldata proof,
-        uint256 nftFlatPrice,
+        uint256 flatPrice,
         bytes calldata signature,
         address to
     )
@@ -143,12 +127,34 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256 tokenId)
     {
+        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, to);
+    }
+
+    function _mintNFTAndTransfer(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 flatPrice,
+        bytes calldata signature,
+        address to
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        if (DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
+            if (flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId)) {
+                revert NotBasicDaoNftFlatPrice();
+            }
+        } else {
+            _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
+        }
         _checkMintEligibility(daoId, msg.sender, proof, 1);
-        _verifySignature(daoId, canvasId, tokenUri, nftFlatPrice, signature);
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         DaoStorage.layout().daoInfos[daoId].dailyMint[l.drb.currentRound()] += 1;
-        tokenId = _mintNft(daoId, canvasId, tokenUri, nftFlatPrice, to);
+        tokenId = _mintNft(daoId, canvasId, tokenUri, flatPrice, to);
     }
 
     function batchMint(
@@ -163,6 +169,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256[] memory)
     {
+        require(false);
         uint256 length = mintNftInfos.length;
         {
             _checkMintEligibility(daoId, msg.sender, proof, length);
@@ -262,12 +269,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasRebateRatioInBps
         );
 
-        bytes32 tempDaoId = daoId;
         _updateReward(
             daoId,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether * vars.length : daoFee,
-            canvasRebateRatioInBps
+            vars.totalPrice == 0 ? 1 ether * vars.length : daoFee,
+            canvasRebateRatioInBps,
+            vars.totalPrice == 0
         );
 
         return tokenIds;
@@ -359,11 +366,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         D4AERC20(token).mint(daoFeePool, tokenAmount);
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        if (rewardInfo.rewardIssuePendingRound != 0) {
-            uint256 roundReward =
-                ID4AProtocolReadable(address(this)).getRoundReward(daoId, rewardInfo.rewardIssuePendingRound);
-            rewardInfo.rewardIssuePendingRound = 0;
-            D4AERC20(token).mint(address(this), roundReward);
+        if (
+            rewardInfo.rewardIssuePendingRound != 0
+                && rewardInfo.rewardIssuePendingRound < SettingsStorage.layout().drb.currentRound()
+        ) {
+            SettingsStorage.Layout storage l = SettingsStorage.layout();
+            (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+                abi.encodeWithSelector(IRewardTemplate.issueLastRoundReward.selector, daoId, daoInfo.token)
+            );
+            require(succ);
         }
 
         ExchangeERC20ToETHLocalVars memory vars;
@@ -394,11 +405,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
 
         uint256 availableETH = daoFeePool.balance
-            - (
-                PriceStorage.layout().daoFloorPrices[daoId] == 0
-                    ? 0
-                    : rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
-            );
+            - PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()];
+
+        //rewardInfo.totalWeights[SettingsStorage.layout().drb.currentRound()]
+
         uint256 ethAmount = (tokenAmount * availableETH) / vars.tokenCirculation;
 
         if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
@@ -454,7 +464,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         */
         IPermissionControl permissionControl = SettingsStorage.layout().permissionControl;
 
-        // 在黑名单中，无法铸造，revert
         if (permissionControl.isMinterBlacklisted(daoId, account)) {
             revert Blacklisted();
         }
@@ -468,25 +477,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         uint256 expectedMinted = userMintInfo.minted + amount;
 
-        // 没有白名单，判断铸造请求与全局铸造上限的大小
         if (isWhitelistOff) {
             return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
         }
 
-        // 开启白名单 && 在白名单中
         if (permissionControl.inMinterWhitelist(daoId, account, proof)) {
             //revert NotInWhitelist();
             if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
             return true;
         }
-        // 用户MintCap不为0，检查请求铸造的数量如果小于等于MintCap则返回true，否则false
-
-        // // 用户没有铸造上限，但是NFTHolder有铸造上限，并且持有拥有铸造权限的NFT，检查请求铸造的数量是否小于等于NFTHolderMintCap
-        // if (NFTHolderMintCap != 0 && permissionControl.inMinterNFTHolderPasses(whitelist, account)) {
-        //     return expectedMinted <= NFTHolderMintCap;
-        // }
-
-        // 检测用户是否持有带有铸造上限的白名单ERC-721
         return _ableToMintFor721(daoId, expectedMinted, account);
     }
 
@@ -497,7 +496,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 minMintCap = 1_000_000;
         bool hasMinterCapNft = false;
         for (uint256 i; i < length;) {
-            // 判断用户是否拥有列表中的ERC721
             if (IERC721Upgradeable(nftMinterCapInfo[i].nftAddress).balanceOf(account) > 0) {
                 hasMinterCapNft = true;
                 if (nftMinterCapInfo[i].nftMintCap < minMintCap) {
@@ -513,8 +511,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
         Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
         return permissionControl.inMinterNFTHolderPasses(whitelist, account);
-        // 检查是否达到Dao的全局上限
-        //if (daoMintCap != 0) return expectedMinted <= daoMintCap;
     }
 
     function _verifySignature(
@@ -553,7 +549,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             if (bytes(tokenIndexString)[i] < "0" || bytes(tokenIndexString)[i] > "9") return false;
             tokenIndex = tokenIndex * 10 + (uint8(bytes(tokenIndexString)[i]) - 48);
         }
-        if (tokenIndex == 0 || tokenIndex > BASIC_DAO_RESERVE_NFT_NUMBER) return false;
+        if (tokenIndex == 0 || tokenIndex > ID4AProtocolReadable(address(this)).getDaoReserveNftNumber(daoId)) {
+            return false;
+        }
         return true;
     }
 
@@ -583,7 +581,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 if (canvasId != basicDaoInfo.canvasIdOfSpecialNft) {
                     revert NotCanvasIdOfSpecialTokenUri();
                 }
-                if (flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) revert NotBasicDaoNftFlatPrice();
+                if (flatPrice != PriceStorage.layout().daoFloorPrices[daoId] && basicDaoInfo.unifiedPriceModeOff) {
+                    revert NotBasicDaoFloorPrice();
+                }
                 tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
                 tokenId = basicDaoInfo.tokenId;
             }
@@ -624,7 +624,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             address daoFeePool = daoInfo.daoFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(tempCanvasId);
             uint256 daoShare = (
-                flatPrice == 0
+                flatPrice == 0 // Todo:
                     ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(tempDaoId)
                     : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(tempDaoId)
             ) * price;
@@ -639,10 +639,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         _updateReward(
             daoId,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[tempDaoId] == 0 ? 1 ether : daoFee,
-            canvasRebateRatioInBps
+            //如果mint的价格为0，为了达到以数量为权重分配reward的目的，统一传1 ether作为daoFeeAmount
+            price == 0 ? 1 ether : daoFee,
+            canvasRebateRatioInBps,
+            price == 0
         );
-
         // mint
         tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
         {
@@ -705,7 +706,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 daoFloorPrice = priceStorage.daoFloorPrices[daoId];
         PriceStorage.MintInfo memory maxPrice = priceStorage.daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = priceStorage.canvasLastMintInfos[canvasId];
-        if (flatPrice == 0) {
+        //对于D4A的DAO,还是按原来逻辑
+        if (
+            flatPrice == 0
+                && (
+                    BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff
+                        || DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.D4A_DAO
+                )
+        ) {
             price = IPriceTemplate(
                 SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
             ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);
@@ -718,7 +726,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 daoId,
         bytes32 canvasId,
         uint256 daoFeeAmount,
-        uint256 canvasRebateRatioInBps
+        uint256 canvasRebateRatioInBps,
+        bool zeroPrice
     )
         internal
     {
@@ -742,7 +751,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
-                    canvasRebateRatioInBps
+                    canvasRebateRatioInBps,
+                    daoInfo.daoFeePool,
+                    zeroPrice
                 )
             )
         );

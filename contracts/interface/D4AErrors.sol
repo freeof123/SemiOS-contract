@@ -76,3 +76,9 @@ error NotBasicDaoNftFlatPrice();
 error SupplyOutOfRange();
 
 error ExceedDailyMintCap();
+
+error NotBasicDaoFloorPrice();
+
+error NotBasicDaoOwner();
+
+error ZeroNftReserveNumber();

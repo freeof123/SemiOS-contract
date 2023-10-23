@@ -14,9 +14,14 @@ import {
     BasicDaoParam,
     NftMinterCapInfo,
     SetMintCapAndPermissionParam,
-    SetRatioParam
+    SetRatioParam,
+    ContinuousDaoParam
 } from "contracts/interface/D4AStructs.sol";
-import { ZeroFloorPriceCannotUseLinearPriceVariation } from "contracts/interface/D4AErrors.sol";
+import {
+    ZeroFloorPriceCannotUseLinearPriceVariation,
+    NotBasicDaoOwner,
+    ZeroNftReserveNumber
+} from "contracts/interface/D4AErrors.sol";
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
@@ -92,7 +97,13 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
     );
 
     event CreateContinuousProjectParamEmitted(
-        bytes32 existDaoId, bytes32 daoId, uint256 dailyMintCap, bool needMintableWork
+        bytes32 existDaoId,
+        bytes32 daoId,
+        uint256 dailyMintCap,
+        bool needMintableWork,
+        bool unifiedPriceModeOff,
+        uint256 unifiedPrice,
+        uint256 reserveNftNumber
     );
 
     struct CreateProjectLocalVars {
@@ -155,6 +166,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
         vars.token = ID4AProtocolReadable(address(protocol)).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(address(protocol)).getDaoNft(daoId);
+
         emit CreateProjectParamEmitted(
             daoId,
             vars.daoFeePool,
@@ -169,6 +181,16 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             basicDaoParam,
             actionType
         );
+
+        vars.dailyMintCap = ID4AProtocolReadable(address(protocol)).getDaoDailyMintCap(daoId);
+        bool _unifiedPriceModeOff = ID4AProtocolReadable(address(protocol)).getDaoUnifiedPriceModeOff(daoId);
+        uint256 _unifiedPrice = ID4AProtocolReadable(address(protocol)).getDaoUnifiedPrice(daoId);
+        uint256 _reserveNftNumber = ID4AProtocolReadable(address(protocol)).getDaoReserveNftNumber(daoId);
+
+        emit CreateContinuousProjectParamEmitted(
+            daoId, daoId, vars.dailyMintCap, true, _unifiedPriceModeOff, _unifiedPrice, _reserveNftNumber
+        );
+
         //不需要把新建nft放到无铸造上限白名单里
         //address[] memory minterNFTHolderPasses = new address[](whitelist.minterNFTHolderPasses.length + 1);
         //minterNFTHolderPasses[whitelist.minterNFTHolderPasses.length] = vars.nft;
@@ -248,15 +270,19 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
-        uint256 actionType,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        ContinuousDaoParam calldata continuousDaoParam,
+        uint256 actionType
     )
         public
         payable
         nonReentrant
         returns (bytes32 daoId)
     {
+        {
+            if (ID4ASettingsReadable(address(protocol)).ownerProxy().ownerOf(existDaoId) != msg.sender) {
+                revert NotBasicDaoOwner();
+            }
+        }
         CreateProjectLocalVars memory vars;
         vars.existDaoId = existDaoId;
         vars.daoMetadataParam = daoMetadataParam;
@@ -267,8 +293,8 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         vars.templateParam = templateParam;
         vars.basicDaoParam = basicDaoParam;
         vars.actionType = actionType;
-        vars.needMintableWork = needMintableWork;
-        vars.dailyMintCap = dailyMintCap;
+        vars.needMintableWork = continuousDaoParam.needMintableWork;
+        vars.dailyMintCap = continuousDaoParam.dailyMintCap;
 
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
         if (
@@ -277,7 +303,9 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         ) {
             revert ZeroFloorPriceCannotUseLinearPriceVariation();
         }
-
+        if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
+            revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
+        }
         // if ((actionType & 0x1) != 0) {
         //     require(
         //         IAccessControlUpgradeable(address(protocol)).hasRole(OPERATION_ROLE, msg.sender),
@@ -288,7 +316,7 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
         //     daoId = IPDCreate(protocol).createBasicDao{ value: msg.value }(daoMetadataParam, basicDaoParam);
         // }
         daoId = IPDCreate(protocol).createContinuousDao{ value: msg.value }(
-            existDaoId, daoMetadataParam, basicDaoParam, needMintableWork, dailyMintCap
+            existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam
         );
         vars.daoId = daoId;
 
@@ -312,7 +340,15 @@ contract PDCreateProjectProxy is OwnableUpgradeable, ReentrancyGuard {
             vars.actionType
         );
 
-        emit CreateContinuousProjectParamEmitted(vars.existDaoId, vars.daoId, vars.dailyMintCap, vars.needMintableWork);
+        emit CreateContinuousProjectParamEmitted(
+            vars.existDaoId,
+            vars.daoId,
+            vars.dailyMintCap,
+            vars.needMintableWork,
+            continuousDaoParam.unifiedPriceModeOff,
+            ID4AProtocolReadable(address(protocol)).getDaoUnifiedPrice(daoId),
+            continuousDaoParam.reserveNftNumber
+        );
 
         ID4ASettingsReadable(address(protocol)).permissionControl().addPermission(daoId, whitelist, blacklist);
 

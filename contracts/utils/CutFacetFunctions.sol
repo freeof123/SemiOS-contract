@@ -170,6 +170,11 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTag.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoDailyMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoUnifiedPriceModeOff.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoUnifiedPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoReserveNftNumber.selector;
+
     // canvas related functions
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasDaoId.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasTokenIds.selector;
@@ -207,6 +212,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getNFTTokenCanvas.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoId.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAncestor.selector;
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -234,6 +240,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDailyMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoTokenSupply.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setWhitelistMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoUnifiedPrice.selector;
 
     assert(interfaceId == type(ID4AProtocolSetter).interfaceId);
 

@@ -207,6 +207,7 @@ contract ProtoDaoTest is DeployHelper {
     function test_ERC20ShouldSplitCorrectlyWhenFiveWorksUploadedByTwoAddressesAreMintedInSameRound() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.isProgressiveJackpot = true;
         bytes32 daoId = _createBasicDao(param);
 
         address[] memory accounts = new address[](1);

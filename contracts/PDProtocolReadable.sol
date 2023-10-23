@@ -5,6 +5,8 @@ import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 
+import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
     function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) public view returns (bytes32) {
@@ -17,5 +19,9 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getDaoId(uint8 daoTag, uint256 daoIndex) public view returns (bytes32) {
         return ProtocolStorage.layout().daoIndexToIds[daoTag][daoIndex];
+    }
+
+    function getDaoAncestor(bytes32 daoId) public view returns (bytes32) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
     }
 }

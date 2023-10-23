@@ -26,6 +26,8 @@ interface IRewardTemplate {
         external
         returns (uint256 claimableReward);
 
+    function issueLastRoundReward(bytes32 daoId, address token) external;
+
     function claimNftMinterReward(
         bytes32 daoId,
         address nftMinter,

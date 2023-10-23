@@ -73,6 +73,8 @@ struct UpdateRewardParam {
     uint256 canvasCreatorERC20RatioInBps;
     uint256 nftMinterERC20RatioInBps;
     uint256 canvasRebateRatioInBps;
+    address daoFeePool;
+    bool zeroPrice;
 }
 
 struct MintNftInfo {
@@ -99,7 +101,15 @@ struct BasicDaoParam {
     string daoName;
 }
 
+struct ContinuousDaoParam {
+    uint256 reserveNftNumber;
+    bool unifiedPriceModeOff;
+    uint256 unifiedPrice;
+    bool needMintableWork;
+    uint256 dailyMintCap;
+}
 // 修改Dao中参数的结构体，被用于setDaoParams方法
+
 struct SetDaoParam {
     bytes32 daoId;
     uint256 nftMaxSupplyRank;
@@ -114,6 +124,7 @@ struct SetDaoParam {
     uint256 daoFeePoolETHRatioFlatPrice;
     uint256 dailyMintCap;
     uint256 addedDaoToken;
+    uint256 unifiedPrice;
 }
 
 struct SetMintCapAndPermissionParam {

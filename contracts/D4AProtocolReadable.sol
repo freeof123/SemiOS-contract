@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
@@ -410,6 +411,33 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         }
 
         return totalRoundReward;
+    }
+
+    function getDaoDailyMintCap(bytes32 daoId) public view returns (uint256) {
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        return basicDaoStorage.basicDaoInfos[daoId].dailyMintCap;
+    }
+
+    function getDaoUnifiedPriceModeOff(bytes32 daoId) public view returns (bool) {
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        return basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff;
+    }
+
+    //9999 = 0, 0 = 0.01,
+    function getDaoUnifiedPrice(bytes32 daoId) public view returns (uint256) {
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        if (basicDaoInfo.unifiedPrice == 9999 ether) {
+            return 0;
+        } else {
+            return basicDaoInfo.unifiedPrice == 0
+                ? BasicDaoStorage.layout().basicDaoNftFlatPrice
+                : basicDaoInfo.unifiedPrice;
+        }
+    }
+
+    function getDaoReserveNftNumber(bytes32 daoId) public view returns (uint256) {
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        return basicDaoInfo.reserveNftNumber == 0 ? BASIC_DAO_RESERVE_NFT_NUMBER : basicDaoInfo.reserveNftNumber;
     }
 
     function _getRoundReward(bytes32 daoId, uint256 round) internal returns (uint256) {

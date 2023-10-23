@@ -8,7 +8,7 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
-import { DaoMetadataParam, BasicDaoParam } from "contracts/interface/D4AStructs.sol";
+import { DaoMetadataParam, BasicDaoParam, ContinuousDaoParam } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -21,6 +21,9 @@ import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+
+import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
@@ -43,6 +46,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         address feePoolAddress;
         bool needMintableWork;
         uint256 dailyMintCap;
+        uint256 reserveNftNumber;
     }
 
     function createBasicDao(
@@ -71,6 +75,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.isAncestorDao = true;
+            treeInfo.familyDaos.push(daoId);
+        }
+
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;
         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
@@ -130,6 +141,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.initTokenSupplyRatio,
             basicDaoParam.daoName
         );
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.isAncestorDao = true;
+            treeInfo.familyDaos.push(daoId);
+        }
+
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoMetadataParam.projectIndex] = daoId;
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
@@ -158,8 +176,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         bytes32 existDaoId,
         DaoMetadataParam memory daoMetadataParam,
         BasicDaoParam memory basicDaoParam,
-        bool needMintableWork,
-        uint256 dailyMintCap
+        ContinuousDaoParam memory continuousDaoParam
     )
         public
         payable
@@ -190,10 +207,21 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
-            createContinuousDaoParam.needMintableWork = needMintableWork;
-            createContinuousDaoParam.dailyMintCap = dailyMintCap;
+            createContinuousDaoParam.needMintableWork = continuousDaoParam.needMintableWork;
+            createContinuousDaoParam.dailyMintCap = continuousDaoParam.dailyMintCap;
+            createContinuousDaoParam.reserveNftNumber = continuousDaoParam.reserveNftNumber;
         }
         daoId = _createContinuousProject(createContinuousDaoParam);
+
+        {
+            InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+            treeInfo.ancestor = existDaoId;
+            require(
+                InheritTreeStorage.layout().inheritTreeInfos[existDaoId].ancestor == bytes32(0),
+                "must inherit basic dao"
+            );
+            InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+        }
 
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
         = daoId;
@@ -219,7 +247,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
         // dailyMintCap
-        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
+        basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = continuousDaoParam.dailyMintCap;
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff = continuousDaoParam.unifiedPriceModeOff;
+        basicDaoStorage.basicDaoInfos[daoId].reserveNftNumber = continuousDaoParam.reserveNftNumber;
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
     }
 
     function createCanvas(
@@ -315,7 +346,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
             bool needMintableWork = true;
-            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork);
+            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
@@ -374,7 +405,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoInfo.nft = _createERC721Token(
                 createContinuousDaoParam.daoIndex,
                 createContinuousDaoParam.daoName,
-                createContinuousDaoParam.needMintableWork
+                createContinuousDaoParam.needMintableWork,
+                createContinuousDaoParam.reserveNftNumber
             );
 
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
@@ -414,7 +446,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function _createERC721Token(
         uint256 daoIndex,
         string memory daoName,
-        bool needMintableWork
+        bool needMintableWork,
+        uint256 startIndex
     )
         internal
         returns (address)
@@ -423,7 +456,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
         if (needMintableWork) {
-            return l.erc721Factory.createD4AERC721(name, sym, BASIC_DAO_RESERVE_NFT_NUMBER);
+            return l.erc721Factory.createD4AERC721(name, sym, startIndex);
         } else {
             return l.erc721Factory.createD4AERC721(name, sym, 0);
         }

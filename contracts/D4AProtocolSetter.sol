@@ -26,6 +26,7 @@ import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
@@ -95,6 +96,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         );
         setDailyMintCap(vars.daoId, vars.dailyMintCap);
         setDaoTokenSupply(vars.daoId, vars.addedDaoToken);
+        setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {
@@ -295,6 +297,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
             revert NotDaoOwner();
         }
+        if (addedDaoToken == 0) return;
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
         // 追加tokenMaxSupply并判断总数小于10亿
@@ -323,5 +327,15 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoMintInfo.userMintInfos[whitelistUser].mintCap = whitelistUserMintCap;
 
         emit WhiteListMintCapSet(daoId, whitelistUser, whitelistUserMintCap);
+    }
+
+    function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) public virtual {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+            revert NotDaoOwner();
+        }
+        BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+        basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = newUnifiedPrice;
+        emit DaoUnifiedPriceSet(daoId, ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId));
     }
 }

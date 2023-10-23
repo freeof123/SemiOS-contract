@@ -18,6 +18,7 @@ contract PDCreateTest is DeployHelper {
         DeployHelper.CreateDaoParam memory param;
         bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.canvasId = canvasId;
+        param.isProgressiveJackpot = true;
         bytes32 daoId = _createBasicDao(param);
 
         assertEq(protocol.getCanvasIdOfSpecialNft(daoId), canvasId);
@@ -147,7 +148,7 @@ contract PDCreateTest is DeployHelper {
         bool needMintableWork = false;
         // CreateContinuousDaoParam.initTokenSupplyRatio = 1000;
 
-        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
+        bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork, true, 1000);
 
         originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
         continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);

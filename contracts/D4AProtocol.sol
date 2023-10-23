@@ -535,7 +535,11 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         }
 
         _updateReward(
-            daoId, canvasId, PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether : daoFee, canvasRebateRatioInBps
+            daoId,
+            canvasId,
+            PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether : daoFee,
+            canvasRebateRatioInBps,
+            PriceStorage.layout().daoFloorPrices[daoId] == 0
         );
 
         // mint
@@ -638,28 +642,32 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                 ++i;
             }
         }
-
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        bytes32 tempDaoID = daoId;
+        uint256 daoFee;
         uint256 canvasRebateRatioInBps;
-        if (
-            vars.totalPrice - vars.daoTotalShare / BASIS_POINT
-                - vars.totalPrice * l.protocolMintFeeRatioInBps / BASIS_POINT != 0
-                && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
-        ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
-        uint256 daoFee = _splitFee(
-            l.protocolFeePool,
-            daoInfo.daoFeePool,
-            l.ownerProxy.ownerOf(canvasId),
-            vars.totalPrice,
-            vars.daoTotalShare,
-            canvasRebateRatioInBps
-        );
+        {
+            SettingsStorage.Layout storage l = SettingsStorage.layout();
 
+            if (
+                vars.totalPrice - vars.daoTotalShare / BASIS_POINT
+                    - vars.totalPrice * l.protocolMintFeeRatioInBps / BASIS_POINT != 0
+                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
+            ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
+            daoFee = _splitFee(
+                l.protocolFeePool,
+                daoInfo.daoFeePool,
+                l.ownerProxy.ownerOf(canvasId),
+                vars.totalPrice,
+                vars.daoTotalShare,
+                canvasRebateRatioInBps
+            );
+        }
         _updateReward(
-            daoId,
+            tempDaoID,
             canvasId,
-            PriceStorage.layout().daoFloorPrices[daoId] == 0 ? 1 ether * vars.length : daoFee,
-            canvasRebateRatioInBps
+            PriceStorage.layout().daoFloorPrices[tempDaoID] == 0 ? 1 ether * vars.length : daoFee,
+            canvasRebateRatioInBps,
+            PriceStorage.layout().daoFloorPrices[tempDaoID] == 0
         );
 
         return tokenIds;
@@ -694,7 +702,8 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         bytes32 daoId,
         bytes32 canvasId,
         uint256 daoFeeAmount,
-        uint256 canvasRebateRatioInBps
+        uint256 canvasRebateRatioInBps,
+        bool zeroPrice
     )
         internal
     {
@@ -718,7 +727,9 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
                     ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
                     ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
-                    canvasRebateRatioInBps
+                    canvasRebateRatioInBps,
+                    daoInfo.daoFeePool,
+                    zeroPrice
                 )
             )
         );
