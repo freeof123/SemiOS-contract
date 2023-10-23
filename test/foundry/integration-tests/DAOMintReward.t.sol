@@ -115,30 +115,8 @@ contract DAOMintReward is DeployHelper {
             console2.log("NFT mint and transfer failed");
         }
 
-        {
-            // transfer at least 2 ETH to unlock basic dao
-            address basicDaoFeePoolAddress = protocol.getDaoFeePool(basicDaoId);
-            (bool success,) = basicDaoFeePoolAddress.call{ value: 3 ether }("");
-            require(success, "Failed to increase turnover");
-            // should unlock basic dao first
-            BasicDaoUnlocker basicDaoUnlocker = new BasicDaoUnlocker(address(protocol));
-
-            assertTrue(IPDBasicDao(protocol).ableToUnlock(basicDaoId));
-
-            (bool upkeepNeeded, bytes memory performData) = basicDaoUnlocker.checkUpkeep("");
-            assertTrue(upkeepNeeded);
-            assertTrue(!IPDBasicDao(protocol).isUnlocked(basicDaoId));
-
-            if (upkeepNeeded) {
-                basicDaoUnlocker.performUpkeep(performData);
-            }
-
-            assertTrue(IPDBasicDao(protocol).isUnlocked(basicDaoId));
-            // (, bytes memory performData) = basicDaoUnlocker.checkUpkeep(new bytes(0));
-            // basicDaoUnlocker.performUpkeep(performData);
-
-            console2.log("unlock successfully");
-        }
+        super._unlocker(basicDaoId, 2 ether);
+        console2.log("unlock successfully");
 
         {
             address nftAddr = protocol.getDaoNft(continuousDaoId);
@@ -192,7 +170,6 @@ contract DAOMintReward is DeployHelper {
 
         drb.changeRound(3);
 
-        // TODO: claim other
         uint256 amount1 = protocol.claimNftMinterReward(continuousDaoId, nftMinter.addr);
         console2.log("claim NFT minter reward by minter: ", amount1);
 
