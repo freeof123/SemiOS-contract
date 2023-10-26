@@ -120,10 +120,15 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployUniversalClaimer();
 
         //_deployCreateProjectProxy();
-        //_deployCreateProjectProxyProxy();
+        _deployCreateProjectProxyProxy();
 
         //_deployPermissionControl();
         // _deployPermissionControlProxy();
+
+        //_deployPDCreateFunding();
+        //_deployPDCreateFundingProxy();
+
+        //need set, owner is multisig = PROTOCOL_ROLE , call d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
 
         //_initSettings();
 

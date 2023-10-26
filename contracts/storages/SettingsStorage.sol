@@ -8,6 +8,8 @@ import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
 import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
 import { ID4AOwnerProxy } from "../interface/ID4AOwnerProxy.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
+import { ID4ARoyaltySplitterFactory } from "contracts/interface/ID4ARoyaltySplitterFactory.sol";
+import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 library SettingsStorage {
     struct Layout {
@@ -44,6 +46,11 @@ library SettingsStorage {
         uint256 reservedDaoAmount;
         address[256] priceTemplates;
         address[256] rewardTemplates;
+        //-------1.3 add
+        ID4ARoyaltySplitterFactory royaltySplitterFactory;
+        IUniswapV2Factory d4aswapFactory;
+        mapping(bytes32 daoId => address royaltySplitter) royaltySplitters;
+        address royaltySplitterOwner;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");
