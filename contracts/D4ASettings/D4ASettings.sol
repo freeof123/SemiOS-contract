@@ -16,6 +16,8 @@ import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
 import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
 import { ID4AOwnerProxy } from "../interface/ID4AOwnerProxy.sol";
 import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
+import { ID4ARoyaltySplitterFactory } from "contracts/interface/ID4ARoyaltySplitterFactory.sol";
+import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 import { D4ASettingsReadable } from "./D4ASettingsReadable.sol";
 
 contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsReadable {
@@ -239,5 +241,20 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
 
     function setReservedDaoAmount(uint256 reservedDaoAmount) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.layout().reservedDaoAmount = reservedDaoAmount;
+    }
+
+    function setRoyaltySplitterAndSwapFactoryAddress(
+        address newRoyaltySplitterFactory,
+        address newRoyaltySplitterOwner,
+        address newD4AswapFactory
+    )
+        public
+        onlyRole(PROTOCOL_ROLE)
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        l.royaltySplitterFactory = ID4ARoyaltySplitterFactory(newRoyaltySplitterFactory);
+        l.royaltySplitterOwner = newRoyaltySplitterOwner;
+        l.d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);
     }
 }

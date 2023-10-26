@@ -102,4 +102,11 @@ interface ID4ASettings {
     function setTemplateAddress(TemplateChoice templateChoice, uint8 index, address template) external;
 
     function setReservedDaoAmount(uint256 reservedDaoAmount) external;
+
+    function setRoyaltySplitterAndSwapFactoryAddress(
+        address newRoyaltySplitterFactory,
+        address newRoyaltySplitterOwner,
+        address newD4AswapFactory
+    )
+        external;
 }
