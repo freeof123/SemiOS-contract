@@ -128,7 +128,8 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPDCreateFunding();
         //_deployPDCreateFundingProxy();
 
-        //need set, owner is multisig = PROTOCOL_ROLE , call d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
+        //todo:
+        // need set, owner is multisig1 in mainnet, call d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
 
         //_initSettings();
 

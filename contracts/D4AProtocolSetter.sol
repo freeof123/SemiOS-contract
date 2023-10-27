@@ -42,7 +42,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+        if (
+            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
+                && msg.sender != address(this)
+        ) {
             revert NotDaoOwner();
         }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
@@ -212,7 +215,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
+        if (
+            msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy
+                && msg.sender != address(this)
+        ) revert NotDaoOwner();
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.priceTemplateType = templateParam.priceTemplateType;
@@ -243,7 +249,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy) revert NotDaoOwner();
+        if (
+            msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy
+                && msg.sender != address(this)
+        ) revert NotDaoOwner();
 
         if (
             daoFeePoolETHRatioFlatPrice > BASIS_POINT - l.protocolMintFeeRatioInBps
@@ -283,7 +292,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+        if (
+            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
+                && msg.sender != address(this)
+        ) {
             revert NotDaoOwner();
         }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
@@ -294,7 +306,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+        if (
+            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
+                && msg.sender != address(this)
+        ) {
             revert NotDaoOwner();
         }
         if (addedDaoToken == 0) return;
@@ -318,7 +333,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+        if (
+            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
+                && msg.sender != address(this)
+        ) {
             revert NotDaoOwner();
         }
 
@@ -331,7 +349,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)) {
+        if (
+            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
+                && msg.sender != address(this)
+        ) {
             revert NotDaoOwner();
         }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();

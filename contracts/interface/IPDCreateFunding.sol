@@ -14,7 +14,7 @@ import {
 
 interface IPDCreateFunding {
     // ============================== Events =============================
-    event CreateProjectParamEmitted(
+    event CreateProjectParamEmittedForFunding(
         bytes32 daoId,
         address daoFeePool,
         address token,
@@ -29,7 +29,7 @@ interface IPDCreateFunding {
         uint256 actionType
     );
 
-    event CreateContinuousProjectParamEmitted(
+    event CreateContinuousProjectParamEmittedForFunding(
         bytes32 existDaoId,
         bytes32 daoId,
         uint256 dailyMintCap,
@@ -39,8 +39,14 @@ interface IPDCreateFunding {
         uint256 reserveNftNumber
     );
 
+    event NewProjectForFunding(
+        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
+    );
+
+    event NewCanvasForFunding(bytes32 daoId, bytes32 canvasId, string canvasUri);
+
     // ============================== Write Functions =============================
-    function createBasicDao(
+    function createBasicDaoForFunding(
         DaoMetadataParam calldata daoMetadataParam,
         Whitelist memory whitelist,
         Blacklist calldata blacklist,
@@ -54,7 +60,7 @@ interface IPDCreateFunding {
         payable
         returns (bytes32 daoId);
 
-    function createContinuousDao(
+    function createContinuousDaoForFunding(
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,
         Whitelist memory whitelist,

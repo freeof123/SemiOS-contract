@@ -27,7 +27,8 @@ import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
-    getGrantSelectors
+    getGrantSelectors,
+    getPDCreateFundingSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
@@ -66,6 +67,7 @@ import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceV
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
+import { PDCreateFunding } from "contracts/PDCreateFunding.sol";
 
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
@@ -103,6 +105,7 @@ contract DeployHelper is Test {
     ExponentialRewardIssuance public exponentialRewardIssuance;
     MintNftSigUtils public mintNftSigUtils;
     PDGrant public grant;
+    PDCreateFunding public pdCreateFunding;
 
     // actors
     Account public royaltySplitterOwner = makeAccount("Royalty Splitter Owner");
@@ -292,6 +295,7 @@ contract DeployHelper is Test {
         _deployProtocolSetter();
         _deploySettings();
         _deployGrant();
+        _deployPDCreateFunding();
 
         _cutFacetsD4ACreate();
         _cutFacetsPDCreate();
@@ -300,6 +304,7 @@ contract DeployHelper is Test {
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
         _cutFacetsGrant();
+        _cutFacetsPDCreateFunding();
 
         // set diamond fallback address
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
@@ -342,6 +347,11 @@ contract DeployHelper is Test {
     function _deployGrant() internal {
         grant = new PDGrant();
         vm.label(address(grant), "Grant");
+    }
+
+    function _deployPDCreateFunding() internal {
+        pdCreateFunding = new PDCreateFunding(address(weth));
+        vm.label(address(grant), "Proto DAO Create Funding");
     }
 
     function _cutFacetsD4ACreate() internal {
@@ -436,6 +446,18 @@ contract DeployHelper is Test {
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
             target: address(grant),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDCreateFunding() internal {
+        bytes4[] memory selectors = getPDCreateFundingSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdCreateFunding),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
@@ -570,6 +592,7 @@ contract DeployHelper is Test {
         _changeMintableRounds();
         _changeFloorPrices();
         _changeMaxNFTAmounts();
+        _changeAddressInDaoProxy();
     }
 
     function _changeAddress() internal {
@@ -634,6 +657,12 @@ contract DeployHelper is Test {
         nftMaxAmounts[3] = 50_000;
         nftMaxAmounts[4] = 100_000;
         ID4ASettings(address(protocol)).changeMaxNFTAmounts(nftMaxAmounts);
+    }
+
+    function _changeAddressInDaoProxy() internal {
+        ID4ASettings(address(protocol)).setRoyaltySplitterAndSwapFactoryAddress(
+            address(royaltySplitterFactory), royaltySplitterOwner.addr, address(uniswapV2Factory)
+        );
     }
 
     function _grantRole() internal prank(protocolOwner.addr) {
@@ -850,6 +879,75 @@ contract DeployHelper is Test {
         vm.stopPrank();
     }
 
+    function _createBasicDaoDirectly(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+        daoId = protocol.createBasicDaoForFunding(
+            DaoMetadataParam({
+                startDrb: drb.currentRound(),
+                mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
+                floorPriceRank: 0,
+                maxNftRank: 2,
+                royaltyFee: 1250,
+                projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+                projectIndex: 0
+            }),
+            Whitelist({
+                minterMerkleRoot: createDaoParam.minterMerkleRoot,
+                minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+                canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+                canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            }),
+            Blacklist({
+                minterAccounts: createDaoParam.minterAccounts,
+                canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+            }),
+            daoMintCapParam,
+            DaoETHAndERC20SplitRatioParam({
+                daoCreatorERC20Ratio: 4800,
+                canvasCreatorERC20Ratio: 2500,
+                nftMinterERC20Ratio: 2500,
+                daoFeePoolETHRatio: 9750,
+                daoFeePoolETHRatioFlatPrice: 9750
+            }),
+            TemplateParam({
+                priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+                priceFactor: 20_000,
+                rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+                rewardDecayFactor: 0,
+                isProgressiveJackpot: createDaoParam.isProgressiveJackpot
+            }),
+            BasicDaoParam({
+                initTokenSupplyRatio: createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio,
+                canvasId: createDaoParam.canvasId,
+                canvasUri: "test dao creator canvas uri",
+                daoName: "test dao"
+            }),
+            20
+        );
+
+        vm.stopPrank();
+    }
+
     function _createContinuousDao(
         CreateDaoParam memory createDaoParam,
         bytes32 existDaoId,
@@ -932,6 +1030,103 @@ contract DeployHelper is Test {
         });
 
         daoId = daoProxy.createContinuousDao(
+            vars.existDaoId,
+            vars.daoMetadataParam,
+            vars.whitelist,
+            vars.blacklist,
+            daoMintCapParam,
+            vars.daoETHAndERC20SplitRatioParam,
+            vars.templateParam,
+            vars.basicDaoParam,
+            vars.continuousDaoParam,
+            20
+        );
+
+        vm.stopPrank();
+    }
+
+    function _createContinuousDaoDirectly(
+        CreateDaoParam memory createDaoParam,
+        bytes32 existDaoId,
+        bool needMintableWork,
+        bool uniPriceModeOff,
+        uint256 reserveNftNumber
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        startHoax(daoCreator.addr);
+
+        DaoMintCapParam memory daoMintCapParam;
+        {
+            uint256 length = createDaoParam.minters.length;
+            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
+            for (uint256 i; i < length;) {
+                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
+                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
+                unchecked {
+                    ++i;
+                }
+            }
+            daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
+            daoMintCapParam.userMintCapParams[length].mintCap = 5;
+            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+        }
+
+        address[] memory minters = new address[](1);
+        minters[0] = daoCreator.addr;
+        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
+
+        CreateContinuousDaoParam memory vars;
+        vars.existDaoId = existDaoId;
+        vars.daoMetadataParam = DaoMetadataParam({
+            startDrb: drb.currentRound(),
+            mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
+            floorPriceRank: 0,
+            maxNftRank: 2,
+            royaltyFee: 1250,
+            projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
+            projectIndex: 0
+        });
+        vars.whitelist = Whitelist({
+            minterMerkleRoot: createDaoParam.minterMerkleRoot,
+            minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+            canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
+            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+        });
+        vars.blacklist = Blacklist({
+            minterAccounts: createDaoParam.minterAccounts,
+            canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
+        });
+        vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
+            daoCreatorERC20Ratio: 4800,
+            canvasCreatorERC20Ratio: 2500,
+            nftMinterERC20Ratio: 2500,
+            daoFeePoolETHRatio: 9750,
+            daoFeePoolETHRatioFlatPrice: 9750
+        });
+        vars.templateParam = TemplateParam({
+            priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
+            priceFactor: 20_000,
+            rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
+            rewardDecayFactor: 0,
+            isProgressiveJackpot: createDaoParam.isProgressiveJackpot
+        });
+        vars.basicDaoParam = BasicDaoParam({
+            initTokenSupplyRatio: createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio,
+            canvasId: createDaoParam.canvasId,
+            canvasUri: "test dao creator canvas uri",
+            daoName: "test dao"
+        });
+        vars.continuousDaoParam = ContinuousDaoParam({
+            reserveNftNumber: reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
+            unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
+            unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
+            needMintableWork: needMintableWork,
+            dailyMintCap: 100
+        });
+
+        daoId = protocol.createContinuousDaoForFunding(
             vars.existDaoId,
             vars.daoMetadataParam,
             vars.whitelist,

@@ -34,7 +34,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked //todo
         ) {
             revert BasicDaoLocked();
         }
@@ -101,7 +101,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) {
             revert BasicDaoLocked();
         }
@@ -123,7 +123,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) {
             revert BasicDaoLocked();
         }
@@ -152,7 +152,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) {
             revert BasicDaoLocked();
         }
@@ -164,7 +164,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) {
             revert BasicDaoLocked();
         }
@@ -175,7 +175,7 @@ contract PDProtocolSetter is D4AProtocolSetter {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
         ) {
             revert BasicDaoLocked();
         }

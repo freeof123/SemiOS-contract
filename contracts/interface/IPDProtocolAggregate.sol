@@ -10,6 +10,7 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 import { ID4ASettings } from "contracts/D4ASettings/ID4aSettings.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
+import { IPDCreateFunding } from "contracts/interface/IPDCreateFunding.sol";
 
 interface IPDProtocolAggregate is
     IPDProtocol,
@@ -20,5 +21,6 @@ interface IPDProtocolAggregate is
     ID4ACreate,
     ID4AProtocolSetter,
     ID4ASettingsReadable,
-    ID4ASettings
+    ID4ASettings,
+    IPDCreateFunding
 { }

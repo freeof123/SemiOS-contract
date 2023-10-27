@@ -11,6 +11,7 @@ import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
+import { IPDCreateFunding } from "contracts/interface/IPDCreateFunding.sol";
 
 function getD4ACreateSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
@@ -121,6 +122,7 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.transferMembership.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setReservedDaoAmount.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setRoyaltySplitterAndSwapFactoryAddress.selector;
     assert(interfaceId == type(ID4ASettings).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -266,6 +268,24 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.getAllowedTokensList.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.isTokenAllowed.selector;
     assert(interfaceId == type(IPDGrant).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getPDCreateFundingSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4AGrant
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createBasicDaoForFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createContinuousDaoForFunding.selector;
+
+    assert(interfaceId == type(IPDCreateFunding).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {
