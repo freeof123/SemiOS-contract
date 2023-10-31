@@ -136,6 +136,7 @@ contract DeployHelper is Test {
         TemplateParam templateParam;
         BasicDaoParam basicDaoParam;
         ContinuousDaoParam continuousDaoParam;
+        AllRatioForFundingParam allRatioForFundingParam;
         uint256 dailyMintCap;
     }
 
@@ -593,6 +594,7 @@ contract DeployHelper is Test {
         _changeFloorPrices();
         _changeMaxNFTAmounts();
         _changeAddressInDaoProxy();
+        _changeSettingsRatio();
     }
 
     function _changeAddress() internal {
@@ -663,6 +665,10 @@ contract DeployHelper is Test {
         ID4ASettings(address(protocol)).setRoyaltySplitterAndSwapFactoryAddress(
             address(royaltySplitterFactory), royaltySplitterOwner.addr, address(uniswapV2Factory)
         );
+    }
+
+    function _changeSettingsRatio() internal {
+        ID4ASettings(address(protocol)).changeETHRewardRatio(200);
     }
 
     function _grantRole() internal prank(protocolOwner.addr) {
@@ -740,6 +746,9 @@ contract DeployHelper is Test {
         uint256 actionType;
         uint256 unifiedPrice;
         uint256 initTokenSupplyRatio;
+        bytes32[] childrenDaoId;
+        uint256[] childrenDaoRatios;
+        uint256 redeemPoolRatio;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -942,6 +951,17 @@ contract DeployHelper is Test {
                 canvasUri: "test dao creator canvas uri",
                 daoName: "test dao"
             }),
+            AllRatioForFundingParam({
+                canvasCreatorMintFeeRatio: 1000,
+                assetPoolMintFeeRatio: 2000,
+                redeemPoolMintFeeRatio: 7000,
+                minterERC20RewardRatio: 1000,
+                canvasCreatorERC20RewardRatio: 2000,
+                daoCreatorERC20RewardRatio: 7000,
+                minterETHRewardRatio: 1000,
+                canvasCreatorETHRewardRatio: 2000,
+                daoCreatorETHRewardRatio: 7000
+            }),
             20
         );
 
@@ -1026,7 +1046,10 @@ contract DeployHelper is Test {
             unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
             needMintableWork: needMintableWork,
-            dailyMintCap: 100
+            dailyMintCap: 100,
+            childrenDaoId: createDaoParam.childrenDaoId,
+            childrenDaoRatios: createDaoParam.childrenDaoRatios,
+            redeemPoolRatio: createDaoParam.redeemPoolRatio
         });
 
         daoId = daoProxy.createContinuousDao(
@@ -1123,7 +1146,22 @@ contract DeployHelper is Test {
             unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
             needMintableWork: needMintableWork,
-            dailyMintCap: 100
+            dailyMintCap: 100,
+            childrenDaoId: createDaoParam.childrenDaoId,
+            childrenDaoRatios: createDaoParam.childrenDaoRatios,
+            redeemPoolRatio: createDaoParam.redeemPoolRatio
+        });
+
+        vars.allRatioForFundingParam = AllRatioForFundingParam({
+            canvasCreatorMintFeeRatio: 1000,
+            assetPoolMintFeeRatio: 2000,
+            redeemPoolMintFeeRatio: 7000,
+            minterERC20RewardRatio: 1000,
+            canvasCreatorERC20RewardRatio: 2000,
+            daoCreatorERC20RewardRatio: 7000,
+            minterETHRewardRatio: 1000,
+            canvasCreatorETHRewardRatio: 2000,
+            daoCreatorETHRewardRatio: 7000
         });
 
         daoId = protocol.createContinuousDaoForFunding(
@@ -1136,6 +1174,7 @@ contract DeployHelper is Test {
             vars.templateParam,
             vars.basicDaoParam,
             vars.continuousDaoParam,
+            vars.allRatioForFundingParam,
             20
         );
 

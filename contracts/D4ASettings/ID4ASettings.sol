@@ -48,6 +48,8 @@ interface ID4ASettings {
 
     event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
 
+    event ChangeETHRewardRatio(uint256 protocolETHRewardRatio);
+
     function changeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount) external;
 
     function changeProtocolFeePool(address protocolFeePool) external;
@@ -109,4 +111,5 @@ interface ID4ASettings {
         address newD4AswapFactory
     )
         external;
+    function changeETHRewardRatio(uint256 protocolETHRewardRatio) external;
 }

@@ -9,7 +9,8 @@ import {
     Blacklist,
     DaoMintCapParam,
     DaoETHAndERC20SplitRatioParam,
-    TemplateParam
+    TemplateParam,
+    AllRatioForFundingParam
 } from "contracts/interface/D4AStructs.sol";
 
 interface IPDCreateFunding {
@@ -26,7 +27,8 @@ interface IPDCreateFunding {
         DaoETHAndERC20SplitRatioParam splitRatioParam,
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
-        uint256 actionType
+        uint256 actionType,
+        AllRatioForFundingParam allRatioForFundingParam
     );
 
     event CreateContinuousProjectParamEmittedForFunding(
@@ -54,6 +56,7 @@ interface IPDCreateFunding {
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
+        AllRatioForFundingParam calldata allRatioForFundingParam,
         uint256 actionType
     )
         external
@@ -70,6 +73,7 @@ interface IPDCreateFunding {
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         ContinuousDaoParam calldata continuousDaoParam,
+        AllRatioForFundingParam calldata allRatioForFundingParam,
         uint256 actionType
     )
         external

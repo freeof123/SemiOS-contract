@@ -18,7 +18,8 @@ enum TemplateChoice {
 
 enum DaoTag {
     D4A_DAO,
-    BASIC_DAO
+    BASIC_DAO,
+    FUNDING_DAO
 }
 
 enum DeployMethod {

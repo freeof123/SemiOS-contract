@@ -370,6 +370,7 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
     {
         return RewardStorage.layout().rewardInfos[daoId].nftMinterWeights[round][nftMinter];
     }
+    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
 
     function getDaoCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
@@ -379,6 +380,7 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         }
         return (daoCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) / BASIS_POINT;
     }
+    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
 
     function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
@@ -388,6 +390,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         }
         return (canvasCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) / BASIS_POINT;
     }
+
+    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
 
     function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
         return BASIS_POINT - SettingsStorage.layout().protocolERC20RatioInBps - getDaoCreatorERC20Ratio(daoId)

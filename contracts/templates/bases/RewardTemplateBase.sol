@@ -95,7 +95,8 @@ abstract contract RewardTemplateBase is IRewardTemplate, Test {
         if (!param.zeroPrice) {
             PoolStorage.layout().poolInfos[param.daoFeePool].roundTotalETH[param.currentRound] += param.daoFeeAmount;
         }
-
+        //when updating reward, the ratios in param is with respect to all 4 roles
+        // protocol and other 3 roles' weights are updated
         rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
         rewardInfo.protocolWeights[param.currentRound] +=
             param.daoFeeAmount * param.protocolERC20RatioInBps / BASIS_POINT;
@@ -137,7 +138,7 @@ abstract contract RewardTemplateBase is IRewardTemplate, Test {
                 // update protocol's claimable reward
                 protocolClaimableReward +=
                     roundReward * rewardInfo.protocolWeights[activeRounds[j]] / rewardInfo.totalWeights[activeRounds[j]];
-                // update dao creator's claimable reward
+                // update dao creator's claimable reward, use weights caculated by ratios w.r.t. 4 roles
                 daoCreatorClaimableReward += roundReward * rewardInfo.daoCreatorWeights[activeRounds[j]]
                     / rewardInfo.totalWeights[activeRounds[j]];
                 unchecked {

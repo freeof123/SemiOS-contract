@@ -10,6 +10,8 @@ import { ID4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
+
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { IPDCreateFunding } from "contracts/interface/IPDCreateFunding.sol";
 
@@ -123,6 +125,8 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setReservedDaoAmount.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setRoyaltySplitterAndSwapFactoryAddress.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeETHRewardRatio.selector;
+
     assert(interfaceId == type(ID4ASettings).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -244,7 +248,13 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setWhitelistMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoUnifiedPrice.selector;
 
-    assert(interfaceId == type(ID4AProtocolSetter).interfaceId);
+    //PDProtocal related functions
+
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setChildren.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setRatioForFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setInitialTokenSupplyForSubDao.selector;
+
+    assert(interfaceId == type(IPDProtocolSetter).interfaceId ^ type(ID4AProtocolSetter).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {

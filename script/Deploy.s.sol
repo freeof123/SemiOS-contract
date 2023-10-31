@@ -66,6 +66,9 @@ contract Deploy is Script, Test, D4AAddress {
         bool isProgressiveJackpot;
         bytes32 canvasId;
         uint256 actionType;
+        bytes32[] childrenDaoId;
+        uint256[] childrenDaoRatios;
+        uint256 redeemPoolRatio;
     }
 
     struct CreateContinuousDaoParam {
@@ -129,7 +132,10 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPDCreateFundingProxy();
 
         //todo:
-        // need set, owner is multisig1 in mainnet, call d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
+        // need set royal splliter owner in settings, owner is multisig1 in mainnet, call
+        // d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
+        //todo:
+        //setETHRewardRatio in Settings
 
         //_initSettings();
 
@@ -248,7 +254,10 @@ contract Deploy is Script, Test, D4AAddress {
             unifiedPriceModeOff: unifiedPriceModeOff,
             unifiedPrice: 0.01 ether,
             needMintableWork: needMintableWork,
-            dailyMintCap: 100
+            dailyMintCap: 100,
+            childrenDaoId: createDaoParam.childrenDaoId,
+            childrenDaoRatios: createDaoParam.childrenDaoRatios,
+            redeemPoolRatio: createDaoParam.redeemPoolRatio
         });
 
         daoId = pdCreateProjectProxy_proxy.createContinuousDao(

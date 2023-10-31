@@ -257,4 +257,13 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.royaltySplitterOwner = newRoyaltySplitterOwner;
         l.d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);
     }
+    //Todo need set in 1.3
+
+    function changeETHRewardRatio(uint256 protocolETHRewardRatio) public onlyRole(PROTOCOL_ROLE) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        l.protocolETHRewardRatio = protocolETHRewardRatio;
+
+        emit ChangeETHRewardRatio(protocolETHRewardRatio);
+    }
 }

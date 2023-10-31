@@ -51,6 +51,7 @@ library SettingsStorage {
         IUniswapV2Factory d4aswapFactory;
         mapping(bytes32 daoId => address royaltySplitter) royaltySplitters;
         address royaltySplitterOwner;
+        uint256 protocolETHRewardRatio;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");

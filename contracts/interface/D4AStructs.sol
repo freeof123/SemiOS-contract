@@ -107,6 +107,9 @@ struct ContinuousDaoParam {
     uint256 unifiedPrice;
     bool needMintableWork;
     uint256 dailyMintCap;
+    bytes32[] childrenDaoId;
+    uint256[] childrenDaoRatios;
+    uint256 redeemPoolRatio;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 
@@ -144,4 +147,22 @@ struct SetRatioParam {
     uint256 nftMinterERC20Ratio;
     uint256 daoFeePoolETHRatio;
     uint256 daoFeePoolETHRatioFlatPrice;
+}
+
+struct AllRatioForFundingParam {
+    uint256 canvasCreatorMintFeeRatio;
+    uint256 assetPoolMintFeeRatio;
+    uint256 redeemPoolMintFeeRatio;
+    // also have l.protocolMintFeeRatioInBps
+
+    //erc20 reward ratio
+    uint256 minterERC20RewardRatio;
+    uint256 canvasCreatorERC20RewardRatio;
+    uint256 daoCreatorERC20RewardRatio;
+    // also have l.protocolERC20RatioInBps,
+
+    //eth reward ratio, also have l.protocolETHRewardRatio
+    uint256 minterETHRewardRatio;
+    uint256 canvasCreatorETHRewardRatio;
+    uint256 daoCreatorETHRewardRatio;
 }

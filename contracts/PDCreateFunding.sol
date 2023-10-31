@@ -9,6 +9,7 @@ import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
+import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import {
@@ -22,7 +23,8 @@ import {
     NftMinterCapInfo,
     SetRatioParam,
     TemplateParam,
-    BasicDaoParam
+    BasicDaoParam,
+    AllRatioForFundingParam
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -61,6 +63,7 @@ struct CreateProjectLocalVars {
     DaoETHAndERC20SplitRatioParam splitRatioParam;
     TemplateParam templateParam;
     BasicDaoParam basicDaoParam;
+    AllRatioForFundingParam allRatioForFundingParam;
     uint256 actionType;
     bool needMintableWork;
     uint256 dailyMintCap;
@@ -110,6 +113,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
+        AllRatioForFundingParam calldata allRatioForFundingParam,
         uint256 actionType
     )
         public
@@ -122,35 +126,27 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         if (
             daoMetadataParam.floorPriceRank == 9999
                 && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
-        ) {
-            revert ZeroFloorPriceCannotUseLinearPriceVariation();
-        }
+        ) revert ZeroFloorPriceCannotUseLinearPriceVariation();
 
-        address protocol = address(this); // gas saving
-
-        // daoId = IPDCreate(protocol).createBasicDao(daoMetadataParam, basicDaoParam);
         daoId = _createBasicDao(daoMetadataParam, basicDaoParam);
 
         CreateProjectLocalVars memory vars;
 
+        vars.daoId = daoId;
+        vars.daoMetadataParam = daoMetadataParam;
+        vars.whitelist = whitelist;
+        vars.blacklist = blacklist;
+        vars.daoMintCapParam = daoMintCapParam;
+        vars.splitRatioParam = splitRatioParam;
+        vars.templateParam = templateParam;
+        vars.basicDaoParam = basicDaoParam;
+        vars.actionType = actionType;
+        vars.allRatioForFundingParam = allRatioForFundingParam;
+
+        address protocol = address(this); // gas saving
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
-
-        emit CreateProjectParamEmittedForFunding(
-            daoId,
-            vars.daoFeePool,
-            vars.token,
-            vars.nft,
-            daoMetadataParam,
-            whitelist,
-            blacklist,
-            daoMintCapParam,
-            splitRatioParam,
-            templateParam,
-            basicDaoParam,
-            actionType
-        );
 
         vars.dailyMintCap = ID4AProtocolReadable(protocol).getDaoDailyMintCap(daoId);
         bool _unifiedPriceModeOff = ID4AProtocolReadable(protocol).getDaoUnifiedPriceModeOff(daoId);
@@ -161,74 +157,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             daoId, daoId, vars.dailyMintCap, true, _unifiedPriceModeOff, _unifiedPrice, _reserveNftNumber
         );
 
-        ID4ASettingsReadable(protocol).permissionControl().addPermission(daoId, whitelist, blacklist);
-
-        SetMintCapAndPermissionParam memory permissionVars;
-        permissionVars.daoId = daoId;
-        permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
-        permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
-        //把新建nft放到有铸造上限白名单里并设置cap为5
-        NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](1);
-        nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
-        permissionVars.nftMinterCapInfo = nftMinterCapInfo;
-        permissionVars.whitelist = whitelist;
-        permissionVars.blacklist = blacklist;
-        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
-        if ((actionType & 0x4) != 0) {
-            ID4AProtocolSetter(protocol).setMintCapAndPermission(
-                permissionVars.daoId,
-                permissionVars.daoMintCap,
-                permissionVars.userMintCapParams,
-                permissionVars.nftMinterCapInfo,
-                permissionVars.whitelist,
-                permissionVars.blacklist,
-                permissionVars.unblacklist
-            );
-        }
-
-        // to get d4aswapFactory, royaltySplitterFactory and royaltySplitterOwner
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-
-        if ((actionType & 0x8) != 0) {
-            settingsStorage.d4aswapFactory.createPair(vars.token, WETH);
-        }
-
-        SetRatioParam memory ratioVars;
-        ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio = splitRatioParam.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio = splitRatioParam.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio = splitRatioParam.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio = splitRatioParam.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice = splitRatioParam.daoFeePoolETHRatioFlatPrice;
-        if ((actionType & 0x10) != 0) {
-            ID4AProtocolSetter(protocol).setRatio(
-                ratioVars.daoId,
-                ratioVars.daoCreatorERC20Ratio,
-                ratioVars.canvasCreatorERC20Ratio,
-                ratioVars.nftMinterERC20Ratio,
-                ratioVars.daoFeePoolETHRatio,
-                ratioVars.daoFeePoolETHRatioFlatPrice
-            );
-        }
-
-        // setup template
-        ID4AProtocolSetter(protocol).setTemplate(daoId, templateParam);
-
-        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
-        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();
-
-        //ID4ASettingsReadable(protocol).ownerProxy().transferOwnership(daoId, msg.sender);
-        //ID4ASettingsReadable(protocol).ownerProxy().transferOwnership(basicDaoParam.canvasId, msg.sender);
-        //OwnableUpgradeable(vars.nft).transferOwnership(msg.sender);
-        address splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
-            ID4ASettingsReadable(protocol).protocolFeePool(),
-            protocolRoyaltyFeeRatioInBps,
-            vars.daoFeePool,
-            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
-        );
-        settingsStorage.royaltySplitters[daoId] = splitter;
-        OwnableUpgradeable(splitter).transferOwnership(settingsStorage.royaltySplitterOwner);
-        ID4AERC721(vars.nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
+        _config(protocol, vars, true);
     }
 
     /**
@@ -254,6 +183,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         ContinuousDaoParam calldata continuousDaoParam,
+        AllRatioForFundingParam calldata allRatioForFundingParam,
         uint256 actionType
     )
         public
@@ -263,9 +193,9 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         returns (bytes32 daoId)
     {
         address protocol = address(this);
-        if (ID4ASettingsReadable(protocol).ownerProxy().ownerOf(existDaoId) != msg.sender) {
-            revert NotBasicDaoOwner();
-        }
+        // if (ID4ASettingsReadable(protocol).ownerProxy().ownerOf(existDaoId) != msg.sender) {
+        //     revert NotBasicDaoOwner();
+        // }
         CreateProjectLocalVars memory vars;
         vars.existDaoId = existDaoId;
         vars.daoMetadataParam = daoMetadataParam;
@@ -278,43 +208,24 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         vars.actionType = actionType;
         vars.needMintableWork = continuousDaoParam.needMintableWork;
         vars.dailyMintCap = continuousDaoParam.dailyMintCap;
+        vars.allRatioForFundingParam = allRatioForFundingParam;
 
         // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
         if (
             daoMetadataParam.floorPriceRank == 9999
                 && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
-        ) {
-            revert ZeroFloorPriceCannotUseLinearPriceVariation();
-        }
+        ) revert ZeroFloorPriceCannotUseLinearPriceVariation();
+
         if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
-
-        // daoId = IPDCreate(protocol).createContinuousDao(existDaoId, daoMetadataParam, basicDaoParam,
-        // continuousDaoParam);
         daoId = _createContinuousDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam);
-
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(existDaoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(existDaoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
-
-        emit CreateProjectParamEmittedForFunding(
-            vars.daoId,
-            vars.daoFeePool,
-            vars.token,
-            vars.nft,
-            vars.daoMetadataParam,
-            vars.whitelist,
-            vars.blacklist,
-            vars.daoMintCapParam,
-            vars.splitRatioParam,
-            vars.templateParam,
-            vars.basicDaoParam,
-            vars.actionType
-        );
 
         emit CreateContinuousProjectParamEmittedForFunding(
             vars.existDaoId,
@@ -326,71 +237,14 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.reserveNftNumber
         );
 
-        ID4ASettingsReadable(protocol).permissionControl().addPermission(daoId, whitelist, blacklist);
+        _config(protocol, vars, false);
 
-        SetMintCapAndPermissionParam memory permissionVars;
-        permissionVars.daoId = daoId;
-        permissionVars.daoMintCap = daoMintCapParam.daoMintCap;
-        permissionVars.userMintCapParams = daoMintCapParam.userMintCapParams;
-        NftMinterCapInfo[] memory nftMinterCapInfo;
-        permissionVars.nftMinterCapInfo = nftMinterCapInfo;
-        permissionVars.whitelist = whitelist;
-        permissionVars.blacklist = blacklist;
-        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
-        if ((actionType & 0x4) != 0) {
-            ID4AProtocolSetter(protocol).setMintCapAndPermission(
-                permissionVars.daoId,
-                permissionVars.daoMintCap,
-                permissionVars.userMintCapParams,
-                permissionVars.nftMinterCapInfo,
-                permissionVars.whitelist,
-                permissionVars.blacklist,
-                permissionVars.unblacklist
-            );
-        }
-
-        // to get d4aswapFactory, royaltySplitterFactory and royaltySplitterOwner
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-
-        if ((actionType & 0x8) != 0) {
-            settingsStorage.d4aswapFactory.createPair(vars.token, WETH);
-        }
-
-        SetRatioParam memory ratioVars;
-        ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio = splitRatioParam.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio = splitRatioParam.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio = splitRatioParam.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio = splitRatioParam.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice = splitRatioParam.daoFeePoolETHRatioFlatPrice;
-        if ((actionType & 0x10) != 0) {
-            ID4AProtocolSetter(protocol).setRatio(
-                ratioVars.daoId,
-                ratioVars.daoCreatorERC20Ratio,
-                ratioVars.canvasCreatorERC20Ratio,
-                ratioVars.nftMinterERC20Ratio,
-                ratioVars.daoFeePoolETHRatio,
-                ratioVars.daoFeePoolETHRatioFlatPrice
-            );
-        }
-
-        // setup template
-        ID4AProtocolSetter(protocol).setTemplate(daoId, templateParam);
-
-        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
-        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();
-        //ID4ASettingsReadable(protocol).ownerProxy().transferOwnership(daoId, msg.sender);
-        //ID4ASettingsReadable(protocol).ownerProxy().transferOwnership(basicDaoParam.canvasId, msg.sender);
-        //OwnableUpgradeable(vars.nft).transferOwnership(msg.sender);
-        address splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
-            ID4ASettingsReadable(protocol).protocolFeePool(),
-            protocolRoyaltyFeeRatioInBps,
-            vars.daoFeePool,
-            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
+        IPDProtocolSetter(protocol).setChildren(
+            daoId,
+            continuousDaoParam.childrenDaoId,
+            continuousDaoParam.childrenDaoRatios,
+            continuousDaoParam.redeemPoolRatio
         );
-        settingsStorage.royaltySplitters[daoId] = splitter;
-        OwnableUpgradeable(splitter).transferOwnership(settingsStorage.royaltySplitterOwner);
-        ID4AERC721(vars.nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
     }
 
     //================================ internal functions ===============================
@@ -436,6 +290,18 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
 
             DaoStorage.Layout storage daoStorage = DaoStorage.layout();
+
+            {
+                address daoAssetPool =
+                    _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
+                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
+            }
+
+            {
+                address fundingPool =
+                    _createFundingPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
+            }
+
             daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
             daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
@@ -455,6 +321,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
 
         {
             BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+            basicDaoStorage.basicDaoInfos[daoId].basicDaoExist = true;
             basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
             basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
         }
@@ -507,8 +374,8 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
 
             address daoFeePool = settingsStorage.feePoolFactory.createD4AFeePool(
-                string(abi.encodePacked("Asset Pool for DAO4Art Project ", LibString.toString(daoIndex)))
-            );
+                string(abi.encodePacked("Redeem Pool for DAO4Art Project ", LibString.toString(daoIndex)))
+            ); //this feepool is redeem pool for erc20->eth
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
@@ -594,7 +461,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         internal
         returns (bytes32 daoId)
     {
-        // here need to check daoid if exist
+        // here need to check daoid if exist // we checked it in this function
         address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
         address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
 
@@ -612,7 +479,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
             createContinuousDaoParam.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
             createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
-            createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
+            //createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
@@ -625,10 +492,10 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         {
             InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
             treeInfo.ancestor = existDaoId;
-            require(
-                InheritTreeStorage.layout().inheritTreeInfos[existDaoId].ancestor == bytes32(0),
-                "must inherit basic dao"
-            );
+            // require(
+            //     InheritTreeStorage.layout().inheritTreeInfos[existDaoId].ancestor == bytes32(0),
+            //     "must inherit basic dao"
+            // );
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
         }
 
@@ -637,6 +504,11 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
+
+        {
+            _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
+            //D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
+        }
         //daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
@@ -653,6 +525,9 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
 
         daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
+
+        if (!basicDaoStorage.basicDaoInfos[existDaoId].basicDaoExist) revert NotBasicDao();
+
         basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
         // dailyMintCap
         basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = continuousDaoParam.dailyMintCap;
@@ -696,7 +571,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
 
             address daoFeePool = createContinuousDaoParam.feePoolAddress;
 
-            daoInfo.daoFeePool = daoFeePool;
+            daoInfo.daoFeePool = daoFeePool; //all subdaos use the same redeem pool
 
             settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender);
 
@@ -714,8 +589,9 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
-            daoInfo.tokenMaxSupply =
-                (settingsStorage.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+            // subdao does not need initTokenSupplyRatio, but we reserve this variable
+            // daoInfo.tokenMaxSupply =
+            //     (settingsStorage.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
 
             if (createContinuousDaoParam.daoFloorPriceRank != 9999) {
                 // 9999 is specified for 0 floor price
@@ -733,5 +609,115 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
                 createContinuousDaoParam.royaltyFeeRatioInBps
             );
         }
+    }
+
+    function _createDaoAssetPool(bytes32 daoId, uint256 daoIndex) internal returns (address) {
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        address daoAssetPool = settingsStorage.feePoolFactory.createD4AFeePool(
+            string(abi.encodePacked("Dao Asset Pool for ProtoDao Project ", LibString.toString(daoIndex)))
+        ); //this feepool is dao asset pool for reward
+        basicDaoInfo.daoAssetPool = daoAssetPool;
+        return daoAssetPool;
+    }
+
+    function _createFundingPool(bytes32 daoId, uint256 daoIndex) internal returns (address) {
+        // SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        // BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        return address(0);
+    }
+
+    // ========================== optimized code =========================
+    function _config(address protocol, CreateProjectLocalVars memory vars, bool isBasicDao) internal {
+        emit CreateProjectParamEmittedForFunding(
+            vars.daoId,
+            vars.daoFeePool,
+            vars.token,
+            vars.nft,
+            vars.daoMetadataParam,
+            vars.whitelist,
+            vars.blacklist,
+            vars.daoMintCapParam,
+            vars.splitRatioParam,
+            vars.templateParam,
+            vars.basicDaoParam,
+            vars.actionType,
+            vars.allRatioForFundingParam
+        );
+
+        bytes32 daoId = vars.daoId;
+        ID4ASettingsReadable(protocol).permissionControl().addPermission(daoId, vars.whitelist, vars.blacklist);
+
+        SetMintCapAndPermissionParam memory permissionVars;
+        permissionVars.daoId = daoId;
+        permissionVars.daoMintCap = vars.daoMintCapParam.daoMintCap;
+        permissionVars.userMintCapParams = vars.daoMintCapParam.userMintCapParams;
+
+        // * sort
+        if (isBasicDao) {
+            NftMinterCapInfo[] memory nftMinterCapInfo;
+            nftMinterCapInfo = new NftMinterCapInfo[](1);
+            nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
+            permissionVars.nftMinterCapInfo = nftMinterCapInfo;
+        }
+
+        permissionVars.whitelist = vars.whitelist;
+        permissionVars.blacklist = vars.blacklist;
+        permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));
+        uint256 actionType = vars.actionType;
+        if ((actionType & 0x4) != 0) {
+            ID4AProtocolSetter(protocol).setMintCapAndPermission(
+                permissionVars.daoId,
+                permissionVars.daoMintCap,
+                permissionVars.userMintCapParams,
+                permissionVars.nftMinterCapInfo,
+                permissionVars.whitelist,
+                permissionVars.blacklist,
+                permissionVars.unblacklist
+            );
+        }
+
+        // to get d4aswapFactory, royaltySplitterFactory and royaltySplitterOwner
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+
+        if ((actionType & 0x8) != 0) {
+            settingsStorage.d4aswapFactory.createPair(vars.token, WETH);
+        }
+
+        SetRatioParam memory ratioVars;
+        ratioVars.daoId = daoId;
+        ratioVars.daoCreatorERC20Ratio = vars.splitRatioParam.daoCreatorERC20Ratio;
+        ratioVars.canvasCreatorERC20Ratio = vars.splitRatioParam.canvasCreatorERC20Ratio;
+        ratioVars.nftMinterERC20Ratio = vars.splitRatioParam.nftMinterERC20Ratio;
+        ratioVars.daoFeePoolETHRatio = vars.splitRatioParam.daoFeePoolETHRatio;
+        ratioVars.daoFeePoolETHRatioFlatPrice = vars.splitRatioParam.daoFeePoolETHRatioFlatPrice;
+        if ((actionType & 0x10) != 0) {
+            ID4AProtocolSetter(protocol).setRatio(
+                ratioVars.daoId,
+                ratioVars.daoCreatorERC20Ratio,
+                ratioVars.canvasCreatorERC20Ratio,
+                ratioVars.nftMinterERC20Ratio,
+                ratioVars.daoFeePoolETHRatio,
+                ratioVars.daoFeePoolETHRatioFlatPrice
+            );
+        }
+
+        IPDProtocolSetter(protocol).setRatioForFunding(daoId, vars.allRatioForFundingParam);
+
+        // setup template
+        ID4AProtocolSetter(protocol).setTemplate(daoId, vars.templateParam);
+
+        uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
+        uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();
+
+        address splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
+            ID4ASettingsReadable(protocol).protocolFeePool(),
+            protocolRoyaltyFeeRatioInBps,
+            vars.daoFeePool,
+            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
+        );
+        settingsStorage.royaltySplitters[daoId] = splitter;
+        OwnableUpgradeable(splitter).transferOwnership(settingsStorage.royaltySplitterOwner);
+        ID4AERC721(vars.nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);
     }
 }

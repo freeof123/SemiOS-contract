@@ -82,3 +82,13 @@ error NotBasicDaoFloorPrice();
 error NotBasicDaoOwner();
 
 error ZeroNftReserveNumber();
+
+error NotBasicDao();
+
+error InvalidChildrenDaoRatio();
+
+error InvalidMintFeeRatio();
+
+error InvalidERC20RewardRatio();
+
+error InvalidETHRewardRatio();

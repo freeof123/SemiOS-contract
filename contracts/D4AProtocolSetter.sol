@@ -261,6 +261,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         uint256 sum = daoCreatorERC20Ratio + canvasCreatorERC20Ratio + nftMinterERC20Ratio;
+
+        //store ratio respect to 3 roles, DaoCreator + CanvasCreator + NftMinter
         uint256 daoCreatorERC20RatioInBps = Math.fullMulDivUp(daoCreatorERC20Ratio, BASIS_POINT, sum);
         uint256 canvasCreatorERC20RatioInBps = Math.fullMulDivUp(canvasCreatorERC20Ratio, BASIS_POINT, sum);
         rewardInfo.daoCreatorERC20RatioInBps = daoCreatorERC20RatioInBps;

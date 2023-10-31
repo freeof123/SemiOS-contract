@@ -10,6 +10,9 @@ library BasicDaoStorage {
         uint256 reserveNftNumber;
         bool unifiedPriceModeOff;
         uint256 unifiedPrice;
+        //---------1.3 add
+        bool basicDaoExist;
+        address daoAssetPool;
     }
 
     struct Layout {
