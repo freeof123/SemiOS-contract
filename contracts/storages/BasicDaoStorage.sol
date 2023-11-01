@@ -13,6 +13,7 @@ library BasicDaoStorage {
         //---------1.3 add
         bool basicDaoExist;
         address daoAssetPool;
+        uint8 version;
     }
 
     struct Layout {

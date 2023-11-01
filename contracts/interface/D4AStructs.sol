@@ -154,6 +154,10 @@ struct AllRatioForFundingParam {
     uint256 assetPoolMintFeeRatio;
     uint256 redeemPoolMintFeeRatio;
     // also have l.protocolMintFeeRatioInBps
+    uint256 canvasCreatorMintFeeRatioFiatPrice;
+    uint256 assetPoolMintFeeRatioFiatPrice;
+    uint256 redeemPoolMintFeeRatioFiatPrice;
+    // also have l.protocolMintFeeRatioInBps
 
     //erc20 reward ratio
     uint256 minterERC20RewardRatio;

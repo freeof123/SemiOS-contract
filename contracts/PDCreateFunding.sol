@@ -8,6 +8,9 @@ import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+
+import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
+
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
@@ -67,6 +70,7 @@ struct CreateProjectLocalVars {
     uint256 actionType;
     bool needMintableWork;
     uint256 dailyMintCap;
+    uint8 version;
 }
 
 struct CreateContinuousDaoParam {
@@ -99,7 +103,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
      * @param whitelist the whitelist
      * @param blacklist the blacklist
      * @param daoMintCapParam the mint cap param for dao
-     * @param splitRatioParam the split ratio param
+     * splitRatioParam the split ratio param
      * @param templateParam the template param
      * @param basicDaoParam the param for basic dao
      * @param actionType the type of action
@@ -110,7 +114,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
-        DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         AllRatioForFundingParam calldata allRatioForFundingParam,
@@ -137,7 +141,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         vars.whitelist = whitelist;
         vars.blacklist = blacklist;
         vars.daoMintCapParam = daoMintCapParam;
-        vars.splitRatioParam = splitRatioParam;
+        //vars.splitRatioParam = splitRatioParam;
         vars.templateParam = templateParam;
         vars.basicDaoParam = basicDaoParam;
         vars.actionType = actionType;
@@ -147,6 +151,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
+        vars.version = IPDProtocolReadable(protocol).getDaoVersion(daoId);
 
         vars.dailyMintCap = ID4AProtocolReadable(protocol).getDaoDailyMintCap(daoId);
         bool _unifiedPriceModeOff = ID4AProtocolReadable(protocol).getDaoUnifiedPriceModeOff(daoId);
@@ -167,7 +172,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
      * @param whitelist the whitelist
      * @param blacklist the blacklist
      * @param daoMintCapParam the mint cap param for dao
-     * @param splitRatioParam the split ratio param
+     *  //* splitRatioParam the split ratio param
      * @param templateParam the template param
      * @param basicDaoParam the param for basic dao
      * @param continuousDaoParam the param for continuous dao
@@ -179,7 +184,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
-        DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         ContinuousDaoParam calldata continuousDaoParam,
@@ -202,7 +207,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         vars.whitelist = whitelist;
         vars.blacklist = blacklist;
         vars.daoMintCapParam = daoMintCapParam;
-        vars.splitRatioParam = splitRatioParam;
+        //vars.splitRatioParam = splitRatioParam;
         vars.templateParam = templateParam;
         vars.basicDaoParam = basicDaoParam;
         vars.actionType = actionType;
@@ -226,6 +231,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(existDaoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(existDaoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
+        vars.version = IPDProtocolReadable(protocol).getDaoVersion(daoId);
 
         emit CreateContinuousProjectParamEmittedForFunding(
             vars.existDaoId,
@@ -324,6 +330,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             basicDaoStorage.basicDaoInfos[daoId].basicDaoExist = true;
             basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
             basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
+            basicDaoStorage.basicDaoInfos[daoId].version = 13;
         }
     }
 
@@ -534,6 +541,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff = continuousDaoParam.unifiedPriceModeOff;
         basicDaoStorage.basicDaoInfos[daoId].reserveNftNumber = continuousDaoParam.reserveNftNumber;
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
+        basicDaoStorage.basicDaoInfos[daoId].version = 13;
     }
 
     function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam)
@@ -638,7 +646,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             vars.whitelist,
             vars.blacklist,
             vars.daoMintCapParam,
-            vars.splitRatioParam,
+            //vars.splitRatioParam,
             vars.templateParam,
             vars.basicDaoParam,
             vars.actionType,
@@ -691,16 +699,17 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         ratioVars.nftMinterERC20Ratio = vars.splitRatioParam.nftMinterERC20Ratio;
         ratioVars.daoFeePoolETHRatio = vars.splitRatioParam.daoFeePoolETHRatio;
         ratioVars.daoFeePoolETHRatioFlatPrice = vars.splitRatioParam.daoFeePoolETHRatioFlatPrice;
-        if ((actionType & 0x10) != 0) {
-            ID4AProtocolSetter(protocol).setRatio(
-                ratioVars.daoId,
-                ratioVars.daoCreatorERC20Ratio,
-                ratioVars.canvasCreatorERC20Ratio,
-                ratioVars.nftMinterERC20Ratio,
-                ratioVars.daoFeePoolETHRatio,
-                ratioVars.daoFeePoolETHRatioFlatPrice
-            );
-        }
+
+        // if ((actionType & 0x10) != 0) {
+        //     ID4AProtocolSetter(protocol).setRatio(
+        //         ratioVars.daoId,
+        //         ratioVars.daoCreatorERC20Ratio,
+        //         ratioVars.canvasCreatorERC20Ratio,
+        //         ratioVars.nftMinterERC20Ratio,
+        //         ratioVars.daoFeePoolETHRatio,
+        //         ratioVars.daoFeePoolETHRatioFlatPrice
+        //     );
+        // }
 
         IPDProtocolSetter(protocol).setRatioForFunding(daoId, vars.allRatioForFundingParam);
 

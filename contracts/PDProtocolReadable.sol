@@ -6,6 +6,7 @@ import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 
 import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
@@ -23,5 +24,10 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getDaoAncestor(bytes32 daoId) public view returns (bytes32) {
         return InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+    }
+
+    //1.3 add----------------------------------------------------------
+    function getDaoVersion(bytes32 daoId) public view returns (uint8) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].version;
     }
 }

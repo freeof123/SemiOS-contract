@@ -299,6 +299,14 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.redeemPoolMintFeeRatio = vars.redeemPoolMintFeeRatio;
 
         if (
+            vars.canvasCreatorMintFeeRatioFiatPrice + vars.assetPoolMintFeeRatioFiatPrice
+                + vars.redeemPoolMintFeeRatioFiatPrice + l.protocolMintFeeRatioInBps != BASIS_POINT
+        ) revert InvalidMintFeeRatio();
+        treeInfo.canvasCreatorMintFeeRatioFiatPrice = vars.canvasCreatorMintFeeRatioFiatPrice;
+        treeInfo.assetPoolMintFeeRatioFiatPrice = vars.assetPoolMintFeeRatioFiatPrice;
+        treeInfo.redeemPoolMintFeeRatioFiatPrice = vars.redeemPoolMintFeeRatioFiatPrice;
+
+        if (
             vars.minterERC20RewardRatio + vars.canvasCreatorERC20RewardRatio + vars.daoCreatorERC20RewardRatio
                 + l.protocolERC20RatioInBps != BASIS_POINT
         ) revert InvalidERC20RewardRatio();
@@ -318,7 +326,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
     }
 
-    function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) public {
+    function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         bytes32 basicDaoId = treeInfo.ancestor;
@@ -330,7 +338,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         address daoToken = daoInfo.token;
         address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;
-        D4AERC20(daoToken).mint(daoAssetPool, tokenMaxSupply);
+        D4AERC20(daoToken).mint(daoAssetPool, initialTokenSupply);
         if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();
     }
 }

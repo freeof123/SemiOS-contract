@@ -28,7 +28,7 @@ library DaoStorage {
         DaoMintInfo daoMintInfo;
         bytes32[] canvases;
         uint256 nftPriceFactor;
-        uint256 daoFeePoolETHRatioInBps;
+        uint256 daoFeePoolETHRatioInBps; //feepool equals redeem pool
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
         NftMinterCap nftMinterCap;
         NftMinterCapInfo[] nftMinterCapInfo;

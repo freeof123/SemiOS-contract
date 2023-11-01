@@ -612,30 +612,51 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             price = _getCanvasNextPrice(daoId, canvasId, flatPrice, daoInfo.startRound, currentRound, nftPriceFactor);
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
         }
-
         // split fee
+        _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice);
+
+        // mint
+        tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
+        {
+            CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
+            daoInfo.nftTotalSupply++;
+            canvasInfo.tokenIds.push(tokenId);
+            ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenId))] = canvasId;
+        }
+
+        emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price);
+    }
+
+    function _calculateAndSplitFeeAndUpdateReward(
+        bytes32 daoId,
+        bytes32 canvasId,
+        uint256 price,
+        uint256 flatPrice
+    )
+        internal
+    {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 daoFee;
-        bytes32 tempDaoId = daoId;
-        bytes32 tempCanvasId = canvasId;
+
         CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
         uint256 canvasRebateRatioInBps;
         {
             address protocolFeePool = l.protocolFeePool;
             address daoFeePool = daoInfo.daoFeePool;
-            address canvasOwner = l.ownerProxy.ownerOf(tempCanvasId);
+            address canvasOwner = l.ownerProxy.ownerOf(canvasId);
             uint256 daoShare = (
                 flatPrice == 0 // Todo:
-                    ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(tempDaoId)
-                    : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(tempDaoId)
+                    ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId)
+                    : ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId)
             ) * price;
 
             if (
                 (price - daoShare / BASIS_POINT - (price * l.protocolMintFeeRatioInBps) / BASIS_POINT) != 0
-                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(tempDaoId) != 0
+                    && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
             ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
             daoFee = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
         }
-
         _updateReward(
             daoId,
             canvasId,
@@ -644,15 +665,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasRebateRatioInBps,
             price == 0
         );
-        // mint
-        tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
-        {
-            daoInfo.nftTotalSupply++;
-            canvasInfo.tokenIds.push(tokenId);
-            ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(tempDaoId, tokenId))] = canvasId;
-        }
-
-        emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price);
     }
 
     function _updatePrice(
