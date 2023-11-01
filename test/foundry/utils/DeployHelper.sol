@@ -931,13 +931,14 @@ contract DeployHelper is Test {
                 canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
             }),
             daoMintCapParam,
-            DaoETHAndERC20SplitRatioParam({
-                daoCreatorERC20Ratio: 4800,
-                canvasCreatorERC20Ratio: 2500,
-                nftMinterERC20Ratio: 2500,
-                daoFeePoolETHRatio: 9750,
-                daoFeePoolETHRatioFlatPrice: 9750
-            }),
+            // * 1.3 remove
+            // DaoETHAndERC20SplitRatioParam({
+            //     daoCreatorERC20Ratio: 4800,
+            //     canvasCreatorERC20Ratio: 2500,
+            //     nftMinterERC20Ratio: 2500,
+            //     daoFeePoolETHRatio: 9750,
+            //     daoFeePoolETHRatioFlatPrice: 9750
+            // }),
             TemplateParam({
                 priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
                 priceFactor: 20_000,
@@ -952,13 +953,21 @@ contract DeployHelper is Test {
                 daoName: "test dao"
             }),
             AllRatioForFundingParam({
-                canvasCreatorMintFeeRatio: 1000,
+                // sum = 9750
+                canvasCreatorMintFeeRatio: 750,
                 assetPoolMintFeeRatio: 2000,
                 redeemPoolMintFeeRatio: 7000,
-                minterERC20RewardRatio: 1000,
+                // * 1.3 add
+                // sum = 9750
+                canvasCreatorMintFeeRatioFiatPrice: 750,
+                assetPoolMintFeeRatioFiatPrice: 2000,
+                redeemPoolMintFeeRatioFiatPrice: 7000,
+                // sum = 9800
+                minterERC20RewardRatio: 800,
                 canvasCreatorERC20RewardRatio: 2000,
                 daoCreatorERC20RewardRatio: 7000,
-                minterETHRewardRatio: 1000,
+                // sum = 9800
+                minterETHRewardRatio: 800,
                 canvasCreatorETHRewardRatio: 2000,
                 daoCreatorETHRewardRatio: 7000
             }),
@@ -1121,13 +1130,14 @@ contract DeployHelper is Test {
             minterAccounts: createDaoParam.minterAccounts,
             canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
         });
-        vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
-            daoCreatorERC20Ratio: 4800,
-            canvasCreatorERC20Ratio: 2500,
-            nftMinterERC20Ratio: 2500,
-            daoFeePoolETHRatio: 9750,
-            daoFeePoolETHRatioFlatPrice: 9750
-        });
+        // * 1.3 remove
+        // vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
+        //     daoCreatorERC20Ratio: 4800,
+        //     canvasCreatorERC20Ratio: 2500,
+        //     nftMinterERC20Ratio: 2500,
+        //     daoFeePoolETHRatio: 9750,
+        //     daoFeePoolETHRatioFlatPrice: 9750
+        // });
         vars.templateParam = TemplateParam({
             priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
             priceFactor: 20_000,
@@ -1153,13 +1163,21 @@ contract DeployHelper is Test {
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({
-            canvasCreatorMintFeeRatio: 1000,
+            // sum = 9750
+            canvasCreatorMintFeeRatio: 750,
             assetPoolMintFeeRatio: 2000,
             redeemPoolMintFeeRatio: 7000,
-            minterERC20RewardRatio: 1000,
+            // * 1.3 add
+            // sum = 9750
+            canvasCreatorMintFeeRatioFiatPrice: 750,
+            assetPoolMintFeeRatioFiatPrice: 2000,
+            redeemPoolMintFeeRatioFiatPrice: 7000,
+            // sum = 9800
+            minterERC20RewardRatio: 800,
             canvasCreatorERC20RewardRatio: 2000,
             daoCreatorERC20RewardRatio: 7000,
-            minterETHRewardRatio: 1000,
+            // sum = 9800
+            minterETHRewardRatio: 800,
             canvasCreatorETHRewardRatio: 2000,
             daoCreatorETHRewardRatio: 7000
         });
@@ -1170,7 +1188,8 @@ contract DeployHelper is Test {
             vars.whitelist,
             vars.blacklist,
             daoMintCapParam,
-            vars.daoETHAndERC20SplitRatioParam,
+            // * 1.3 remove
+            // vars.daoETHAndERC20SplitRatioParam,
             vars.templateParam,
             vars.basicDaoParam,
             vars.continuousDaoParam,

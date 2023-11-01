@@ -219,6 +219,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoId.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAncestor.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoVersion.selector;
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly
