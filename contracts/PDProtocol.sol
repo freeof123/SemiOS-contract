@@ -31,6 +31,7 @@ import { IPriceTemplate } from "./interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 import { IPermissionControl } from "./interface/IPermissionControl.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
+import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
 import { IPDProtocol } from "./interface/IPDProtocol.sol";
 import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 
@@ -110,8 +111,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256)
     {
+        _usingTopupAccount();
         return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
+
+    function _usingTopupAccount() internal returns (uint256 topupAmount) { }
 
     function mintNFTAndTransfer(
         bytes32 daoId,
@@ -627,6 +631,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price);
     }
 
+    struct SplitFeeLocalVars {
+        uint256 price;
+        address protocolFeePool;
+        address daoRedeemPool;
+        address daoAssetPool;
+        address canvasOwner;
+        uint256 redeemPoolFee;
+        uint256 assetPoolFee;
+    }
+
     function _calculateAndSplitFeeAndUpdateReward(
         bytes32 daoId,
         bytes32 canvasId,
@@ -641,7 +655,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
         uint256 canvasRebateRatioInBps;
-        {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
             address protocolFeePool = l.protocolFeePool;
             address daoFeePool = daoInfo.daoFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(canvasId);
@@ -656,6 +670,24 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
             ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
             daoFee = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
+        } else {
+            SplitFeeLocalVars memory vars;
+            vars.price = price;
+            vars.protocolFeePool = l.protocolFeePool;
+            vars.daoRedeemPool = daoInfo.daoFeePool;
+            vars.daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
+            vars.canvasOwner = l.ownerProxy.ownerOf(canvasId);
+            vars.redeemPoolFee = (
+                flatPrice == 0
+                    ? IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatio(daoId)
+                    : IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatioFiatPrice(daoId)
+            ) * price;
+            vars.assetPoolFee = (
+                flatPrice == 0
+                    ? IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatio(daoId)
+                    : IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatioFiatPrice(daoId)
+            ) * price;
+            daoFee = _splitFeeFunding(vars);
         }
         _updateReward(
             daoId,
@@ -803,6 +835,22 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
         if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
         if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
+    }
+
+    function _splitFeeFunding(SplitFeeLocalVars memory vars) internal returns (uint256) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        uint256 topupAmount = _usingTopupAccount();
+        uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
+        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
+        if (msg.value + topupAmount < vars.price) revert NotEnoughEther();
+        uint256 dust = msg.value + topupAmount - vars.price;
+
+        if (protocolFee > 0) SafeTransferLib.safeTransferETH(vars.protocolFeePool, protocolFee);
+        if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoRedeemPool, vars.redeemPoolFee);
+        if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
+        if (canvasCreatorFee > 0) SafeTransferLib.safeTransferETH(vars.canvasOwner, canvasCreatorFee);
+        if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
+        return vars.assetPoolFee;
     }
 
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {

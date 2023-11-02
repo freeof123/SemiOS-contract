@@ -30,4 +30,52 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoVersion(bytes32 daoId) public view returns (uint8) {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].version;
     }
+
+    function getCanvasCreatorMintFeeRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].canvasCreatorMintFeeRatio;
+    }
+
+    function getAssetPoolMintFeeRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].assetPoolMintFeeRatio;
+    }
+
+    function getRedeemPoolMintFeeRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].redeemPoolMintFeeRatio;
+    }
+
+    function getCanvasCreatorMintFeeRatioFiatPrice(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].canvasCreatorMintFeeRatioFiatPrice;
+    }
+
+    function getAssetPoolMintFeeRatioFiatPrice(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].assetPoolMintFeeRatioFiatPrice;
+    }
+
+    function getRedeemPoolMintFeeRatioFiatPrice(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].redeemPoolMintFeeRatioFiatPrice;
+    }
+
+    function getMinterERC20RewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].minterERC20RewardRatio;
+    }
+
+    function getCanvasCreatorERC20RewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].canvasCreatorERC20RewardRatio;
+    }
+
+    function getDaoCreatorERC20RewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].daoCreatorERC20RewardRatio;
+    }
+
+    function getMinterETHRewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].minterETHRewardRatio;
+    }
+
+    function getCanvasCreatorETHRewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].canvasCreatorETHRewardRatio;
+    }
+
+    function getDaoCreatorETHRewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].daoCreatorETHRewardRatio;
+    }
 }

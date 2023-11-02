@@ -12,6 +12,19 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoId(uint8 daoTag, uint256 daoIndex) external view returns (bytes32);
 
     function getDaoAncestor(bytes32 daoId) external view returns (bytes32);
+    //1.3 add ----------------------------------
 
     function getDaoVersion(bytes32 daoId) external view returns (uint8);
+    function getCanvasCreatorMintFeeRatio(bytes32 daoId) external returns (uint256);
+    function getAssetPoolMintFeeRatio(bytes32 daoId) external returns (uint256);
+    function getRedeemPoolMintFeeRatio(bytes32 daoId) external returns (uint256);
+    function getCanvasCreatorMintFeeRatioFiatPrice(bytes32 daoId) external returns (uint256);
+    function getAssetPoolMintFeeRatioFiatPrice(bytes32 daoId) external view returns (uint256);
+    function getRedeemPoolMintFeeRatioFiatPrice(bytes32 daoId) external view returns (uint256);
+    function getMinterERC20RewardRatio(bytes32 daoId) external view returns (uint256);
+    function getCanvasCreatorERC20RewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoCreatorERC20RewardRatio(bytes32 daoId) external view returns (uint256);
+    function getMinterETHRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getCanvasCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
 }
