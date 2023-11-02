@@ -50,6 +50,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         daoMintInfo.daoMintCap = daoMintCap;
+        address daoNft = DaoStorage.layout().daoInfos[daoId].nft;
 
         uint256 length = userMintCapParams.length;
         for (uint256 i; i < length;) {
@@ -58,18 +59,26 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
                 ++i;
             }
         }
+        delete DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo;
 
-        length = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length;
-        for (uint256 i; i < length;) {
-            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.pop();
-            unchecked {
-                ++i;
-            }
-        }
+        require(DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length == 0, "delete failed");
+        // length = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length;
+        // for (uint256 i; i < length;) {
+        //     DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.pop();
+        //     unchecked {
+        //         ++i;
+        //     }
+        // }
 
         length = nftMinterCapInfo.length;
         for (uint256 i; i < length;) {
-            DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(nftMinterCapInfo[i]);
+            if (nftMinterCapInfo[i].nftAddress == address(0)) {
+                DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(
+                    NftMinterCapInfo(daoNft, nftMinterCapInfo[i].nftMintCap)
+                );
+            } else {
+                DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(nftMinterCapInfo[i]);
+            }
             unchecked {
                 ++i;
             }

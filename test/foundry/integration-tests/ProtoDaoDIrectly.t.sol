@@ -11,6 +11,8 @@ import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 
+import { console2 } from "forge-std/Test.sol";
+
 contract ProtoDaoTestDirectly is DeployHelper {
     function setUp() public {
         super.setUpEnv();
@@ -18,7 +20,29 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
     function test_PDCreateFunding_createBasicDAO() public {
         DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 daoId = super._createBasicDaoDirectly(param);
+
+        console2.log("====================before mint NFT====================");
+        console2.log("protocol fee pool ETH balance: ", protocol.protocolFeePool().balance);
+
+        // TODO: mint NFT then check balance of 4 pools
+        super._mintNft(
+            daoId,
+            param.canvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            daoCreator.addr
+        );
+
+        console2.log("====================After mint NFT====================");
+        console2.log("protocol fee pool ETH balance: ", protocol.protocolFeePool().balance);
+
+        // address protocolFeePool = protocol.protocolFeePool();
+        // address daoRedeemPool = protocol.getDaoFeePool(daoId);
     }
 
     function test_PDCreateFunding_createContinuousDAO() public {

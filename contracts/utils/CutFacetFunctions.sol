@@ -220,6 +220,19 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoId.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAncestor.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoVersion.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorMintFeeRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getAssetPoolMintFeeRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getRedeemPoolMintFeeRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorMintFeeRatioFiatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getAssetPoolMintFeeRatioFiatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getRedeemPoolMintFeeRatioFiatPrice.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getMinterERC20RewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorERC20RewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorERC20RewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getMinterETHRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorETHRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorETHRewardRatio.selector;
+
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
     /// @solidity memory-safe-assembly

@@ -63,6 +63,7 @@ struct CreateProjectLocalVars {
     Whitelist whitelist;
     Blacklist blacklist;
     DaoMintCapParam daoMintCapParam;
+    NftMinterCapInfo[] nftMinterCapInfo;
     DaoETHAndERC20SplitRatioParam splitRatioParam;
     TemplateParam templateParam;
     BasicDaoParam basicDaoParam;
@@ -162,7 +163,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             daoId, daoId, vars.dailyMintCap, true, _unifiedPriceModeOff, _unifiedPrice, _reserveNftNumber
         );
 
-        _config(protocol, vars, true);
+        _config(protocol, vars);
     }
 
     /**
@@ -178,12 +179,13 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
      * @param continuousDaoParam the param for continuous dao
      * @param actionType the type of action
      */
-    function createContinuousDaoForFunding(
+    function createDaoForFunding(
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,
         Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
@@ -198,15 +200,14 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         returns (bytes32 daoId)
     {
         address protocol = address(this);
-        // if (ID4ASettingsReadable(protocol).ownerProxy().ownerOf(existDaoId) != msg.sender) {
-        //     revert NotBasicDaoOwner();
-        // }
+
         CreateProjectLocalVars memory vars;
         vars.existDaoId = existDaoId;
         vars.daoMetadataParam = daoMetadataParam;
         vars.whitelist = whitelist;
         vars.blacklist = blacklist;
         vars.daoMintCapParam = daoMintCapParam;
+        vars.nftMinterCapInfo = nftMinterCapInfo;
         //vars.splitRatioParam = splitRatioParam;
         vars.templateParam = templateParam;
         vars.basicDaoParam = basicDaoParam;
@@ -224,14 +225,16 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
-        daoId = _createContinuousDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam);
+
+        daoId = continuousDaoParam.isBasicDao
+            ? _createBasicDao(daoMetadataParam, basicDaoParam)
+            : _createContinuousDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam);
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
-        vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(existDaoId);
-        vars.token = ID4AProtocolReadable(protocol).getDaoToken(existDaoId);
+        vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
+        vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
-        vars.version = IPDProtocolReadable(protocol).getDaoVersion(daoId);
 
         emit CreateContinuousProjectParamEmittedForFunding(
             vars.existDaoId,
@@ -243,7 +246,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.reserveNftNumber
         );
 
-        _config(protocol, vars, false);
+        _config(protocol, vars);
 
         IPDProtocolSetter(protocol).setChildren(
             daoId,
@@ -308,7 +311,6 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
                     _createFundingPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
             }
 
-            daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
             daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
             protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
@@ -472,8 +474,8 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
         address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
 
-        _checkPauseStatus();
-        _checkUriNotExist(daoMetadataParam.projectUri);
+        super._checkPauseStatus();
+        super._checkUriNotExist(daoMetadataParam.projectUri);
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
 
@@ -498,12 +500,13 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
 
         {
             InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
-            treeInfo.ancestor = existDaoId;
-            // require(
-            //     InheritTreeStorage.layout().inheritTreeInfos[existDaoId].ancestor == bytes32(0),
-            //     "must inherit basic dao"
-            // );
-            InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+            if (continuousDaoParam.isBasicDao) {
+                treeInfo.isAncestorDao = true;
+                treeInfo.familyDaos.push(daoId);
+            } else {
+                treeInfo.ancestor = existDaoId;
+                InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+            }
         }
 
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
@@ -516,7 +519,6 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
             //D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
         }
-        //daoStorage.daoInfos[daoId].daoMintInfo.NFTHolderMintCap = 5;
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
         protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
@@ -636,7 +638,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
     }
 
     // ========================== optimized code =========================
-    function _config(address protocol, CreateProjectLocalVars memory vars, bool isBasicDao) internal {
+    function _config(address protocol, CreateProjectLocalVars memory vars) internal {
         emit CreateProjectParamEmittedForFunding(
             vars.daoId,
             vars.daoFeePool,
@@ -646,7 +648,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             vars.whitelist,
             vars.blacklist,
             vars.daoMintCapParam,
-            //vars.splitRatioParam,
+            vars.nftMinterCapInfo,
             vars.templateParam,
             vars.basicDaoParam,
             vars.actionType,
@@ -660,14 +662,15 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         permissionVars.daoId = daoId;
         permissionVars.daoMintCap = vars.daoMintCapParam.daoMintCap;
         permissionVars.userMintCapParams = vars.daoMintCapParam.userMintCapParams;
+        permissionVars.nftMinterCapInfo = vars.nftMinterCapInfo; //not support yet
 
         // * sort
-        if (isBasicDao) {
-            NftMinterCapInfo[] memory nftMinterCapInfo;
-            nftMinterCapInfo = new NftMinterCapInfo[](1);
-            nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
-            permissionVars.nftMinterCapInfo = nftMinterCapInfo;
-        }
+        // if (isBasicDao) {
+        //     NftMinterCapInfo[] memory nftMinterCapInfo;
+        //     nftMinterCapInfo = new NftMinterCapInfo[](1);
+        //     nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
+        //     permissionVars.nftMinterCapInfo = nftMinterCapInfo;
+        // }
 
         permissionVars.whitelist = vars.whitelist;
         permissionVars.blacklist = vars.blacklist;

@@ -107,9 +107,11 @@ struct ContinuousDaoParam {
     uint256 unifiedPrice;
     bool needMintableWork;
     uint256 dailyMintCap;
+    //1.3add-------------------
     bytes32[] childrenDaoId;
     uint256[] childrenDaoRatios;
     uint256 redeemPoolRatio;
+    bool isBasicDao;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 

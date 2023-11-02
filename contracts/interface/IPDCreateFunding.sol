@@ -8,6 +8,7 @@ import {
     Whitelist,
     Blacklist,
     DaoMintCapParam,
+    NftMinterCapInfo,
     DaoETHAndERC20SplitRatioParam,
     TemplateParam,
     AllRatioForFundingParam
@@ -24,7 +25,7 @@ interface IPDCreateFunding {
         Whitelist whitelist,
         Blacklist blacklist,
         DaoMintCapParam daoMintCapParam,
-        //DaoETHAndERC20SplitRatioParam splitRatioParam,
+        NftMinterCapInfo[] nftMinterCapInfo,
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
         uint256 actionType,
@@ -53,7 +54,6 @@ interface IPDCreateFunding {
         Whitelist memory whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
-        //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         AllRatioForFundingParam calldata allRatioForFundingParam,
@@ -63,13 +63,30 @@ interface IPDCreateFunding {
         payable
         returns (bytes32 daoId);
 
-    function createContinuousDaoForFunding(
+    // function createContinuousDaoForFunding(
+    //     bytes32 existDaoId,
+    //     DaoMetadataParam calldata daoMetadataParam,
+    //     Whitelist memory whitelist,
+    //     Blacklist calldata blacklist,
+    //     DaoMintCapParam calldata daoMintCapParam,
+    //     //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+    //     TemplateParam calldata templateParam,
+    //     BasicDaoParam calldata basicDaoParam,
+    //     ContinuousDaoParam calldata continuousDaoParam,
+    //     AllRatioForFundingParam calldata allRatioForFundingParam,
+    //     uint256 actionType
+    // )
+    //     external
+    //     payable
+    //     returns (bytes32 daoId);
+
+    function createDaoForFunding(
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,
-        Whitelist memory whitelist,
+        Whitelist calldata whitelist,
         Blacklist calldata blacklist,
         DaoMintCapParam calldata daoMintCapParam,
-        //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
+        NftMinterCapInfo[] calldata nftMinterCapInfo,
         TemplateParam calldata templateParam,
         BasicDaoParam calldata basicDaoParam,
         ContinuousDaoParam calldata continuousDaoParam,

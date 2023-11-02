@@ -953,15 +953,18 @@ contract DeployHelper is Test {
                 daoName: "test dao"
             }),
             AllRatioForFundingParam({
+                // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatio: 750,
                 assetPoolMintFeeRatio: 2000,
                 redeemPoolMintFeeRatio: 7000,
                 // * 1.3 add
+                // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatioFiatPrice: 750,
                 assetPoolMintFeeRatioFiatPrice: 2000,
                 redeemPoolMintFeeRatioFiatPrice: 7000,
+                // l.protocolERC20RatioInBps = 200
                 // sum = 9800
                 minterERC20RewardRatio: 800,
                 canvasCreatorERC20RewardRatio: 2000,
