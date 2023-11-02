@@ -307,7 +307,7 @@ function getPDCreateFundingSelectors() pure returns (bytes4[] memory) {
     // register D4AGrant
     bytes4 interfaceId;
     interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createBasicDaoForFunding.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createContinuousDaoForFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createDaoForFunding.selector;
 
     assert(interfaceId == type(IPDCreateFunding).interfaceId);
 

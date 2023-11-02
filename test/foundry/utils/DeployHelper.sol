@@ -1061,7 +1061,8 @@ contract DeployHelper is Test {
             dailyMintCap: 100,
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
-            redeemPoolRatio: createDaoParam.redeemPoolRatio
+            redeemPoolRatio: createDaoParam.redeemPoolRatio,
+            isBasicDao: false
         });
 
         daoId = daoProxy.createContinuousDao(
@@ -1141,6 +1142,7 @@ contract DeployHelper is Test {
         //     daoFeePoolETHRatio: 9750,
         //     daoFeePoolETHRatioFlatPrice: 9750
         // });
+
         vars.templateParam = TemplateParam({
             priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
             priceFactor: 20_000,
@@ -1162,7 +1164,8 @@ contract DeployHelper is Test {
             dailyMintCap: 100,
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
-            redeemPoolRatio: createDaoParam.redeemPoolRatio
+            redeemPoolRatio: createDaoParam.redeemPoolRatio,
+            isBasicDao: false
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({
@@ -1185,7 +1188,7 @@ contract DeployHelper is Test {
             daoCreatorETHRewardRatio: 7000
         });
 
-        daoId = protocol.createContinuousDaoForFunding(
+        daoId = protocol.createDaoForFunding(
             vars.existDaoId,
             vars.daoMetadataParam,
             vars.whitelist,

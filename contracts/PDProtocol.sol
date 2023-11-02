@@ -681,12 +681,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 flatPrice == 0
                     ? IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatio(daoId)
                     : IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatioFiatPrice(daoId)
-            ) * price;
+            ) * price / BASIS_POINT;
             vars.assetPoolFee = (
                 flatPrice == 0
                     ? IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatio(daoId)
                     : IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatioFiatPrice(daoId)
-            ) * price;
+            ) * price / BASIS_POINT;
             daoFee = _splitFeeFunding(vars);
         }
         _updateReward(

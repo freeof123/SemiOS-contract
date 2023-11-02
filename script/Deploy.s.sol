@@ -179,113 +179,18 @@ contract Deploy is Script, Test, D4AAddress {
         return res;
     }
 
-    function _createContinuousDao(
-        CreateDaoParam memory createDaoParam,
-        bytes32 existDaoId,
-        bool needMintableWork,
-        bool unifiedPriceModeOff
-    )
-        internal
-        returns (bytes32 daoId)
-    {
-        DaoMintCapParam memory daoMintCapParam;
-        {
-            uint256 length = createDaoParam.minters.length;
-            daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
-            for (uint256 i; i < length;) {
-                daoMintCapParam.userMintCapParams[i].minter = createDaoParam.minters[i];
-                daoMintCapParam.userMintCapParams[i].mintCap = uint32(createDaoParam.userMintCaps[i]);
-                unchecked {
-                    ++i;
-                }
-            }
-            daoMintCapParam.userMintCapParams[length].minter = address(this);
-            daoMintCapParam.userMintCapParams[length].mintCap = 5;
-            daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
-        }
-
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
-
-        CreateContinuousDaoParam memory vars;
-        vars.existDaoId = existDaoId;
-        vars.daoMetadataParam = DaoMetadataParam({
-            startDrb: d4aDrb.currentRound(),
-            mintableRounds: 60,
-            floorPriceRank: 0,
-            maxNftRank: 2,
-            royaltyFee: 1250,
-            projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri1" : createDaoParam.daoUri,
-            projectIndex: 0
-        });
-        vars.whitelist = Whitelist({
-            minterMerkleRoot: createDaoParam.minterMerkleRoot,
-            minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
-            canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
-            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
-        });
-        vars.blacklist = Blacklist({
-            minterAccounts: createDaoParam.minterAccounts,
-            canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
-        });
-        vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
-            daoCreatorERC20Ratio: 4800,
-            canvasCreatorERC20Ratio: 2500,
-            nftMinterERC20Ratio: 2500,
-            daoFeePoolETHRatio: 9750,
-            daoFeePoolETHRatioFlatPrice: 9750
-        });
-        vars.templateParam = TemplateParam({
-            priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
-            priceFactor: 20_000,
-            rewardTemplateType: RewardTemplateType.LINEAR_REWARD_ISSUANCE,
-            rewardDecayFactor: 0,
-            isProgressiveJackpot: true
-        });
-        vars.basicDaoParam = BasicDaoParam({
-            initTokenSupplyRatio: 1000,
-            canvasId: createDaoParam.canvasId,
-            canvasUri: "test dao creator canvas uri",
-            daoName: "test dao"
-        });
-        vars.continuousDaoParam = ContinuousDaoParam({
-            reserveNftNumber: 1000,
-            unifiedPriceModeOff: unifiedPriceModeOff,
-            unifiedPrice: 0.01 ether,
-            needMintableWork: needMintableWork,
-            dailyMintCap: 100,
-            childrenDaoId: createDaoParam.childrenDaoId,
-            childrenDaoRatios: createDaoParam.childrenDaoRatios,
-            redeemPoolRatio: createDaoParam.redeemPoolRatio
-        });
-
-        daoId = pdCreateProjectProxy_proxy.createContinuousDao(
-            vars.existDaoId,
-            vars.daoMetadataParam,
-            vars.whitelist,
-            vars.blacklist,
-            daoMintCapParam,
-            vars.daoETHAndERC20SplitRatioParam,
-            vars.templateParam,
-            vars.basicDaoParam,
-            vars.continuousDaoParam,
-            20
-        );
-    }
-
-    function _eventEmiter() internal {
-        CreateDaoParam memory createDaoParam;
-        bytes32 canvasId = keccak256(abi.encode(address(this), block.timestamp));
-        createDaoParam.canvasId = canvasId;
-        //bytes32 daoId = _createBasicDao(createDaoParam);
-        bytes32 continuousDaoId = _createContinuousDao(
-            createDaoParam, 0x6d6e29b989aebea8e1ee5dc00f93150c9baad666f2b199c2fbc083c6047f9853, true, false
-        );
-        console2.log("subdao:");
-        console2.logBytes32(continuousDaoId);
-        //bytes32 subdao = 0xeee88695213bbf892778cfc35e64f30a8988ca4580d71ddaf4b4e12fea19ad60;
-    }
+    // function _eventEmiter() internal {
+    //     CreateDaoParam memory createDaoParam;
+    //     bytes32 canvasId = keccak256(abi.encode(address(this), block.timestamp));
+    //     createDaoParam.canvasId = canvasId;
+    //     //bytes32 daoId = _createBasicDao(createDaoParam);
+    //     bytes32 continuousDaoId = _createContinuousDao(
+    //         createDaoParam, 0x6d6e29b989aebea8e1ee5dc00f93150c9baad666f2b199c2fbc083c6047f9853, true, false
+    //     );
+    //     console2.log("subdao:");
+    //     console2.logBytes32(continuousDaoId);
+    //     //bytes32 subdao = 0xeee88695213bbf892778cfc35e64f30a8988ca4580d71ddaf4b4e12fea19ad60;
+    // }
 
     function _deployDrb() internal {
         console2.log("\n================================================================================");
