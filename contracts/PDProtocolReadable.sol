@@ -78,4 +78,8 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoCreatorETHRewardRatio(bytes32 daoId) public view returns (uint256) {
         return InheritTreeStorage.layout().inheritTreeInfos[daoId].daoCreatorETHRewardRatio;
     }
+
+    function getDaoAssetPool(bytes32 daoId) public view returns (address) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
+    }
 }
