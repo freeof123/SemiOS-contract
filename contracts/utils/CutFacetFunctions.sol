@@ -232,6 +232,8 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getMinterETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorETHRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAssetPool.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getIsAncestorDao.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 

@@ -21,37 +21,132 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createBasicDAO() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 daoId = super._createBasicDaoDirectly(param);
+        bytes32 existDaoId = bytes32(0);
+        bool isBasicDao = true;
+        bool uniPriceModeOff = true;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
 
-        console2.log("====================before mint NFT====================");
-        console2.log("protocol fee pool ETH balance: ", protocol.protocolFeePool().balance);
+        uint256 preBalance = daoCreator.addr.balance;
 
-        // TODO: mint NFT then check balance of 4 pools
-        super._mintNft(
+        uint256 flatPrice = 0.01 ether;
+
+        super._mintNftDaoFunding(
             daoId,
             param.canvasId,
             string.concat(
                 tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
             ),
-            0.01 ether,
+            flatPrice,
             daoCreator.key,
             daoCreator.addr
         );
 
-        console2.log("====================After mint NFT====================");
-        console2.log("protocol fee pool ETH balance: ", protocol.protocolFeePool().balance);
+        uint256 balanceDiff = preBalance - daoCreator.addr.balance;
 
-        // address protocolFeePool = protocol.protocolFeePool();
-        // address daoRedeemPool = protocol.getDaoFeePool(daoId);
+        // l.protocolMintFeeRatioInBps = 250
+        assertEq(protocol.protocolFeePool().balance, flatPrice * 250 / 10_000);
+
+        // canvasCreatorMintFeeRatioFiatPrice: 250
+        assertEq(balanceDiff, flatPrice * (10_000 - 250) / 10_000);
+
+        // assetPoolMintFeeRatioFiatPrice: 3500
+        assertEq(protocol.getDaoAssetPool(daoId).balance, flatPrice * 3500 / 10_000);
+
+        // redeemPoolMintFeeRatioFiatPrice: 6000
+        assertEq(protocol.getDaoFeePool(daoId).balance, flatPrice * 6000 / 10_000);
     }
 
-    function test_PDCreateFunding_createContinuousDAO() public {
+    function test_PDCreateFunding_createBasicDAO_OpenUnifiedPriceWithETH() public {
         DeployHelper.CreateDaoParam memory param;
-        bytes32 daoId = super._createBasicDaoDirectly(param);
-        param.daoUri = "continuous dao uri";
-        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        super._createContinuousDaoDirectly(param, daoId, false, true, 0);
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 existDaoId = bytes32(0);
+        bool isBasicDao = true;
+        bool uniPriceModeOff = false;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
+
+        uint256 preBalance = daoCreator.addr.balance;
+
+        uint256 flatPrice = 0.01 ether;
+
+        super._mintNftDaoFunding(
+            daoId,
+            param.canvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            flatPrice,
+            daoCreator.key,
+            daoCreator.addr
+        );
+
+        uint256 balanceDiff = preBalance - daoCreator.addr.balance;
+
+        // l.protocolMintFeeRatioInBps = 250
+        assertEq(protocol.protocolFeePool().balance, flatPrice * 250 / 10_000);
+
+        // canvasCreatorMintFeeRatioFiatPrice: 250
+        assertEq(balanceDiff, flatPrice * (10_000 - 250) / 10_000);
+
+        // assetPoolMintFeeRatioFiatPrice: 3500
+        assertEq(protocol.getDaoAssetPool(daoId).balance, flatPrice * 3500 / 10_000);
+
+        // redeemPoolMintFeeRatioFiatPrice: 6000
+        assertEq(protocol.getDaoFeePool(daoId).balance, flatPrice * 6000 / 10_000);
     }
+
+    function test_PDCreateFunding_createBasicDAO_OpenUnifiedModeWithZeroETH() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 existDaoId = bytes32(0);
+        bool isBasicDao = true;
+        bool uniPriceModeOff = true;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
+
+        uint256 preBalance = daoCreator.addr.balance;
+
+        super._mintNftDaoFunding(
+            daoId,
+            param.canvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0,
+            daoCreator.key,
+            daoCreator.addr
+        );
+
+        uint256 balanceDiff = preBalance - daoCreator.addr.balance;
+
+        // l.protocolMintFeeRatioInBps = 250
+        assertEq(protocol.protocolFeePool().balance, 0.01 ether * 250 / 10_000);
+
+        // canvasCreatorMintFeeRatio: 750
+        assertEq(balanceDiff, 0.01 ether * (10_000 - 750) / 10_000);
+
+        // assetPoolMintFeeRatio: 2000
+        assertEq(protocol.getDaoAssetPool(daoId).balance, 0.01 ether * 2000 / 10_000);
+
+        // redeemPoolMintFeeRatio: 7000
+        assertEq(protocol.getDaoFeePool(daoId).balance, 0.01 ether * 7000 / 10_000);
+    }
+
+    // ==============================================================================
+
+    // function test_PDCreateFunding_createContinuousDAO() public {
+    //     DeployHelper.CreateDaoParam memory param;
+    //     param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+    //     bytes32 existDaoId = bytes32(0);
+    //     bool isBasicDao = true;
+    //     bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, true, 0, isBasicDao);
+
+    //     param.daoUri = "continuous dao uri";
+    //     param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+    //     isBasicDao = false;
+
+    //     bytes32 subDaoId = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao);
+    // }
+
+    // ==============================================================================
 
     // function test_DaoCreatorMintDefaultGeneratedWorkDirectly() public {
     //     DeployHelper.CreateDaoParam memory param;

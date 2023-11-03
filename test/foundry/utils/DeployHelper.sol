@@ -1083,12 +1083,14 @@ contract DeployHelper is Test {
         vm.stopPrank();
     }
 
-    function _createContinuousDaoDirectly(
+    // ! here
+    function _createDaoForFunding(
         CreateDaoParam memory createDaoParam,
         bytes32 existDaoId,
         bool needMintableWork,
         bool uniPriceModeOff,
-        uint256 reserveNftNumber
+        uint256 reserveNftNumber,
+        bool isBaiscDao
     )
         internal
         returns (bytes32 daoId)
@@ -1136,16 +1138,7 @@ contract DeployHelper is Test {
             minterAccounts: createDaoParam.minterAccounts,
             canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
         });
-        // * 1.3 remove
-        // vars.daoETHAndERC20SplitRatioParam = DaoETHAndERC20SplitRatioParam({
-        //     daoCreatorERC20Ratio: 4800,
-        //     canvasCreatorERC20Ratio: 2500,
-        //     nftMinterERC20Ratio: 2500,
-        //     daoFeePoolETHRatio: 9750,
-        //     daoFeePoolETHRatioFlatPrice: 9750
-        // });
         vars.nftMinterCapInfo = new NftMinterCapInfo[](1);
-
         vars.nftMinterCapInfo[0] = NftMinterCapInfo(address(0), 5);
         vars.templateParam = TemplateParam({
             priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
@@ -1169,19 +1162,22 @@ contract DeployHelper is Test {
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
-            isAncestorDao: false
+            isAncestorDao: isBaiscDao ? true : false
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({
+            // l.protocolMintFeeRatioInBps = 250
             // sum = 9750
             canvasCreatorMintFeeRatio: 750,
             assetPoolMintFeeRatio: 2000,
             redeemPoolMintFeeRatio: 7000,
             // * 1.3 add
+            // l.protocolMintFeeRatioInBps = 250
             // sum = 9750
-            canvasCreatorMintFeeRatioFiatPrice: 750,
-            assetPoolMintFeeRatioFiatPrice: 2000,
-            redeemPoolMintFeeRatioFiatPrice: 7000,
+            canvasCreatorMintFeeRatioFiatPrice: 250,
+            assetPoolMintFeeRatioFiatPrice: 3500,
+            redeemPoolMintFeeRatioFiatPrice: 6000,
+            // l.protocolERC20RatioInBps = 200
             // sum = 9800
             minterERC20RewardRatio: 800,
             canvasCreatorERC20RewardRatio: 2000,
@@ -1238,6 +1234,38 @@ contract DeployHelper is Test {
 
         vm.stopPrank();
         deal(hoaxer, bal);
+    }
+
+    // * 1.3 add
+    function _mintNftDaoFunding(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string memory tokenUri,
+        uint256 flatPrice,
+        uint256 canvasCreatorKey,
+        address hoaxer
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        uint256 bal = hoaxer.balance;
+        startHoax(hoaxer);
+
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        if (
+            flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
+                && !protocol.getDaoUnifiedPriceModeOff(daoId)
+        ) {
+            tokenId = protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, abi.encodePacked(r, s, v));
+        } else {
+            tokenId = protocol.mintNFT{ value: flatPrice == 0 ? protocol.getCanvasNextPrice(canvasId) : flatPrice }(
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            );
+        }
+
+        vm.stopPrank();
+        // deal(hoaxer, bal);
     }
 
     struct MintNftWithProofLocalVars {
