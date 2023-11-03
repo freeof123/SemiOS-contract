@@ -82,4 +82,8 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoAssetPool(bytes32 daoId) public view returns (address) {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
     }
+
+    function getIsAncestorDao(bytes32 daoId) public view returns (bool) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao;
+    }
 }

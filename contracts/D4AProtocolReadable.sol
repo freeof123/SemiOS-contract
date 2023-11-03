@@ -93,6 +93,7 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
     }
 
     function getDaoFeePool(bytes32 daoId) external view returns (address daoFeePool) {
+        //daofeepool = redeem pool;
         return DaoStorage.layout().daoInfos[daoId].daoFeePool;
     }
 

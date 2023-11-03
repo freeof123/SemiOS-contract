@@ -27,4 +27,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getMinterETHRewardRatio(bytes32 daoId) external view returns (uint256);
     function getCanvasCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
     function getDaoCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoAssetPool(bytes32 daoId) external view returns (address);
+    function getIsAncestorDao(bytes32 daoId) external view returns (bool);
 }
