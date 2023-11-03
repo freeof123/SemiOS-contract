@@ -92,3 +92,7 @@ error InvalidMintFeeRatio();
 error InvalidERC20RewardRatio();
 
 error InvalidETHRewardRatio();
+
+error NotAncestorDao();
+
+error NotDaoForFunding();

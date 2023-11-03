@@ -11,7 +11,7 @@ library BasicDaoStorage {
         bool unifiedPriceModeOff;
         uint256 unifiedPrice;
         //---------1.3 add
-        bool basicDaoExist;
+        bool exist;
         address daoAssetPool;
         uint8 version;
     }

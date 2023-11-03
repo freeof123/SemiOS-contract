@@ -271,6 +271,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         uint256 sum;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         for (uint256 i = 0; i < childrenDaoId.length;) {
+            if (!BasicDaoStorage.layout().basicDaoInfos[daoId].exist) revert NotDaoForFunding();
             sum += ratios[i];
             unchecked {
                 ++i;
@@ -278,6 +279,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         }
         sum += redeemPoolRatio;
         if (sum > BASIS_POINT) revert InvalidChildrenDaoRatio();
+        //Todo check childrenDaoId
         treeInfo.children = childrenDaoId;
         treeInfo.childrenDaoRatios = ratios;
         treeInfo.redeemPoolRatio = redeemPoolRatio;
@@ -334,7 +336,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         if (msg.sender != settingsStorage.ownerProxy.ownerOf(basicDaoId)) revert NotDaoOwner();
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
-        if (!basicDaoStorage.basicDaoInfos[basicDaoId].basicDaoExist) revert NotBasicDao();
+        if (!InheritTreeStorage.layout().inheritTreeInfos[basicDaoId].isAncestorDao) revert NotAncestorDao();
 
         address daoToken = daoInfo.token;
         address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;

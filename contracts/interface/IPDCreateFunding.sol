@@ -49,19 +49,19 @@ interface IPDCreateFunding {
     event NewCanvasForFunding(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
     // ============================== Write Functions =============================
-    function createBasicDaoForFunding(
-        DaoMetadataParam calldata daoMetadataParam,
-        Whitelist memory whitelist,
-        Blacklist calldata blacklist,
-        DaoMintCapParam calldata daoMintCapParam,
-        TemplateParam calldata templateParam,
-        BasicDaoParam calldata basicDaoParam,
-        AllRatioForFundingParam calldata allRatioForFundingParam,
-        uint256 actionType
-    )
-        external
-        payable
-        returns (bytes32 daoId);
+    // function createBasicDaoForFunding(
+    //     DaoMetadataParam calldata daoMetadataParam,
+    //     Whitelist memory whitelist,
+    //     Blacklist calldata blacklist,
+    //     DaoMintCapParam calldata daoMintCapParam,
+    //     TemplateParam calldata templateParam,
+    //     BasicDaoParam calldata basicDaoParam,
+    //     AllRatioForFundingParam calldata allRatioForFundingParam,
+    //     uint256 actionType
+    // )
+    //     external
+    //     payable
+    //     returns (bytes32 daoId);
 
     // function createContinuousDaoForFunding(
     //     bytes32 existDaoId,
