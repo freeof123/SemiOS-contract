@@ -7,7 +7,7 @@ import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { ID4ASettings } from "contracts/D4ASettings/ID4aSettings.sol";
+import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { IPDCreateFunding } from "contracts/interface/IPDCreateFunding.sol";

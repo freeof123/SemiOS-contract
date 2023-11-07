@@ -5,7 +5,7 @@ import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { ID4ASettings } from "contracts/D4ASettings/ID4aSettings.sol";
+import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 
 interface ID4AProtocolAggregate is
     ID4AProtocol,
