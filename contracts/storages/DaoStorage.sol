@@ -11,7 +11,7 @@ library DaoStorage {
         uint256 mintableRound;
         uint256 daoIndex;
         string daoUri;
-        address daoFeePool;
+        address daoFeePool; //feepool equals redeem pool
         // token related info
         address token;
         uint256 tokenMaxSupply;

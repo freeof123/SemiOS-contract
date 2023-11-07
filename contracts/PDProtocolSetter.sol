@@ -258,7 +258,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         bytes32 daoId,
         bytes32[] calldata childrenDaoId,
         uint256[] calldata ratios,
-        uint256 redeemPoolRatio
+        uint256 redeemPoolRatio,
+        uint256 selfRewardRatio
     )
         public
     {
@@ -278,6 +279,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             }
         }
         sum += redeemPoolRatio;
+        sum += selfRewardRatio;
         if (sum > BASIS_POINT) revert InvalidChildrenDaoRatio();
         //Todo check childrenDaoId
         treeInfo.children = childrenDaoId;

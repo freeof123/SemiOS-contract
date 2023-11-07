@@ -18,7 +18,8 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
         bytes32 daoId,
         bytes32[] calldata childrenDaoId,
         uint256[] calldata ratios,
-        uint256 redeemPoolRatio
+        uint256 redeemPoolRatio,
+        uint256 selfRewardRatio
     )
         external;
     function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) external;

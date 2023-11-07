@@ -111,6 +111,7 @@ struct ContinuousDaoParam {
     bytes32[] childrenDaoId;
     uint256[] childrenDaoRatios;
     uint256 redeemPoolRatio;
+    uint256 selfRewardRatio;
     bool isAncestorDao;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法

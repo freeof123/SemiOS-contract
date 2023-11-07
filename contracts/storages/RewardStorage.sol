@@ -27,6 +27,8 @@ library RewardStorage {
         mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterWeights;
         uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
+        //1.3add ------------------------------------
+        uint256[] activeRoundsFunding;
     }
 
     struct Layout {

@@ -254,7 +254,8 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
                 daoId,
                 continuousDaoParam.childrenDaoId,
                 continuousDaoParam.childrenDaoRatios,
-                continuousDaoParam.redeemPoolRatio
+                continuousDaoParam.redeemPoolRatio,
+                continuousDaoParam.selfRewardRatio
             );
         }
     }
