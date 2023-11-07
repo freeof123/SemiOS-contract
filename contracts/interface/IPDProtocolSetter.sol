@@ -14,6 +14,15 @@ import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolSetter } from "./ID4AProtocolSetter.sol";
 
 interface IPDProtocolSetter is ID4AProtocolSetter {
+    // ============================== Events =============================
+    event ChildrenSet(
+        bytes32 daoId, bytes32[] childrenDaoId, uint256[] ratios, uint256 redeemPoolRatio, uint256 selfRewardRatio
+    );
+
+    event RatioForFundingSet(bytes32 daoId, AllRatioForFundingParam vars);
+
+    event InitialTokenSupplyForSubDaoSet(bytes32 daoId, uint256 initialTokenSupply);
+
     function setChildren(
         bytes32 daoId,
         bytes32[] calldata childrenDaoId,

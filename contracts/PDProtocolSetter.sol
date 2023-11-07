@@ -285,6 +285,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.children = childrenDaoId;
         treeInfo.childrenDaoRatios = ratios;
         treeInfo.redeemPoolRatio = redeemPoolRatio;
+
+        emit ChildrenSet(daoId, childrenDaoId, ratios, redeemPoolRatio, selfRewardRatio);
     }
     //in PD1.3, we always use ratios w.r.t all 4 roles
 
@@ -328,6 +330,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.minterETHRewardRatio = vars.minterETHRewardRatio;
         treeInfo.canvasCreatorETHRewardRatio = vars.canvasCreatorETHRewardRatio;
         treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
+
+        emit RatioForFundingSet(daoId, vars);
     }
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
@@ -344,5 +348,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;
         D4AERC20(daoToken).mint(daoAssetPool, initialTokenSupply);
         if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();
+
+        emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
     }
 }
