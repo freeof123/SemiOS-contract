@@ -750,6 +750,7 @@ contract DeployHelper is Test {
         bytes32[] childrenDaoId;
         uint256[] childrenDaoRatios;
         uint256 redeemPoolRatio;
+        uint256 selfRewardRatio;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -1064,6 +1065,7 @@ contract DeployHelper is Test {
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
+            selfRewardRatio: createDaoParam.selfRewardRatio,
             isAncestorDao: false
         });
 
@@ -1162,6 +1164,7 @@ contract DeployHelper is Test {
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
+            selfRewardRatio: createDaoParam.selfRewardRatio,
             isAncestorDao: isBaiscDao ? true : false
         });
 
