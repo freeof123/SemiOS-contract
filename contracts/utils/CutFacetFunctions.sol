@@ -234,6 +234,10 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAssetPool.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getIsAncestorDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoLastActiveRoundFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoPassedRound.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRemainingRound.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoChildren.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
