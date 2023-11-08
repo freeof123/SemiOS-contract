@@ -36,5 +36,5 @@ interface IRewardTemplateFunding {
     )
         external
         returns (uint256 claimableReward);
-    function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
+    //function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
 }

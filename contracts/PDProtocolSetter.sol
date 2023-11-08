@@ -271,8 +271,14 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         uint256 sum;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        bytes32 ancestorDao = treeInfo.ancestor;
+
         for (uint256 i = 0; i < childrenDaoId.length;) {
-            if (!BasicDaoStorage.layout().basicDaoInfos[daoId].exist) revert NotDaoForFunding();
+            //if (!BasicDaoStorage.layout().basicDaoInfos[daoId].exist) revert NotDaoForFunding();
+            if (InheritTreeStorage.layout().inheritTreeInfos[childrenDaoId[i]].ancestor != ancestorDao) {
+                revert InvalidDaoAncestor(childrenDaoId[i]);
+            }
+
             sum += ratios[i];
             unchecked {
                 ++i;

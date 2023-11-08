@@ -190,20 +190,21 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             vars.needMintableWork,
             continuousDaoParam.unifiedPriceModeOff,
             ID4AProtocolReadable(protocol).getDaoUnifiedPrice(daoId),
-            continuousDaoParam.reserveNftNumber
+            continuousDaoParam.reserveNftNumber,
+            continuousDaoParam.topUpMode
         );
 
         _config(protocol, vars);
 
-        if (!continuousDaoParam.isAncestorDao) {
-            IPDProtocolSetter(protocol).setChildren(
-                daoId,
-                continuousDaoParam.childrenDaoId,
-                continuousDaoParam.childrenDaoRatios,
-                continuousDaoParam.redeemPoolRatio,
-                continuousDaoParam.selfRewardRatio
-            );
-        }
+        //if (!continuousDaoParam.isAncestorDao) {
+        IPDProtocolSetter(protocol).setChildren(
+            daoId,
+            continuousDaoParam.childrenDaoId,
+            continuousDaoParam.childrenDaoRatios,
+            continuousDaoParam.redeemPoolRatio,
+            continuousDaoParam.selfRewardRatio
+        );
+        //}
     }
 
     function _createProject(CreateAncestorDaoParam memory vars) internal returns (bytes32 daoId) {
@@ -362,6 +363,8 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             daoId = _createContinuousProject(createContinuousDaoParam);
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = existDaoId;
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+            BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken =
+                BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
             daoId = _createProject(
                 CreateAncestorDaoParam(
@@ -421,11 +424,13 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
         basicDaoStorage.basicDaoInfos[daoId].version = 13;
         basicDaoStorage.basicDaoInfos[daoId].exist = true;
+        basicDaoStorage.basicDaoInfos[daoId].topUpMode = continuousDaoParam.topUpMode;
 
         emit NewPoolsForFunding(
             basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
             daoStorage.daoInfos[daoId].daoFeePool,
-            basicDaoStorage.basicDaoInfos[daoId].daoFundingPool
+            basicDaoStorage.basicDaoInfos[daoId].daoFundingPool,
+            BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
         );
     }
 

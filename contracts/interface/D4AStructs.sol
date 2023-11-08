@@ -114,6 +114,7 @@ struct ContinuousDaoParam {
     uint256 selfRewardRatio;
     bool isAncestorDao;
     address daoToken;
+    bool topUpMode;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 

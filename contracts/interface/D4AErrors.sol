@@ -96,3 +96,5 @@ error InvalidETHRewardRatio();
 error NotAncestorDao();
 
 error NotDaoForFunding();
+
+error InvalidDaoAncestor(bytes32 childrenDaoId);

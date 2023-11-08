@@ -143,4 +143,12 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoSelfRewardRatio(bytes32 daoId) public view returns (uint256) {
         return InheritTreeStorage.layout().inheritTreeInfos[daoId].selfRewardRatio;
     }
+
+    function getDaoTopUpMode(bytes32 daoId) public view returns (bool) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode;
+    }
+
+    function getDaoIsThirdPartyToken(bytes32 daoId) public view returns (bool) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken;
+    }
 }

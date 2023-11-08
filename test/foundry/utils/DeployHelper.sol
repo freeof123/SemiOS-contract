@@ -1067,7 +1067,8 @@ contract DeployHelper is Test {
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
             selfRewardRatio: createDaoParam.selfRewardRatio,
             isAncestorDao: false,
-            daoToken: address(0)
+            daoToken: address(0),
+            topUpMode: false
         });
 
         daoId = daoProxy.createContinuousDao(
@@ -1093,7 +1094,8 @@ contract DeployHelper is Test {
         bool needMintableWork,
         bool uniPriceModeOff,
         uint256 reserveNftNumber,
-        bool isBaiscDao
+        bool isBaiscDao,
+        bool topUpMode
     )
         internal
         returns (bytes32 daoId)
@@ -1167,7 +1169,8 @@ contract DeployHelper is Test {
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
             selfRewardRatio: createDaoParam.selfRewardRatio,
             isAncestorDao: isBaiscDao ? true : false,
-            daoToken: address(0)
+            daoToken: address(0),
+            topUpMode: topUpMode
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({

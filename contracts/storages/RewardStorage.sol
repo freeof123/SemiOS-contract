@@ -30,6 +30,8 @@ library RewardStorage {
         //1.3add ------------------------------------
         uint256[] activeRoundsFunding;
         mapping(uint256 round => bool distributed) roundDistributed;
+        mapping(uint256 ronud => uint256 amount) selfRoundReward;
+        uint256 circulateERC20Amount; //????here??
     }
 
     struct Layout {

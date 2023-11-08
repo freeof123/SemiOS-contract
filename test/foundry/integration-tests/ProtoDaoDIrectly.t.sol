@@ -24,7 +24,8 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 existDaoId = bytes32(0);
         bool isBasicDao = true;
         bool uniPriceModeOff = true;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
+        bool topUpMode = false;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -62,7 +63,8 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 existDaoId = bytes32(0);
         bool isBasicDao = true;
         bool uniPriceModeOff = false;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
+        bool topUpMode = false;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -100,7 +102,8 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 existDaoId = bytes32(0);
         bool isBasicDao = true;
         bool uniPriceModeOff = true;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao);
+        bool topUpMode = false;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
 
         uint256 preBalance = daoCreator.addr.balance;
 

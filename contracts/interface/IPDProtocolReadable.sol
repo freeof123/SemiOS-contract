@@ -36,4 +36,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoChildrenRatio(bytes32 daoId) external view returns (uint256[] memory);
     function getDaoRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
     function getDaoSelfRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTopUpMode(bytes32 daoId) external view returns (bool);
+    function getDaoIsThirdPartyToken(bytes32 daoId) external view returns (bool);
 }

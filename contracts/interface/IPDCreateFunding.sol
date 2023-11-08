@@ -39,7 +39,8 @@ interface IPDCreateFunding {
         bool needMintableWork,
         bool unifiedPriceModeOff,
         uint256 unifiedPrice,
-        uint256 reserveNftNumber
+        uint256 reserveNftNumber,
+        bool topUpMode
     );
 
     event NewProjectForFunding(
@@ -54,7 +55,9 @@ interface IPDCreateFunding {
 
     event NewCanvasForFunding(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
-    event NewPoolsForFunding(address daoAssetPool, address daoRedeemPool, address daoFundingPool);
+    event NewPoolsForFunding(
+        address daoAssetPool, address daoRedeemPool, address daoFundingPool, bool isThirdPartyToken
+    );
 
     // ============================== Write Functions =============================
     // function createBasicDaoForFunding(

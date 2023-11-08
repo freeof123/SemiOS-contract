@@ -238,6 +238,11 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoPassedRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRemainingRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoChildren.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoChildrenRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRedeemPoolRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoSelfRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTopUpMode.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoIsThirdPartyToken.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 

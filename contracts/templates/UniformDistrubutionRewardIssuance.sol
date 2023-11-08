@@ -329,17 +329,34 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
 
     function _distributeRoundReward(bytes32 daoId, uint256 amount, address token) internal {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         bytes32[] memory children = IPDProtocolReadable(address(this)).getDaoChildren(daoId);
         uint256[] memory childrenDaoRatio = IPDProtocolReadable(address(this)).getDaoChildrenRatio(daoId);
+        address daoAssetPool = basicDaoInfo.daoAssetPool;
         for (uint256 i = 0; i < children.length;) {
-            address daoAssetPool = basicDaoInfo.daoAssetPool;
             address desPool = IPDProtocolReadable(address(this)).getDaoAssetPool(children[i]);
+            if (childrenDaoRatio[i] > 0) {
+                D4AFeePool(payable(daoAssetPool)).transfer(
+                    token, payable(desPool), amount * childrenDaoRatio[i] / BASIS_POINT
+                );
+            }
             unchecked {
                 ++i;
             }
         }
-        if (token == address(0)) { }
-        //address token =
+        uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatio(daoId);
+        if (redeemPoolRatio > 0) {
+            D4AFeePool(payable(daoAssetPool)).transfer(
+                token, payable(daoInfo.daoFeePool), amount * redeemPoolRatio / BASIS_POINT
+            );
+        }
+        uint256 selfRewardRatio = IPDProtocolReadable(address(this)).getDaoSelfRewardRatio(daoId);
+        if (selfRewardRatio > 0) {
+            uint256 selfRewardAmount = amount * selfRewardRatio / BASIS_POINT;
+            D4AFeePool(payable(daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);
+            rewardInfo.circulateERC20Amount += selfRewardAmount;
+        }
     }
 }
