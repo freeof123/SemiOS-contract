@@ -43,10 +43,18 @@ interface IPDCreateFunding {
     );
 
     event NewProjectForFunding(
-        bytes32 daoId, string daoUri, address daoFeePool, address token, address nft, uint256 royaltyFeeRatioInBps
+        bytes32 daoId,
+        string daoUri,
+        address daoFeePool,
+        address token,
+        address nft,
+        uint256 royaltyFeeRatioInBps,
+        bool isAncestorDao
     );
 
     event NewCanvasForFunding(bytes32 daoId, bytes32 canvasId, string canvasUri);
+
+    event NewPoolsForFunding(address daoAssetPool, address daoRedeemPool, address daoFundingPool);
 
     // ============================== Write Functions =============================
     // function createBasicDaoForFunding(

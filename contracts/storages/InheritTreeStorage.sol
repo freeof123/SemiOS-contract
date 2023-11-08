@@ -10,6 +10,7 @@ library InheritTreeStorage {
         bool isAncestorDao;
         uint256[] childrenDaoRatios;
         uint256 redeemPoolRatio;
+        uint256 selfRewardRatio;
         //mint fee ratio
         uint256 canvasCreatorMintFeeRatio;
         uint256 assetPoolMintFeeRatio;

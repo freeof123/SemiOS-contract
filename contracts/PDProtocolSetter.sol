@@ -281,11 +281,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         sum += redeemPoolRatio;
         sum += selfRewardRatio;
         if (sum > BASIS_POINT) revert InvalidChildrenDaoRatio();
-        //Todo check childrenDaoId
         treeInfo.children = childrenDaoId;
         treeInfo.childrenDaoRatios = ratios;
         treeInfo.redeemPoolRatio = redeemPoolRatio;
-
+        treeInfo.selfRewardRatio = selfRewardRatio;
         emit ChildrenSet(daoId, childrenDaoId, ratios, redeemPoolRatio, selfRewardRatio);
     }
     //in PD1.3, we always use ratios w.r.t all 4 roles

@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 
 interface IRewardTemplateFunding {
-    function updateReward(UpdateRewardParam memory param) external payable;
+    function updateRewardFunding(UpdateRewardParam memory param) external payable;
 
     function claimDaoCreatorReward(
         bytes32 daoId,

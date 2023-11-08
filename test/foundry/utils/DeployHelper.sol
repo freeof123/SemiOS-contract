@@ -1066,7 +1066,8 @@ contract DeployHelper is Test {
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
             selfRewardRatio: createDaoParam.selfRewardRatio,
-            isAncestorDao: false
+            isAncestorDao: false,
+            daoToken: address(0)
         });
 
         daoId = daoProxy.createContinuousDao(
@@ -1165,7 +1166,8 @@ contract DeployHelper is Test {
             childrenDaoRatios: createDaoParam.childrenDaoRatios,
             redeemPoolRatio: createDaoParam.redeemPoolRatio,
             selfRewardRatio: createDaoParam.selfRewardRatio,
-            isAncestorDao: isBaiscDao ? true : false
+            isAncestorDao: isBaiscDao ? true : false,
+            daoToken: address(0)
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({

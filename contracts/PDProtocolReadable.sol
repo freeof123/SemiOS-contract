@@ -130,4 +130,17 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         return treeInfo.children;
     }
+
+    function getDaoChildrenRatio(bytes32 daoId) public view returns (uint256[] memory) {
+        InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        return treeInfo.childrenDaoRatios;
+    }
+
+    function getDaoRedeemPoolRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].redeemPoolRatio;
+    }
+
+    function getDaoSelfRewardRatio(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].selfRewardRatio;
+    }
 }

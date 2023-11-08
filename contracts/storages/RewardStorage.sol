@@ -29,6 +29,7 @@ library RewardStorage {
         uint256 canvasCreatorERC20RatioInBps;
         //1.3add ------------------------------------
         uint256[] activeRoundsFunding;
+        mapping(uint256 round => bool distributed) roundDistributed;
     }
 
     struct Layout {

@@ -74,6 +74,20 @@ struct CreateProjectLocalVars {
     uint8 version;
 }
 
+struct CreateAncestorDaoParam {
+    uint256 startRound;
+    uint256 mintableRound;
+    uint256 daoFloorPriceRank;
+    uint256 nftMaxSupplyRank;
+    uint96 royaltyFeeRatioInBps;
+    uint256 daoIndex;
+    string daoUri;
+    uint256 initTokenSupplyRatio;
+    string daoName;
+    bool needMintableWork;
+    address daoToken;
+}
+
 struct CreateContinuousDaoParam {
     uint256 startRound;
     uint256 mintableRound;
@@ -97,74 +111,6 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
     constructor(address _weth) {
         WETH = _weth;
     }
-
-    /**
-     * @dev create basic dao
-     * @param daoMetadataParam metadata param for dao
-     * @param whitelist the whitelist
-     * @param blacklist the blacklist
-     * @param daoMintCapParam the mint cap param for dao
-     * splitRatioParam the split ratio param
-     * @param templateParam the template param
-     * @param basicDaoParam the param for basic dao
-     * @param actionType the type of action
-     */
-
-    // function createBasicDaoForFunding(
-    //     DaoMetadataParam calldata daoMetadataParam,
-    //     Whitelist calldata whitelist,
-    //     Blacklist calldata blacklist,
-    //     DaoMintCapParam calldata daoMintCapParam,
-    //     //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
-    //     TemplateParam calldata templateParam,
-    //     BasicDaoParam calldata basicDaoParam,
-    //     AllRatioForFundingParam calldata allRatioForFundingParam,
-    //     uint256 actionType
-    // )
-    //     public
-    //     payable
-    //     override
-    //     nonReentrant
-    //     returns (bytes32 daoId)
-    // {
-    //     // floor price rank 9999 means 0 floor price, 0 floor price can only use exponential price variation
-    //     if (
-    //         daoMetadataParam.floorPriceRank == 9999
-    //             && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
-    //     ) revert ZeroFloorPriceCannotUseLinearPriceVariation();
-
-    //     daoId = _createBasicDao(daoMetadataParam, basicDaoParam);
-
-    //     CreateProjectLocalVars memory vars;
-
-    //     vars.daoId = daoId;
-    //     vars.daoMetadataParam = daoMetadataParam;
-    //     vars.whitelist = whitelist;
-    //     vars.blacklist = blacklist;
-    //     vars.daoMintCapParam = daoMintCapParam;
-    //     //vars.splitRatioParam = splitRatioParam;
-    //     vars.templateParam = templateParam;
-    //     vars.basicDaoParam = basicDaoParam;
-    //     vars.actionType = actionType;
-    //     vars.allRatioForFundingParam = allRatioForFundingParam;
-
-    //     address protocol = address(this); // gas saving
-    //     vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
-    //     vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
-    //     vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
-    //     vars.version = IPDProtocolReadable(protocol).getDaoVersion(daoId);
-
-    //     vars.dailyMintCap = ID4AProtocolReadable(protocol).getDaoDailyMintCap(daoId);
-    //     bool _unifiedPriceModeOff = ID4AProtocolReadable(protocol).getDaoUnifiedPriceModeOff(daoId);
-    //     uint256 _unifiedPrice = ID4AProtocolReadable(protocol).getDaoUnifiedPrice(daoId);
-    //     uint256 _reserveNftNumber = ID4AProtocolReadable(protocol).getDaoReserveNftNumber(daoId);
-
-    //     emit CreateContinuousProjectParamEmittedForFunding(
-    //         daoId, daoId, vars.dailyMintCap, true, _unifiedPriceModeOff, _unifiedPrice, _reserveNftNumber
-    //     );
-
-    //     _config(protocol, vars);
-    // }
 
     /**
      * @dev create continuous dao
@@ -260,164 +206,75 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         }
     }
 
-    //================================ internal functions ===============================
-
-    // function _createBasicDao(
-    //     DaoMetadataParam calldata daoMetadataParam,
-    //     BasicDaoParam calldata basicDaoParam
-    // )
-    //     internal
-    //     returns (bytes32 daoId)
-    // {
-    //     {
-    //         super._checkPauseStatus();
-    //         super._checkUriNotExist(daoMetadataParam.projectUri);
-    //     }
-
-    //     {
-    //         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
-    //         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
-
-    //         daoId = _createProject(
-    //             daoMetadataParam.startDrb,
-    //             daoMetadataParam.mintableRounds,
-    //             daoMetadataParam.floorPriceRank,
-    //             daoMetadataParam.maxNftRank,
-    //             daoMetadataParam.royaltyFee,
-    //             protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
-    //             daoMetadataParam.projectUri,
-    //             basicDaoParam.initTokenSupplyRatio,
-    //             basicDaoParam.daoName
-    //         );
-
-    //         {
-    //             InheritTreeStorage.InheritTreeInfo storage treeInfo =
-    //                 InheritTreeStorage.layout().inheritTreeInfos[daoId];
-    //             treeInfo.isAncestorDao = true;
-    //             treeInfo.familyDaos.push(daoId);
-    //         }
-
-    //         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(
-    //             DaoTag.BASIC_DAO
-    //         )]] = daoId;
-    //         ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
-
-    //         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
-
-    //         {
-    //             address daoAssetPool =
-    //                 _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
-    //             D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool,
-    // daoStorage.daoInfos[daoId].tokenMaxSupply);
-    //         }
-
-    //         {
-    //             address fundingPool =
-    //                 _createFundingPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
-    //         }
-
-    //         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
-
-    //         protocolStorage.uriExists[keccak256(abi.encodePacked(basicDaoParam.canvasUri))] = true;
-
-    //         _createCanvas(
-    //             CanvasStorage.layout().canvasInfos,
-    //             daoId,
-    //             basicDaoParam.canvasId,
-    //             daoStorage.daoInfos[daoId].canvases.length,
-    //             basicDaoParam.canvasUri,
-    //             msg.sender //canvas owner, before :proxy , now :user
-    //         );
-
-    //         daoStorage.daoInfos[daoId].canvases.push(basicDaoParam.canvasId);
-    //     }
-
-    //     {
-    //         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
-    //         basicDaoStorage.basicDaoInfos[daoId].exist = true;
-    //         basicDaoStorage.basicDaoInfos[daoId].canvasIdOfSpecialNft = basicDaoParam.canvasId;
-    //         basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = 10_000;
-    //         basicDaoStorage.basicDaoInfos[daoId].version = 13;
-    //     }
-    // }
-
-    function _createProject(
-        uint256 startRound,
-        uint256 mintableRound,
-        uint256 daoFloorPriceRank,
-        uint256 nftMaxSupplyRank,
-        uint96 royaltyFeeRatioInBps,
-        uint256 daoIndex,
-        string memory daoUri,
-        uint256 initTokenSupplyRatio,
-        string memory daoName,
-        bool needMintableWork
-    )
-        internal
-        returns (bytes32 daoId)
-    {
+    function _createProject(CreateAncestorDaoParam memory vars) internal returns (bytes32 daoId) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
 
         {
-            if (mintableRound > settingsStorage.maxMintableRound) revert ExceedMaxMintableRound();
+            if (vars.mintableRound > settingsStorage.maxMintableRound) revert ExceedMaxMintableRound();
             {
                 uint256 protocolRoyaltyFeeRatioInBps = settingsStorage.protocolRoyaltyFeeRatioInBps;
                 if (
-                    royaltyFeeRatioInBps < settingsStorage.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
-                        || royaltyFeeRatioInBps > settingsStorage.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                    vars.royaltyFeeRatioInBps < settingsStorage.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                        || vars.royaltyFeeRatioInBps
+                            > settingsStorage.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
                 ) revert RoyaltyFeeRatioOutOfRange();
             }
         }
 
-        //TODO: who is `tx.origin`
         daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
         if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
         {
-            if (startRound < settingsStorage.drb.currentRound()) revert StartRoundAlreadyPassed();
-            daoInfo.startRound = startRound;
-            daoInfo.mintableRound = mintableRound;
-            daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[nftMaxSupplyRank];
-            daoInfo.daoUri = daoUri;
-            daoInfo.royaltyFeeRatioInBps = royaltyFeeRatioInBps;
-            daoInfo.daoIndex = daoIndex;
-            daoInfo.token = _createERC20Token(daoIndex, daoName);
-
-            //TODO: whether to modify `address(this)`
-            D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
-            D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
+            if (vars.startRound < settingsStorage.drb.currentRound()) revert StartRoundAlreadyPassed();
+            daoInfo.startRound = vars.startRound;
+            daoInfo.mintableRound = vars.mintableRound;
+            daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank];
+            daoInfo.daoUri = vars.daoUri;
+            daoInfo.royaltyFeeRatioInBps = vars.royaltyFeeRatioInBps;
+            daoInfo.daoIndex = vars.daoIndex;
+            if (vars.daoToken == address(0)) {
+                daoInfo.token = _createERC20Token(vars.daoIndex, vars.daoName);
+                D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
+                D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
+                ID4AChangeAdmin(daoInfo.token).changeAdmin(settingsStorage.assetOwner);
+            } else {
+                daoInfo.token = vars.daoToken;
+                BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken = true;
+            }
 
             address daoFeePool = settingsStorage.feePoolFactory.createD4AFeePool(
-                string(abi.encodePacked("Redeem Pool for DAO4Art Project ", LibString.toString(daoIndex)))
+                string(abi.encodePacked("Redeem Pool for DAO4Art Project ", LibString.toString(vars.daoIndex)))
             ); //this feepool is redeem pool for erc20->eth
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
             ID4AChangeAdmin(daoFeePool).changeAdmin(settingsStorage.assetOwner);
-            ID4AChangeAdmin(daoInfo.token).changeAdmin(settingsStorage.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
 
             settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender); //before: createprojectproxy, now :user
 
-            daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
+            daoInfo.nft =
+                _createERC721Token(vars.daoIndex, vars.daoName, vars.needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the user??
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
-            D4AERC721(daoInfo.nft).setContractUri(daoUri);
+            D4AERC721(daoInfo.nft).setContractUri(vars.daoUri);
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
             //We copy from setting in case setting may change later.
-            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * initTokenSupplyRatio) / BASIS_POINT;
+            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * vars.initTokenSupplyRatio) / BASIS_POINT;
 
-            if (daoFloorPriceRank != 9999) {
+            if (vars.daoFloorPriceRank != 9999) {
                 // 9999 is specified for 0 floor price
-                PriceStorage.layout().daoFloorPrices[daoId] = settingsStorage.daoFloorPrices[daoFloorPriceRank];
+                PriceStorage.layout().daoFloorPrices[daoId] = settingsStorage.daoFloorPrices[vars.daoFloorPriceRank];
             }
 
             daoInfo.daoExist = true;
-            emit NewProjectForFunding(daoId, daoUri, daoFeePool, daoInfo.token, daoInfo.nft, royaltyFeeRatioInBps);
+            emit NewProjectForFunding(
+                daoId, vars.daoUri, daoFeePool, daoInfo.token, daoInfo.nft, vars.royaltyFeeRatioInBps, true
+            );
         }
     }
 
@@ -507,16 +364,19 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
         } else {
             daoId = _createProject(
-                daoMetadataParam.startDrb,
-                daoMetadataParam.mintableRounds,
-                daoMetadataParam.floorPriceRank,
-                daoMetadataParam.maxNftRank,
-                daoMetadataParam.royaltyFee,
-                protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
-                daoMetadataParam.projectUri,
-                basicDaoParam.initTokenSupplyRatio,
-                basicDaoParam.daoName,
-                continuousDaoParam.needMintableWork
+                CreateAncestorDaoParam(
+                    daoMetadataParam.startDrb,
+                    daoMetadataParam.mintableRounds,
+                    daoMetadataParam.floorPriceRank,
+                    daoMetadataParam.maxNftRank,
+                    daoMetadataParam.royaltyFee,
+                    protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
+                    daoMetadataParam.projectUri,
+                    basicDaoParam.initTokenSupplyRatio,
+                    basicDaoParam.daoName,
+                    continuousDaoParam.needMintableWork,
+                    continuousDaoParam.daoToken
+                )
             );
 
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
@@ -561,6 +421,12 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
         basicDaoStorage.basicDaoInfos[daoId].version = 13;
         basicDaoStorage.basicDaoInfos[daoId].exist = true;
+
+        emit NewPoolsForFunding(
+            basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
+            daoStorage.daoInfos[daoId].daoFeePool,
+            basicDaoStorage.basicDaoInfos[daoId].daoFundingPool
+        );
     }
 
     function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam)
@@ -633,8 +499,10 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
                 daoFeePool,
                 daoInfo.token,
                 daoInfo.nft,
-                createContinuousDaoParam.royaltyFeeRatioInBps
+                createContinuousDaoParam.royaltyFeeRatioInBps,
+                false
             );
+            //todo add new vars
         }
     }
 
@@ -645,12 +513,16 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             string(abi.encodePacked("Dao Asset Pool for ProtoDao Project ", LibString.toString(daoIndex)))
         ); //this feepool is dao asset pool for reward
         basicDaoInfo.daoAssetPool = daoAssetPool;
+        D4AFeePool(payable(daoAssetPool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
+
+        ID4AChangeAdmin(daoAssetPool).changeAdmin(settingsStorage.assetOwner);
         return daoAssetPool;
     }
 
     function _createFundingPool(bytes32 daoId, uint256 daoIndex) internal returns (address) {
         // SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        // BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        basicDaoInfo.daoFundingPool = address(0);
         return address(0);
     }
 

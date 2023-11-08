@@ -13,6 +13,8 @@ library BasicDaoStorage {
         //---------1.3 add
         bool exist;
         address daoAssetPool;
+        address daoFundingPool;
+        bool isThirdPartyToken;
         uint8 version;
     }
 

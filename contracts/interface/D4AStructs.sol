@@ -113,6 +113,7 @@ struct ContinuousDaoParam {
     uint256 redeemPoolRatio;
     uint256 selfRewardRatio;
     bool isAncestorDao;
+    address daoToken;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 
@@ -156,19 +157,19 @@ struct AllRatioForFundingParam {
     uint256 canvasCreatorMintFeeRatio;
     uint256 assetPoolMintFeeRatio;
     uint256 redeemPoolMintFeeRatio;
-    // also have l.protocolMintFeeRatioInBps
+    // add l.protocolMintFeeRatioInBps should be 10000
     uint256 canvasCreatorMintFeeRatioFiatPrice;
     uint256 assetPoolMintFeeRatioFiatPrice;
     uint256 redeemPoolMintFeeRatioFiatPrice;
-    // also have l.protocolMintFeeRatioInBps
+    // add l.protocolMintFeeRatioInBps
 
     //erc20 reward ratio
     uint256 minterERC20RewardRatio;
     uint256 canvasCreatorERC20RewardRatio;
     uint256 daoCreatorERC20RewardRatio;
-    // also have l.protocolERC20RatioInBps,
+    // add l.protocolERC20RatioInBps,
 
-    //eth reward ratio, also have l.protocolETHRewardRatio
+    //eth reward ratio, add l.protocolETHRewardRatio
     uint256 minterETHRewardRatio;
     uint256 canvasCreatorETHRewardRatio;
     uint256 daoCreatorETHRewardRatio;

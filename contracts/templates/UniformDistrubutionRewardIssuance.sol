@@ -11,6 +11,9 @@ import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
+
+import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
+
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 
@@ -19,16 +22,57 @@ import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
 
 import { D4AERC20 } from "contracts/D4AERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 
-import "forge-std/Test.sol";
+import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
+//import "forge-std/Test.sol";
 
 contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
-    function updateReward(UpdateRewardParam memory param) public payable {
+    function updateRewardFunding(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
+        uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
+        if (remainingRound == 0) revert ExceedMaxMintableRound();
+        if (!rewardInfo.roundDistributed[param.currentRound]) {
+            uint256 distributeAmount = getDaoCurrentRoundDistributeAmount(
+                param.daoId, param.token, param.startRound, param.currentRound, remainingRound
+            );
+            _distributeRoundReward(param.daoId, distributeAmount, param.token);
+            rewardInfo.roundDistributed[param.currentRound] = true;
+        }
+        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
+    }
+
+    function getDaoCurrentRoundDistributeAmount(
+        bytes32 daoId,
+        address token,
+        uint256 startRound,
+        uint256 currentRound,
+        uint256 remainingRound
+    )
+        public
+        view
+        returns (uint256 distributeAmount)
+    {
+        //return IPDProtocolReadable(address(this)).getDaoCurrentRoundDistributeAmount(daoId);
+
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
+        address daoAssetPool = IPDProtocolReadable(address(this)).getDaoAssetPool(daoId);
+        distributeAmount = token == address(0) ? daoAssetPool.balance : IERC20(token).balanceOf(daoAssetPool);
+        //distributeAmount = distributeAmount / remainingRound;
+        if (rewardInfo.isProgressiveJackpot) {
+            uint256 lastActiveRound = _getLastActiveRound(rewardInfo, currentRound); //not include current round
+            uint256 progressiveJackpotRound = currentRound - lastActiveRound == 0 ? startRound - 1 : lastActiveRound;
+            distributeAmount =
+                distributeAmount * progressiveJackpotRound / (progressiveJackpotRound + remainingRound - 1);
+        } else {
+            distributeAmount = distributeAmount / remainingRound;
+        }
     }
 
     function getRoundReward(
@@ -160,59 +204,6 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
     }
 
-    // function setRewardCheckpoint(bytes32 daoId, int256 mintableRoundDelta, uint256 totalRewardDelta) public payable {
-    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-    //     RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-
-    //     uint256 length = rewardInfo.rewardCheckpoints.length;
-    //     if (length == 0) {
-    //         rewardInfo.rewardCheckpoints.push();
-    //         rewardInfo.rewardCheckpoints[0].startRound = daoInfo.startRound;
-    //         rewardInfo.rewardCheckpoints[0].totalRound = daoInfo.mintableRound;
-    //         rewardInfo.rewardCheckpoints[0].totalReward = daoInfo.tokenMaxSupply;
-    //     } else if (rewardInfo.rewardCheckpoints[length - 1].activeRounds.length == 0) {
-    //         rewardInfo.rewardCheckpoints[length - 1].totalRound = SafeCast.toUint256(
-    //             SafeCastLib.toInt256(rewardInfo.rewardCheckpoints[length - 1].totalRound) + mintableRoundDelta
-    //         );
-    //         rewardInfo.rewardCheckpoints[length - 1].totalReward =
-    //             rewardInfo.rewardCheckpoints[length - 1].totalReward + totalRewardDelta;
-    //     } else {
-    //         // new checkpoint start at current round + 1
-    //         uint256 currentRound = settingsStorage.drb.currentRound();
-    //         RewardStorage.RewardCheckpoint storage rewardCheckpoint = rewardInfo.rewardCheckpoints[length - 1];
-    //         uint256 totalRound;
-    //         if (rewardInfo.isProgressiveJackpot) {
-    //             totalRound = rewardCheckpoint.totalRound - (currentRound + 1 - rewardCheckpoint.startRound);
-    //         } else {
-    //             totalRound = rewardCheckpoint.totalRound - rewardCheckpoint.activeRounds.length;
-    //             if (rewardCheckpoint.activeRounds[rewardCheckpoint.activeRounds.length - 1] != currentRound) {
-    //                 totalRound -= 1;
-    //             }
-    //         }
-    //         if (rewardInfo.rewardIssuePendingRound < currentRound) {
-    //             _issueLastRoundReward(daoId, daoInfo.token);
-    //         }
-    //         //uint256 totalReward = daoInfo.tokenMaxSupply - D4AERC20(daoInfo.token).totalSupply();
-    //         uint256 totalReward =
-    //             daoInfo.tokenMaxSupply - ID4AProtocolReadable(address(this)).getRewardTillRound(daoId, currentRound -
-    // 1);
-
-    //         totalReward -= getRoundReward(daoId, currentRound, token);
-
-    //         // modify old checkpoint
-    //         rewardCheckpoint.totalRound -= totalRound;
-    //         rewardCheckpoint.totalReward = rewardCheckpoint.totalReward + totalRewardDelta - totalReward;
-
-    //         // set new checkpoint
-    //         rewardInfo.rewardCheckpoints.push();
-    //         rewardInfo.rewardCheckpoints[length].startRound = currentRound + 1;
-    //         rewardInfo.rewardCheckpoints[length].totalRound =
-    //             SafeCast.toUint256(SafeCastLib.toInt256(totalRound) + mintableRoundDelta);
-    //         rewardInfo.rewardCheckpoints[length].totalReward = totalReward;
-    //     }
-    // }
-
     /**
      * @dev given an array of active rounds and a round, return the number of rounds below the round
      */
@@ -271,32 +262,6 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         }
     }
 
-    /**
-     * @dev given a round, get the index of the corresponding reward checkpoint
-     * @param rewardCheckpoints reward checkpoints of a DAO
-     * @param round a specific round
-     * @return index index of the corresponding reward checkpoint
-     */
-    function _getRewardCheckpointIndexByRound(
-        RewardStorage.RewardCheckpoint[] storage rewardCheckpoints,
-        uint256 round
-    )
-        internal
-        view
-        returns (uint256 index)
-    {
-        if (round < rewardCheckpoints[0].startRound) revert InvalidRound();
-
-        uint256 length = rewardCheckpoints.length;
-        for (uint256 i; i < length - 1;) {
-            if (rewardCheckpoints[i + 1].startRound > round) return i;
-            unchecked {
-                ++i;
-            }
-        }
-        return length - 1;
-    }
-
     function _getLastActiveRound(
         RewardStorage.RewardInfo storage rewardInfo,
         uint256 round
@@ -305,20 +270,16 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         view
         returns (uint256)
     {
-        for (uint256 i = rewardInfo.rewardCheckpoints.length - 1; ~i != 0;) {
-            uint256[] storage activeRounds = rewardInfo.rewardCheckpoints[i].activeRounds;
-            if (activeRounds.length > 0) {
-                for (uint256 j = activeRounds.length - 1; ~j != 0;) {
-                    if (activeRounds[j] < round) return activeRounds[j];
-                    unchecked {
-                        --j;
-                    }
+        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
+        if (activeRounds.length > 0) {
+            for (uint256 j = activeRounds.length - 1; ~j != 0;) {
+                if (activeRounds[j] < round) return activeRounds[j];
+                unchecked {
+                    --j;
                 }
             }
-            unchecked {
-                --i;
-            }
         }
+
         return 0;
     }
 
@@ -364,5 +325,21 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
                 D4AERC20(token).mint(address(this), roundReward);
             }
         }
+    }
+
+    function _distributeRoundReward(bytes32 daoId, uint256 amount, address token) internal {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        bytes32[] memory children = IPDProtocolReadable(address(this)).getDaoChildren(daoId);
+        uint256[] memory childrenDaoRatio = IPDProtocolReadable(address(this)).getDaoChildrenRatio(daoId);
+        for (uint256 i = 0; i < children.length;) {
+            address daoAssetPool = basicDaoInfo.daoAssetPool;
+            address desPool = IPDProtocolReadable(address(this)).getDaoAssetPool(children[i]);
+            unchecked {
+                ++i;
+            }
+        }
+        if (token == address(0)) { }
+        //address token =
     }
 }
