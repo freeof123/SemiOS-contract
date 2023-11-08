@@ -109,9 +109,11 @@ struct ContinuousDaoParam {
     uint256 dailyMintCap;
     //1.3add-------------------
     bytes32[] childrenDaoId;
-    uint256[] childrenDaoRatios;
-    uint256 redeemPoolRatio;
-    uint256 selfRewardRatio;
+    uint256[] childrenDaoRatiosERC20;
+    uint256[] childrenDaoRatiosETH;
+    uint256 redeemPoolRatioETH;
+    uint256 selfRewardRatioERC20;
+    uint256 selfRewardRatioETH;
     bool isAncestorDao;
     address daoToken;
     bool topUpMode;
@@ -174,4 +176,14 @@ struct AllRatioForFundingParam {
     uint256 minterETHRewardRatio;
     uint256 canvasCreatorETHRewardRatio;
     uint256 daoCreatorETHRewardRatio;
+}
+//1.3 add -------------------------
+
+struct SetChildrenParam {
+    bytes32[] childrenDaoId;
+    uint256[] erc20Ratios;
+    uint256[] ethRatios;
+    uint256 redeemPoolRatioETH;
+    uint256 selfRewardRatioERC20;
+    uint256 selfRewardRatioETH;
 }

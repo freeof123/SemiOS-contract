@@ -59,38 +59,6 @@ interface IPDCreateFunding {
         address daoAssetPool, address daoRedeemPool, address daoFundingPool, bool isThirdPartyToken
     );
 
-    // ============================== Write Functions =============================
-    // function createBasicDaoForFunding(
-    //     DaoMetadataParam calldata daoMetadataParam,
-    //     Whitelist memory whitelist,
-    //     Blacklist calldata blacklist,
-    //     DaoMintCapParam calldata daoMintCapParam,
-    //     TemplateParam calldata templateParam,
-    //     BasicDaoParam calldata basicDaoParam,
-    //     AllRatioForFundingParam calldata allRatioForFundingParam,
-    //     uint256 actionType
-    // )
-    //     external
-    //     payable
-    //     returns (bytes32 daoId);
-
-    // function createContinuousDaoForFunding(
-    //     bytes32 existDaoId,
-    //     DaoMetadataParam calldata daoMetadataParam,
-    //     Whitelist memory whitelist,
-    //     Blacklist calldata blacklist,
-    //     DaoMintCapParam calldata daoMintCapParam,
-    //     //DaoETHAndERC20SplitRatioParam calldata splitRatioParam,
-    //     TemplateParam calldata templateParam,
-    //     BasicDaoParam calldata basicDaoParam,
-    //     ContinuousDaoParam calldata continuousDaoParam,
-    //     AllRatioForFundingParam calldata allRatioForFundingParam,
-    //     uint256 actionType
-    // )
-    //     external
-    //     payable
-    //     returns (bytes32 daoId);
-
     function createDaoForFunding(
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,

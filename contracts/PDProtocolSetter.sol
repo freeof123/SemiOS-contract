@@ -8,7 +8,8 @@ import {
     Blacklist,
     SetDaoParam,
     NftMinterCapInfo,
-    AllRatioForFundingParam
+    AllRatioForFundingParam,
+    SetChildrenParam
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -254,44 +255,55 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     }
     // 1.3 add--------------------------------------
 
-    function setChildren(
-        bytes32 daoId,
-        bytes32[] calldata childrenDaoId,
-        uint256[] calldata ratios,
-        uint256 redeemPoolRatio,
-        uint256 selfRewardRatio
-    )
-        public
-    {
-        require(childrenDaoId.length == ratios.length, "invalid length");
+    function setChildren(bytes32 daoId, SetChildrenParam calldata vars) public {
+        require(vars.childrenDaoId.length == vars.erc20Ratios.length, "invalid length");
+        require(vars.childrenDaoId.length == vars.ethRatios.length, "invalid length");
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != address(this)) {
             revert NotDaoOwner();
         }
 
-        uint256 sum;
+        uint256 sumERC20;
+        uint256 sumETH;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         bytes32 ancestorDao = treeInfo.ancestor;
 
-        for (uint256 i = 0; i < childrenDaoId.length;) {
+        for (uint256 i = 0; i < vars.childrenDaoId.length;) {
             //if (!BasicDaoStorage.layout().basicDaoInfos[daoId].exist) revert NotDaoForFunding();
-            if (InheritTreeStorage.layout().inheritTreeInfos[childrenDaoId[i]].ancestor != ancestorDao) {
-                revert InvalidDaoAncestor(childrenDaoId[i]);
+            if (InheritTreeStorage.layout().inheritTreeInfos[vars.childrenDaoId[i]].ancestor != ancestorDao) {
+                revert InvalidDaoAncestor(vars.childrenDaoId[i]);
             }
 
-            sum += ratios[i];
+            sumERC20 += vars.erc20Ratios[i];
+            sumETH += vars.ethRatios[i];
             unchecked {
                 ++i;
             }
         }
-        sum += redeemPoolRatio;
-        sum += selfRewardRatio;
-        if (sum > BASIS_POINT) revert InvalidChildrenDaoRatio();
-        treeInfo.children = childrenDaoId;
-        treeInfo.childrenDaoRatios = ratios;
-        treeInfo.redeemPoolRatio = redeemPoolRatio;
-        treeInfo.selfRewardRatio = selfRewardRatio;
-        emit ChildrenSet(daoId, childrenDaoId, ratios, redeemPoolRatio, selfRewardRatio);
+        sumERC20 += vars.selfRewardRatioERC20;
+        sumETH += vars.redeemPoolRatioETH;
+        sumETH += vars.selfRewardRatioETH;
+        if (sumERC20 > BASIS_POINT) revert InvalidChildrenDaoRatio();
+        if (sumETH > BASIS_POINT) revert InvalidChildrenDaoRatio();
+
+        treeInfo.children = vars.childrenDaoId;
+        treeInfo.childrenDaoRatiosERC20 = vars.erc20Ratios;
+        treeInfo.childrenDaoRatiosETH = vars.ethRatios;
+
+        treeInfo.redeemPoolRatioETH = vars.redeemPoolRatioETH;
+        treeInfo.selfRewardRatioERC20 = vars.selfRewardRatioERC20;
+        treeInfo.selfRewardRatioETH = vars.selfRewardRatioETH;
+
+        emit ChildrenSet(
+            daoId,
+            vars.childrenDaoId,
+            vars.erc20Ratios,
+            vars.ethRatios,
+            vars.redeemPoolRatioETH,
+            vars.selfRewardRatioERC20,
+            vars.selfRewardRatioETH
+        );
     }
     //in PD1.3, we always use ratios w.r.t all 4 roles
 

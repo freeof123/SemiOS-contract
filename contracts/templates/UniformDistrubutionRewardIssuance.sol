@@ -333,7 +333,9 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         bytes32[] memory children = IPDProtocolReadable(address(this)).getDaoChildren(daoId);
-        uint256[] memory childrenDaoRatio = IPDProtocolReadable(address(this)).getDaoChildrenRatio(daoId);
+        uint256[] memory childrenDaoRatio = token == address(0)
+            ? IPDProtocolReadable(address(this)).getDaoChildrenRatiosETH(daoId)
+            : IPDProtocolReadable(address(this)).getDaoChildrenRatiosERC20(daoId);
         address daoAssetPool = basicDaoInfo.daoAssetPool;
         for (uint256 i = 0; i < children.length;) {
             address desPool = IPDProtocolReadable(address(this)).getDaoAssetPool(children[i]);
@@ -346,13 +348,18 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
                 ++i;
             }
         }
-        uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatio(daoId);
-        if (redeemPoolRatio > 0) {
-            D4AFeePool(payable(daoAssetPool)).transfer(
-                token, payable(daoInfo.daoFeePool), amount * redeemPoolRatio / BASIS_POINT
-            );
+
+        if (token == address(0)) {
+            uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatioETH(daoId);
+            if (redeemPoolRatio > 0) {
+                D4AFeePool(payable(daoAssetPool)).transfer(
+                    token, payable(daoInfo.daoFeePool), amount * redeemPoolRatio / BASIS_POINT
+                );
+            }
         }
-        uint256 selfRewardRatio = IPDProtocolReadable(address(this)).getDaoSelfRewardRatio(daoId);
+        uint256 selfRewardRatio = token == address(0)
+            ? IPDProtocolReadable(address(this)).getDaoSelfRewardRatioETH(daoId)
+            : IPDProtocolReadable(address(this)).getDaoSelfRewardRatioERC20(daoId);
         if (selfRewardRatio > 0) {
             uint256 selfRewardAmount = amount * selfRewardRatio / BASIS_POINT;
             D4AFeePool(payable(daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);

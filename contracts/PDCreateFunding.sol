@@ -27,7 +27,8 @@ import {
     SetRatioParam,
     TemplateParam,
     BasicDaoParam,
-    AllRatioForFundingParam
+    AllRatioForFundingParam,
+    SetChildrenParam
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -199,10 +200,14 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         //if (!continuousDaoParam.isAncestorDao) {
         IPDProtocolSetter(protocol).setChildren(
             daoId,
-            continuousDaoParam.childrenDaoId,
-            continuousDaoParam.childrenDaoRatios,
-            continuousDaoParam.redeemPoolRatio,
-            continuousDaoParam.selfRewardRatio
+            SetChildrenParam(
+                continuousDaoParam.childrenDaoId,
+                continuousDaoParam.childrenDaoRatiosERC20,
+                continuousDaoParam.childrenDaoRatiosETH,
+                continuousDaoParam.redeemPoolRatioETH,
+                continuousDaoParam.selfRewardRatioERC20,
+                continuousDaoParam.selfRewardRatioETH
+            )
         );
         //}
     }

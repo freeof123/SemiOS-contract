@@ -748,9 +748,11 @@ contract DeployHelper is Test {
         uint256 unifiedPrice;
         uint256 initTokenSupplyRatio;
         bytes32[] childrenDaoId;
-        uint256[] childrenDaoRatios;
-        uint256 redeemPoolRatio;
-        uint256 selfRewardRatio;
+        uint256[] childrenDaoRatiosERC20;
+        uint256[] childrenDaoRatiosETH;
+        uint256 redeemPoolRatioETH;
+        uint256 selfRewardRatioERC20;
+        uint256 selfRewardRatioETH;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -1063,9 +1065,11 @@ contract DeployHelper is Test {
             needMintableWork: needMintableWork,
             dailyMintCap: 100,
             childrenDaoId: createDaoParam.childrenDaoId,
-            childrenDaoRatios: createDaoParam.childrenDaoRatios,
-            redeemPoolRatio: createDaoParam.redeemPoolRatio,
-            selfRewardRatio: createDaoParam.selfRewardRatio,
+            childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
+            childrenDaoRatiosETH: createDaoParam.childrenDaoRatiosETH,
+            redeemPoolRatioETH: createDaoParam.redeemPoolRatioETH,
+            selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
+            selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
             isAncestorDao: false,
             daoToken: address(0),
             topUpMode: false
@@ -1165,9 +1169,11 @@ contract DeployHelper is Test {
             needMintableWork: needMintableWork,
             dailyMintCap: 100,
             childrenDaoId: createDaoParam.childrenDaoId,
-            childrenDaoRatios: createDaoParam.childrenDaoRatios,
-            redeemPoolRatio: createDaoParam.redeemPoolRatio,
-            selfRewardRatio: createDaoParam.selfRewardRatio,
+            childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
+            childrenDaoRatiosETH: createDaoParam.childrenDaoRatiosETH,
+            redeemPoolRatioETH: createDaoParam.redeemPoolRatioETH,
+            selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
+            selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
             isAncestorDao: isBaiscDao ? true : false,
             daoToken: address(0),
             topUpMode: topUpMode

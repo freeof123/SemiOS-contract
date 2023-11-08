@@ -131,17 +131,26 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return treeInfo.children;
     }
 
-    function getDaoChildrenRatio(bytes32 daoId) public view returns (uint256[] memory) {
+    function getDaoChildrenRatiosERC20(bytes32 daoId) public view returns (uint256[] memory) {
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
-        return treeInfo.childrenDaoRatios;
+        return treeInfo.childrenDaoRatiosERC20;
     }
 
-    function getDaoRedeemPoolRatio(bytes32 daoId) public view returns (uint256) {
-        return InheritTreeStorage.layout().inheritTreeInfos[daoId].redeemPoolRatio;
+    function getDaoChildrenRatiosETH(bytes32 daoId) public view returns (uint256[] memory) {
+        InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        return treeInfo.childrenDaoRatiosETH;
     }
 
-    function getDaoSelfRewardRatio(bytes32 daoId) public view returns (uint256) {
-        return InheritTreeStorage.layout().inheritTreeInfos[daoId].selfRewardRatio;
+    function getDaoRedeemPoolRatioETH(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].redeemPoolRatioETH;
+    }
+
+    function getDaoSelfRewardRatioERC20(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].selfRewardRatioERC20;
+    }
+
+    function getDaoSelfRewardRatioETH(bytes32 daoId) public view returns (uint256) {
+        return InheritTreeStorage.layout().inheritTreeInfos[daoId].selfRewardRatioETH;
     }
 
     function getDaoTopUpMode(bytes32 daoId) public view returns (bool) {

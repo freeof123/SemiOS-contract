@@ -8,9 +8,12 @@ library InheritTreeStorage {
         bytes32[] familyDaos;
         bytes32 ancestor;
         bool isAncestorDao;
-        uint256[] childrenDaoRatios;
-        uint256 redeemPoolRatio;
-        uint256 selfRewardRatio;
+        uint256[] childrenDaoRatiosERC20;
+        uint256[] childrenDaoRatiosETH;
+        //uint256 redeemPoolRatioERC20;//dao token 不会去到redeem pool
+        uint256 redeemPoolRatioETH;
+        uint256 selfRewardRatioERC20;
+        uint256 selfRewardRatioETH;
         //mint fee ratio
         uint256 canvasCreatorMintFeeRatio;
         uint256 assetPoolMintFeeRatio;
