@@ -388,6 +388,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             );
 
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
+            InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
             address fundingPool = _createFundingPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
         }

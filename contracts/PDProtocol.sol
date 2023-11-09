@@ -21,7 +21,8 @@ import {
     UserMintInfo,
     MintNftInfo,
     Whitelist,
-    NftMinterCapInfo
+    NftMinterCapInfo,
+    UpdateRewardParamFunding
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -50,6 +51,8 @@ import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
+
+import { IRewardTemplateFunding } from "./interface/IRewardTemplateFunding.sol";
 
 //import "forge-std/Test.sol";
 
@@ -778,34 +781,62 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(
-            DaoStorage.layout().daoInfos[daoId].rewardTemplateType
-        )].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.updateReward.selector,
-                UpdateRewardParam(
-                    daoId,
-                    canvasId,
-                    daoInfo.token,
-                    daoInfo.startRound,
-                    l.drb.currentRound(),
-                    daoInfo.mintableRound,
-                    daoFeeAmount,
-                    l.protocolERC20RatioInBps,
-                    ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
-                    ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
-                    ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
-                    canvasRebateRatioInBps,
-                    daoInfo.daoFeePool,
-                    zeroPrice
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14) {
+            (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(
+                DaoStorage.layout().daoInfos[daoId].rewardTemplateType
+            )].delegatecall(
+                abi.encodeWithSelector(
+                    IRewardTemplate.updateReward.selector,
+                    UpdateRewardParam(
+                        daoId,
+                        canvasId,
+                        daoInfo.token,
+                        daoInfo.startRound,
+                        l.drb.currentRound(),
+                        daoInfo.mintableRound,
+                        daoFeeAmount,
+                        l.protocolERC20RatioInBps,
+                        ID4AProtocolReadable(address(this)).getDaoCreatorERC20Ratio(daoId),
+                        ID4AProtocolReadable(address(this)).getCanvasCreatorERC20Ratio(daoId),
+                        ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId),
+                        canvasRebateRatioInBps,
+                        daoInfo.daoFeePool,
+                        zeroPrice
+                    )
                 )
-            )
-        );
-        if (!succ) {
-            /// @solidity memory-safe-assembly
-            assembly {
-                returndatacopy(0, 0, returndatasize())
-                revert(0, returndatasize())
+            );
+            if (!succ) {
+                /// @solidity memory-safe-assembly
+                assembly {
+                    returndatacopy(0, 0, returndatasize())
+                    revert(0, returndatasize())
+                }
+            }
+        } else {
+            (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(
+                DaoStorage.layout().daoInfos[daoId].rewardTemplateType
+            )].delegatecall(
+                abi.encodeWithSelector(
+                    IRewardTemplateFunding.updateRewardFunding.selector,
+                    UpdateRewardParamFunding(
+                        daoId,
+                        canvasId,
+                        daoInfo.token,
+                        daoInfo.startRound,
+                        l.drb.currentRound(),
+                        daoInfo.mintableRound,
+                        daoFeeAmount,
+                        daoInfo.daoFeePool,
+                        zeroPrice
+                    )
+                )
+            );
+            if (!succ) {
+                /// @solidity memory-safe-assembly
+                assembly {
+                    returndatacopy(0, 0, returndatasize())
+                    revert(0, returndatasize())
+                }
             }
         }
     }

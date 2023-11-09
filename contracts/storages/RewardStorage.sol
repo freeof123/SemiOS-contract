@@ -30,8 +30,15 @@ library RewardStorage {
         //1.3add ------------------------------------
         uint256[] activeRoundsFunding;
         mapping(uint256 round => bool distributed) roundDistributed;
-        mapping(uint256 ronud => uint256 amount) selfRoundReward;
-        uint256 circulateERC20Amount; //????here??
+        mapping(uint256 ronud => uint256 amount) selfRoundERC20Reward;
+        mapping(uint256 ronud => uint256 amount) selfRoundETHReward;
+        mapping(uint256 round => uint256 weight) protocolWeightsETH;
+        mapping(uint256 round => uint256 weight) daoCreatorWeightsETH;
+        mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeightsETH;
+        mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterWeightsETH;
+        uint256 daoCreatorClaimableRoundIndexFunding;
+        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexesFunding;
+        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexesFunding;
     }
 
     struct Layout {

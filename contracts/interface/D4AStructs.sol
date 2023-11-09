@@ -164,7 +164,7 @@ struct AllRatioForFundingParam {
     uint256 canvasCreatorMintFeeRatioFiatPrice;
     uint256 assetPoolMintFeeRatioFiatPrice;
     uint256 redeemPoolMintFeeRatioFiatPrice;
-    // add l.protocolMintFeeRatioInBps
+    // add l.protocolMintFeeRatioInBpsFiatPrice
 
     //erc20 reward ratio
     uint256 minterERC20RewardRatio;
@@ -186,4 +186,30 @@ struct SetChildrenParam {
     uint256 redeemPoolRatioETH;
     uint256 selfRewardRatioERC20;
     uint256 selfRewardRatioETH;
+}
+
+struct UpdateRewardParamFunding {
+    bytes32 daoId;
+    bytes32 canvasId;
+    address token;
+    uint256 startRound;
+    uint256 currentRound;
+    uint256 totalRound;
+    uint256 daoFeeAmount;
+    address daoFeePool;
+    bool zeroPrice;
+}
+
+struct SetDaoParamFunding {
+    bytes32 daoId;
+    uint256 nftMaxSupplyRank;
+    uint256 mintableRoundRank;
+    uint256 daoFloorPriceRank;
+    PriceTemplateType priceTemplateType;
+    uint256 nftPriceFactor;
+    uint256 dailyMintCap;
+    uint256 initialTokenSupply;
+    uint256 unifiedPrice;
+    SetChildrenParam setChildrenParam;
+    AllRatioForFundingParam allRatioForFundingParam;
 }

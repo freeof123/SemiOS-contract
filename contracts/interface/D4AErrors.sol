@@ -98,3 +98,7 @@ error NotAncestorDao();
 error NotDaoForFunding();
 
 error InvalidDaoAncestor(bytes32 childrenDaoId);
+
+error VersionDenied();
+
+error InvalidTemplate();

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
+import { UpdateRewardParamFunding } from "contracts/interface/D4AStructs.sol";
 
 interface IRewardTemplateFunding {
-    function updateRewardFunding(UpdateRewardParam memory param) external payable;
+    function updateRewardFunding(UpdateRewardParamFunding memory param) external payable;
 
     function claimDaoCreatorReward(
         bytes32 daoId,
@@ -26,8 +26,6 @@ interface IRewardTemplateFunding {
         external
         returns (uint256 claimableReward);
 
-    function issueLastRoundReward(bytes32 daoId, address token) external;
-
     function claimNftMinterReward(
         bytes32 daoId,
         address nftMinter,
@@ -36,5 +34,5 @@ interface IRewardTemplateFunding {
     )
         external
         returns (uint256 claimableReward);
-    //function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
+    function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
 }

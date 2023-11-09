@@ -9,7 +9,8 @@ import {
     SetDaoParam,
     NftMinterCapInfo,
     AllRatioForFundingParam,
-    SetChildrenParam
+    SetChildrenParam,
+    SetDaoParamFunding
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -38,13 +39,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked //todo
-        ) {
-            revert BasicDaoLocked();
-        }
+        _checkSetAbility(daoId, true, true);
 
         super.setMintCapAndPermission(
             daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, whitelist, blacklist, unblacklist
@@ -53,11 +48,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
     // 修改Dao参数方法
     function setDaoParams(SetDaoParam memory vars) public override(ID4AProtocolSetter, D4AProtocolSetter) {
-        if (
-            DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[vars.daoId].unlocked
-        ) revert BasicDaoLocked();
-
+        _checkSetAbility(vars.daoId, true, false);
         super.setDaoParams(vars);
     }
 
@@ -68,10 +59,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) revert BasicDaoLocked();
+        _checkSetAbility(daoId, true, true);
 
         super.setDaoNftMaxSupply(daoId, newMaxSupply);
     }
@@ -83,10 +71,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) revert BasicDaoLocked();
+        _checkSetAbility(daoId, true, true);
 
         super.setDaoMintableRound(daoId, newMintableRound);
     }
@@ -98,10 +83,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) revert BasicDaoLocked();
+        _checkSetAbility(daoId, true, true);
 
         super.setDaoFloorPrice(daoId, newFloorPrice);
     }
@@ -114,11 +96,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) revert BasicDaoLocked();
-
+        _checkSetAbility(daoId, true, true);
         super.setDaoPriceTemplate(daoId, priceTemplateType, nftPriceFactor);
     }
 
@@ -129,14 +107,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
-
+        _checkSetAbility(daoId, false, true);
         super.setTemplate(daoId, templateParam);
     }
 
@@ -151,13 +122,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
+        _checkSetAbility(daoId, true, false);
 
         super.setRatio(
             daoId,
@@ -178,6 +143,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
         bytes32 daoId = D4AProtocolReadable(address(this)).getCanvasDaoId(canvasId);
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version > 12) revert VersionDenied();
+
         if (
             DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
                 && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
@@ -193,13 +160,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
+        _checkSetAbility(daoId, true, true);
 
         super.setDailyMintCap(daoId, dailyMintCap);
     }
@@ -211,13 +172,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
+        _checkSetAbility(daoId, true, false);
         super.setDaoTokenSupply(daoId, addedDaoToken);
     }
 
@@ -229,13 +184,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO && msg.sender != l.createProjectProxy
-                && msg.sender != address(this) && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) {
-            revert BasicDaoLocked();
-        }
+        _checkSetAbility(daoId, true, true);
         super.setWhitelistMintCap(daoId, whitelistUser, whitelistUserMintCap);
     }
 
@@ -246,23 +195,64 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        if (
-            DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-        ) revert BasicDaoLocked();
-
+        _checkSetAbility(daoId, true, true);
         super.setDaoUnifiedPrice(daoId, newUnifiedPrice);
     }
     // 1.3 add--------------------------------------
+    // check set ability, protocol always can set
+
+    function _checkSetAbility(bytes32 daoId, bool ownerSet, bool v13set) internal view {
+        BasicDaoStorage.BasicDaoInfo memory basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+
+        if (basicDaoInfo.version < 12) {
+            if (msg.sender == settingsStorage.createProjectProxy || msg.sender == address(this)) {
+                return;
+            }
+            if (
+                DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                    && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+            ) revert BasicDaoLocked();
+            if (ownerSet && msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)) return;
+        } else {
+            if (!v13set) revert VersionDenied();
+            if (msg.sender == address(this)) return;
+            bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+            if (
+                ownerSet
+                    && (
+                        msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
+                            || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)
+                    )
+            ) return;
+        }
+        revert NotDaoOwner();
+    }
+
+    function setDaoParamsFunding(SetDaoParamFunding calldata vars) public {
+        _checkSetAbility(vars.daoId, true, true);
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
+        if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
+            setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
+        } //1
+        setDaoMintableRound(vars.daoId, settingsStorage.mintableRounds[vars.mintableRoundRank]); //2
+        setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
+        setDailyMintCap(vars.daoId, vars.dailyMintCap); //4
+        setDaoFloorPrice(
+            vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : settingsStorage.daoFloorPrices[vars.daoFloorPriceRank]
+        ); //5
+        setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
+        setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor); //6
+        setChildren(vars.daoId, vars.setChildrenParam); //7
+        setRatioForFunding(vars.daoId, vars.allRatioForFundingParam); // 8 mint fee , 9 reward roles ratio
+    }
 
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) public {
         require(vars.childrenDaoId.length == vars.erc20Ratios.length, "invalid length");
         require(vars.childrenDaoId.length == vars.ethRatios.length, "invalid length");
 
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != address(this)) {
-            revert NotDaoOwner();
-        }
+        _checkSetAbility(daoId, true, true);
 
         uint256 sumERC20;
         uint256 sumETH;
@@ -274,7 +264,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             if (InheritTreeStorage.layout().inheritTreeInfos[vars.childrenDaoId[i]].ancestor != ancestorDao) {
                 revert InvalidDaoAncestor(vars.childrenDaoId[i]);
             }
-
             sumERC20 += vars.erc20Ratios[i];
             sumETH += vars.ethRatios[i];
             unchecked {
@@ -305,13 +294,12 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             vars.selfRewardRatioETH
         );
     }
+
     //in PD1.3, we always use ratios w.r.t all 4 roles
 
     function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != address(this)) {
-            revert NotDaoOwner();
-        }
+        _checkSetAbility(daoId, true, true);
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         if (
             vars.canvasCreatorMintFeeRatio + vars.assetPoolMintFeeRatio + vars.redeemPoolMintFeeRatio
@@ -354,14 +342,13 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        bytes32 basicDaoId = treeInfo.ancestor;
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[basicDaoId];
+        bytes32 ancestor = treeInfo.ancestor;
+        address daoToken = DaoStorage.layout().daoInfos[ancestor].token;
 
-        if (msg.sender != settingsStorage.ownerProxy.ownerOf(basicDaoId)) revert NotDaoOwner();
+        if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) revert NotDaoOwner();
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
-        if (!InheritTreeStorage.layout().inheritTreeInfos[basicDaoId].isAncestorDao) revert NotAncestorDao();
+        if (!InheritTreeStorage.layout().inheritTreeInfos[ancestor].isAncestorDao) revert NotAncestorDao();
 
-        address daoToken = daoInfo.token;
         address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;
         D4AERC20(daoToken).mint(daoAssetPool, initialTokenSupply);
         if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();

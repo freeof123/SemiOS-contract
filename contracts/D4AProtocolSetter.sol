@@ -42,12 +42,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         virtual
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
-                && msg.sender != address(this)
-        ) {
-            revert NotDaoOwner();
-        }
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
         daoMintInfo.daoMintCap = daoMintCap;
         address daoNft = DaoStorage.layout().daoInfos[daoId].nft;
@@ -92,12 +86,9 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     // 修改Dao参数
     function setDaoParams(SetDaoParam memory vars) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(vars.daoId)) revert NotDaoOwner();
-
-        setDaoNftMaxSupply(vars.daoId, l.nftMaxSupplies[vars.nftMaxSupplyRank]);
-        setDaoMintableRound(vars.daoId, l.mintableRounds[vars.mintableRoundRank]);
-        setDaoFloorPrice(vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[vars.daoFloorPriceRank]);
-        setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor);
+        setDaoNftMaxSupply(vars.daoId, l.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
+        setDaoFloorPrice(vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : l.daoFloorPrices[vars.daoFloorPriceRank]); //5
+        setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor); //6
         setRatio(
             vars.daoId,
             vars.daoCreatorERC20Ratio,
@@ -105,16 +96,18 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             vars.nftMinterERC20Ratio,
             vars.daoFeePoolETHRatio,
             vars.daoFeePoolETHRatioFlatPrice
-        );
-        setDailyMintCap(vars.daoId, vars.dailyMintCap);
-        setDaoTokenSupply(vars.daoId, vars.addedDaoToken);
+        ); // 8 mint fee , 9 reward roles ratio
+        setDailyMintCap(vars.daoId, vars.dailyMintCap); //4
+
+        setDaoTokenSupply(vars.daoId, vars.addedDaoToken); //1
+        setDaoMintableRound(vars.daoId, l.mintableRounds[vars.mintableRoundRank]); //2
+
+        //7:set children 7
+
         setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
-
         DaoStorage.layout().daoInfos[daoId].nftMaxSupply = newMaxSupply;
 
         emit DaoNftMaxSupplySet(daoId, newMaxSupply);
@@ -123,10 +116,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) public virtual {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (daoInfo.mintableRound == newMintableRound) return;
-
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
-
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         RewardStorage.RewardCheckpoint storage rewardCheckpoint =
             rewardInfo.rewardCheckpoints[rewardInfo.rewardCheckpoints.length - 1];
@@ -179,10 +169,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public virtual {
         PriceStorage.Layout storage priceStorage = PriceStorage.layout();
         if (priceStorage.daoFloorPrices[daoId] == newFloorPrice) return;
-
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
-
         bytes32[] memory canvases = DaoStorage.layout().daoInfos[daoId].canvases;
         uint256 length = canvases.length;
         for (uint256 i; i < length;) {
@@ -210,9 +197,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         public
         virtual
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (msg.sender != l.ownerProxy.ownerOf(daoId)) revert NotDaoOwner();
-
         if (priceTemplateType == PriceTemplateType.EXPONENTIAL_PRICE_VARIATION) require(nftPriceFactor >= 10_000);
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
@@ -233,6 +217,12 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoInfo.priceTemplateType = templateParam.priceTemplateType;
         daoInfo.nftPriceFactor = templateParam.priceFactor;
         daoInfo.rewardTemplateType = templateParam.rewardTemplateType;
+
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
+            if (uint256(templateParam.rewardTemplateType) > 1) revert InvalidTemplate();
+        } else {
+            if (uint256(templateParam.rewardTemplateType) < 2) revert InvalidTemplate();
+        }
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
@@ -294,7 +284,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) public payable virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (msg.sender != l.ownerProxy.ownerOf(canvasId)) revert NotCanvasOwner();
-
         require(newCanvasRebateRatioInBps <= 10_000);
         CanvasStorage.layout().canvasInfos[canvasId].canvasRebateRatioInBps = newCanvasRebateRatioInBps;
 
@@ -302,13 +291,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     function setDailyMintCap(bytes32 daoId, uint256 dailyMintCap) public virtual {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
-                && msg.sender != address(this)
-        ) {
-            revert NotDaoOwner();
-        }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].dailyMintCap = dailyMintCap;
 
@@ -317,14 +299,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
-                && msg.sender != address(this)
-        ) {
-            revert NotDaoOwner();
-        }
         if (addedDaoToken == 0) return;
-
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
         // 追加tokenMaxSupply并判断总数小于10亿
@@ -343,14 +318,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) public virtual {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
-                && msg.sender != address(this)
-        ) {
-            revert NotDaoOwner();
-        }
-
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
 
         daoMintInfo.userMintInfos[whitelistUser].mintCap = whitelistUserMintCap;
@@ -359,13 +326,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     }
 
     function setDaoUnifiedPrice(bytes32 daoId, uint256 newUnifiedPrice) public virtual {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.createProjectProxy && msg.sender != l.ownerProxy.ownerOf(daoId)
-                && msg.sender != address(this)
-        ) {
-            revert NotDaoOwner();
-        }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = newUnifiedPrice;
         emit DaoUnifiedPriceSet(daoId, ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(daoId));

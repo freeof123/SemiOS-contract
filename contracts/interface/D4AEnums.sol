@@ -8,7 +8,8 @@ enum PriceTemplateType {
 
 enum RewardTemplateType {
     LINEAR_REWARD_ISSUANCE,
-    EXPONENTIAL_REWARD_ISSUANCE
+    EXPONENTIAL_REWARD_ISSUANCE,
+    UNIFORM_DISTRIBUTION_REWARD
 }
 
 enum TemplateChoice {

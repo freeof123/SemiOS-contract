@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 library PoolStorage {
     struct PoolInfo {
         mapping(uint256 round => uint256 totalWeight) roundTotalETH;
+        uint256 circulateERC20Amount; //????here??
     }
 
     struct Layout {
