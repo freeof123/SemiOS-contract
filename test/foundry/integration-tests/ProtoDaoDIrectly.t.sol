@@ -170,6 +170,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.selfRewardRatioETH = 3500;
 
         param.noPermission = true;
+        param.mintableRound = 10;
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
@@ -185,6 +186,11 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator3.key,
             nftMinter.addr
         );
+        //10_000_000 ether - 900_000;
+        address assetPool3 = protocol.getDaoAssetPool(subDaoId2);
+        address token = protocol.getDaoToken(subDaoId2);
+        assertEq(token, protocol.getDaoToken(daoId));
+        console2.log(IERC20(token).balanceOf(assetPool3));
     }
 
     // ==============================================================================
