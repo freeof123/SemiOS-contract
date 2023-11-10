@@ -133,21 +133,38 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(protocol.getDaoFeePool(daoId).balance, 0.01 ether * 7000 / 10_000);
     }
 
-    // ==============================================================================
+    //==============================================================================
 
-    // function test_PDCreateFunding_createContinuousDAO() public {
-    //     DeployHelper.CreateDaoParam memory param;
-    //     param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-    //     bytes32 existDaoId = bytes32(0);
-    //     bool isBasicDao = true;
-    //     bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, true, 0, isBasicDao);
+    function test_PDCreateFunding_createContinuousDAO() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 existDaoId = bytes32(0);
+        bool isBasicDao = true;
+        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, true, 0, isBasicDao, false);
 
-    //     param.daoUri = "continuous dao uri";
-    //     param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-    //     isBasicDao = false;
+        param.daoUri = "continuous dao uri";
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        isBasicDao = false;
+        bytes32 subDaoId = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao, false);
 
-    //     bytes32 subDaoId = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao);
-    // }
+        param.daoUri = "continuous dao uri2";
+        param.canvasId = keccak256(abi.encode(daoCreator3.addr, block.timestamp));
+        isBasicDao = false;
+        param.childrenDaoId = new bytes32[](2);
+        param.childrenDaoId[0] = daoId;
+        param.childrenDaoId[1] = subDaoId;
+        param.childrenDaoRatiosERC20 = new uint256[](2);
+        param.childrenDaoRatiosERC20[0] = 4000;
+        param.childrenDaoRatiosERC20[1] = 3000;
+        param.childrenDaoRatiosETH = new uint256[](2);
+        param.childrenDaoRatiosETH[0] = 1000;
+        param.childrenDaoRatiosETH[1] = 2000;
+        param.redeemPoolRatioETH = 3000;
+        param.selfRewardRatioERC20 = 2000;
+        param.selfRewardRatioETH = 3500;
+
+        bytes32 subDaoId2 = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao, false);
+    }
 
     // ==============================================================================
 
