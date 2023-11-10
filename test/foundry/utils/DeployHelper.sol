@@ -750,12 +750,19 @@ contract DeployHelper is Test {
         uint256 unifiedPrice;
         uint256 initTokenSupplyRatio;
         //1.3add---------------------------------------
+        bytes32 existDaoId;
+        bool needMintableWork;
+        bool uniPriceModeOff;
+        uint256 reserveNftNumber;
+        bool isBasicDao;
+        bool topUpMode;
         bytes32[] childrenDaoId;
         uint256[] childrenDaoRatiosERC20;
         uint256[] childrenDaoRatiosETH;
         uint256 redeemPoolRatioETH;
         uint256 selfRewardRatioERC20;
         uint256 selfRewardRatioETH;
+        bool noPermission;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -1002,22 +1009,13 @@ contract DeployHelper is Test {
     }
 
     // ! here
-    function _createDaoForFunding(
-        CreateDaoParam memory createDaoParam,
-        bytes32 existDaoId,
-        bool needMintableWork,
-        bool uniPriceModeOff,
-        uint256 reserveNftNumber,
-        bool isBaiscDao,
-        bool topUpMode
-    )
-        internal
-        returns (bytes32 daoId)
-    {
+    function _createDaoForFunding(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
         startHoax(daoCreator.addr);
 
         DaoMintCapParam memory daoMintCapParam;
-        {
+        CreateContinuousDaoParam memory vars;
+        bytes32 minterMerkleRoot;
+        if (!createDaoParam.noPermission) {
             uint256 length = createDaoParam.minters.length;
             daoMintCapParam.userMintCapParams = new UserMintCapParam[](length + 1);
             for (uint256 i; i < length;) {
@@ -1030,14 +1028,14 @@ contract DeployHelper is Test {
             daoMintCapParam.userMintCapParams[length].minter = daoCreator.addr;
             daoMintCapParam.userMintCapParams[length].mintCap = 5;
             daoMintCapParam.daoMintCap = uint32(createDaoParam.mintCap);
+            address[] memory minters = new address[](1);
+            minters[0] = daoCreator.addr;
+            minterMerkleRoot =
+                createDaoParam.minterMerkleRoot == bytes32(0) ? getMerkleRoot(minters) : createDaoParam.minterMerkleRoot;
+            vars.nftMinterCapInfo = new NftMinterCapInfo[](1);
+            vars.nftMinterCapInfo[0] = NftMinterCapInfo(address(0), 5);
         }
-
-        address[] memory minters = new address[](1);
-        minters[0] = daoCreator.addr;
-        createDaoParam.minterMerkleRoot = getMerkleRoot(minters);
-
-        CreateContinuousDaoParam memory vars;
-        vars.existDaoId = existDaoId;
+        vars.existDaoId = createDaoParam.existDaoId;
         vars.daoMetadataParam = DaoMetadataParam({
             startDrb: drb.currentRound(),
             mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
@@ -1048,7 +1046,7 @@ contract DeployHelper is Test {
             projectIndex: 0
         });
         vars.whitelist = Whitelist({
-            minterMerkleRoot: createDaoParam.minterMerkleRoot,
+            minterMerkleRoot: minterMerkleRoot,
             minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
             canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
             canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
@@ -1057,8 +1055,7 @@ contract DeployHelper is Test {
             minterAccounts: createDaoParam.minterAccounts,
             canvasCreatorAccounts: createDaoParam.canvasCreatorAccounts
         });
-        vars.nftMinterCapInfo = new NftMinterCapInfo[](1);
-        vars.nftMinterCapInfo[0] = NftMinterCapInfo(address(0), 5);
+
         vars.templateParam = TemplateParam({
             priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
             priceFactor: 20_000,
@@ -1073,10 +1070,10 @@ contract DeployHelper is Test {
             daoName: "test dao"
         });
         vars.continuousDaoParam = ContinuousDaoParam({
-            reserveNftNumber: reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
-            unifiedPriceModeOff: uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
+            reserveNftNumber: createDaoParam.reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
+            unifiedPriceModeOff: createDaoParam.uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
-            needMintableWork: needMintableWork,
+            needMintableWork: createDaoParam.needMintableWork,
             dailyMintCap: 100,
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
@@ -1084,9 +1081,9 @@ contract DeployHelper is Test {
             redeemPoolRatioETH: createDaoParam.redeemPoolRatioETH,
             selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
             selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
-            isAncestorDao: isBaiscDao ? true : false,
+            isAncestorDao: createDaoParam.isBasicDao ? true : false,
             daoToken: address(0),
-            topUpMode: topUpMode
+            topUpMode: createDaoParam.topUpMode
         });
 
         vars.allRatioForFundingParam = AllRatioForFundingParam({

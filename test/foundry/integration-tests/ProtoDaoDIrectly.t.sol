@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
 import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
-import { ExceedMinterMaxMintAmount } from "contracts/interface/D4AErrors.sol";
+import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D4AErrors.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
@@ -21,11 +21,11 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createBasicDAO() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 existDaoId = bytes32(0);
-        bool isBasicDao = true;
-        bool uniPriceModeOff = true;
-        bool topUpMode = false;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.uniPriceModeOff = true;
+
+        bytes32 daoId = super._createDaoForFunding(param);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -60,11 +60,10 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createBasicDAO_OpenUnifiedPriceWithETH() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 existDaoId = bytes32(0);
-        bool isBasicDao = true;
-        bool uniPriceModeOff = false;
-        bool topUpMode = false;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+
+        bytes32 daoId = super._createDaoForFunding(param);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -99,11 +98,10 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createBasicDAO_OpenUnifiedModeWithZeroETH() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 existDaoId = bytes32(0);
-        bool isBasicDao = true;
-        bool uniPriceModeOff = true;
-        bool topUpMode = false;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, uniPriceModeOff, 0, isBasicDao, topUpMode);
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.uniPriceModeOff = true;
+        bytes32 daoId = super._createDaoForFunding(param);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -138,18 +136,26 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 existDaoId = bytes32(0);
-        bool isBasicDao = true;
-        bytes32 daoId = super._createDaoForFunding(param, existDaoId, false, true, 0, isBasicDao, false);
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        bytes32 daoId = super._createDaoForFunding(param);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        isBasicDao = false;
-        bytes32 subDaoId = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao, false);
+        bytes32 canvasId2 = param.canvasId;
+
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+
+        bytes32 subDaoId = super._createDaoForFunding(param);
 
         param.daoUri = "continuous dao uri2";
         param.canvasId = keccak256(abi.encode(daoCreator3.addr, block.timestamp));
-        isBasicDao = false;
+        bytes32 canvasId3 = param.canvasId;
+
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
         param.childrenDaoId = new bytes32[](2);
         param.childrenDaoId[0] = daoId;
         param.childrenDaoId[1] = subDaoId;
@@ -163,7 +169,22 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.selfRewardRatioERC20 = 2000;
         param.selfRewardRatioETH = 3500;
 
-        bytes32 subDaoId2 = super._createDaoForFunding(param, daoId, false, true, 0, isBasicDao, false);
+        param.noPermission = true;
+
+        bytes32 subDaoId2 = super._createDaoForFunding(param);
+        hoax(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
+        uint256 flatPrice = 0.01 ether;
+        super._mintNftDaoFunding(
+            subDaoId2,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(subDaoId2)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            flatPrice,
+            daoCreator3.key,
+            nftMinter.addr
+        );
     }
 
     // ==============================================================================

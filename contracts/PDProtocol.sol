@@ -569,6 +569,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
 
         Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
+
         bool isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0
             && DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length == 0;
 
