@@ -220,18 +220,17 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
             if (uint256(templateParam.rewardTemplateType) > 1) revert InvalidTemplate();
+            RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+            rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
+            rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
+
+            (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+                abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, 0)
+            );
+            require(succ);
         } else {
             if (uint256(templateParam.rewardTemplateType) < 2) revert InvalidTemplate();
         }
-
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
-        rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
-
-        (bool succ,) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(IRewardTemplate.setRewardCheckpoint.selector, daoId, 0, 0)
-        );
-        require(succ);
 
         emit DaoTemplateSet(daoId, templateParam);
     }

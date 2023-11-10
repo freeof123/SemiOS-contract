@@ -29,7 +29,6 @@ library RewardStorage {
         uint256 canvasCreatorERC20RatioInBps;
         //1.3add ------------------------------------
         uint256[] activeRoundsFunding;
-        mapping(uint256 round => bool distributed) roundDistributed;
         mapping(uint256 ronud => uint256 amount) selfRoundERC20Reward;
         mapping(uint256 ronud => uint256 amount) selfRoundETHReward;
         mapping(uint256 round => uint256 weight) protocolWeightsETH;

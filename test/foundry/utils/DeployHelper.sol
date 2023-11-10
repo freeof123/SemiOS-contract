@@ -66,6 +66,8 @@ import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.s
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
+
+import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
 import { PDCreateFunding } from "contracts/PDCreateFunding.sol";
 
@@ -103,6 +105,7 @@ contract DeployHelper is Test {
     ExponentialPriceVariation public exponentialPriceVariation;
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
+    UniformDistributionRewardIssuance public uniformDistributionRewardIssuance;
     MintNftSigUtils public mintNftSigUtils;
     PDGrant public grant;
     PDCreateFunding public pdCreateFunding;
@@ -586,6 +589,14 @@ contract DeployHelper is Test {
             address(exponentialRewardIssuance)
         );
         vm.label(address(exponentialRewardIssuance), "Exponential Reward Issuance");
+
+        uniformDistributionRewardIssuance = new UniformDistributionRewardIssuance();
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.REWARD,
+            uint8(RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD),
+            address(uniformDistributionRewardIssuance)
+        );
+        vm.label(address(exponentialRewardIssuance), "Uniform Distribution Reward Issuance");
     }
 
     function _initSettings() internal prank(protocolRoleMember.addr) {

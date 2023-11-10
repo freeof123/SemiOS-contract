@@ -31,14 +31,15 @@ import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 //import "forge-std/Test.sol";
 
-contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
+contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
     function updateRewardFunding(UpdateRewardParamFunding memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
 
-        uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
-        if (remainingRound == 0) revert ExceedMaxMintableRound();
-        if (!rewardInfo.roundDistributed[param.currentRound]) {
+        if (activeRounds.length == 0 || activeRounds[activeRounds.length - 1] != param.currentRound) {
+            uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
+            if (remainingRound == 0) revert ExceedMaxMintableRound();
             uint256 distributeAmount = getDaoCurrentRoundDistributeAmount(
                 param.daoId, param.token, param.startRound, param.currentRound, remainingRound
             );
@@ -49,10 +50,6 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
                 );
                 _distributeRoundReward(param.daoId, distributeAmount, address(0), param.currentRound);
             }
-            rewardInfo.roundDistributed[param.currentRound] = true;
-        }
-        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
-        if (activeRounds.length == 0 || activeRounds[activeRounds.length - 1] != param.currentRound) {
             activeRounds.push(param.currentRound);
         }
 

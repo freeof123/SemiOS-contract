@@ -186,11 +186,17 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator3.key,
             nftMinter.addr
         );
-        //10_000_000 ether - 900_000;
+        //10_000_000 ether - 900_000 ether;
         address assetPool3 = protocol.getDaoAssetPool(subDaoId2);
+        address assetPool1 = protocol.getDaoAssetPool(daoId);
+        address assetPool2 = protocol.getDaoAssetPool(subDaoId);
+
         address token = protocol.getDaoToken(subDaoId2);
         assertEq(token, protocol.getDaoToken(daoId));
-        console2.log(IERC20(token).balanceOf(assetPool3));
+        assertEq(IERC20(token).balanceOf(assetPool3), 10_000_000 ether - 900_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool1), 50_000_000 ether + 400_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool2), 300_000 ether);
+        assertEq(IERC20(token).balanceOf(address(protocol)), 200_000 ether);
     }
 
     // ==============================================================================

@@ -144,6 +144,14 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
 
+        // todo: deploy new templete, set this template,
+        // in deployhelper:new UniformDistributionRewardIssuance();
+        // D4ASettings(address(protocol)).setTemplateAddress(
+        //     TemplateChoice.REWARD,
+        //     uint8(RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD),
+        //     address(uniformDistributionRewardIssuance)
+        // );
+
         // pdProtocol_proxy.initialize();
 
         // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
