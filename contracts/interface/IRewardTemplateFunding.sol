@@ -14,7 +14,12 @@ interface IRewardTemplateFunding {
         address token
     )
         external
-        returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward);
+        returns (
+            uint256 protocolClaimableERC20Reward,
+            uint256 daoCreatorClaimableERC20Reward,
+            uint256 protocolClaimableETHReward,
+            uint256 daoCreatorClaimableETHReward
+        );
 
     function claimCanvasCreatorReward(
         bytes32 daoId,
@@ -24,7 +29,7 @@ interface IRewardTemplateFunding {
         address token
     )
         external
-        returns (uint256 claimableReward);
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
 
     function claimNftMinterReward(
         bytes32 daoId,
@@ -33,6 +38,6 @@ interface IRewardTemplateFunding {
         address token
     )
         external
-        returns (uint256 claimableReward);
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
     function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
 }

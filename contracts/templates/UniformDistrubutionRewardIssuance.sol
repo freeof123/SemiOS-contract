@@ -129,6 +129,27 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         address token
     )
         public
+        returns (
+            uint256 protocolClaimableERC20Reward,
+            uint256 daoCreatorClaimableERC20Reward,
+            uint256 protocolClaimableETHReward,
+            uint256 daoCreatorClaimableETHReward
+        )
+    {
+        (protocolClaimableERC20Reward, daoCreatorClaimableERC20Reward) =
+            _claimDaoCreatorReward(daoId, protocolFeePool, daoCreator, currentRound, token);
+        (protocolClaimableETHReward, daoCreatorClaimableETHReward) =
+            _claimDaoCreatorReward(daoId, protocolFeePool, daoCreator, currentRound, address(0));
+    }
+
+    function _claimDaoCreatorReward(
+        bytes32 daoId,
+        address protocolFeePool,
+        address daoCreator,
+        uint256 currentRound,
+        address token
+    )
+        internal
         returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
@@ -166,6 +187,20 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         address token
     )
         public
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
+    {
+        claimableERC20Reward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, token);
+        claimableETHReward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, address(0));
+    }
+
+    function _claimCanvasCreatorReward(
+        bytes32 daoId,
+        bytes32 canvasId,
+        address canvasCreator,
+        uint256 currentRound,
+        address token
+    )
+        internal
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
@@ -198,6 +233,19 @@ contract UniformDistribuctionRewardIssuance is IRewardTemplateFunding {
         address token
     )
         public
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
+    {
+        claimableERC20Reward = _claimNftMinterReward(daoId, nftMinter, currentRound, token);
+        claimableETHReward = _claimNftMinterReward(daoId, nftMinter, currentRound, address(0));
+    }
+
+    function _claimNftMinterReward(
+        bytes32 daoId,
+        address nftMinter,
+        uint256 currentRound,
+        address token
+    )
+        internal
         returns (uint256 claimableReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];

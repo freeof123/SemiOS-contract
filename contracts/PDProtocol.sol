@@ -309,6 +309,32 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         emit D4AClaimProjectERC20Reward(daoId, daoInfo.token, daoCreatorReward);
     }
 
+    function claimDaoCreatorRewardFunding(bytes32 daoId)
+        public
+        nonReentrant
+        returns (uint256 daoCreatorERC20Reward, uint256 daoCreatorETHReward)
+    {
+        _checkPauseStatus();
+        _checkPauseStatus(daoId);
+        _checkDaoExist(daoId);
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplateFunding.claimDaoCreatorReward.selector,
+                daoId,
+                l.protocolFeePool,
+                l.ownerProxy.ownerOf(daoId),
+                l.drb.currentRound(),
+                daoInfo.token
+            )
+        );
+        require(succ);
+        (, daoCreatorERC20Reward,, daoCreatorETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
+
+        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoCreatorERC20Reward, daoCreatorETHReward);
+    }
+
     function claimCanvasReward(bytes32 canvasId) public nonReentrant returns (uint256) {
         _checkPauseStatus();
         _checkPauseStatus(canvasId);
@@ -337,6 +363,36 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return amount;
     }
 
+    function claimCanvasRewardFunding(bytes32 canvasId)
+        public
+        nonReentrant
+        returns (uint256 canvasERC20Reward, uint256 canvasETHReward)
+    {
+        _checkPauseStatus();
+        _checkPauseStatus(canvasId);
+        _checkCanvasExist(canvasId);
+        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
+        _checkDaoExist(daoId);
+        _checkPauseStatus(daoId);
+
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplateFunding.claimCanvasCreatorReward.selector,
+                daoId,
+                canvasId,
+                l.ownerProxy.ownerOf(canvasId),
+                l.drb.currentRound(),
+                daoInfo.token
+            )
+        );
+        require(succ);
+        (canvasERC20Reward, canvasETHReward) = abi.decode(data, (uint256, uint256));
+
+        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasERC20Reward, canvasETHReward);
+    }
+
     function claimNftMinterReward(bytes32 daoId, address minter) public nonReentrant returns (uint256) {
         _checkPauseStatus();
         _checkDaoExist(daoId);
@@ -356,9 +412,34 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return amount;
     }
 
+    function claimNftMinterRewardFunding(
+        bytes32 daoId,
+        address minter
+    )
+        public
+        nonReentrant
+        returns (uint256 minterERC20Reward, uint256 minterETHReward)
+    {
+        _checkPauseStatus();
+        _checkDaoExist(daoId);
+        _checkPauseStatus(daoId);
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplateFunding.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
+            )
+        );
+        require(succ);
+        (minterERC20Reward, minterETHReward) = abi.decode(data, (uint256, uint256));
+
+        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+    }
+
     struct ExchangeERC20ToETHLocalVars {
         uint256 tokenCirculation;
         uint256 tokenAmount;
+        uint256 version;
     }
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 tokenAmount, address to) public nonReentrant returns (uint256) {
@@ -373,6 +454,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         D4AERC20(token).mint(daoFeePool, tokenAmount);
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        //for version 1.3, rewardIssuePendingRound is always 0
         if (
             rewardInfo.rewardIssuePendingRound != 0
                 && rewardInfo.rewardIssuePendingRound < SettingsStorage.layout().drb.currentRound()
@@ -385,7 +467,13 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         }
 
         ExchangeERC20ToETHLocalVars memory vars;
-        vars.tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
+        vars.version = BasicDaoStorage.layout().basicDaoInfos[daoId].version;
+        if (vars.version < 12) {
+            vars.tokenCirculation = D4AERC20(token).totalSupply() + tokenAmount - D4AERC20(token).balanceOf(daoFeePool);
+        } else {
+            vars.tokenCirculation = PoolStorage.layout().poolInfos[daoFeePool].circulateERC20Amount + tokenAmount
+                - D4AERC20(token).balanceOf(daoFeePool);
+        }
 
         if (vars.tokenCirculation == 0) return 0;
 
@@ -410,7 +498,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 }
             }
         }
-
+        //for version 1.3, roundTotalETH always 0;
         uint256 availableETH = daoFeePool.balance
             - PoolStorage.layout().poolInfos[daoFeePool].roundTotalETH[SettingsStorage.layout().drb.currentRound()];
 
@@ -424,6 +512,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         return ethAmount;
     }
+
+    function exchangeERC20ToETHFunding() public { }
 
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
@@ -781,7 +871,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14) {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
             (bool succ,) = SettingsStorage.layout().rewardTemplates[uint8(
                 DaoStorage.layout().daoInfos[daoId].rewardTemplateType
             )].delegatecall(

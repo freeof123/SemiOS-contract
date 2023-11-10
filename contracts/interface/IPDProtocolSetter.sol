@@ -9,7 +9,8 @@ import {
     SetDaoParam,
     NftMinterCapInfo,
     AllRatioForFundingParam,
-    SetChildrenParam
+    SetChildrenParam,
+    SetDaoParamFunding
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolSetter } from "./ID4AProtocolSetter.sol";
@@ -30,6 +31,7 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event InitialTokenSupplyForSubDaoSet(bytes32 daoId, uint256 initialTokenSupply);
 
+    function setDaoParamsFunding(SetDaoParamFunding calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) external;
 

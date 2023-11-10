@@ -747,6 +747,7 @@ contract DeployHelper is Test {
         uint256 actionType;
         uint256 unifiedPrice;
         uint256 initTokenSupplyRatio;
+        //1.3add---------------------------------------
         bytes32[] childrenDaoId;
         uint256[] childrenDaoRatiosERC20;
         uint256[] childrenDaoRatiosETH;
