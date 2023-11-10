@@ -281,6 +281,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setRatioForFunding.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setInitialTokenSupplyForSubDao.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoParamsFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoMintableRoundFunding.selector;
 
     assert(interfaceId == type(IPDProtocolSetter).interfaceId ^ type(ID4AProtocolSetter).interfaceId);
 

@@ -25,7 +25,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.isBasicDao = true;
         param.uniPriceModeOff = true;
 
-        bytes32 daoId = super._createDaoForFunding(param);
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -63,7 +63,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
 
-        bytes32 daoId = super._createDaoForFunding(param);
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -101,7 +101,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.uniPriceModeOff = true;
-        bytes32 daoId = super._createDaoForFunding(param);
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         uint256 preBalance = daoCreator.addr.balance;
 
@@ -139,7 +139,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        bytes32 daoId = super._createDaoForFunding(param);
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
@@ -148,7 +148,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.isBasicDao = false;
         param.existDaoId = daoId;
 
-        bytes32 subDaoId = super._createDaoForFunding(param);
+        bytes32 subDaoId = super._createDaoForFunding(param, daoCreator2.addr);
 
         param.daoUri = "continuous dao uri2";
         param.canvasId = keccak256(abi.encode(daoCreator3.addr, block.timestamp));
@@ -171,7 +171,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
         param.noPermission = true;
 
-        bytes32 subDaoId2 = super._createDaoForFunding(param);
+        bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
         uint256 flatPrice = 0.01 ether;

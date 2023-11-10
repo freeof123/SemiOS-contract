@@ -36,4 +36,5 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) external;
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
+    function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) external;
 }

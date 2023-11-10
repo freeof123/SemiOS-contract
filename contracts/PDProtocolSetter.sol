@@ -71,7 +71,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         public
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
-        _checkSetAbility(daoId, true, true);
+        _checkSetAbility(daoId, true, false);
 
         super.setDaoMintableRound(daoId, newMintableRound);
     }
@@ -236,7 +236,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
             setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
         } //1
-        setDaoMintableRound(vars.daoId, settingsStorage.mintableRounds[vars.mintableRoundRank]); //2
+        setDaoMintableRoundFunding(vars.daoId, settingsStorage.mintableRounds[vars.mintableRoundRank]); //2
         setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
         setDailyMintCap(vars.daoId, vars.dailyMintCap); //4
         setDaoFloorPrice(
@@ -354,5 +354,12 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();
 
         emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
+    }
+
+    function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) public {
+        _checkSetAbility(daoId, true, true);
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.mintableRound = newMintableRound;
+        emit DaoMintableRoundSet(daoId, newMintableRound);
     }
 }

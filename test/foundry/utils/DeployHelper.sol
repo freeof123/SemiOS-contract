@@ -1009,8 +1009,14 @@ contract DeployHelper is Test {
     }
 
     // ! here
-    function _createDaoForFunding(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
-        startHoax(daoCreator.addr);
+    function _createDaoForFunding(
+        CreateDaoParam memory createDaoParam,
+        address creator
+    )
+        internal
+        returns (bytes32 daoId)
+    {
+        startHoax(creator);
 
         DaoMintCapParam memory daoMintCapParam;
         CreateContinuousDaoParam memory vars;

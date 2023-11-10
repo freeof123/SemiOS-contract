@@ -133,9 +133,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         //todo:
         // need set royal splliter owner in settings, owner is multisig1 in mainnet, call
-        // d4asettings->setRoyaltySplitterAndSwapFactoryAddress()
+        // d4asettings->setRoyaltySplitterAndSwapFactoryAddress(); in deployhelper: _changeAddressInDaoProxy();
         //todo:
-        //setETHRewardRatio in Settings
+        //setETHRewardRatio in Settings, in deployhelper: _changeSettingsRatio();
 
         //_initSettings();
 

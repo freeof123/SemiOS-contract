@@ -100,7 +100,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
-        // _initSettings();
+        // _initSettings();//todo: same in deploy.s
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
