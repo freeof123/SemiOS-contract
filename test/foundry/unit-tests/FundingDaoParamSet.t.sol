@@ -49,11 +49,20 @@ contract FundingDaoParamSet is DeployHelper {
         param.isBasicDao = true;
         param.uniPriceModeOff = true;
         param.topUpMode = false;
+
         bytes32 continuousDaoId = _createDaoForFunding(param, daoCreator2.addr);
 
         // 修改ContinuousDAO的参数
-        // PDProtocolSetter pdProtocolSetter = new PDProtocolSetter();
-        // vm.prank(daoCreator.addr);
-        // pdProtocolSetter.setDaoParamsFunding(vars);
+        vars.daoId = continuousDaoId;
+
+        hoax(daoCreator2.addr);
+        protocol.setDaoParamsFunding(vars);
+
+        // 用非创建者的地址尝试修改ContinuousDAO的参数
+        console2.log(daoCreator.addr);
+        console2.log(daoCreator2.addr);
+
+        hoax(daoCreator.addr);
+        protocol.setDaoParamsFunding(vars);
     }
 }
