@@ -433,8 +433,10 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].version = 13;
         basicDaoStorage.basicDaoInfos[daoId].exist = true;
         basicDaoStorage.basicDaoInfos[daoId].topUpMode = continuousDaoParam.topUpMode;
+        basicDaoStorage.basicDaoInfos[daoId].needMintableWork = continuousDaoParam.needMintableWork;
 
         emit NewPoolsForFunding(
+            daoId,
             basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
             daoStorage.daoInfos[daoId].daoFeePool,
             basicDaoStorage.basicDaoInfos[daoId].daoFundingPool,

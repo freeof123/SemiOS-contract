@@ -114,11 +114,36 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         nonReentrant
         returns (uint256)
     {
-        _usingTopupAccount();
         return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
-    function _usingTopupAccount() internal returns (uint256 topupAmount) { }
+    function updateTopUpAccount(bytes32 daoId) external returns (uint256) {
+        return _usingTopUpAccount(daoId);
+    }
+
+    function _usingTopUpAccount(bytes32 daoId) internal returns (uint256 topupAmount) {
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        bytes32[] memory investedTopUpDaos = poolInfo.investedTopUpDaos[msg.sender];
+        for (uint256 i; i < investedTopUpDaos.length; i++) {
+            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+            SettingsStorage.Layout storage l = SettingsStorage.layout();
+            (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+                abi.encodeWithSelector(
+                    IRewardTemplateFunding.claimNftMinterReward.selector,
+                    investedTopUpDaos[i],
+                    msg.sender,
+                    l.drb.currentRound(),
+                    daoInfo.token
+                )
+            );
+            require(succ);
+            (uint256 minterERC20Reward, uint256 minterETHReward) = abi.decode(data, (uint256, uint256));
+
+            emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+        }
+        return poolInfo.topUpInvestorETHQuota[msg.sender];
+    }
 
     function mintNFTAndTransfer(
         bytes32 daoId,
@@ -513,8 +538,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return ethAmount;
     }
 
-    function exchangeERC20ToETHFunding() public { }
-
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
     }
@@ -635,6 +658,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     }
 
     function _isSpecialTokenUri(bytes32 daoId, string memory tokenUri) internal view returns (bool) {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].needMintableWork) return false;
         string memory specialTokenUriPrefix = BasicDaoStorage.layout().specialTokenUriPrefix;
         string memory daoIndex = LibString.toString(DaoStorage.layout().daoInfos[daoId].daoIndex);
         if (!tokenUri.startsWith(specialTokenUriPrefix.concat(daoIndex).concat("-"))) return false;
@@ -726,6 +750,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     }
 
     struct SplitFeeLocalVars {
+        bytes32 daoId;
         uint256 price;
         address protocolFeePool;
         address daoRedeemPool;
@@ -781,10 +806,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     }
                 }
                 if (!exist) investedDaos.push(daoId);
+                //split fee
+                if (msg.value < price) revert NotEnoughEther();
+                uint256 dust = msg.value - price;
+                if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
                 //因为topUp模式下daoAssetPool不流入资产，以price作为权重
                 daoFee = price;
             } else {
                 SplitFeeLocalVars memory vars;
+                vars.daoId = daoId;
                 vars.price = price;
                 vars.protocolFeePool = l.protocolFeePool;
                 vars.daoRedeemPool = daoInfo.daoFeePool;
@@ -982,11 +1012,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
     function _splitFeeFunding(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 topupAmount = _usingTopupAccount();
+        uint256 topUpAmount = _usingTopUpAccount(vars.daoId);
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
-        if (msg.value + topupAmount < vars.price) revert NotEnoughEther();
-        uint256 dust = msg.value + topupAmount - vars.price;
+        if (msg.value + topUpAmount < vars.price) revert NotEnoughEther();
+        uint256 dust = msg.value + topUpAmount - vars.price;
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoRedeemPool, vars.redeemPoolFee);

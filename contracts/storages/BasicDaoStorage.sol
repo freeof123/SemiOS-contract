@@ -16,6 +16,7 @@ library BasicDaoStorage {
         address daoFundingPool;
         bool isThirdPartyToken;
         bool topUpMode;
+        bool needMintableWork;
         uint8 version;
     }
 

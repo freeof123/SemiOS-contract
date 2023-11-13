@@ -78,7 +78,9 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
 
             rewardInfo.nftMinterWeightsETH[param.currentRound][msg.sender] += param.daoFeeAmount
                 * IPDProtocolReadable(address(this)).getMinterETHRewardRatio(param.daoId) / BASIS_POINT;
-        } else { }
+        } else {
+            rewardInfo.nftMinterWeights[param.currentRound][msg.sender] += param.daoFeeAmount;
+        }
     }
 
     function getDaoCurrentRoundDistributeAmount(
@@ -135,6 +137,8 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             uint256 daoCreatorClaimableETHReward
         )
     {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) return (0, 0, 0, 0);
+
         (protocolClaimableERC20Reward, daoCreatorClaimableERC20Reward) =
             _claimDaoCreatorReward(daoId, protocolFeePool, daoCreator, currentRound, token);
         (protocolClaimableETHReward, daoCreatorClaimableETHReward) =
@@ -181,8 +185,15 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             }
         }
         rewardInfo.daoCreatorClaimableRoundIndexFunding = j;
-        if (protocolClaimableReward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableReward);
-        if (daoCreatorClaimableReward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableReward);
+        if (token == address(0)) {
+            (bool succ,) = protocolFeePool.call{ value: protocolClaimableReward }("");
+            require(succ, "transfer eth failed");
+            (succ,) = daoCreator.call{ value: daoCreatorClaimableReward }("");
+            require(succ, "transfer eth failed");
+        } else {
+            if (protocolClaimableReward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableReward);
+            if (daoCreatorClaimableReward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableReward);
+        }
     }
 
     function claimCanvasCreatorReward(
@@ -195,6 +206,8 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         public
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
     {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) return (0, 0);
+
         claimableERC20Reward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, token);
         claimableETHReward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, address(0));
     }
@@ -233,7 +246,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         }
         rewardInfo.canvasCreatorClaimableRoundIndexesFunding[canvasId] = j;
 
-        if (claimableReward > 0) D4AERC20(token).transfer(canvasCreator, claimableReward);
+        if (token == address(0)) {
+            (bool succ,) = canvasCreator.call{ value: claimableReward }("");
+            require(succ, "transfer eth failed");
+        } else {
+            if (claimableReward > 0) D4AERC20(token).transfer(canvasCreator, claimableReward);
+        }
     }
 
     function claimNftMinterReward(
@@ -245,8 +263,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         public
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
     {
-        claimableERC20Reward = _claimNftMinterReward(daoId, nftMinter, currentRound, token);
-        claimableETHReward = _claimNftMinterReward(daoId, nftMinter, currentRound, address(0));
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            claimableERC20Reward = _claimNftMinterReward(daoId, nftMinter, currentRound, token);
+            claimableETHReward = _claimNftMinterReward(daoId, nftMinter, currentRound, address(0));
+        } else { }
     }
 
     function _claimNftMinterReward(
@@ -263,26 +283,47 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        bool topUpMode = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode;
 
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.nftMinterClaimableRoundIndexesFunding[nftMinter];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
-            // given a past active round, get round reward
-            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
-            // update dao creator's claimable reward
-            claimableReward += roundReward
-                * (
-                    token == address(0)
-                        ? rewardInfo.nftMinterWeightsETH[activeRounds[j]][nftMinter]
-                        : rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
-                ) / rewardInfo.totalWeights[activeRounds[j]];
+            if (!topUpMode || token != address(0)) {
+                // given a past active round, get round reward
+                uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+                // update dao creator's claimable reward
+                claimableReward += roundReward
+                    * (
+                        token == address(0)
+                            ? rewardInfo.nftMinterWeightsETH[activeRounds[j]][nftMinter]
+                            : rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
+                    ) / rewardInfo.totalWeights[activeRounds[j]];
+            } else {
+                //handle topup eth
+                claimableReward += rewardInfo.topUpInvestorPendingETH[activeRounds[j]][nftMinter];
+            }
             unchecked {
                 ++j;
             }
         }
         rewardInfo.nftMinterClaimableRoundIndexesFunding[nftMinter] = j;
-
-        if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            if (token == address(0)) {
+                (bool succ,) = nftMinter.call{ value: claimableReward }("");
+                require(succ, "transfer eth failed");
+            } else {
+                if (claimableReward > 0) D4AERC20(token).transfer(nftMinter, claimableReward);
+            }
+        } else {
+            //同一family享用同一个redeem池子
+            if (token == address(0)) {
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpInvestorETHQuota[nftMinter]
+                += claimableReward;
+            } else {
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpInvestorERC20Quota[nftMinter]
+                += claimableReward;
+            }
+        }
     }
 
     /**
@@ -336,10 +377,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             //address daoAssetPool = basicDaoInfo.daoAssetPool;
             for (uint256 i = 0; i < children.length;) {
                 address desPool = IPDProtocolReadable(address(this)).getDaoAssetPool(children[i]);
+                uint256 distrbuteAmount = amount * childrenDaoRatio[i] / BASIS_POINT;
                 if (childrenDaoRatio[i] > 0) {
-                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                        token, payable(desPool), amount * childrenDaoRatio[i] / BASIS_POINT
-                    );
+                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(desPool), distrbuteAmount);
+                    emit DaoBlockRewardDistributedToChildrenDao(daoId, children[i], token, distrbuteAmount, round);
                 }
                 unchecked {
                     ++i;
@@ -349,8 +390,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             if (token == address(0)) {
                 uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatioETH(daoId);
                 if (redeemPoolRatio > 0) {
+                    uint256 distributeAmount = amount * redeemPoolRatio / BASIS_POINT;
                     D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                        token, payable(daoInfo.daoFeePool), amount * redeemPoolRatio / BASIS_POINT
+                        token, payable(daoInfo.daoFeePool), distributeAmount
+                    );
+                    emit DaoBlockRewardDistributedToRedeemPool(
+                        daoId, daoInfo.daoFeePool, token, distributeAmount, round
                     );
                 }
             }
@@ -360,6 +405,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             if (selfRewardRatio > 0) {
                 uint256 selfRewardAmount = amount * selfRewardRatio / BASIS_POINT;
                 D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);
+                emit DaoBlockRewardForSelf(daoId, token, selfRewardAmount, round);
                 if (token != address(0)) {
                     rewardInfo.selfRoundERC20Reward[round] = selfRewardAmount;
                     PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += selfRewardAmount;

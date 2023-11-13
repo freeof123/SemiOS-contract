@@ -4,6 +4,14 @@ pragma solidity ^0.8.18;
 import { UpdateRewardParamFunding } from "contracts/interface/D4AStructs.sol";
 
 interface IRewardTemplateFunding {
+    event DaoBlockRewardDistributedToChildrenDao(
+        bytes32 fromDaoId, bytes32 toDaoId, address token, uint256 amount, uint256 round
+    );
+    event DaoBlockRewardDistributedToRedeemPool(
+        bytes32 fromDaoId, address redeemPool, address token, uint256 amount, uint256 round
+    );
+    event DaoBlockRewardForSelf(bytes32 daoId, address token, uint256 amount, uint256 round);
+
     function updateRewardFunding(UpdateRewardParamFunding memory param) external payable;
 
     function claimDaoCreatorReward(

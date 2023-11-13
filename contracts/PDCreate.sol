@@ -346,6 +346,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
             bool needMintableWork = true;
+            BasicDaoStorage.layout().basicDaoInfos[daoId].needMintableWork = true;
             daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), msg.sender);
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
@@ -402,6 +403,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             l.ownerProxy.initOwnerOf(daoId, msg.sender);
 
+            BasicDaoStorage.layout().basicDaoInfos[daoId].needMintableWork = createContinuousDaoParam.needMintableWork;
             daoInfo.nft = _createERC721Token(
                 createContinuousDaoParam.daoIndex,
                 createContinuousDaoParam.daoName,
