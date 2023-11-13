@@ -197,6 +197,19 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(IERC20(token).balanceOf(assetPool1), 50_000_000 ether + 400_000 ether);
         assertEq(IERC20(token).balanceOf(assetPool2), 300_000 ether);
         assertEq(IERC20(token).balanceOf(address(protocol)), 200_000 ether);
+
+        drb.changeRound(2);
+        protocol.claimDaoCreatorRewardFunding(subDaoId2);
+        //1000000 * 20% * 70%
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
+        protocol.claimCanvasRewardFunding(canvasId3);
+        //add 1000000 * 20% * 20%
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 180_000 ether);
+        protocol.claimNftMinterRewardFunding(subDaoId2, nftMinter.addr);
+        //1000000 * 20% * 8%
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 16_000 ether);
+        assertEq(IERC20(token).balanceOf(protocol.protocolFeePool()), 4000 ether);
+        assertEq(IERC20(token).balanceOf(address(protocol)), 0);
     }
 
     // ==============================================================================

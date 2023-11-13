@@ -19,7 +19,7 @@ library RewardStorage {
         uint256 rewardIssuePendingRound;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
-        // weights
+        // weights for erc20
         mapping(uint256 round => uint256 totalWeight) totalWeights; // also total ETH in DAO fee pool at given round
         mapping(uint256 round => uint256 weight) protocolWeights;
         mapping(uint256 round => uint256 weight) daoCreatorWeights;
@@ -31,6 +31,7 @@ library RewardStorage {
         uint256[] activeRoundsFunding;
         mapping(uint256 ronud => uint256 amount) selfRoundERC20Reward;
         mapping(uint256 ronud => uint256 amount) selfRoundETHReward;
+        // weights for eth
         mapping(uint256 round => uint256 weight) protocolWeightsETH;
         mapping(uint256 round => uint256 weight) daoCreatorWeightsETH;
         mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeightsETH;
@@ -38,6 +39,9 @@ library RewardStorage {
         uint256 daoCreatorClaimableRoundIndexFunding;
         mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexesFunding;
         mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexesFunding;
+        mapping(uint256 round => mapping(address investor => uint256 amount)) topUpInvestorPendingETH;
+        mapping(address investor => uint256 amount) topUpInvestorETHQuota;
+        mapping(address investor => uint256 amount) topUpInvestorERC20Quota;
     }
 
     struct Layout {

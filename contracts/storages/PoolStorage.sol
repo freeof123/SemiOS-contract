@@ -5,6 +5,7 @@ library PoolStorage {
     struct PoolInfo {
         mapping(uint256 round => uint256 totalWeight) roundTotalETH;
         uint256 circulateERC20Amount; //????here??
+        mapping(address investor => bytes32[] daoId) investedTopUpDaos;
     }
 
     struct Layout {

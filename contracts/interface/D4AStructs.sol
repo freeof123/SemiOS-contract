@@ -198,6 +198,7 @@ struct UpdateRewardParamFunding {
     uint256 daoFeeAmount;
     address daoFeePool;
     bool zeroPrice;
+    bool topUpMode;
 }
 
 struct SetDaoParamFunding {

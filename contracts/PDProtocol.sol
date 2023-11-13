@@ -709,9 +709,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             uint256 nftPriceFactor = daoInfo.nftPriceFactor;
             price = _getCanvasNextPrice(daoId, canvasId, flatPrice, daoInfo.startRound, currentRound, nftPriceFactor);
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
+            // split fee
+            _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice, currentRound);
         }
-        // split fee
-        _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice);
 
         // mint
         tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId);
@@ -739,7 +739,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         bytes32 daoId,
         bytes32 canvasId,
         uint256 price,
-        uint256 flatPrice
+        uint256 flatPrice,
+        uint256 currentRound
     )
         internal
     {
@@ -750,9 +751,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
         uint256 canvasRebateRatioInBps;
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
-            address protocolFeePool = l.protocolFeePool;
-            address daoFeePool = daoInfo.daoFeePool;
-            address canvasOwner = l.ownerProxy.ownerOf(canvasId);
             uint256 daoShare = (
                 flatPrice == 0 // Todo:
                     ? ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId)
@@ -763,25 +761,47 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 (price - daoShare / BASIS_POINT - (price * l.protocolMintFeeRatioInBps) / BASIS_POINT) != 0
                     && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
             ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
+            address protocolFeePool = l.protocolFeePool;
+            address daoFeePool = daoInfo.daoFeePool;
+            address canvasOwner = l.ownerProxy.ownerOf(canvasId);
             daoFee = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
         } else {
-            SplitFeeLocalVars memory vars;
-            vars.price = price;
-            vars.protocolFeePool = l.protocolFeePool;
-            vars.daoRedeemPool = daoInfo.daoFeePool;
-            vars.daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
-            vars.canvasOwner = l.ownerProxy.ownerOf(canvasId);
-            vars.redeemPoolFee = (
-                flatPrice == 0
-                    ? IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatio(daoId)
-                    : IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatioFiatPrice(daoId)
-            ) * price / BASIS_POINT;
-            vars.assetPoolFee = (
-                flatPrice == 0
-                    ? IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatio(daoId)
-                    : IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatioFiatPrice(daoId)
-            ) * price / BASIS_POINT;
-            daoFee = _splitFeeFunding(vars);
+            if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+                RewardStorage.layout().rewardInfos[daoId].topUpInvestorPendingETH[currentRound][msg.sender] += price;
+                bool exist;
+                bytes32[] storage investedDaos =
+                    PoolStorage.layout().poolInfos[daoInfo.daoFeePool].investedTopUpDaos[msg.sender];
+                for (uint256 i; i < investedDaos.length;) {
+                    if (investedDaos[i] == daoId) {
+                        exist = true;
+                        break;
+                    }
+                    unchecked {
+                        ++i;
+                    }
+                }
+                if (!exist) investedDaos.push(daoId);
+                //因为topUp模式下daoAssetPool不流入资产，以price作为权重
+                daoFee = price;
+            } else {
+                SplitFeeLocalVars memory vars;
+                vars.price = price;
+                vars.protocolFeePool = l.protocolFeePool;
+                vars.daoRedeemPool = daoInfo.daoFeePool;
+                vars.daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
+                vars.canvasOwner = l.ownerProxy.ownerOf(canvasId);
+                vars.redeemPoolFee = (
+                    flatPrice == 0
+                        ? IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatio(daoId)
+                        : IPDProtocolReadable(address(this)).getRedeemPoolMintFeeRatioFiatPrice(daoId)
+                ) * price / BASIS_POINT;
+                vars.assetPoolFee = (
+                    flatPrice == 0
+                        ? IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatio(daoId)
+                        : IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatioFiatPrice(daoId)
+                ) * price / BASIS_POINT;
+                daoFee = _splitFeeFunding(vars);
+            }
         }
         _updateReward(
             daoId,
@@ -918,7 +938,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                         daoInfo.mintableRound,
                         daoFeeAmount,
                         daoInfo.daoFeePool,
-                        zeroPrice
+                        zeroPrice,
+                        BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode
                     )
                 )
             );

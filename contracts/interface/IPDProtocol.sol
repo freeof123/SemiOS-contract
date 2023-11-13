@@ -84,4 +84,18 @@ interface IPDProtocol {
     function claimNftMinterReward(bytes32 daoId, address minter) external returns (uint256);
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
+
+    function claimDaoCreatorRewardFunding(bytes32 daoId)
+        external
+        returns (uint256 daoCreatorERC20Reward, uint256 daoCreatorETHReward);
+
+    function claimCanvasRewardFunding(bytes32 canvasId)
+        external
+        returns (uint256 canvasCreatorERC20Reward, uint256 canvasCreatorETHReward);
+    function claimNftMinterRewardFunding(
+        bytes32 daoId,
+        address minter
+    )
+        external
+        returns (uint256 nftMinterERC20Reward, uint256 nftMinterETHReward);
 }
