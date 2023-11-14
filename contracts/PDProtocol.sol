@@ -1047,6 +1047,13 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             poolInfo.topUpInvestorERC20Quota[msg.sender] -= topAmountERC20;
 
             SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topAmountERC20);
+            emit TopUpAmountUsed(
+                msg.sender,
+                vars.daoId,
+                DaoStorage.layout().daoInfos[vars.daoId].daoFeePool,
+                topAmountERC20,
+                topUpAmountETHToUse
+            );
         }
         return vars.assetPoolFee;
     }

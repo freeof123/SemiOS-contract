@@ -26,6 +26,8 @@ interface IPDProtocol {
 
     event D4AExchangeERC20ToETH(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 ethAmount);
 
+    event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
+
     function initialize() external;
 
     function createCanvasAndMintNFT(
