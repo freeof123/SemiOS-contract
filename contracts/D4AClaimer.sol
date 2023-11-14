@@ -3,12 +3,13 @@ pragma solidity >=0.8.10;
 
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 import { ID4AProtocol } from "./interface/ID4AProtocol.sol";
+import { IPDProtocol } from "./interface/IPDProtocol.sol";
 
 contract D4AClaimer {
-    ID4AProtocol protocol;
+    IPDProtocol protocol;
 
     constructor(address _protocol) {
-        protocol = ID4AProtocol(_protocol);
+        protocol = IPDProtocol(_protocol);
     }
 
     function claimMultiReward(bytes32[] memory canvas, bytes32[] memory projects) public returns (uint256) {
@@ -47,5 +48,67 @@ contract D4AClaimer {
             }
         }
         return ethAmount;
+    }
+
+    function claimMultiRewardFunding(
+        bytes32[] memory canvas,
+        bytes32[] memory projects
+    )
+        public
+        returns (uint256 erc20AmountTotal, uint256 ethAmountTotal)
+    {
+        for (uint256 i = 0; i < canvas.length;) {
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimCanvasRewardFunding(canvas[i]);
+            erc20AmountTotal += erc20Amount;
+            ethAmountTotal += ethAmount;
+            unchecked {
+                ++i;
+            }
+        }
+
+        for (uint256 i = 0; i < projects.length;) {
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoCreatorRewardFunding(projects[i]);
+            erc20AmountTotal += erc20Amount;
+            ethAmountTotal += ethAmount;
+            (erc20Amount, ethAmount) = protocol.claimNftMinterRewardFunding(projects[i], msg.sender);
+            erc20AmountTotal += erc20Amount;
+            ethAmountTotal += ethAmount;
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function claimMultiRewardWithETHFunding(
+        bytes32[] memory canvas,
+        bytes32[] memory projects
+    )
+        public
+        returns (uint256 ethAmountTotal)
+    {
+        for (uint256 i = 0; i < canvas.length;) {
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimCanvasRewardFunding(canvas[i]);
+            ethAmountTotal += ethAmount;
+            ethAmountTotal += protocol.exchangeERC20ToETH(
+                ID4AProtocolReadable(address(protocol)).getCanvasDaoId(canvas[i]), erc20Amount, msg.sender
+            );
+            unchecked {
+                ++i;
+            }
+        }
+
+        for (uint256 i = 0; i < projects.length;) {
+            uint256 erc20AmountTotal;
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoCreatorRewardFunding(projects[i]);
+            erc20AmountTotal += erc20Amount;
+            ethAmountTotal += ethAmount;
+            (erc20Amount, ethAmount) = protocol.claimNftMinterRewardFunding(projects[i], msg.sender);
+            erc20AmountTotal += erc20Amount;
+            ethAmountTotal += ethAmount;
+            ethAmountTotal += protocol.exchangeERC20ToETH(projects[i], erc20AmountTotal, msg.sender);
+            unchecked {
+                ++i;
+            }
+        }
     }
 }

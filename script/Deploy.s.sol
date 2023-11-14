@@ -100,31 +100,31 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        //_deployProtocolReadable();
+        //_cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        //_deployProtocolSetter();
+        //_cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        //_deployPDCreate();
+        //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
-        _deployPDCreateFunding();
-        _cutFacetsPDCreateFunding(DeployMethod.ADD);
+        //_deployPDCreateFunding();
+        //_cutFacetsPDCreateFunding(DeployMethod.ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
 
-        _deploySettings();
-        _cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
+        //_deploySettings();
+        //_cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployClaimer();
-        // _deployUniversalClaimer();
+        _deployUniversalClaimer();
 
         //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
@@ -139,13 +139,13 @@ contract Deploy is Script, Test, D4AAddress {
         //setETHRewardRatio in Settings, in deployhelper: _changeSettingsRatio();
 
         //_initSettings();
-        _initSettings13();
+        //_initSettings13();
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        _deployUniformDistributionRewardIssuance();
+        //_deployUniformDistributionRewardIssuance();
 
         // todo: deploy new templete, set this template,
         // in deployhelper:new UniformDistributionRewardIssuance();
