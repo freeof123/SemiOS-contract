@@ -54,9 +54,9 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplateFunding } from "./interface/IRewardTemplateFunding.sol";
 
-//import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
-contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712 {
+contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712, Test {
     using LibString for string;
 
     bytes32 internal constant _MINTNFT_TYPEHASH =
@@ -849,6 +849,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             canvasRebateRatioInBps,
             price == 0
         );
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0) {
+            SafeTransferLib.safeTransferETH(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
+        }
     }
 
     function _updatePrice(
@@ -1013,7 +1016,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         uint256 dust = msg.value + rebateAmount - price;
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(protocolFeePool, protocolFee);
-        if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
+        //if (daoFee > 0) SafeTransferLib.safeTransferETH(daoFeePool, daoFee);
         if (canvasFee > 0) SafeTransferLib.safeTransferETH(canvasOwner, canvasFee);
         if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
     }
@@ -1028,7 +1031,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoRedeemPool, vars.redeemPoolFee);
-        if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
+        //should split after update reward
+        //if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
         if (canvasCreatorFee > 0) SafeTransferLib.safeTransferETH(vars.canvasOwner, canvasCreatorFee);
         uint256 topUpAmountETHToUse;
         if (topUpETHQuota < vars.price) {
