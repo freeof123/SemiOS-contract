@@ -117,22 +117,22 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
-    function updateTopUpAccount(bytes32 daoId) external returns (uint256) {
-        return _usingTopUpAccount(daoId);
+    function updateTopUpAccount(bytes32 daoId, address account) external returns (uint256) {
+        return _usingTopUpAccount(daoId, account);
     }
 
-    function _usingTopUpAccount(bytes32 daoId) internal returns (uint256 topupAmount) {
+    function _usingTopUpAccount(bytes32 daoId, address account) internal returns (uint256) {
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        bytes32[] memory investedTopUpDaos = poolInfo.investedTopUpDaos[msg.sender];
-        for (uint256 i; i < investedTopUpDaos.length; i++) {
+        bytes32[] memory investedTopUpDaos = poolInfo.investedTopUpDaos[account];
+        for (uint256 i; i < investedTopUpDaos.length;) {
             DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
             SettingsStorage.Layout storage l = SettingsStorage.layout();
             (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
                 abi.encodeWithSelector(
                     IRewardTemplateFunding.claimNftMinterReward.selector,
                     investedTopUpDaos[i],
-                    msg.sender,
+                    account,
                     l.drb.currentRound(),
                     daoInfo.token
                 )
@@ -140,9 +140,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
             require(succ);
             (uint256 minterERC20Reward, uint256 minterETHReward) = abi.decode(data, (uint256, uint256));
 
-            emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+            emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+            unchecked {
+                ++i;
+            }
         }
-        return poolInfo.topUpInvestorETHQuota[msg.sender];
+        return poolInfo.topUpInvestorETHQuota[account];
     }
 
     function mintNFTAndTransfer(
@@ -1012,17 +1015,34 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
     function _splitFeeFunding(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 topUpAmount = _usingTopUpAccount(vars.daoId);
+        uint256 topUpETHQuota = _usingTopUpAccount(vars.daoId, msg.sender);
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
-        if (msg.value + topUpAmount < vars.price) revert NotEnoughEther();
-        uint256 dust = msg.value + topUpAmount - vars.price;
+        uint256 dust;
+        if (msg.value + topUpETHQuota < vars.price) revert NotEnoughEther();
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoRedeemPool, vars.redeemPoolFee);
         if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
         if (canvasCreatorFee > 0) SafeTransferLib.safeTransferETH(vars.canvasOwner, canvasCreatorFee);
+        uint256 topUpAmountETHToUse;
+        if (topUpETHQuota < vars.price) {
+            dust = msg.value + topUpETHQuota - vars.price;
+            topUpAmountETHToUse = topUpETHQuota;
+        } else {
+            dust = msg.value;
+            topUpAmountETHToUse = vars.price;
+        }
         if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
+        if (topUpETHQuota > 0) {
+            PoolStorage.PoolInfo storage poolInfo =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
+            uint256 topAmountERC20 = topUpAmountETHToUse * poolInfo.topUpInvestorERC20Quota[msg.sender] / topUpETHQuota;
+            poolInfo.topUpInvestorETHQuota[msg.sender] -= topUpAmountETHToUse;
+            poolInfo.topUpInvestorERC20Quota[msg.sender] -= topAmountERC20;
+
+            SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topAmountERC20);
+        }
         return vars.assetPoolFee;
     }
 

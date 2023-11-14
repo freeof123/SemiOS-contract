@@ -18,6 +18,8 @@ interface IPDProtocol {
 
     event PDClaimNftMinterReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
 
+    event PDClaimNftMinterRewardTopUp(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+
     event D4AExchangeERC20ToERC20(
         bytes32 daoId, address owner, address to, address grantToken, uint256 tokenAmount, uint256 grantTokenAmount
     );
