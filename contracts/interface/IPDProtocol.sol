@@ -6,11 +6,11 @@ import { MintNftInfo } from "./D4AStructs.sol";
 interface IPDProtocol {
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
 
-    event D4AClaimProjectERC20Reward(bytes32 daoId, address token, uint256 amount);
+    // event D4AClaimProjectERC20Reward(bytes32 daoId, address token, uint256 amount);
 
-    event D4AClaimCanvasReward(bytes32 daoId, bytes32 canvasId, address token, uint256 amount);
+    // event D4AClaimCanvasReward(bytes32 daoId, bytes32 canvasId, address token, uint256 amount);
 
-    event D4AClaimNftMinterReward(bytes32 daoId, address token, uint256 amount);
+    // event D4AClaimNftMinterReward(bytes32 daoId, address token, uint256 amount);
 
     event PDClaimDaoCreatorReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
 
