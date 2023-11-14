@@ -40,8 +40,6 @@ library RewardStorage {
         mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexesFunding;
         mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexesFunding;
         mapping(uint256 round => mapping(address investor => uint256 amount)) topUpInvestorPendingETH;
-        mapping(address investor => uint256 amount) topUpInvestorETHQuota;
-        mapping(address investor => uint256 amount) topUpInvestorERC20Quota;
     }
 
     struct Layout {

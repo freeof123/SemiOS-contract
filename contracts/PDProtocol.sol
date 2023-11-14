@@ -205,136 +205,139 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         returns (uint256[] memory)
     {
         //require(false);
-        uint256 length = mintNftInfos.length;
-        {
-            _checkMintEligibility(daoId, msg.sender, proof, length);
-            for (uint256 i; i < length;) {
-                _verifySignature(daoId, canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice, signatures[i]);
-                unchecked {
-                    ++i;
-                }
-            }
-        }
-        DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += uint32(length);
-        return _batchMint(daoId, canvasId, mintNftInfos);
-        // uint256[] memory ret = new uint256[](0);
-        // return ret;
+        // uint256 length = mintNftInfos.length;
+        // {
+        //     _checkMintEligibility(daoId, msg.sender, proof, length);
+        //     for (uint256 i; i < length;) {
+        //         _verifySignature(daoId, canvasId, mintNftInfos[i].tokenUri, mintNftInfos[i].flatPrice,
+        // signatures[i]);
+        //         unchecked {
+        //             ++i;
+        //         }
+        //     }
+        // }
+        // DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += uint32(length);
+        // return _batchMint(daoId, canvasId, mintNftInfos);
+        uint256[] memory ret = new uint256[](0);
+        return ret;
     }
 
-    function _batchMint(
-        bytes32 daoId,
-        bytes32 canvasId,
-        MintNftInfo[] memory mintNftInfos
-    )
-        internal
-        returns (uint256[] memory)
-    {
-        _checkPauseStatus();
-        _checkPauseStatus(daoId);
-        _checkCanvasExist(canvasId);
-        _checkPauseStatus(canvasId);
+    // function _batchMint(
+    //     bytes32 daoId,
+    //     bytes32 canvasId,
+    //     MintNftInfo[] memory mintNftInfos
+    // )
+    //     internal
+    //     returns (uint256[] memory)
+    // {
+    //     _checkPauseStatus();
+    //     _checkPauseStatus(daoId);
+    //     _checkCanvasExist(canvasId);
+    //     _checkPauseStatus(canvasId);
 
-        BatchMintLocalVars memory vars;
-        vars.length = mintNftInfos.length;
-        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        uint256[] memory tokenIds = new uint256[](vars.length);
-        for (uint256 i; i < vars.length;) {
-            _checkUriNotExist(mintNftInfos[i].tokenUri);
-            if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
-                ++basicDaoInfo.tokenId;
-                if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
-                    revert NotCanvasIdOfSpecialTokenUri();
-                }
-                if (mintNftInfos[i].flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) {
-                    revert NotBasicDaoNftFlatPrice();
-                }
-                mintNftInfos[i].tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
-                tokenIds[i] = basicDaoInfo.tokenId;
-            }
-            unchecked {
-                ++i;
-            }
-        }
+    //     BatchMintLocalVars memory vars;
+    //     vars.length = mintNftInfos.length;
+    //     BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+    //     uint256[] memory tokenIds = new uint256[](vars.length);
+    //     for (uint256 i; i < vars.length;) {
+    //         _checkUriNotExist(mintNftInfos[i].tokenUri);
+    //         if (_isSpecialTokenUri(daoId, mintNftInfos[i].tokenUri)) {
+    //             ++basicDaoInfo.tokenId;
+    //             if (canvasId != BasicDaoStorage.layout().basicDaoInfos[daoId].canvasIdOfSpecialNft) {
+    //                 revert NotCanvasIdOfSpecialTokenUri();
+    //             }
+    //             if (mintNftInfos[i].flatPrice != BasicDaoStorage.layout().basicDaoNftFlatPrice) {
+    //                 revert NotBasicDaoNftFlatPrice();
+    //             }
+    //             mintNftInfos[i].tokenUri = _fetchRightTokenUri(daoId, basicDaoInfo.tokenId);
+    //             tokenIds[i] = basicDaoInfo.tokenId;
+    //         }
+    //         unchecked {
+    //             ++i;
+    //         }
+    //     }
 
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
-        if (daoInfo.nftTotalSupply + vars.length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
+    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+    //     CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];
+    //     if (daoInfo.nftTotalSupply + vars.length > daoInfo.nftMaxSupply) revert NftExceedMaxAmount();
 
-        vars.currentRound = SettingsStorage.layout().drb.currentRound();
-        vars.nftPriceFactor = daoInfo.nftPriceFactor;
+    //     vars.currentRound = SettingsStorage.layout().drb.currentRound();
+    //     vars.nftPriceFactor = daoInfo.nftPriceFactor;
 
-        daoInfo.nftTotalSupply += vars.length;
-        for (uint256 i; i < vars.length;) {
-            ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
-            tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, tokenIds[i]);
-            canvasInfo.tokenIds.push(tokenIds[i]);
-            ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
-            uint256 flatPrice = mintNftInfos[i].flatPrice;
-            if (flatPrice == 0) {
-                uint256 price =
-                    _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, vars.currentRound, vars.nftPriceFactor);
-                vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId) * price;
-                vars.totalPrice += price;
-                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, price);
-                _updatePrice(vars.currentRound, daoId, canvasId, price, 0, vars.nftPriceFactor);
-            } else {
-                vars.daoTotalShare +=
-                    ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId) * flatPrice;
-                vars.totalPrice += flatPrice;
-                emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, flatPrice);
-            }
-            unchecked {
-                ++i;
-            }
-        }
+    //     daoInfo.nftTotalSupply += vars.length;
+    //     for (uint256 i; i < vars.length;) {
+    //         ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(mintNftInfos[i].tokenUri))] = true;
+    //         tokenIds[i] = D4AERC721(daoInfo.nft).mintItem(msg.sender, mintNftInfos[i].tokenUri, tokenIds[i]);
+    //         canvasInfo.tokenIds.push(tokenIds[i]);
+    //         ProtocolStorage.layout().nftHashToCanvasId[keccak256(abi.encodePacked(daoId, tokenIds[i]))] = canvasId;
+    //         uint256 flatPrice = mintNftInfos[i].flatPrice;
+    //         if (flatPrice == 0) {
+    //             uint256 price =
+    //                 _getCanvasNextPrice(daoId, canvasId, 0, daoInfo.startRound, vars.currentRound,
+    // vars.nftPriceFactor);
+    //             vars.daoTotalShare += ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatio(daoId) * price;
+    //             vars.totalPrice += price;
+    //             emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, price);
+    //             _updatePrice(vars.currentRound, daoId, canvasId, price, 0, vars.nftPriceFactor);
+    //         } else {
+    //             vars.daoTotalShare +=
+    //                 ID4AProtocolReadable(address(this)).getDaoFeePoolETHRatioFlatPrice(daoId) * flatPrice;
+    //             vars.totalPrice += flatPrice;
+    //             emit D4AMintNFT(daoId, canvasId, tokenIds[i], mintNftInfos[i].tokenUri, flatPrice);
+    //         }
+    //         unchecked {
+    //             ++i;
+    //         }
+    //     }
 
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 canvasRebateRatioInBps;
-        if (
-            vars.totalPrice - vars.daoTotalShare / BASIS_POINT
-                - (vars.totalPrice * l.protocolMintFeeRatioInBps) / BASIS_POINT != 0
-                && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
-        ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
-        uint256 daoFee = _splitFee(
-            l.protocolFeePool,
-            daoInfo.daoFeePool,
-            l.ownerProxy.ownerOf(canvasId),
-            vars.totalPrice,
-            vars.daoTotalShare,
-            canvasRebateRatioInBps
-        );
+    //     SettingsStorage.Layout storage l = SettingsStorage.layout();
+    //     uint256 canvasRebateRatioInBps;
+    //     if (
+    //         vars.totalPrice - vars.daoTotalShare / BASIS_POINT
+    //             - (vars.totalPrice * l.protocolMintFeeRatioInBps) / BASIS_POINT != 0
+    //             && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
+    //     ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
+    //     uint256 daoFee = _splitFee(
+    //         l.protocolFeePool,
+    //         daoInfo.daoFeePool,
+    //         l.ownerProxy.ownerOf(canvasId),
+    //         vars.totalPrice,
+    //         vars.daoTotalShare,
+    //         canvasRebateRatioInBps
+    //     );
 
-        _updateReward(
-            daoId,
-            canvasId,
-            vars.totalPrice == 0 ? 1 ether * vars.length : daoFee,
-            canvasRebateRatioInBps,
-            vars.totalPrice == 0
-        );
+    //     _updateReward(
+    //         daoId,
+    //         canvasId,
+    //         vars.totalPrice == 0 ? 1 ether * vars.length : daoFee,
+    //         canvasRebateRatioInBps,
+    //         vars.totalPrice == 0
+    //     );
 
-        return tokenIds;
-    }
+    //     return tokenIds;
+    // }
 
     function claimProjectERC20Reward(bytes32 daoId) public nonReentrant returns (uint256 daoCreatorReward) {
-        _checkPauseStatus();
-        _checkPauseStatus(daoId);
-        _checkDaoExist(daoId);
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.claimDaoCreatorReward.selector,
-                daoId,
-                l.protocolFeePool,
-                l.ownerProxy.ownerOf(daoId),
-                l.drb.currentRound(),
-                daoInfo.token
-            )
-        );
-        require(succ);
-        (, daoCreatorReward) = abi.decode(data, (uint256, uint256));
+        // _checkPauseStatus();
+        // _checkPauseStatus(daoId);
+        // _checkDaoExist(daoId);
+        // DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        // SettingsStorage.Layout storage l = SettingsStorage.layout();
+        // (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+        //     abi.encodeWithSelector(
+        //         IRewardTemplate.claimDaoCreatorReward.selector,
+        //         daoId,
+        //         l.protocolFeePool,
+        //         l.ownerProxy.ownerOf(daoId),
+        //         l.drb.currentRound(),
+        //         daoInfo.token
+        //     )
+        // );
+        // require(succ);
+        // (, daoCreatorReward) = abi.decode(data, (uint256, uint256));
 
-        emit D4AClaimProjectERC20Reward(daoId, daoInfo.token, daoCreatorReward);
+        // emit D4AClaimProjectERC20Reward(daoId, daoInfo.token, daoCreatorReward);
+        return 0;
     }
 
     function claimDaoCreatorRewardFunding(bytes32 daoId)
@@ -364,31 +367,32 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     }
 
     function claimCanvasReward(bytes32 canvasId) public nonReentrant returns (uint256) {
-        _checkPauseStatus();
-        _checkPauseStatus(canvasId);
-        _checkCanvasExist(canvasId);
-        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
-        _checkDaoExist(daoId);
-        _checkPauseStatus(daoId);
+        // _checkPauseStatus();
+        // _checkPauseStatus(canvasId);
+        // _checkCanvasExist(canvasId);
+        // bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
+        // _checkDaoExist(daoId);
+        // _checkPauseStatus(daoId);
 
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.claimCanvasCreatorReward.selector,
-                daoId,
-                canvasId,
-                l.ownerProxy.ownerOf(canvasId),
-                l.drb.currentRound(),
-                daoInfo.token
-            )
-        );
-        require(succ);
-        uint256 amount = abi.decode(data, (uint256));
+        // DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        // SettingsStorage.Layout storage l = SettingsStorage.layout();
+        // (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+        //     abi.encodeWithSelector(
+        //         IRewardTemplate.claimCanvasCreatorReward.selector,
+        //         daoId,
+        //         canvasId,
+        //         l.ownerProxy.ownerOf(canvasId),
+        //         l.drb.currentRound(),
+        //         daoInfo.token
+        //     )
+        // );
+        // require(succ);
+        // uint256 amount = abi.decode(data, (uint256));
 
-        emit D4AClaimCanvasReward(daoId, canvasId, daoInfo.token, amount);
+        // emit D4AClaimCanvasReward(daoId, canvasId, daoInfo.token, amount);
 
-        return amount;
+        // return amount;
+        return 0;
     }
 
     function claimCanvasRewardFunding(bytes32 canvasId)
@@ -422,22 +426,23 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
     }
 
     function claimNftMinterReward(bytes32 daoId, address minter) public nonReentrant returns (uint256) {
-        _checkPauseStatus();
-        _checkDaoExist(daoId);
-        _checkPauseStatus(daoId);
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-            abi.encodeWithSelector(
-                IRewardTemplate.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
-            )
-        );
-        require(succ);
-        uint256 amount = abi.decode(data, (uint256));
+        // _checkPauseStatus();
+        // _checkDaoExist(daoId);
+        // _checkPauseStatus(daoId);
+        // DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        // SettingsStorage.Layout storage l = SettingsStorage.layout();
+        // (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
+        //     abi.encodeWithSelector(
+        //         IRewardTemplate.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
+        //     )
+        // );
+        // require(succ);
+        // uint256 amount = abi.decode(data, (uint256));
 
-        emit D4AClaimNftMinterReward(daoId, daoInfo.token, amount);
+        // emit D4AClaimNftMinterReward(daoId, daoInfo.token, amount);
 
-        return amount;
+        // return amount;
+        return 0;
     }
 
     function claimNftMinterRewardFunding(

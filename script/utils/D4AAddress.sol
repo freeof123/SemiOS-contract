@@ -18,6 +18,8 @@ import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
+import { PDCreateFunding } from "contracts/PDCreateFunding.sol";
+
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
@@ -29,6 +31,8 @@ import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.s
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
+import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
+
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract D4AAddress is CommonBase {
@@ -62,6 +66,8 @@ contract D4AAddress is CommonBase {
     PDProtocolSetter public pdProtocolSetter = PDProtocolSetter(json.readAddress(".PDProtocol.PDProtocolSetter"));
     D4ACreate public d4aCreate = D4ACreate(json.readAddress(".PDProtocol.D4ACreate"));
     PDCreate public pdCreate = PDCreate(json.readAddress(".PDProtocol.PDCreate"));
+    PDCreateFunding public pdCreateFunding = PDCreateFunding(json.readAddress(".PDProtocol.PDCreateFunding"));
+
     PDBasicDao public pdBasicDao = PDBasicDao(json.readAddress(".PDProtocol.PDBasicDao"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".PDProtocol.D4ASettings"));
     LinearPriceVariation public linearPriceVariation =
@@ -72,6 +78,8 @@ contract D4AAddress is CommonBase {
         LinearRewardIssuance(json.readAddress(".PDProtocol.LinearRewardIssuance"));
     ExponentialRewardIssuance public exponentialRewardIssuance =
         ExponentialRewardIssuance(json.readAddress(".PDProtocol.ExponentialRewardIssuance"));
+    UniformDistributionRewardIssuance public uniformDistributionRewardIssuance =
+        UniformDistributionRewardIssuance(json.readAddress(".PDProtocol.UniformDistributionRewardIssuance"));
 
     // permission control
     PermissionControl public permissionControl_proxy = PermissionControl(json.readAddress(".PermissionControl.proxy"));
