@@ -61,7 +61,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
         uint256 flatPrice = 0.01 ether;
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -71,7 +71,7 @@ contract ProtoDaoTestExtend is DeployHelper {
             daoCreator3.key,
             nftMinter.addr
         );
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -159,7 +159,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
         uint256 flatPrice = 0.01 ether;
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -171,7 +171,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         );
         hoax(daoCreator3.addr);
         protocol.setDaoUnifiedPrice(subDaoId2, 0.04 ether);
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -259,7 +259,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
         uint256 flatPrice = 0.01 ether;
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -271,7 +271,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         );
         hoax(daoCreator3.addr);
         protocol.setDaoUnifiedPrice(subDaoId2, 0.04 ether);
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -283,7 +283,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         );
         hoax(daoCreator3.addr);
         protocol.setDaoUnifiedPrice(subDaoId2, 0.05 ether);
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -379,7 +379,7 @@ contract ProtoDaoTestExtend is DeployHelper {
 
         uint256 daoCreator3_eth_balance_before = daoCreator3.addr.balance;
         uint256 flatPrice = 0.01 ether;
-        super._mintNftDaoFunding(
+        super._mintNft(
             daoId2,
             canvasId3,
             string.concat(
@@ -505,7 +505,7 @@ contract ProtoDaoTestExtend is DeployHelper {
         assertEq(address(protocol).balance, 0 ether);
 
         uint256 flatPrice = 0.01 ether;
-        super._mintNftDaoFunding(
+        super._mintNft(
             daoId2,
             canvasId3,
             string.concat(

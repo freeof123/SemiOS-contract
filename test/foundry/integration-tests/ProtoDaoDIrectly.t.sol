@@ -18,7 +18,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         super.setUpEnv();
     }
 
-    function test_PDCreateFunding_createBasicDAO() public {
+    function test_PDCreateFunding_createBasicDAO_benchmark() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -177,7 +177,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
         uint256 flatPrice = 0.01 ether;
 
-        super._mintNftDaoFunding(
+        super._mintNft(
             subDaoId2,
             canvasId3,
             string.concat(
@@ -213,47 +213,48 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(IERC20(token).balanceOf(address(protocol)), 0);
     }
 
-    function test_PDCreateFunding_createTopUpDao() public {
-        // DeployHelper.CreateDaoParam memory param;
-        // param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        // bytes32 canvasId1 = param.canvasId;
-        // param.existDaoId = bytes32(0);
-        // param.isBasicDao = true;
-        // param.topUpMode = true;
-        // param.noPermission = true;
-        // param.daoUri = "topup dao uri";
+    function test_PDCreateFunding_createTopUpDaoAndMintToNormalDao() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.topUpMode = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
 
-        // bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
-        // super._mintNft(
-        //     daoId,
-        //     canvasId1,
-        //     string.concat(
-        //         tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
-        //     ),
-        //     0.01 ether,
-        //     daoCreator.key,
-        //     nftMinter.addr
-        // );
-        // param.isBasicDao = false;
-        // param.existDaoId = daoId;
-        // param.topUpMode = false;
-        // param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        // param.daoUri = "normal dao uri";
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        param.topUpMode = false;
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        param.daoUri = "normal dao uri";
 
-        // bytes32 canvasId2 = param.canvasId;
-        // bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+        bytes32 canvasId2 = param.canvasId;
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
-        // //protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-
-        // super._mintNft(
-        //     daoId2,
-        //     canvasId2,
-        //     string.concat(
-        //         tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
-        //     ),
-        //     0.01 ether,
-        //     daoCreator2.key,
-        //     nftMinter.addr
-        // );
+        //protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
+        //deal(nftMinter.addr.balance);
+        super._mintNftDaoFunding(
+            daoId2,
+            canvasId2,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+        console2.log(nftMinter.addr.balance);
     }
 }

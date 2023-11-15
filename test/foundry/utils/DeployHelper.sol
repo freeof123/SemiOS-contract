@@ -1186,9 +1186,10 @@ contract DeployHelper is Test {
         internal
         returns (uint256 tokenId)
     {
-        uint256 bal = hoaxer.balance;
-        startHoax(hoaxer);
-
+        // uint256 bal = hoaxer.balance;
+        // startHoax(hoaxer);
+        vm.startPrank(hoaxer);
+        console2.log(hoaxer.balance);
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
         if (
