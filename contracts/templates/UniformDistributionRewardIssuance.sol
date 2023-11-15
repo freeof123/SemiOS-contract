@@ -370,7 +370,14 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
                 }
             }
         } else {
+            rewardInfo.selfRoundERC20Reward[round] = amount;
+            PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += amount;
             D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), amount);
+            if (basicDaoInfo.daoAssetPool.balance > 0) {
+                D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
+                    address(0), payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
+                );
+            }
         }
     }
 }

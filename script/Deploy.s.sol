@@ -124,7 +124,7 @@ contract Deploy is Script, Test, D4AAddress {
         //_cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployClaimer();
-        _deployUniversalClaimer();
+        //_deployUniversalClaimer();
 
         //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
@@ -145,7 +145,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        //_deployUniformDistributionRewardIssuance();
+        _deployUniformDistributionRewardIssuance();
 
         // todo: deploy new templete, set this template,
         // in deployhelper:new UniformDistributionRewardIssuance();

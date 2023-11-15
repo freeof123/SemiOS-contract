@@ -114,4 +114,11 @@ interface IPDProtocol {
     )
         external
         returns (uint256 nftMinterERC20Reward, uint256 nftMinterETHReward);
+
+    function updateTopUpAccount(
+        bytes32 daoId,
+        address account
+    )
+        external
+        returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);
 }
