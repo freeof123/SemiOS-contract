@@ -58,6 +58,7 @@ import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
+import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
 import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory.sol";
@@ -98,6 +99,7 @@ contract DeployHelper is Test {
     TestERC20 internal _testERC20;
     TestERC721 internal _testERC721;
     D4AClaimer public claimer;
+    D4AUniversalClaimer public universalClaimer;
     IUniswapV2Factory public uniswapV2Factory;
     IUniswapV2Router public uniswapV2Router;
     FeedRegistryMock public feedRegistry;
@@ -161,6 +163,7 @@ contract DeployHelper is Test {
         _deployDaoProxy();
         _deployPermissionControl();
         _deployClaimer();
+        _deployUniversalClaimer();
         _deployTestERC20();
         _deployAggregator();
         _deployTestERC721();
@@ -531,6 +534,11 @@ contract DeployHelper is Test {
     function _deployClaimer() internal prank(protocolOwner.addr) {
         claimer = new D4AClaimer(address(protocol));
         vm.label(address(claimer), "Claimer");
+    }
+
+    function _deployUniversalClaimer() internal prank(protocolOwner.addr) {
+        universalClaimer = new D4AUniversalClaimer();
+        vm.label(address(universalClaimer), "Universal Claimer");
     }
 
     function _deployTestERC20() internal prank(protocolOwner.addr) {
