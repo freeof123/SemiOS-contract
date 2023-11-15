@@ -54,9 +54,9 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplateFunding } from "./interface/IRewardTemplateFunding.sol";
 
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
-contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallable, ReentrancyGuard, EIP712, Test {
+contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGuard, Multicallable, EIP712 {
     using LibString for string;
 
     bytes32 internal constant _MINTNFT_TYPEHASH =
@@ -117,11 +117,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
         return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, msg.sender);
     }
 
-    function updateTopUpAccount(bytes32 daoId, address account) external returns (uint256) {
+    function updateTopUpAccount(bytes32 daoId, address account) external returns (uint256, uint256) {
         return _usingTopUpAccount(daoId, account);
     }
 
-    function _usingTopUpAccount(bytes32 daoId, address account) internal returns (uint256) {
+    function _usingTopUpAccount(bytes32 daoId, address account) internal returns (uint256, uint256) {
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         bytes32[] memory investedTopUpDaos = poolInfo.investedTopUpDaos[account];
@@ -145,7 +145,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                 ++i;
             }
         }
-        return poolInfo.topUpInvestorETHQuota[account];
+        return (poolInfo.topUpInvestorERC20Quota[account], poolInfo.topUpInvestorETHQuota[account]);
     }
 
     function mintNFTAndTransfer(
@@ -795,9 +795,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
                     && ID4AProtocolReadable(address(this)).getNftMinterERC20Ratio(daoId) != 0
             ) canvasRebateRatioInBps = canvasInfo.canvasRebateRatioInBps;
             address protocolFeePool = l.protocolFeePool;
-            address daoFeePool = daoInfo.daoFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(canvasId);
-            daoFee = _splitFee(protocolFeePool, daoFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
+            daoFee = _splitFee(protocolFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
         } else {
             if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
                 RewardStorage.layout().rewardInfos[daoId].topUpInvestorPendingETH[currentRound][msg.sender] += price;
@@ -996,7 +995,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
     function _splitFee(
         address protocolFeePool,
-        address daoFeePool,
         address canvasOwner,
         uint256 price,
         uint256 daoShare,
@@ -1023,7 +1021,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, Multicallabl
 
     function _splitFeeFunding(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 topUpETHQuota = _usingTopUpAccount(vars.daoId, msg.sender);
+        (, uint256 topUpETHQuota) = _usingTopUpAccount(vars.daoId, msg.sender);
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
         uint256 dust;
