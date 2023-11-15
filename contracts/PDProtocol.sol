@@ -125,19 +125,17 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         bytes32[] memory investedTopUpDaos = poolInfo.investedTopUpDaos[account];
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
         for (uint256 i; i < investedTopUpDaos.length;) {
-            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-            SettingsStorage.Layout storage l = SettingsStorage.layout();
             (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-                abi.encodeWithSelector(
-                    IRewardTemplateFunding.claimNftMinterReward.selector,
-                    investedTopUpDaos[i],
-                    account,
-                    l.drb.currentRound(),
-                    daoInfo.token
+                abi.encodeCall(
+                    IRewardTemplateFunding.claimNftMinterReward,
+                    (investedTopUpDaos[i], account, l.drb.currentRound(), daoInfo.token)
                 )
             );
-            require(succ);
+            require(succ, "delegate call failed");
             (uint256 minterERC20Reward, uint256 minterETHReward) = abi.decode(data, (uint256, uint256));
 
             emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
@@ -350,6 +348,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         _checkDaoExist(daoId);
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
+
         (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplateFunding.claimDaoCreatorReward.selector,
@@ -456,8 +455,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         _checkPauseStatus();
         _checkDaoExist(daoId);
         _checkPauseStatus(daoId);
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
+
         (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplateFunding.claimNftMinterReward.selector, daoId, minter, l.drb.currentRound(), daoInfo.token
@@ -819,6 +820,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
                 //因为topUp模式下daoAssetPool不流入资产，以price作为权重
                 daoFee = price;
+                emit MintFeePendingToTopUpAccount(daoId, price);
             } else {
                 SplitFeeLocalVars memory vars;
                 vars.daoId = daoId;
@@ -1022,6 +1024,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _splitFeeFunding(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         (, uint256 topUpETHQuota) = _usingTopUpAccount(vars.daoId, msg.sender);
+
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
         uint256 dust;
@@ -1057,6 +1060,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 topUpAmountETHToUse
             );
         }
+        emit MintFeeSplitted(
+            vars.daoId,
+            vars.daoRedeemPool,
+            vars.redeemPoolFee,
+            vars.canvasOwner,
+            canvasCreatorFee,
+            vars.daoAssetPool,
+            vars.assetPoolFee
+        );
         return vars.assetPoolFee;
     }
 

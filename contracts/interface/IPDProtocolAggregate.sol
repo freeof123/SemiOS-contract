@@ -26,4 +26,6 @@ interface IPDProtocolAggregate is
     ID4ASettings,
     IPDProtocolSetter,
     IPDCreateFunding
-{ }
+{
+    function testBug(bytes32) external payable;
+}

@@ -28,6 +28,18 @@ interface IPDProtocol {
 
     event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
 
+    event MintFeeSplitted(
+        bytes32 daoId,
+        address daoRedeemPool,
+        uint256 redeemPoolFee,
+        address canvasOwner,
+        uint256 canvasCreatorFee,
+        address daoAssetPool,
+        uint256 assetPoolFee
+    );
+
+    event MintFeePendingToTopUpAccount(bytes32 daoId, uint256 feePendingToTopUpAccount);
+
     function initialize() external;
 
     function createCanvasAndMintNFT(

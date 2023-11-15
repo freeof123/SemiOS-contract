@@ -175,7 +175,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             require(succ, "transfer eth failed");
         }
         if (daoCreatorClaimableETHReward > 0) {
-            (bool succ,) = protocolFeePool.call{ value: daoCreatorClaimableETHReward }("");
+            (bool succ,) = daoCreator.call{ value: daoCreatorClaimableETHReward }("");
             require(succ, "transfer eth failed");
         }
         // (protocolClaimableERC20Reward, daoCreatorClaimableERC20Reward) =
@@ -238,6 +238,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         address token
     )
         public
+        payable
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
@@ -246,7 +247,6 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
 
         uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
         bool topUpMode = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode;
-
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.nftMinterClaimableRoundIndexesFunding[nftMinter];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
