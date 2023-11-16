@@ -15,7 +15,7 @@ import { PDCreate } from "contracts/PDCreate.sol";
 
 import { console2 } from "forge-std/Test.sol";
 
-contract ProtoDaoTestExtend is DeployHelper {
+contract ProtoDaoExtendTest is DeployHelper {
     function setUp() public {
         super.setUpEnv();
     }
@@ -746,7 +746,6 @@ contract ProtoDaoTestExtend is DeployHelper {
         assertEq(protocolPool.balance, 0 ether);
 
         // !!!! 1.3-16 step 3
-        console2.log("assetpoot erc20: ", IERC20(token).balanceOf(assetPool));
         uint256 flatPrice = 0.01 ether;
         deal(daoCreator2.addr, 1 ether);
         super._mintNftChangeBal(
@@ -785,23 +784,29 @@ contract ProtoDaoTestExtend is DeployHelper {
         claimParam.canvasIds = cavansIds;
         claimParam.daoIds = daoIds;
 
+        address main_assetPool = protocol.getDaoAssetPool(daoId);
+
         vm.prank(daoCreator.addr);
+        uint256 daoCreator_eth_balance_before_claim = daoCreator.addr.balance;
         universalClaimer.claimMultiRewardFunding(claimParam);
+        uint256 daoCreator_eth_balance_after_claim = daoCreator.addr.balance;
         vm.prank(daoCreator2.addr);
+        uint256 daoCreator2_eth_balance_before_claim = daoCreator2.addr.balance;
         universalClaimer.claimMultiRewardFunding(claimParam);
+        uint256 daoCreator2_eth_balance_after_claim = daoCreator2.addr.balance;
 
         // !!!! 1.3-16 step 5
+        // erc20
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 0, "daoCreator");
         assertEq(IERC20(token).balanceOf(daoCreator2.addr), 0, "daoCreator2");
         assertEq(IERC20(token).balanceOf(assetPool), 0, "assetPool");
         assertEq(IERC20(token).balanceOf(redeemPool), 0, "redeemPool");
-        address main_assetPool = protocol.getDaoAssetPool(daoId);
         assertEq(IERC20(token).balanceOf(main_assetPool), 50_000_000 ether, "main_assetPool");
         assertEq(IERC20(token).balanceOf(protocolPool), 0, "protocolPool");
 
-        // assertEq(assetPool.balance, 0 ether);
-        // assertEq(redeemPool.balance, 0 ether);
-        // assertEq(protocolPool.balance, 0 ether);
+        // eth
+        assertEq(daoCreator_eth_balance_after_claim - daoCreator_eth_balance_before_claim, 0, "daoCreator");
+        assertEq(daoCreator2_eth_balance_after_claim - daoCreator2_eth_balance_before_claim, 0, "daoCreator2");
     }
 }
 
