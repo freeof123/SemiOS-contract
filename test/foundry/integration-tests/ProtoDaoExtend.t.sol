@@ -595,6 +595,7 @@ contract ProtoDaoTestExtend is DeployHelper {
 
   // testcase 1.3-14
   function test_PDCreateFunding_1_3_14() public {
+    // set create data params
     DeployHelper.CreateDaoParam memory param;
     param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
     bytes32 canvasId1 = param.canvasId;
@@ -602,18 +603,29 @@ contract ProtoDaoTestExtend is DeployHelper {
     param.isBasicDao = true;
     param.isProgressiveJackpot = true;
     param.noPermission = true;
+    // erc20 and eth ratio
+    param.selfRewardRatioERC20 = 2000;
+    param.redeemPoolRatioETH = 3000;
+    param.selfRewardRatioETH = 3500;
 
+    // create basic dao
     bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+    
+    // get pool address
     address assetPool = protocol.getDaoAssetPool(daoId);
     address redeemPool = protocol.getDaoFeePool(daoId);
     address protocolPool = protocol.protocolFeePool();
 
+    // pool balance init as zero
     assertEq(assetPool.balance, 0 ether);
     assertEq(redeemPool.balance, 0 ether);
     assertEq(protocolPool.balance, 0 ether);
 
+    // mint nft 
+    // canvas/minter/dao_creator are the same: daoCreator
     uint256 flatPrice = 0.01 ether;
     uint256 canvasId1_eth_balance_before_mint = daoCreator.addr.balance;
+    // !!!! 1.3-14 step 3
     super._mintNftChangeBal(
       daoId,
       canvasId1,
@@ -624,6 +636,7 @@ contract ProtoDaoTestExtend is DeployHelper {
     );
     uint256 canvasId1_eth_balance_after_mint = daoCreator.addr.balance;
 
+    // !!!! 1.3-14 step 4
     // 0.01 ether * 0.35
     assertEq(assetPool.balance, 0.0035 ether);
     // 0.01 ether * 0.6
@@ -632,6 +645,8 @@ contract ProtoDaoTestExtend is DeployHelper {
     assertEq(canvasId1_eth_balance_before_mint - canvasId1_eth_balance_after_mint, 0.00975 ether);
     // 0.01 ether * (1 - 0.35 - 0.6 - 0.025)
     assertEq(protocolPool.balance, 0.00025 ether);
+
+
 
     bytes32 canvasId2 = keccak256(abi.encode(canvasCreator2.addr, block.timestamp));
     string memory tokenUri = string.concat(
@@ -646,6 +661,7 @@ contract ProtoDaoTestExtend is DeployHelper {
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator2.key, digest);
     hoax(daoCreator.addr);
 
+    // !!!! 1.3-14 step 5
     protocol.createCanvasAndMintNFT{ value: flatPrice }(
       daoId,
       canvasId2,
@@ -657,16 +673,18 @@ contract ProtoDaoTestExtend is DeployHelper {
       new bytes32[](0),
       daoCreator.addr
     );
+    // !!!! 1.3-14 step 6
     assertEq(assetPool.balance, 0.007 ether);
-    // 0.01 ether * 0.6
     assertEq(redeemPool.balance, 0.012 ether);
-
     assertEq(canvasCreator2.addr.balance, 0.00025 ether);
-    // 0.01 ether * (1 - 0.35 - 0.6 - 0.025)
     assertEq(protocolPool.balance, 0.0005 ether);
+
+
+
 
     drb.changeRound(2);
 
+    // set claim param
     ClaimMultiRewardParam memory claimParam;
     claimParam.protocol = address(protocol);
     bytes32[] memory cavansIds = new bytes32[](2);
@@ -679,17 +697,48 @@ contract ProtoDaoTestExtend is DeployHelper {
     claimParam.canvasIds = cavansIds;
     claimParam.daoIds = daoIds;
 
+    address token = protocol.getDaoToken(tempDaoId);
+    address ppool = protocol.protocolFeePool();
+
+    uint256 daoCreator_eth_balance_before_claim = daoCreator.addr.balance;  
+    uint256 canvasCreator2_eth_balance_before_claim = canvasCreator2.addr.balance;
+    uint256 protocol_eth_balance_before_claim = ppool.balance;
     hoax(daoCreator.addr);
     universalClaimer.claimMultiRewardFunding(claimParam);
-    address token = protocol.getDaoToken(tempDaoId);
+    uint256 daoCreator_eth_balance_after_claim = daoCreator.addr.balance;  
+    uint256 canvasCreator2_eth_balance_after_claim = canvasCreator2.addr.balance;
+    uint256 protocol_eth_balance_after_claim = ppool.balance;
+    
 
-    console2.log(IERC20(token).balanceOf(daoCreator.addr));
-    console2.log(IERC20(token).balanceOf(canvasCreator2.addr));
-    console2.log(IERC20(token).balanceOf(protocol.protocolFeePool()));
 
-    // assertEq(IERC20(token).balanceOf(daoCreator.addr), 712500 ether);
-    // assertEq(IERC20(token).balanceOf(canvasCreator2.addr), 104166666666666666666666667);
-    // assertEq(IERC20(token).balanceOf(protocolPool), 16666668888888);
+    // console2.log(IERC20(token).balanceOf(daoCreator.addr));
+    // console2.log(IERC20(token).balanceOf(canvasCreator2.addr));
+    // console2.log(IERC20(token).balanceOf(protocol.protocolFeePool()));
+
+
+    // !!!! 1.3-14 step 7
+    // erc20 token total reward for 1 drb: 50000000 / 60.0
+    // daoCreator.addr erc20 reward consists of three part: as daoCreator, canvasCreator, minter
+    // daoCreatorERC20RewardRatio: 50000000 / 60.0 * 0.2 * 0.7
+    // canvasCreatorERC20RewardRatio: 50000000 / 60.0 * 0.2 * 0.2 * (0.01) / (0.01 + 0.01)
+    // minterERC20RewardRatio: 50000000 / 60.0 * 0.2 * 0.08
+    // 146666.6666666667 ether
+    assertEq(IERC20(token).balanceOf(daoCreator.addr), 146666666666666666666665 wei);
+
+    // canvasCreatorERC20RewardRatio: 50000000 / 60.0 * 0.2 * 0.2 * (0.01) / (0.01 + 0.01)
+    // 16666.666666666668 ether
+    assertEq(IERC20(token).balanceOf(canvasCreator2.addr), 16666666666666666666666 wei);
+
+    // 50000000 / 60.0 * 0.2 * (10000 - 800 - 2000 - 7000) / 10000
+    // 3333.3333333333335 ether
+    assertEq(IERC20(token).balanceOf(ppool), 3333333333333333333333 wei);
+
+
+
+    // !!!! 1.3-14 step 8
+    assertEq(daoCreator_eth_balance_after_claim - daoCreator_eth_balance_before_claim, 0);
+    assertEq(canvasCreator2_eth_balance_after_claim - canvasCreator2_eth_balance_before_claim, 0);
+    assertEq(protocol_eth_balance_after_claim - protocol_eth_balance_before_claim, 0);
   }
 }
 
