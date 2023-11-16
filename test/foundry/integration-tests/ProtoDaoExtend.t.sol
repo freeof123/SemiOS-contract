@@ -703,7 +703,7 @@ contract ProtoDaoTestExtend is DeployHelper {
     uint256 daoCreator_eth_balance_before_claim = daoCreator.addr.balance;  
     uint256 canvasCreator2_eth_balance_before_claim = canvasCreator2.addr.balance;
     uint256 protocol_eth_balance_before_claim = ppool.balance;
-    hoax(daoCreator.addr);
+    vm.prank(daoCreator.addr);
     universalClaimer.claimMultiRewardFunding(claimParam);
     uint256 daoCreator_eth_balance_after_claim = daoCreator.addr.balance;  
     uint256 canvasCreator2_eth_balance_after_claim = canvasCreator2.addr.balance;
@@ -739,6 +739,111 @@ contract ProtoDaoTestExtend is DeployHelper {
     assertEq(daoCreator_eth_balance_after_claim - daoCreator_eth_balance_before_claim, 0);
     assertEq(canvasCreator2_eth_balance_after_claim - canvasCreator2_eth_balance_before_claim, 0);
     assertEq(protocol_eth_balance_after_claim - protocol_eth_balance_before_claim, 0);
+  }
+
+
+  // testcase 1.3-16
+  function test_PDCreateFunding_1_3_16() public {
+    // dao: daoCreator
+    DeployHelper.CreateDaoParam memory param;
+    param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+    bytes32 canvasId1 = param.canvasId;
+    param.existDaoId = bytes32(0);
+    param.isBasicDao = true;
+    bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+
+    // !!!! 1.3-16 step 1
+    // subdao: daoCreator2
+    param.daoUri = "continuous dao uri";
+    param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+    bytes32 canvasId2 = param.canvasId;
+    param.existDaoId = daoId;
+    param.isProgressiveJackpot = true;
+    param.noPermission = true;
+    // erc20 and eth ratio
+    param.selfRewardRatioERC20 = 2000;
+    param.redeemPoolRatioETH = 3000;
+    param.selfRewardRatioETH = 3500;
+    bytes32 subDaoId = super._createDaoForFunding(param, daoCreator2.addr);
+
+    
+    // !!!! 1.3-16 step 2
+    drb.changeRound(2);
+
+    // get pool address
+    address assetPool = protocol.getDaoAssetPool(subDaoId);
+    address redeemPool = protocol.getDaoFeePool(subDaoId);
+    address protocolPool = protocol.protocolFeePool();
+
+    // pool balance init as zero
+    assertEq(assetPool.balance, 0 ether);
+    assertEq(redeemPool.balance, 0 ether);
+    assertEq(protocolPool.balance, 0 ether);
+
+    // !!!! 1.3-16 step 3
+    uint256 flatPrice = 0.01 ether;
+    deal(daoCreator2.addr, 1 ether);
+    super._mintNftChangeBal(
+      subDaoId,
+      canvasId2,
+      string.concat(
+        tokenUriPrefix,
+        vm.toString(protocol.getDaoIndex(subDaoId)),
+        "-",
+        vm.toString(uint256(0)),
+        ".json"
+      ),
+      flatPrice,
+      daoCreator2.key,
+      daoCreator2.addr
+    );
+
+    // !!!! 1.3-16 step 4
+    // 0.01 ether * 0.35
+    assertEq(assetPool.balance, 0.0035 ether);
+    // 0.01 ether * 0.6
+    assertEq(redeemPool.balance, 0.006 ether);
+    // -0.01 ether + 0.01 ether * 0.025
+    assertEq(daoCreator2.addr.balance, 0.99025 ether);
+    // 0.01 ether * (1 - 0.35 - 0.6 - 0.025)
+    assertEq(protocolPool.balance, 0.00025 ether);
+
+
+    drb.changeRound(3);
+
+    // set claim param
+    ClaimMultiRewardParam memory claimParam;
+    claimParam.protocol = address(protocol);
+    bytes32[] memory cavansIds = new bytes32[](2);
+    cavansIds[0] = canvasId1;
+    cavansIds[1] = canvasId2;
+
+    bytes32[] memory daoIds = new bytes32[](2);
+    daoIds[0] = daoId;
+    daoIds[1] = subDaoId;
+    claimParam.canvasIds = cavansIds;
+    claimParam.daoIds = daoIds;
+
+    vm.prank(daoCreator.addr);
+    universalClaimer.claimMultiRewardFunding(claimParam);
+    vm.prank(daoCreator2.addr);
+    universalClaimer.claimMultiRewardFunding(claimParam);
+
+
+    // !!!! 1.3-16 step 5
+    address token = protocol.getDaoToken(subDaoId);
+    assertEq(IERC20(token).balanceOf(daoCreator.addr),  0, "daoCreator");
+    assertEq(IERC20(token).balanceOf(daoCreator2.addr),  0, "daoCreator2");
+    assertEq(IERC20(token).balanceOf(assetPool),  0, "assetPool");
+    assertEq(IERC20(token).balanceOf(redeemPool),  0, "redeemPool");
+    address main_assetPool = protocol.getDaoAssetPool(daoId);
+    assertEq(IERC20(token).balanceOf(main_assetPool),  0, "main_assetPool");
+    assertEq(IERC20(token).balanceOf(protocolPool),  0, "protocolPool");
+    
+
+    // assertEq(assetPool.balance, 0 ether);
+    // assertEq(redeemPool.balance, 0 ether);
+    // assertEq(protocolPool.balance, 0 ether);
   }
 }
 
