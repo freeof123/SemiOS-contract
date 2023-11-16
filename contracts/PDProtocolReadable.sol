@@ -160,4 +160,14 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoIsThirdPartyToken(bytes32 daoId) public view returns (bool) {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken;
     }
+
+    function getRoundERC20Reward(bytes32 daoId, uint256 round) public view returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        return rewardInfo.selfRoundERC20Reward[round];
+    }
+
+    function getRoundETHReward(bytes32 daoId, uint256 round) public view returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        return rewardInfo.selfRoundETHReward[round];
+    }
 }

@@ -40,4 +40,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoSelfRewardRatioETH(bytes32 daoId) external view returns (uint256);
     function getDaoTopUpMode(bytes32 daoId) external view returns (bool);
     function getDaoIsThirdPartyToken(bytes32 daoId) external view returns (bool);
+    function getRoundERC20Reward(bytes32 daoId, uint256 round) external view returns (uint256);
+    function getRoundETHReward(bytes32 daoId, uint256 round) external view returns (uint256);
 }

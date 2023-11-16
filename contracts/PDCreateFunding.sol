@@ -392,7 +392,6 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
-            address fundingPool = _createFundingPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
         }
 
         protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
@@ -534,12 +533,12 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         return daoAssetPool;
     }
 
-    function _createFundingPool(bytes32 daoId, uint256 daoIndex) internal returns (address) {
-        // SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        basicDaoInfo.daoFundingPool = address(0);
-        return address(0);
-    }
+    // function _createFundingPool(bytes32 daoId, uint256 daoIndex) internal returns (address) {
+    //     // SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+    //     BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+    //     basicDaoInfo.daoFundingPool = address(0);
+    //     return address(0);
+    // }
 
     // ========================== optimized code =========================
     function _config(address protocol, CreateProjectLocalVars memory vars) internal {

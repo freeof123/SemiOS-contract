@@ -373,6 +373,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
             rewardInfo.selfRoundERC20Reward[round] = amount;
             PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += amount;
             D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), amount);
+            emit DaoBlockRewardForSelf(daoId, token, amount, round);
             if (basicDaoInfo.daoAssetPool.balance > 0) {
                 D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
                     address(0), payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance

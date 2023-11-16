@@ -231,6 +231,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorERC20RewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getMinterETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasCreatorETHRewardRatio.selector;
+    // 1.3 related functions
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAssetPool.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getIsAncestorDao.selector;
@@ -245,6 +246,8 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoSelfRewardRatioETH.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTopUpMode.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoIsThirdPartyToken.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getRoundERC20Reward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getRoundETHReward.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
