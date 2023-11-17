@@ -1054,13 +1054,15 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(assetPool_subdao), 80_000_000 ether);
         assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0);
 
-        // drb.changeRound(2);
-        // assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 2");
+        drb.changeRound(2);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 2");
         drb.changeRound(3);
-        // assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 3 before mint");
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 3 before mint");
 
         // !!!! 1.3-57 step 3 mint
         // daoCreator3 is subdao_creator/canvas/minter
+        deal(nftMinter.addr, 1 ether);
+        assertEq(nftMinter.addr.balance, 1 ether, "nftMinter");
         super._mintNftChangeBal(
             subDaoId,
             canvasId3,
@@ -1069,38 +1071,54 @@ contract ProtoDaoExtendTest is DeployHelper {
             ),
             0.3 ether,
             daoCreator3.key,
-            daoCreator3.addr
+            nftMinter.addr
         );
 
         // !!!! 1.3-57 step 4
-        // 80_000_000 ether * (1drb / 10drb) * 0.1
+        // 80_000_000 ether * (3drb / 10drb) * 0.1
         assertEq(IERC20(token).balanceOf(assetPool_subdao2), 2_400_000 ether);
 
         // !!!! 1.3-57 step 5
         // init with 80_000_000 ether
-        // - 80_000_000 ether * (1drb / 10drb) * (0.1 + 0.7)
-        // assertEq(IERC20(token).balanceOf(assetPool_subdao), 73600000 ether);
+        // - 80_000_000 ether * (3drb / 10drb) * (0.1 + 0.7)
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 60800000 ether);
 
-        // drb.changeRound(2);
+
+        drb.changeRound(4);
+        
 
         // set claim param
-        // ClaimMultiRewardParam memory claimParam;
-        // claimParam.protocol = address(protocol);
-        // bytes32[] memory cavansIds = new bytes32[](3);
-        // cavansIds[0] = canvasId1;
-        // cavansIds[1] = canvasId2;
-        // cavansIds[2] = canvasId3;
-        // bytes32[] memory daoIds = new bytes32[](3);
-        // daoIds[0] = daoId;
-        // daoIds[1] = subDaoId2;
-        // daoIds[2] = subDaoId;
-        // claimParam.canvasIds = cavansIds;
-        // claimParam.daoIds = daoIds;
+        ClaimMultiRewardParam memory claimParam;
+        claimParam.protocol = address(protocol);
+        bytes32[] memory cavansIds = new bytes32[](3);
+        cavansIds[0] = canvasId1;
+        cavansIds[1] = canvasId2;
+        cavansIds[2] = canvasId3;
+        bytes32[] memory daoIds = new bytes32[](3);
+        daoIds[0] = daoId;
+        daoIds[1] = subDaoId2;
+        daoIds[2] = subDaoId;
+        claimParam.canvasIds = cavansIds;
+        claimParam.daoIds = daoIds;
 
-        // vm.prank(daoCreator3.addr);
-        // universalClaimer.claimMultiRewardFunding(claimParam);
 
-        // !!!! 1.3-57 step 7
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 0);
+
+        // !!!! 1.3-57 step 7/8/9
+        // to dispatch 80_000_000 ether * (3drb / 10drb) * 0.7
+        // 8% for miner, 20% for canvas, 70% for creator
+
+        vm.prank(nftMinter.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        // 8% for miner
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 1344000 ether);
+
+
+        vm.prank(daoCreator3.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        // 20% for canvas and 70% for creator
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 15120000 ether);
     }
 }
 
