@@ -49,7 +49,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
         address token = protocol.getDaoToken(daoId);
-        //total
+        //step 2
         super._mintNft(
             daoId,
             canvasId1,
@@ -64,6 +64,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         assertEq(topUpERC20, 0);
         assertEq(topUpETH, 0);
         drb.changeRound(2);
+        //step 4
         super._mintNft(
             daoId,
             canvasId1,
@@ -78,12 +79,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         assertEq(topUpERC20, 50_000_000 ether / uint256(60));
         assertEq(topUpETH, 0.01 ether);
 
+        deal(nftMinter.addr, 1 ether);
         uint256 balBefore = nftMinter.addr.balance;
+        //step 6
         super._mintNftChangeBal(
             daoId2,
             canvasId2,
             string.concat(
-                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
             ),
             0.005 ether,
             daoCreator2.key,
@@ -91,8 +94,125 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
         assertEq(nftMinter.addr.balance, balBefore);
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60));
+        assertEq(topUpERC20, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2);
+        assertEq(topUpETH, 0.005 ether);
+
+        //step 11
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        //step 12
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(3)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter2.addr
+        );
+        drb.changeRound(3);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
+        uint256 a = (50_000_000 ether - 50_000_000 ether / uint256(60)) / 59;
+        assertEq(topUpERC20, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2 + a * 2 / 3);
+        assertEq(topUpETH, 0.005 ether + 0.02 ether);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter2.addr);
+        assertEq(topUpERC20, a / 3);
         assertEq(topUpETH, 0.01 ether);
+    }
+
+    function test_PDCreateFunding_1_3_62() public {
+        // dao: daoCreator
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.topUpMode = true;
+        param.mintableRound = 10;
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        bytes32 canvasId2 = param.canvasId;
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.selfRewardRatioETH = 0;
+        param.selfRewardRatioERC20 = 0;
+        param.noPermission = true;
+        param.topUpMode = false;
+        param.isProgressiveJackpot = true;
+        param.uniPriceModeOff = true;
+        param.daoUri = "continuous dao uri";
+
+        param.childrenDaoId = new bytes32[](1);
+        param.childrenDaoId[0] = daoId;
+        // erc20 ratio
+        param.childrenDaoRatiosERC20 = new uint256[](1);
+        param.childrenDaoRatiosERC20[0] = 7000;
+        // eth ratio
+        param.childrenDaoRatiosETH = new uint256[](1);
+        param.childrenDaoRatiosETH[0] = 7000;
+
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        vm.prank(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        vm.prank(daoCreator.addr);
+        protocol.setDaoUnifiedPrice(daoId, 0.1 ether);
+
+        address token = protocol.getDaoToken(daoId);
+        address pool1 = protocol.getDaoAssetPool(daoId);
+        //step 2
+        super._mintNft(
+            daoId2,
+            canvasId2,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+        assertEq(IERC20(token).balanceOf(pool1), 50_000_000 ether + 700_000 ether);
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.1 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.1 ether,
+            daoCreator.key,
+            nftMinter2.addr
+        );
+        drb.changeRound(2);
+        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
+        assertEq(topUpERC20, (50_000_000 ether + 700_000 ether) / 10 / 2);
+        assertEq(topUpETH, 0.1 ether);
+
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter2.addr);
+        assertEq(topUpERC20, (50_000_000 ether + 700_000 ether) / 10 / 2);
+        assertEq(topUpETH, 0.1 ether);
     }
 }
 
