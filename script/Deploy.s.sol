@@ -34,9 +34,10 @@ import "contracts/interface/D4AStructs.sol";
 contract Deploy is Script, Test, D4AAddress {
     using stdJson for string;
 
-    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    // uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-    address public owner = vm.addr(deployerPrivateKey);
+    address public owner = 0xe6046371B729f23206a94DDCace89FEceBBD565c;
+    //= vm.addr(deployerPrivateKey);
 
     struct CreateDaoParam {
         uint256 startDrb;
@@ -85,7 +86,7 @@ contract Deploy is Script, Test, D4AAddress {
     }
 
     function run() public {
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
         //_eventEmiter();
 
@@ -100,7 +101,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
         //_deployProtocolReadable();
         //_cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
@@ -115,7 +116,7 @@ contract Deploy is Script, Test, D4AAddress {
         //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         //_deployPDCreateFunding();
-        //_cutFacetsPDCreateFunding(DeployMethod.ADD);
+        //_cutFacetsPDCreateFunding(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -129,7 +130,7 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
-        //_deployPermissionControl();
+        _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         //todo:
@@ -145,7 +146,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        _deployUniformDistributionRewardIssuance();
+        // _deployUniformDistributionRewardIssuance();
 
         // todo: deploy new templete, set this template,
         // in deployhelper:new UniformDistributionRewardIssuance();
@@ -507,7 +508,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         vm.toString(address(pdCreateFunding)).write(path, ".PDProtocol.PDCreateFunding");
 
-        console2.log("PDCreate address: ", address(pdCreate));
+        console2.log("PDCreate address: ", address(pdCreateFunding));
         console2.log("================================================================================\n");
     }
 
@@ -534,7 +535,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreate),
+                target: address(pdCreateFunding),
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
@@ -542,7 +543,7 @@ contract Deploy is Script, Test, D4AAddress {
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreate),
+                target: address(pdCreateFunding),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });

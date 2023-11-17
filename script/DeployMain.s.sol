@@ -97,7 +97,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
-        //_deployPermissionControl();
+        //_deployPermissionControl(); //todo: need to update the implementation (protocol permission missed)
         // _deployPermissionControlProxy();
 
         // _initSettings();//todo: same in deploy.s
