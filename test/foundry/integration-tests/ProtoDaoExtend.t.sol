@@ -808,6 +808,204 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(daoCreator_eth_balance_after_claim - daoCreator_eth_balance_before_claim, 0, "daoCreator");
         assertEq(daoCreator2_eth_balance_after_claim - daoCreator2_eth_balance_before_claim, 0, "daoCreator2");
     }
+
+    // testcase 1.3-56
+    function test_PDCreateFunding_1_3_56() public {
+        // main dao
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+
+        // subdao2
+        param.daoUri = "continuous subdao2 uri";
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        bytes32 canvasId2 = param.canvasId;
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        // subdao
+        param.daoUri = "continuous subdao uri";
+        param.canvasId = keccak256(abi.encode(daoCreator3.addr, block.timestamp));
+        bytes32 canvasId3 = param.canvasId;
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        // to main dao and subdao2
+        param.childrenDaoId = new bytes32[](2);
+        param.childrenDaoId[0] = daoId;
+        param.childrenDaoId[1] = subDaoId2;
+        // erc20 ratio
+        param.childrenDaoRatiosERC20 = new uint256[](2);
+        param.childrenDaoRatiosERC20[0] = 4000;
+        param.childrenDaoRatiosERC20[1] = 3000;
+        param.selfRewardRatioERC20 = 2000;
+        // eth ratio
+        param.redeemPoolRatioETH = 2000;
+        param.selfRewardRatioETH = 5000;
+        param.childrenDaoRatiosETH = new uint256[](2);
+        param.childrenDaoRatiosETH[0] = 2000;
+        param.childrenDaoRatiosETH[1] = 1000;
+        param.isProgressiveJackpot = true;
+        param.noPermission = true;
+        param.uniPriceModeOff = true;
+        param.mintableRound = 10;
+        bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
+
+
+        address token = protocol.getDaoToken(subDaoId);
+        address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
+        address redeemPool = protocol.getDaoFeePool(subDaoId);
+        address protocolPool = protocol.protocolFeePool();
+        address assetPool_maindao = protocol.getDaoAssetPool(daoId);
+        address assetPool_subdao2 = protocol.getDaoAssetPool(subDaoId2);
+        // !!!! 1.3-56 step 1
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 0);
+        assertEq(assetPool_subdao.balance, 0);
+        assertEq(assetPool_maindao.balance, 0);
+        assertEq(assetPool_subdao2.balance, 0);
+
+
+        // !!!! 1.3-56 step 2
+        deal(assetPool_subdao, 2 ether);
+        deal(assetPool_maindao, 3 ether);
+        deal(assetPool_subdao2, 4 ether);
+        assertEq(assetPool_subdao.balance, 2 ether);
+        assertEq(assetPool_maindao.balance, 3 ether);
+        assertEq(assetPool_subdao2.balance, 4 ether);
+
+
+        // !!!! 1.3-56 step 3 mint
+        deal(daoCreator3.addr, 1 ether);
+        assertEq(daoCreator3.addr.balance, 1 ether);
+        // daoCreator3 is subdao_creator/canvas/minter
+        super._mintNftChangeBal(
+            subDaoId,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(subDaoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.3 ether,
+            daoCreator3.key,
+            daoCreator3.addr
+        );
+
+        // !!!! 1.3-56 step 3 mint fee dispatch
+        // builder
+        // 1 ether init
+        // - 0.3 ether for mint
+        // + 0.3 ether * 0.025
+        assertEq(daoCreator3.addr.balance, 0.7075 ether);
+
+        // subdao asset pool
+        // init with 2 ether
+        // + 0.3 ether * 0.35
+        // - 2 ether / 10drb
+        assertEq(assetPool_subdao.balance, 1.905 ether, "assetPool_subdao");
+        // self reward
+        // + 2 ether / 10drb * 0.5
+        assertEq(address(protocol).balance, 0.1 ether, "protocol");
+
+        // !!!! 1.3-56 step 4
+        // main dao pool
+        // init with 3 ether
+        // + 2 ether / 10drb * 0.2
+        assertEq(assetPool_maindao.balance, 3.04 ether, "assetPool_maindao");
+
+        // !!!! 1.3-56 step 5
+        // subdao2 pool
+        // init with 4 ether
+        // + 2 ether / 10drb * 0.1
+        assertEq(assetPool_subdao2.balance, 4.02 ether, "assetPool_subdao2");
+
+        // redeem pool
+        // + 0.3 ether * 0.6
+        // + 2 ether / 10drb * 0.2
+        assertEq(redeemPool.balance, 0.22 ether, "redeemPool");
+        // pdao
+        // + 0.3 ether * (1 - 0.025 - 0.35 - 0.6)
+        assertEq(protocolPool.balance, 0.0075 ether, "protocolPool");
+
+
+
+
+
+        // default canvas next price is 0.01 ether 
+        super._mintNftChangeBal(
+            subDaoId,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(subDaoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0,
+            daoCreator3.key,
+            daoCreator3.addr
+        );
+
+        // !!!! 1.3-56 step 6 mint fee dispatch
+        // builder
+        // 0.7075 ether init
+        // - 0.01 ether for mint
+        // + 0.01 ether * 0.075
+        assertEq(daoCreator3.addr.balance, 0.69825 ether);
+
+        // !!!! 1.3-56 step 7
+        // redeem pool
+        // + 0.01 ether * 0.7
+        assertEq(redeemPool.balance, 0.227 ether, "redeemPool");
+
+        // !!!! 1.3-56 step 8
+        // subdao asset pool
+        // init with 1.905 ether
+        // + 0.01 ether * 0.2
+        assertEq(assetPool_subdao.balance, 1.907 ether, "assetPool_subdao");
+
+        // self reward
+        assertEq(address(protocol).balance, 0.1 ether, "protocol");
+        // pdao
+        // + 0.01 ether * (1 - 0.075 - 0.2 - 0.7)
+        assertEq(protocolPool.balance, 0.00775 ether, "protocolPool");
+
+
+
+
+        drb.changeRound(3);
+
+
+        // set claim param
+        ClaimMultiRewardParam memory claimParam;
+        claimParam.protocol = address(protocol);
+        bytes32[] memory cavansIds = new bytes32[](3);
+        cavansIds[0] = canvasId1;
+        cavansIds[1] = canvasId2;
+        cavansIds[2] = canvasId3;
+        bytes32[] memory daoIds = new bytes32[](3);
+        daoIds[0] = daoId;
+        daoIds[1] = subDaoId2;
+        daoIds[2] = subDaoId;
+        claimParam.canvasIds = cavansIds;
+        claimParam.daoIds = daoIds;
+
+        vm.prank(daoCreator3.addr);
+        uint256 daoCreator3_eth_balance_before_claim = daoCreator3.addr.balance;
+        uint256 protocol_eth_balance_before_claim = protocolPool.balance;
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        uint256 daoCreator3_eth_balance_after_claim = daoCreator3.addr.balance;
+        uint256 protocol_eth_balance_after_claim = protocolPool.balance;
+
+
+        // eth
+        // self reward eth is 0.1 ether
+        // daoCreator3 is minter/canvas/dao_creator
+        // + 0.1 ether * (0.08 + 0.2 + 0.7)
+        assertEq(daoCreator3_eth_balance_after_claim - daoCreator3_eth_balance_before_claim, 0.098 ether, "daoCreator3");
+        // protocol pool
+        // + 0.1 ether * (1 - 0.08 - 0.2 - 0.7)
+        assertEq(protocol_eth_balance_after_claim - protocol_eth_balance_before_claim, 0.002 ether, "protocol");
+        assertEq(address(protocol).balance, 0, "protocol");
+    }
 }
 
 /*
