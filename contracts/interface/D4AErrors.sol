@@ -102,3 +102,5 @@ error InvalidDaoAncestor(bytes32 childrenDaoId);
 error VersionDenied();
 
 error InvalidTemplate();
+
+error NotCanvasIdOfDao();

@@ -854,7 +854,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         param.mintableRound = 10;
         bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
 
-
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
         address redeemPool = protocol.getDaoFeePool(subDaoId);
@@ -867,7 +866,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(assetPool_maindao.balance, 0);
         assertEq(assetPool_subdao2.balance, 0);
 
-
         // !!!! 1.3-56 step 2
         deal(assetPool_subdao, 2 ether);
         deal(assetPool_maindao, 3 ether);
@@ -875,7 +873,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(assetPool_subdao.balance, 2 ether);
         assertEq(assetPool_maindao.balance, 3 ether);
         assertEq(assetPool_subdao2.balance, 4 ether);
-
 
         // !!!! 1.3-56 step 3 mint
         deal(daoCreator3.addr, 1 ether);
@@ -928,11 +925,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         // + 0.3 ether * (1 - 0.025 - 0.35 - 0.6)
         assertEq(protocolPool.balance, 0.0075 ether, "protocolPool");
 
-
-
-
-
-        // default canvas next price is 0.01 ether 
+        // default canvas next price is 0.01 ether
         super._mintNftChangeBal(
             subDaoId,
             canvasId3,
@@ -968,11 +961,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         // + 0.01 ether * (1 - 0.075 - 0.2 - 0.7)
         assertEq(protocolPool.balance, 0.00775 ether, "protocolPool");
 
-
-
-
         drb.changeRound(3);
-
 
         // set claim param
         ClaimMultiRewardParam memory claimParam;
@@ -994,7 +983,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         universalClaimer.claimMultiRewardFunding(claimParam);
         uint256 daoCreator3_eth_balance_after_claim = daoCreator3.addr.balance;
         uint256 protocol_eth_balance_after_claim = protocolPool.balance;
-
 
         // eth
         // self reward eth is 0.1 ether
@@ -1066,12 +1054,10 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(assetPool_subdao), 80_000_000 ether);
         assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0);
 
-
         // drb.changeRound(2);
         // assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 2");
         drb.changeRound(3);
         // assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0 ether, "round 3 before mint");
-
 
         // !!!! 1.3-57 step 3 mint
         // daoCreator3 is subdao_creator/canvas/minter
@@ -1088,17 +1074,14 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         // !!!! 1.3-57 step 4
         // 80_000_000 ether * (1drb / 10drb) * 0.1
-        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 800000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 2_400_000 ether);
 
         // !!!! 1.3-57 step 5
         // init with 80_000_000 ether
         // - 80_000_000 ether * (1drb / 10drb) * (0.1 + 0.7)
         // assertEq(IERC20(token).balanceOf(assetPool_subdao), 73600000 ether);
 
-
-
         // drb.changeRound(2);
-
 
         // set claim param
         // ClaimMultiRewardParam memory claimParam;
@@ -1117,9 +1100,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         // vm.prank(daoCreator3.addr);
         // universalClaimer.claimMultiRewardFunding(claimParam);
 
-
         // !!!! 1.3-57 step 7
-
     }
 }
 

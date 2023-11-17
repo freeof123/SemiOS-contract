@@ -726,6 +726,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             _checkPauseStatus(canvasId);
             _checkCanvasExist(canvasId);
             _checkUriNotExist(tokenUri);
+            if (CanvasStorage.layout().canvasInfos[canvasId].daoId != daoId) revert NotCanvasIdOfDao();
         }
 
         _checkPauseStatus(daoId);

@@ -8,6 +8,7 @@ forge inspect D4ACreate abi >deployed-contracts-info/frontend-abi/D4ACreate.json
 forge inspect PDCreate abi >deployed-contracts-info/frontend-abi/PDCreate.json
 forge inspect PDBasicDao abi >deployed-contracts-info/frontend-abi/PDBasicDao.json
 forge inspect PermissionControl abi >deployed-contracts-info/frontend-abi/PermissionControl.json
+forge inspect PDCreateFunding abi >deployed-contracts-info/frontend-abi/PDCreateFunding.json
 
 # event selector
 echo "{}" >deployed-contracts-info/selector.json
@@ -29,3 +30,5 @@ forge inspect D4ARoyaltySplitter events | jq --slurpfile existing deployed-contr
 # D4A Token
 forge inspect D4AERC20 events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 forge inspect D4AERC721WithFilter events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
+# 1.3
+forge inspect PDCreateFunding events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json

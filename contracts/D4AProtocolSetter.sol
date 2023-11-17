@@ -217,10 +217,10 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         daoInfo.priceTemplateType = templateParam.priceTemplateType;
         daoInfo.nftPriceFactor = templateParam.priceFactor;
         daoInfo.rewardTemplateType = templateParam.rewardTemplateType;
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 12) {
             if (uint256(templateParam.rewardTemplateType) > 1) revert InvalidTemplate();
-            RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
             rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
             rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
 
@@ -229,6 +229,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             );
             require(succ);
         } else {
+            rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
+            rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
             if (uint256(templateParam.rewardTemplateType) < 2) revert InvalidTemplate();
         }
 
