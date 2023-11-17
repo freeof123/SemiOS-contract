@@ -1242,6 +1242,172 @@ contract ProtoDaoExtendTest is DeployHelper {
         universalClaimer.claimMultiRewardFunding(claimParam);
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 0);
     }
+
+    // testcase 1.3-63
+    function test_PDCreateFunding_1_3_63() public {
+        // main dao
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+
+        // subdao2
+        param.daoUri = "continuous subdao2 uri";
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        bytes32 canvasId2 = param.canvasId;
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        // subdao
+        param.daoUri = "continuous subdao uri";
+        param.canvasId = keccak256(abi.encode(daoCreator3.addr, block.timestamp));
+        bytes32 canvasId3 = param.canvasId;
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        // to main dao and subdao2
+        param.childrenDaoId = new bytes32[](2);
+        param.childrenDaoId[0] = daoId;
+        param.childrenDaoId[1] = subDaoId2;
+
+        // !!!! 1.3-63 step 1
+        // erc20 ratio
+        param.childrenDaoRatiosERC20 = new uint256[](2);
+        param.childrenDaoRatiosERC20[0] = 0;
+        param.childrenDaoRatiosERC20[1] = 0;
+        param.selfRewardRatioERC20 = 0;
+        // eth ratio
+        param.redeemPoolRatioETH = 0;
+        param.selfRewardRatioETH = 0;
+        param.childrenDaoRatiosETH = new uint256[](2);
+        param.childrenDaoRatiosETH[0] = 0;
+        param.childrenDaoRatiosETH[1] = 0;
+        param.isProgressiveJackpot = true;
+        param.noPermission = true;
+        param.uniPriceModeOff = true;
+        param.mintableRound = 10;
+        bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
+
+        vm.prank(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 20_000_000 ether);
+        vm.prank(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(subDaoId, 30_000_000 ether);
+
+        address token = protocol.getDaoToken(subDaoId);
+        address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
+        address redeemPool = protocol.getDaoFeePool(subDaoId);
+        address protocolPool = protocol.protocolFeePool();
+        address assetPool_maindao = protocol.getDaoAssetPool(daoId);
+        address assetPool_subdao2 = protocol.getDaoAssetPool(subDaoId2);
+
+        deal(assetPool_maindao, 4 ether);
+        deal(assetPool_subdao2, 5 ether);
+        deal(assetPool_subdao, 6 ether);
+
+        // !!!! 1.3-63 step 2
+        assertEq(IERC20(token).balanceOf(assetPool_maindao), 50_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 20_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 30_000_000 ether);
+        assertEq(IERC20(token).balanceOf(redeemPool), 0);
+        assertEq(IERC20(token).balanceOf(protocolPool), 0);
+        assertEq(assetPool_maindao.balance, 4 ether);
+        assertEq(assetPool_subdao2.balance, 5 ether);
+        assertEq(assetPool_subdao.balance, 6 ether);
+        assertEq(redeemPool.balance, 0);
+        assertEq(protocolPool.balance, 0);
+
+        // !!!! 1.3-63 step 3
+        deal(nftMinter.addr, 1 ether);
+        assertEq(nftMinter.addr.balance, 1 ether, "nftMinter");
+        uint256 daoCreator3_eth_balance_before_claim = daoCreator3.addr.balance;
+        super._mintNftChangeBal(
+            subDaoId,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(subDaoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.3 ether,
+            daoCreator3.key,
+            nftMinter.addr
+        );
+        uint256 daoCreator3_eth_balance_after_claim = daoCreator3.addr.balance;
+
+        assertEq(nftMinter.addr.balance, 0.7 ether);
+        // 0.3 ether * 0.025
+        assertEq(daoCreator3_eth_balance_after_claim - daoCreator3_eth_balance_before_claim, 0.0075 ether);
+        // 0.3 ether * 0.35 + 6
+        assertEq(assetPool_subdao.balance, 6.105 ether);
+        // 0.3 ether * 0.6
+        assertEq(redeemPool.balance, 0.18 ether);
+        // 0.3 ether * (1 - 0.025 - 0.35 - 0.6)
+        assertEq(protocolPool.balance, 0.0075 ether);
+
+        assertEq(assetPool_maindao.balance, 4 ether);
+        assertEq(assetPool_subdao2.balance, 5 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_maindao), 50_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 20_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 30_000_000 ether);
+        assertEq(IERC20(token).balanceOf(redeemPool), 0);
+        assertEq(IERC20(token).balanceOf(protocolPool), 0);
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 0);
+
+
+        // !!!! 1.3-63 step 4
+        drb.changeRound(5);
+
+
+        // !!!! 1.3-63 step 5/6
+        assertEq(nftMinter.addr.balance, 0.7 ether);
+        // 0.3 ether * 0.025
+        assertEq(daoCreator3_eth_balance_after_claim - daoCreator3_eth_balance_before_claim, 0.0075 ether);
+        // 0.3 ether * 0.35 + 6
+        assertEq(assetPool_subdao.balance, 6.105 ether);
+        // 0.3 ether * 0.6
+        assertEq(redeemPool.balance, 0.18 ether);
+        // 0.3 ether * (1 - 0.025 - 0.35 - 0.6)
+        assertEq(protocolPool.balance, 0.0075 ether);
+
+        assertEq(assetPool_maindao.balance, 4 ether);
+        assertEq(assetPool_subdao2.balance, 5 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_maindao), 50_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 20_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 30_000_000 ether);
+        assertEq(IERC20(token).balanceOf(redeemPool), 0);
+        assertEq(IERC20(token).balanceOf(protocolPool), 0);
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 0);
+
+
+
+        // !!!! 1.3-63 step 4
+        drb.changeRound(9);
+
+
+        // !!!! 1.3-63 step 5/6
+        assertEq(nftMinter.addr.balance, 0.7 ether);
+        // 0.3 ether * 0.025
+        assertEq(daoCreator3_eth_balance_after_claim - daoCreator3_eth_balance_before_claim, 0.0075 ether);
+        // 0.3 ether * 0.35 + 6
+        assertEq(assetPool_subdao.balance, 6.105 ether);
+        // 0.3 ether * 0.6
+        assertEq(redeemPool.balance, 0.18 ether);
+        // 0.3 ether * (1 - 0.025 - 0.35 - 0.6)
+        assertEq(protocolPool.balance, 0.0075 ether);
+
+        assertEq(assetPool_maindao.balance, 4 ether);
+        assertEq(assetPool_subdao2.balance, 5 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_maindao), 50_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao2), 20_000_000 ether);
+        assertEq(IERC20(token).balanceOf(assetPool_subdao), 30_000_000 ether);
+        assertEq(IERC20(token).balanceOf(redeemPool), 0);
+        assertEq(IERC20(token).balanceOf(protocolPool), 0);
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
+        assertEq(IERC20(token).balanceOf(daoCreator3.addr), 0);
+        
+    }
 }
 
 /*
