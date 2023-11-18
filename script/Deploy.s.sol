@@ -101,13 +101,13 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocol();
 
-        //_deployProtocolReadable();
-        //_cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        //_deployProtocolSetter();
-        //_cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -115,8 +115,8 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPDCreate();
         //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
-        //_deployPDCreateFunding();
-        //_cutFacetsPDCreateFunding(DeployMethod.REPLACE);
+        _deployPDCreateFunding();
+        _cutFacetsPDCreateFunding(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -130,9 +130,10 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
-        _deployPermissionControl();
+        //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
+        //TODO is done, need to do in main.s
         //todo:
         // need set royal splliter owner in settings, owner is multisig1 in mainnet, call
         // d4asettings->setRoyaltySplitterAndSwapFactoryAddress(); in deployhelper: _changeAddressInDaoProxy();
@@ -146,7 +147,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        // _deployUniformDistributionRewardIssuance();
+        _deployUniformDistributionRewardIssuance();
 
         // todo: deploy new templete, set this template,
         // in deployhelper:new UniformDistributionRewardIssuance();
@@ -314,7 +315,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xBA441c6dBe8F7ef0FfC4E89D7b24fBD798a925dD
+                    0x4df8AC8eB03B573aA349976AD4B1100bA28D47aF
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

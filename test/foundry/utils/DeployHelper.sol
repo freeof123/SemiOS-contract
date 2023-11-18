@@ -782,6 +782,26 @@ contract DeployHelper is Test {
         uint256 selfRewardRatioERC20;
         uint256 selfRewardRatioETH;
         bool noPermission;
+        bool noDefaultRatio;
+        address thirdPartyToken;
+        uint256 canvasCreatorMintFeeRatio;
+        uint256 assetPoolMintFeeRatio;
+        uint256 redeemPoolMintFeeRatio;
+        // * 1.3 add
+        // l.protocolMintFeeRatioInBps = 250
+        // sum = 9750
+        uint256 canvasCreatorMintFeeRatioFiatPrice;
+        uint256 assetPoolMintFeeRatioFiatPrice;
+        uint256 redeemPoolMintFeeRatioFiatPrice;
+        // l.protocolERC20RatioInBps = 200
+        // sum = 9800
+        uint256 minterERC20RewardRatio;
+        uint256 canvasCreatorERC20RewardRatio;
+        uint256 daoCreatorERC20RewardRatio;
+        // sum = 9800
+        uint256 minterETHRewardRatio;
+        uint256 canvasCreatorETHRewardRatio;
+        uint256 daoCreatorETHRewardRatio;
     }
 
     function _createDao(CreateDaoParam memory createDaoParam) internal returns (bytes32 daoId) {
@@ -1107,32 +1127,56 @@ contract DeployHelper is Test {
             selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
             selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
             isAncestorDao: createDaoParam.isBasicDao ? true : false,
-            daoToken: address(0),
+            daoToken: createDaoParam.thirdPartyToken,
             topUpMode: createDaoParam.topUpMode
         });
-
-        vars.allRatioForFundingParam = AllRatioForFundingParam({
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            canvasCreatorMintFeeRatio: 750,
-            assetPoolMintFeeRatio: 2000,
-            redeemPoolMintFeeRatio: 7000,
-            // * 1.3 add
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            canvasCreatorMintFeeRatioFiatPrice: 250,
-            assetPoolMintFeeRatioFiatPrice: 3500,
-            redeemPoolMintFeeRatioFiatPrice: 6000,
-            // l.protocolERC20RatioInBps = 200
-            // sum = 9800
-            minterERC20RewardRatio: 800,
-            canvasCreatorERC20RewardRatio: 2000,
-            daoCreatorERC20RewardRatio: 7000,
-            // sum = 9800
-            minterETHRewardRatio: 800,
-            canvasCreatorETHRewardRatio: 2000,
-            daoCreatorETHRewardRatio: 7000
-        });
+        if (!createDaoParam.noDefaultRatio) {
+            vars.allRatioForFundingParam = AllRatioForFundingParam({
+                // l.protocolMintFeeRatioInBps = 250
+                // sum = 9750
+                canvasCreatorMintFeeRatio: 750,
+                assetPoolMintFeeRatio: 2000,
+                redeemPoolMintFeeRatio: 7000,
+                // * 1.3 add
+                // l.protocolMintFeeRatioInBps = 250
+                // sum = 9750
+                canvasCreatorMintFeeRatioFiatPrice: 250,
+                assetPoolMintFeeRatioFiatPrice: 3500,
+                redeemPoolMintFeeRatioFiatPrice: 6000,
+                // l.protocolERC20RatioInBps = 200
+                // sum = 9800
+                minterERC20RewardRatio: 800,
+                canvasCreatorERC20RewardRatio: 2000,
+                daoCreatorERC20RewardRatio: 7000,
+                // sum = 9800
+                minterETHRewardRatio: 800,
+                canvasCreatorETHRewardRatio: 2000,
+                daoCreatorETHRewardRatio: 7000
+            });
+        } else {
+            vars.allRatioForFundingParam = AllRatioForFundingParam({
+                // l.protocolMintFeeRatioInBps = 250
+                // sum = 9750
+                canvasCreatorMintFeeRatio: createDaoParam.canvasCreatorMintFeeRatio,
+                assetPoolMintFeeRatio: createDaoParam.assetPoolMintFeeRatio,
+                redeemPoolMintFeeRatio: createDaoParam.redeemPoolMintFeeRatio,
+                // * 1.3 add
+                // l.protocolMintFeeRatioInBps = 250
+                // sum = 9750
+                canvasCreatorMintFeeRatioFiatPrice: createDaoParam.canvasCreatorMintFeeRatioFiatPrice,
+                assetPoolMintFeeRatioFiatPrice: createDaoParam.assetPoolMintFeeRatioFiatPrice,
+                redeemPoolMintFeeRatioFiatPrice: createDaoParam.redeemPoolMintFeeRatioFiatPrice,
+                // l.protocolERC20RatioInBps = 200
+                // sum = 9800
+                minterERC20RewardRatio: createDaoParam.minterERC20RewardRatio,
+                canvasCreatorERC20RewardRatio: createDaoParam.canvasCreatorERC20RewardRatio,
+                daoCreatorERC20RewardRatio: createDaoParam.daoCreatorERC20RewardRatio,
+                // sum = 9800
+                minterETHRewardRatio: createDaoParam.minterETHRewardRatio,
+                canvasCreatorETHRewardRatio: createDaoParam.canvasCreatorETHRewardRatio,
+                daoCreatorETHRewardRatio: createDaoParam.daoCreatorETHRewardRatio
+            });
+        }
 
         daoId = protocol.createDaoForFunding(
             vars.existDaoId,
