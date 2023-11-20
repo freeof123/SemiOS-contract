@@ -775,6 +775,7 @@ contract DeployHelper is Test {
         uint256 reserveNftNumber;
         bool isBasicDao;
         bool topUpMode;
+        uint256 dailyMintCap;
         bytes32[] childrenDaoId;
         uint256[] childrenDaoRatiosERC20;
         uint256[] childrenDaoRatiosETH;
@@ -1084,7 +1085,7 @@ contract DeployHelper is Test {
         vars.daoMetadataParam = DaoMetadataParam({
             startDrb: drb.currentRound(),
             mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
-            floorPriceRank: 0,
+            floorPriceRank: createDaoParam.floorPriceRank,
             maxNftRank: 2,
             royaltyFee: 1250,
             projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
@@ -1102,8 +1103,8 @@ contract DeployHelper is Test {
         });
 
         vars.templateParam = TemplateParam({
-            priceTemplateType: PriceTemplateType.EXPONENTIAL_PRICE_VARIATION,
-            priceFactor: 20_000,
+            priceTemplateType: createDaoParam.priceTemplateType, //0 for EXPONENTIAL_PRICE_VARIATION,
+            priceFactor: createDaoParam.priceFactor == 0 ? 20_000 : createDaoParam.priceFactor,
             rewardTemplateType: RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD,
             rewardDecayFactor: 0,
             isProgressiveJackpot: createDaoParam.isProgressiveJackpot
@@ -1119,7 +1120,7 @@ contract DeployHelper is Test {
             unifiedPriceModeOff: createDaoParam.uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
             needMintableWork: createDaoParam.needMintableWork,
-            dailyMintCap: 100,
+            dailyMintCap: createDaoParam.dailyMintCap == 0 ? 100 : createDaoParam.dailyMintCap,
             childrenDaoId: createDaoParam.childrenDaoId,
             childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
             childrenDaoRatiosETH: createDaoParam.childrenDaoRatiosETH,

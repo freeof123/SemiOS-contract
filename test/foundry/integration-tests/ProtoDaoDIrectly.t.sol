@@ -370,4 +370,72 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(topUpERC20, 5_500_000 ether);
         assertEq(topUpETH, 0.04 ether);
     }
+
+    function test_PDCreateFunding_GetReward() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.isProgressiveJackpot = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
+        param.mintableRound = 50;
+        param.selfRewardRatioERC20 = 10_000;
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        drb.changeRound(2);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        drb.changeRound(3);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        drb.changeRound(5);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(5)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        drb.changeRound(8);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(8)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        assertEq(protocol.getERC20RewardTillRound(daoId, 1), 0);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 2), 2_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 3), 3_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 4), 3_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 5), 5_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 6), 5_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 7), 5_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 8), 8_000_000 ether);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 9), 8_000_000 ether);
+    }
 }

@@ -170,4 +170,28 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         return rewardInfo.selfRoundETHReward[round];
     }
+
+    function getERC20RewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+
+        uint256 totalRoundReward;
+        for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {
+            totalRoundReward += getRoundERC20Reward(daoId, activeRounds[j]);
+        }
+
+        return totalRoundReward;
+    }
+
+    function getETHRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+
+        uint256 totalRoundReward;
+        for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {
+            totalRoundReward += getRoundETHReward(daoId, activeRounds[j]);
+        }
+
+        return totalRoundReward;
+    }
 }
