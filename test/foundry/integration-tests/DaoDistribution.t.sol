@@ -42,10 +42,6 @@ contract DaoDistribution is DeployHelper {
 
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
         param.daoUri = "dao uri2";
-        param.existDaoId = bytes32(0);
-        param.isBasicDao = true;
-        param.noPermission = true;
-        param.mintableRound = 10;
         param.uniPriceModeOff = true;
 
         daoId2 = super._createDaoForFunding(param, daoCreator.addr);
@@ -191,5 +187,117 @@ contract DaoDistribution is DeployHelper {
 
         // 查看一口价ETH分配比例
         assertEq(daoCreator.addr.balance, 12_750_000_000_000_000);
+    }
+
+    // 1.3-84
+    function test_progressiveJackpotAddToken84() public {
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 84));
+        param.daoUri = "lottery mode dao";
+        param.uniPriceModeOff = false;
+        param.isProgressiveJackpot = true;
+
+        bytes32 jackpotDaoId = super._createDaoForFunding(param, daoCreator.addr);
+        bytes32 jackpotCanvasId = param.canvasId;
+        uint256 mintableRound;
+        address jackpotToken = protocol.getDaoToken(jackpotDaoId);
+        address jackpotPool = protocol.getDaoAssetPool(jackpotDaoId);
+
+        // 累计2个Drb
+        drb.changeRound(3);
+
+        // 在铸造前追加1000万Token,
+        assertEq(IERC20(jackpotToken).totalSupply(), 50_000_000 ether); // 追加前总量5000万
+        uint256 initialTokenSupply = 10_000_000 ether;
+        hoax(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(jackpotDaoId, initialTokenSupply);
+        assertEq(IERC20(jackpotToken).totalSupply(), 60_000_000 ether); // 追加后总量6000万
+
+        // 修改MintWindow和之前不一致
+        //(, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
+        mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
+        assertEq(mintableRound, 10);
+        hoax(daoCreator.addr);
+        protocol.setDaoMintableRoundFunding(jackpotDaoId, 20);
+        // (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
+        mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
+        assertEq(mintableRound, 20);
+
+        // // 铸造一个Nft
+        deal(nftMinter.addr, 0.01 ether);
+        deal(daoCreator.addr, 0 ether);
+        super._mintNftChangeBal(
+            jackpotDaoId,
+            jackpotCanvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+
+        // 结束Drb验证资产发放    ERC20/ETH
+        drb.changeRound(4);
+        ClaimMultiRewardParam memory claimParam;
+
+        claimParam.protocol = address(protocol);
+        bytes32[] memory cavansIds = new bytes32[](1);
+        cavansIds[0] = jackpotCanvasId;
+        bytes32[] memory daoIds = new bytes32[](1);
+        daoIds[0] = jackpotDaoId;
+        claimParam.canvasIds = cavansIds;
+        claimParam.daoIds = daoIds;
+
+        vm.prank(daoCreator.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        vm.prank(nftMinter.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        // // 验证DaoCreator 和 NftMinter的奖励分配
+        // 60000000/20 *3 *0.7 * (0.2 + 0.7) = 5.670000
+        assertEq(IERC20(jackpotToken).balanceOf(daoCreator.addr) / 1 ether, 5_670_000);
+        // 60000000/20 *3 *0.7 * (0.08) = 504000
+        assertEq(IERC20(jackpotToken).balanceOf(nftMinter.addr) / 1 ether, 504_000);
+
+        // // 再换一个Drb
+        drb.changeRound(5);
+
+        // 先铸造Nft
+        deal(nftMinter2.addr, 0.01 ether);
+        //erc20 balance: 60000000 - 60000000/20 * 3 * 0.7 = 53700000
+        console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
+        super._mintNftChangeBal(
+            jackpotDaoId,
+            jackpotCanvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter2.addr
+        );
+
+        // 修改Mint window 追加100万Token
+        hoax(daoCreator.addr);
+        protocol.setDaoMintableRoundFunding(jackpotDaoId, 1000);
+        (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
+        assertEq(mintableRound, 1000);
+
+        initialTokenSupply = 1_000_000 ether;
+        console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
+        hoax(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(jackpotDaoId, initialTokenSupply);
+        //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
+
+        assertEq(IERC20(jackpotToken).totalSupply(), 61_000_000 ether); // 追加后总量6100万
+
+        // DaoCreator 以及 NftMinter2的奖励分配
+        drb.changeRound(6);
+        vm.prank(daoCreator.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        vm.prank(nftMinter2.addr);
+        universalClaimer.claimMultiRewardFunding(claimParam);
+        // 53700000 / 17 * 2 * 0.7 * (0.2 + 0.7) + 5_670_000 = 9_650_117
+        assertEq(IERC20(jackpotToken).balanceOf(daoCreator.addr) / 1 ether, 9_650_117);
+        assertEq(IERC20(jackpotToken).balanceOf(nftMinter2.addr) / 1 ether, 353_788);
     }
 }
