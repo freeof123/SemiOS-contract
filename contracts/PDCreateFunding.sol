@@ -60,6 +60,7 @@ struct CreateProjectLocalVars {
     bytes32 existDaoId;
     bytes32 daoId;
     address daoFeePool;
+    address daoAssetPool;
     address token;
     address nft;
     DaoMetadataParam daoMetadataParam;
@@ -183,6 +184,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
 
         // Use the exist DaoFeePool and DaoToken
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
+        vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(daoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
 
@@ -360,7 +362,7 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             createContinuousDaoParam.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
             createContinuousDaoParam.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
             createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
-            //createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
+            createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
@@ -404,6 +406,12 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             address daoAssetPool =
                 _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
+                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
+            }
+            if (
+                !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
+                    && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
+            ) {
                 D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
             }
         }
@@ -496,9 +504,8 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
-            // subdao does not need initTokenSupplyRatio, but we reserve this variable
-            // daoInfo.tokenMaxSupply =
-            //     (settingsStorage.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+            daoInfo.tokenMaxSupply =
+                (settingsStorage.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
 
             if (createContinuousDaoParam.daoFloorPriceRank != 9999) {
                 // 9999 is specified for 0 floor price
@@ -625,12 +632,22 @@ contract PDCreateFunding is IPDCreateFunding, ProtocolChecker, ReentrancyGuard {
         uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
         uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();
 
-        address splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
-            ID4ASettingsReadable(protocol).protocolFeePool(),
-            protocolRoyaltyFeeRatioInBps,
-            vars.daoFeePool,
-            uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
-        );
+        address splitter;
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
+            splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
+                ID4ASettingsReadable(protocol).protocolFeePool(),
+                protocolRoyaltyFeeRatioInBps,
+                vars.daoFeePool,
+                uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
+            );
+        } else {
+            splitter = settingsStorage.royaltySplitterFactory.createD4ARoyaltySplitter(
+                ID4ASettingsReadable(protocol).protocolFeePool(),
+                protocolRoyaltyFeeRatioInBps,
+                vars.daoAssetPool,
+                uint256(royaltyFeeRatioInBps) - protocolRoyaltyFeeRatioInBps
+            );
+        }
         settingsStorage.royaltySplitters[daoId] = splitter;
         OwnableUpgradeable(splitter).transferOwnership(settingsStorage.royaltySplitterOwner);
         ID4AERC721(vars.nft).setRoyaltyInfo(splitter, royaltyFeeRatioInBps);

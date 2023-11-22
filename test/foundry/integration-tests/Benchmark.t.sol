@@ -117,9 +117,9 @@ contract Benchmark is DeployHelper {
         uint256 protocolFee = (value * 250) / 10_000;
         uint256 daoFee = (value * 3000) / 10_000;
         uint256 canvasFee = value - protocolFee - daoFee;
-        assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee);
-        assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee);
-        assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee);
+        assertEq(protocolFeePool.addr.balance, protocolFeePoolBalance + protocolFee, "protocol");
+        assertEq(daoFeePool.balance, daoFeePoolBalance + daoFee, "dao");
+        assertEq(canvasCreator.addr.balance, canvasCreatorBalance + canvasFee, "canvas");
         assertEq(ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.04 ether);
         vm.stopPrank();
     }

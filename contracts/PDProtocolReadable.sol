@@ -194,4 +194,8 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
         return totalRoundReward;
     }
+
+    function royaltySplitters(bytes32 daoId) public view returns (address) {
+        return SettingsStorage.layout().royaltySplitters[daoId];
+    }
 }

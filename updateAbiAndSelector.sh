@@ -32,3 +32,5 @@ forge inspect D4AERC20 events | jq --slurpfile existing deployed-contracts-info/
 forge inspect D4AERC721WithFilter events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 # 1.3
 forge inspect PDCreateFunding events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
+forge inspect PDProtocol events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
+

@@ -1087,7 +1087,7 @@ contract DeployHelper is Test {
             mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
             floorPriceRank: createDaoParam.floorPriceRank,
             maxNftRank: 2,
-            royaltyFee: 1250,
+            royaltyFee: createDaoParam.royaltyFee == 0 ? 1250 : createDaoParam.royaltyFee,
             projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
             projectIndex: 0
         });

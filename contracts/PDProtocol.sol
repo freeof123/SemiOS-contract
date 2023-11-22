@@ -467,7 +467,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (minterERC20Reward, minterETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+        } else {
+            emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+        }
     }
 
     struct ExchangeERC20ToETHLocalVars {
@@ -799,6 +803,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             address protocolFeePool = l.protocolFeePool;
             address canvasOwner = l.ownerProxy.ownerOf(canvasId);
             daoFee = _splitFee(protocolFeePool, canvasOwner, price, daoShare, canvasRebateRatioInBps);
+            if (daoFee > 0) SafeTransferLib.safeTransferETH(daoInfo.daoFeePool, daoFee);
         } else {
             if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
                 RewardStorage.layout().rewardInfos[daoId].topUpInvestorPendingETH[currentRound][msg.sender] += price;
@@ -851,7 +856,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             canvasRebateRatioInBps,
             price == 0
         );
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0) {
+        if (
+            !BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0
+                && BasicDaoStorage.layout().basicDaoInfos[daoId].version > 12
+        ) {
             SafeTransferLib.safeTransferETH(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
         }
     }

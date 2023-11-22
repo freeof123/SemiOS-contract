@@ -44,4 +44,5 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getRoundETHReward(bytes32 daoId, uint256 round) external view returns (uint256);
     function getERC20RewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
     function getETHRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
+    function royaltySplitters(bytes32 daoId) external view returns (address);
 }

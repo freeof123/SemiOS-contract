@@ -213,6 +213,28 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(IERC20(token).balanceOf(address(protocol)), 0);
     }
 
+    function test_PDCreateFunding_BasicOnwerCreaterTwoDaos() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.topUpMode = true;
+        param.noPermission = true;
+        param.daoUri = "basic dao uri";
+        param.mintableRound = 10;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        param.daoUri = "continuous dao uri";
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        console2.log("addr:", daoCreator.addr);
+        bytes32 subDaoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 50_000_000 ether, "basic dao fail");
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(subDaoId)), 50_000_000 ether, "sub dao fail");
+    }
+
     function test_PDCreateFunding_TopUpAccountShouldNotBeUsedWhenMintInSameRound() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));

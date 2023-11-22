@@ -351,6 +351,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;
         D4AERC20(daoToken).mint(daoAssetPool, initialTokenSupply);
+        DaoStorage.layout().daoInfos[daoId].tokenMaxSupply += initialTokenSupply;
+
         if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();
 
         emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
