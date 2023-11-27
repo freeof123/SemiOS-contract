@@ -22,7 +22,8 @@ import {
     MintNftInfo,
     Whitelist,
     NftMinterCapInfo,
-    UpdateRewardParamFunding
+    UpdateRewardParamFunding,
+    CreateCanvasAndMintNFTParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -69,29 +70,43 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)] = reservedDaoAmount;
     }
 
-    function createCanvasAndMintNFT(
+    function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256) {
+        _createCanvas(vars.daoId, vars.canvasId, vars.canvasUri, vars.to, vars.canvasProof);
+        return _mintNFTAndTransfer(
+            vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, vars.signature, vars.nftOwner
+        );
+    }
+
+    // function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
+    //     ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
+    //     mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos = CanvasStorage.layout().canvasInfos;
+    //     uint256 canvasIndex = DaoStorage.layout().daoInfos[daoId].canvases.length;
+
+    //     if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
+    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+    //     {
+    //         CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
+    //         canvasInfo.daoId = daoId;
+    //         canvasInfo.canvasUri = canvasUri;
+    //         canvasInfo.index = canvasIndex + 1;
+    //         settingsStorage.ownerProxy.initOwnerOf(canvasId, to);
+    //         canvasInfo.canvasExist = true;
+    //     }
+    //     emit NewCanvasForMint(daoId, canvasId, canvasUri);
+    //     DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
+    // }
+
+    function _createCanvas(
         bytes32 daoId,
         bytes32 canvasId,
         string memory canvasUri,
         address to,
-        string calldata tokenUri,
-        bytes calldata signature,
-        uint256 flatPrice,
-        bytes32[] calldata proof,
-        address nftOwner
+        bytes32[] calldata proof
     )
-        external
-        payable
-        returns (uint256)
+        internal
     {
-        _createCanvas(daoId, canvasId, canvasUri, to);
-        return _mintNFTAndTransfer(daoId, canvasId, tokenUri, proof, flatPrice, signature, nftOwner);
-    }
-
-    function _createCanvas(bytes32 daoId, bytes32 canvasId, string memory canvasUri, address to) internal {
-        (bool succ,) = address(this).delegatecall(
-            abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, new bytes32[](0), to))
-        );
+        (bool succ,) =
+            address(this).delegatecall(abi.encodeCall(IPDCreate.createCanvas, (daoId, canvasId, canvasUri, proof, to)));
         if (!succ) {
             /// @solidity memory-safe-assembly
             assembly {

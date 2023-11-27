@@ -10,8 +10,11 @@ import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 
+import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
+import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
@@ -197,5 +200,18 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function royaltySplitters(bytes32 daoId) public view returns (address) {
         return SettingsStorage.layout().royaltySplitters[daoId];
+    }
+
+    function getCanvasNextPrice(bytes32 daoId, bytes32 canvasId) public view returns (uint256) {
+        uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
+        PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        return IPriceTemplate(
+            settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
+        ).getCanvasNextPrice(
+            pi.startRound, settingsStorage.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+        );
     }
 }

@@ -214,3 +214,16 @@ struct SetDaoParamFunding {
     SetChildrenParam setChildrenParam;
     AllRatioForFundingParam allRatioForFundingParam;
 }
+
+struct CreateCanvasAndMintNFTParam {
+    bytes32 daoId;
+    bytes32 canvasId;
+    string canvasUri;
+    address to;
+    string tokenUri;
+    bytes signature;
+    uint256 flatPrice;
+    bytes32[] proof;
+    bytes32[] canvasProof;
+    address nftOwner;
+}

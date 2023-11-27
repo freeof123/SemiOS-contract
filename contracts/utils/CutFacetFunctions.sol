@@ -251,6 +251,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getERC20RewardTillRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getETHRewardTillRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.royaltySplitters.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasNextPrice.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
