@@ -42,6 +42,7 @@ contract ProtoDaoTest is DeployHelper {
         assertEq(D4AFeePool(payable(protocol.getDaoFeePool(daoId))).turnover(), 0.00975 ether);
 
         drb.changeRound(2);
+        // claim问题
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(param.canvasId);
         protocol.claimNftMinterReward(daoId, daoCreator.addr);
@@ -195,12 +196,14 @@ contract ProtoDaoTest is DeployHelper {
 
         drb.changeRound(3);
 
+        // claim问题
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(param.canvasId);
         protocol.claimCanvasReward(canvasId1);
         protocol.claimCanvasReward(canvasId2);
         protocol.claimNftMinterReward(daoId, daoCreator.addr);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
+
         IERC20 token = IERC20(protocol.getDaoToken(daoId));
         assertEq(token.balanceOf(protocolFeePool.addr), 33_333_333_333_333_333_333_332);
         assertEq(token.balanceOf(daoCreator.addr), 1_216_666_666_666_666_666_666_664);
@@ -294,6 +297,7 @@ contract ProtoDaoTest is DeployHelper {
 
         drb.changeRound(4);
 
+        // claim问题
         protocol.claimProjectERC20Reward(daoId);
         protocol.claimCanvasReward(param.canvasId);
         protocol.claimCanvasReward(canvasId1);
@@ -301,6 +305,7 @@ contract ProtoDaoTest is DeployHelper {
         protocol.claimNftMinterReward(daoId, daoCreator.addr);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimNftMinterReward(daoId, nftMinter2.addr);
+
         IERC20 token = IERC20(protocol.getDaoToken(daoId));
         assertEq(token.balanceOf(protocolFeePool.addr), 49_999_999_999_999_999_999_999);
         assertEq(token.balanceOf(daoCreator.addr), 1_616_666_666_666_666_666_666_664);
