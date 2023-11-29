@@ -15,7 +15,7 @@ import "contracts/interface/D4AErrors.sol";
 import { console2 } from "forge-std/Test.sol";
 
 // 关于第三方ERC20的测试为P1，暂时先不考虑
-contract ThirdPartyErc20 is DeployHelper {
+contract ProtoDaoPermissionTest is DeployHelper {
     function setUp() public {
         super.setUpEnv();
     }

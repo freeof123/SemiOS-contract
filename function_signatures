@@ -1,4 +1,5 @@
 "createDaoForFunding(bytes32,(uint256,uint256,uint256,uint256,uint96,string,uint256),(bytes32,address[],bytes32,address[]),(address[],address[]),(uint32,(address,uint32)[]),(address,uint256)[],(uint8,uint256,uint8,uint256,bool),(uint256,bytes32,string,string),(uint256,bool,uint256,bool,uint256,bytes32[],uint256[],uint256[],uint256,uint256,uint256,bool,address,bool),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),uint256)": "8225c251"
 "claimMultiRewardFunding((address,bytes32[],bytes32[]))": "6dce3384"
 "setMintCapAndPermission(bytes32,uint32,(address,uint32)[],(address,uint256)[],(bytes32,address[],bytes32,address[]),(address[],address[]),(address[],address[]))": "1441e75f"
-"createCanvasAndMintNFT(bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],address)": "415902d0"
+//"createCanvasAndMintNFT(bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],address)": "415902d0"
+"createCanvasAndMintNFT((bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],bytes32[],address))": "7fb597fb"
