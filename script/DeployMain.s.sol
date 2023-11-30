@@ -63,7 +63,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
@@ -104,7 +104,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        _deployUniformDistributionRewardIssuance();
+        //_deployUniformDistributionRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -116,7 +116,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_transferOwnership();
         //_deployUnlocker();
         //_transferOwnership();
-        ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
+        //ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
         //_checkStatus();
         vm.stopBroadcast();
         //vm.stopPrank();

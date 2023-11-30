@@ -12,8 +12,8 @@ lcov.info
 yarn.lock
 
 # broadcasts
-!broadcast
-broadcast/*
+# !broadcast
+# broadcast/*
 broadcast/*/31337/
 
 # coverage report

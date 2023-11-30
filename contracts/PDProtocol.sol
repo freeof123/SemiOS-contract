@@ -114,6 +114,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 revert(0, returndatasize())
             }
         }
+        emit NewCanvasForMint(daoId, canvasId, canvasUri);
     }
 
     function mintNFT(
