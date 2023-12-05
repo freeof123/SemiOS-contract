@@ -18,6 +18,9 @@ library BasicDaoStorage {
         bool topUpMode;
         bool needMintableWork;
         uint8 version;
+        //---------1.4 add
+        bool infiniteMode;
+        bool erc20PaymentMode;
     }
 
     struct Layout {

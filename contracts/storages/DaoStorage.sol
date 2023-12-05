@@ -7,7 +7,7 @@ import { DaoMintInfo, NftMinterCapInfo, NftMinterCap } from "contracts/interface
 library DaoStorage {
     struct DaoInfo {
         // metadata
-        uint256 startRound;
+        uint256 startBlock;
         uint256 mintableRound;
         uint256 daoIndex;
         string daoUri;

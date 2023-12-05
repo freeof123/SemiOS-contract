@@ -59,7 +59,7 @@ error D4AProjectAlreadyExist(bytes32 daoId);
 
 error D4ACanvasAlreadyExist(bytes32 canvasId);
 
-error StartRoundAlreadyPassed();
+error StartBlockAlreadyPassed();
 
 error DaoNotStarted();
 

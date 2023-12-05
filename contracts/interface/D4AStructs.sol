@@ -4,9 +4,10 @@ pragma solidity ^0.8.13;
 import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
 
 struct DaoMetadataParam {
-    uint256 startDrb;
+    uint256 startBlock;
     uint256 mintableRounds;
-    uint256 floorPriceRank;
+    uint256 duration;
+    uint256 floorPrice;
     uint256 maxNftRank;
     uint96 royaltyFee;
     string projectUri;
@@ -117,6 +118,9 @@ struct ContinuousDaoParam {
     bool isAncestorDao;
     address daoToken;
     bool topUpMode;
+    //1.4add--------------------
+    bool infiniteMode;
+    bool erc20PaymentMode;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 
@@ -204,8 +208,8 @@ struct UpdateRewardParamFunding {
 struct SetDaoParamFunding {
     bytes32 daoId;
     uint256 nftMaxSupplyRank;
-    uint256 mintableRoundRank;
-    uint256 daoFloorPriceRank;
+    uint256 mintableRound;
+    uint256 daoFloorPrice;
     PriceTemplateType priceTemplateType;
     uint256 nftPriceFactor;
     uint256 dailyMintCap;

@@ -17,12 +17,21 @@ import "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
+import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+
+import { RewardStorage } from "contracts/storages/RewardStorage.sol";
+
+import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "./interface/IPDProtocolSetter.sol";
+import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
+import { IPDRound } from "contracts/interface/IPDRound.sol";
+
 import { D4AERC20 } from "./D4AERC20.sol";
 
 contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
@@ -236,12 +245,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
             setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
         } //1
-        setDaoMintableRoundFunding(vars.daoId, settingsStorage.mintableRounds[vars.mintableRoundRank]); //2
+        setDaoRemainingRound(vars.daoId, vars.mintableRound); //2
         setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
         setDailyMintCap(vars.daoId, vars.dailyMintCap); //4
-        setDaoFloorPrice(
-            vars.daoId, vars.daoFloorPriceRank == 9999 ? 0 : settingsStorage.daoFloorPrices[vars.daoFloorPriceRank]
-        ); //5
+        setDaoFloorPrice(vars.daoId, vars.daoFloorPrice); //5
         setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
         setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor); //6
         setChildren(vars.daoId, vars.setChildrenParam); //7
@@ -358,10 +365,51 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
     }
 
-    function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) public {
+    // function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) public {
+    //     _checkSetAbility(daoId, true, true);
+    //     //uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
+    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+    //     if (IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId) == 0) {
+    //         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+    //         roundInfo.roundInLastModify = 1;
+    //         roundInfo.blockInLastModify = block.number;
+    //         delete RewardStorage.layout().rewardInfos[daoId].activeRoundsFunding;
+    //         daoInfo.mintableRound = newMintableRound;
+    //         PriceStorage.layout().daoMaxPrices[daoId] = PriceStorage.MintInfo(0, 0);
+    //         emit DaoRestart(daoId, newMintableRound, block.number);
+    //     } else {
+    //         daoInfo.mintableRound = newMintableRound;
+    //         emit DaoMintableRoundSet(daoId, newMintableRound);
+    //     }
+    // }
+
+    function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) public {
         _checkSetAbility(daoId, true, true);
+        if (newRemainingRound == 0) return;
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        daoInfo.mintableRound = newMintableRound;
-        emit DaoMintableRoundSet(daoId, newMintableRound);
+        uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId);
+        if (remainingRound == 0) {
+            RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+            roundInfo.roundInLastModify = 1;
+            roundInfo.blockInLastModify = block.number;
+            delete RewardStorage.layout().rewardInfos[daoId].activeRoundsFunding;
+            daoInfo.mintableRound = newRemainingRound;
+            delete PriceStorage.layout().daoMaxPrices[daoId];
+            bytes32[] memory canvases = IPDProtocolReadable(address(this)).getDaoCanvases(daoId);
+            for (uint256 i; i < canvases.length;) {
+                delete PriceStorage.layout().canvasLastMintInfos[canvases[i]];
+                unchecked {
+                    ++i;
+                }
+            }
+            emit DaoRestart(daoId, newRemainingRound, block.number);
+        } else {
+            if (newRemainingRound > remainingRound) {
+                daoInfo.mintableRound += newRemainingRound - remainingRound;
+            } else {
+                daoInfo.mintableRound += remainingRound - newRemainingRound;
+            }
+            emit DaoMintableRoundSet(daoId, newRemainingRound);
+        }
     }
 }

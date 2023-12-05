@@ -16,6 +16,8 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 
+import { IPDRound } from "contracts/interface/IPDRound.sol";
+
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
     function getNFTTokenCanvas(bytes32 daoId, uint256 tokenId) public view returns (bytes32) {
@@ -104,19 +106,18 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoPassedRound(bytes32 daoId) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         if (!rewardInfo.isProgressiveJackpot) {
             if (rewardInfo.activeRoundsFunding.length == 0) return 0;
             if (
                 rewardInfo.activeRoundsFunding[rewardInfo.activeRoundsFunding.length - 1]
-                    == settingsStorage.drb.currentRound()
+                    == IPDRound(address(this)).getDaoCurrentRound(daoId)
             ) {
                 return rewardInfo.activeRoundsFunding.length - 1;
             } else {
                 return rewardInfo.activeRoundsFunding.length;
             }
         } else {
-            uint256 passedRound = settingsStorage.drb.currentRound() - daoInfo.startRound;
+            uint256 passedRound = IPDRound(address(this)).getDaoCurrentRound(daoId) - 1;
             if (passedRound > daoInfo.mintableRound) return daoInfo.mintableRound;
             return passedRound;
         }
@@ -211,7 +212,7 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return IPriceTemplate(
             settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
         ).getCanvasNextPrice(
-            pi.startRound, settingsStorage.drb.currentRound(), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+            1, IPDRound(address(this)).getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
         );
     }
 }

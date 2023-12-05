@@ -7,6 +7,8 @@ import { stdJson } from "forge-std/StdJson.sol";
 import { console2 } from "forge-std/Console2.sol";
 
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { AccessControl } from "@solidstate/contracts/access/access_control/AccessControl.sol";
+
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {
     ITransparentUpgradeableProxy,
@@ -30,6 +32,9 @@ import {
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import "./utils/D4AAddress.sol";
 
+import { SafeOwnable } from "@solidstate/contracts/access/ownable/SafeOwnable.sol";
+import { Ownable } from "@solidstate/contracts/access/ownable/Ownable.sol";
+
 contract DeployDemo is Script, Test, D4AAddress {
     using stdJson for string;
 
@@ -45,9 +50,10 @@ contract DeployDemo is Script, Test, D4AAddress {
     //address public owner = 0x28cdd6D234f6301FbFb207DD9e5AC82E7E60833e;
     address multisig = json.readAddress(".MultiSig1");
     address multisig2 = json.readAddress(".MultiSig2");
+    address multisig3 = json.readAddress(".MultiSig3");
 
     function run() public {
-        vm.startBroadcast(owner);
+        //vm.startBroadcast(owner);
         //vm.startPrank(owner);
 
         // _deployDrb();
@@ -63,7 +69,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
@@ -117,8 +123,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_deployUnlocker();
         //_transferOwnership();
         //ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
+        _changeMultisig();
         //_checkStatus();
-        vm.stopBroadcast();
+        //vm.stopBroadcast();
         //vm.stopPrank();
     }
 
@@ -1001,23 +1008,54 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _transferOwnership() internal {
         // create project proxy
-        pdCreateProjectProxy_proxy.set(
-            address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), multisig, uniswapV2Factory
-        );
-        pdCreateProjectProxy_proxy.transferOwnership(multisig);
+        // pdCreateProjectProxy_proxy.set(
+        //     address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), multisig, uniswapV2Factory
+        // );
+        // pdCreateProjectProxy_proxy.transferOwnership(multisig);
 
         // protocol
-        D4ADiamond(payable(address(pdProtocol_proxy))).transferOwnership(multisig);
+        //D4ADiamond(payable(address(pdProtocol_proxy))).transferOwnership(multisig);
 
         // settings
-        D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(multisig);
-        D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(multisig2);
-        D4ASettings(address(pdProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
-        D4ASettings(address(pdProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
-        D4ASettings(address(pdProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
-        D4ASettings(address(pdProtocol_proxy)).renounceRole(DEFAULT_ADMIN_ROLE);
-        D4ASettings(address(pdProtocol_proxy)).renounceRole(PROTOCOL_ROLE);
-        D4ASettings(address(pdProtocol_proxy)).renounceRole(OPERATION_ROLE);
+        // D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(multisig);
+        // D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(multisig2);
+        // D4ASettings(address(pdProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
+        // D4ASettings(address(pdProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
+        // D4ASettings(address(pdProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
+        // D4ASettings(address(pdProtocol_proxy)).renounceRole(DEFAULT_ADMIN_ROLE);
+        // D4ASettings(address(pdProtocol_proxy)).renounceRole(PROTOCOL_ROLE);
+        // D4ASettings(address(pdProtocol_proxy)).renounceRole(OPERATION_ROLE);
+    }
+
+    function _changeMultisig() internal {
+        console2.log("change address in dao proxy data:");
+        console2.logBytes(
+            abi.encodeCall(
+                D4ASettings.setRoyaltySplitterAndSwapFactoryAddress,
+                (address(d4aRoyaltySplitterFactory), multisig3, address(uniswapV2Factory))
+            )
+        );
+        // console2.log("change diamond owner data:");
+        // console2.logBytes(abi.encodeCall(Ownable.transferOwnership, (multisig)));
+        console2.log("change protocol feepool data:");
+        console2.logBytes(abi.encodeCall(D4ASettings.changeProtocolFeePool, (multisig3)));
+        console2.log("change asset pool owner data:");
+        console2.logBytes(abi.encodeCall(D4ASettings.changeAssetPoolOwner, (multisig3)));
+        console2.log("grant default admin role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.grantRole, (DEFAULT_ADMIN_ROLE, multisig3)));
+        console2.log("grant protocol role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.grantRole, (PROTOCOL_ROLE, multisig3)));
+        console2.log("grant operation role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.grantRole, (OPERATION_ROLE, multisig3)));
+        console2.log("revoke operation role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.revokeRole, (OPERATION_ROLE, multisig2)));
+        console2.log("renounce default admin role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.renounceRole, (DEFAULT_ADMIN_ROLE)));
+        console2.log("renounce protocol role data:");
+        console2.logBytes(abi.encodeCall(AccessControl.renounceRole, (PROTOCOL_ROLE)));
+        console2.log("transfer feepool admin ");
+        console2.logBytes(abi.encodeCall(Ownable.transferOwnership, (multisig3)));
+        //ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
     }
 
     function _checkStatus() internal {

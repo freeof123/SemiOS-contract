@@ -31,10 +31,12 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event InitialTokenSupplyForSubDaoSet(bytes32 daoId, uint256 initialTokenSupply);
 
+    event DaoRestart(bytes32 daoId, uint256 remainingRound, uint256 startBlock);
+
     function setDaoParamsFunding(SetDaoParamFunding calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) external;
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
-    function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) external;
+    function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
 }
