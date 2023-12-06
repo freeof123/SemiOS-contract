@@ -4,6 +4,14 @@ pragma solidity ^0.8.18;
 import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 
 interface IRewardTemplate {
+    event DaoBlockRewardDistributedToChildrenDao(
+        bytes32 fromDaoId, bytes32 toDaoId, address token, uint256 amount, uint256 round
+    );
+    event DaoBlockRewardDistributedToRedeemPool(
+        bytes32 fromDaoId, address redeemPool, address token, uint256 amount, uint256 round
+    );
+    event DaoBlockRewardForSelf(bytes32 daoId, address token, uint256 amount, uint256 round);
+
     function updateReward(UpdateRewardParam memory param) external payable;
 
     function claimDaoCreatorReward(
@@ -14,7 +22,12 @@ interface IRewardTemplate {
         address token
     )
         external
-        returns (uint256 protocolClaimableReward, uint256 daoCreatorClaimableReward);
+        returns (
+            uint256 protocolClaimableERC20Reward,
+            uint256 daoCreatorClaimableERC20Reward,
+            uint256 protocolClaimableETHReward,
+            uint256 daoCreatorClaimableETHReward
+        );
 
     function claimCanvasCreatorReward(
         bytes32 daoId,
@@ -24,9 +37,7 @@ interface IRewardTemplate {
         address token
     )
         external
-        returns (uint256 claimableReward);
-
-    function issueLastRoundReward(bytes32 daoId, address token) external;
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
 
     function claimNftMinterReward(
         bytes32 daoId,
@@ -35,9 +46,7 @@ interface IRewardTemplate {
         address token
     )
         external
-        returns (uint256 claimableReward);
-
-    function setRewardCheckpoint(bytes32 daoId, int256 mintableRoundDelta, uint256 totalRewardDelta) external payable;
-
-    function getRoundReward(bytes32 daoId, uint256 round) external view returns (uint256 rewardAmount);
+        payable
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
+    function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
 }

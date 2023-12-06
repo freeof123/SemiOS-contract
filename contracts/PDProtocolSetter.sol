@@ -8,9 +8,8 @@ import {
     Blacklist,
     SetDaoParam,
     NftMinterCapInfo,
-    AllRatioForFundingParam,
-    SetChildrenParam,
-    SetDaoParamFunding
+    AllRatioParam,
+    SetChildrenParam
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -56,10 +55,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     }
 
     // 修改Dao参数方法
-    function setDaoParams(SetDaoParam memory vars) public override(ID4AProtocolSetter, D4AProtocolSetter) {
-        _checkSetAbility(vars.daoId, true, false);
-        super.setDaoParams(vars);
-    }
+    // function setDaoParams(SetDaoParam memory vars) public override(ID4AProtocolSetter, D4AProtocolSetter) {
+    //     _checkSetAbility(vars.daoId, true, false);
+    //     super.setDaoParams(vars);
+    // }
 
     function setDaoNftMaxSupply(
         bytes32 daoId,
@@ -73,17 +72,17 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         super.setDaoNftMaxSupply(daoId, newMaxSupply);
     }
 
-    function setDaoMintableRound(
-        bytes32 daoId,
-        uint256 newMintableRound
-    )
-        public
-        override(ID4AProtocolSetter, D4AProtocolSetter)
-    {
-        _checkSetAbility(daoId, true, false);
+    // function setDaoMintableRound(
+    //     bytes32 daoId,
+    //     uint256 newMintableRound
+    // )
+    //     public
+    //     override(ID4AProtocolSetter, D4AProtocolSetter)
+    // {
+    //     _checkSetAbility(daoId, true, false);
 
-        super.setDaoMintableRound(daoId, newMintableRound);
-    }
+    //     super.setDaoMintableRound(daoId, newMintableRound);
+    // }
 
     function setDaoFloorPrice(
         bytes32 daoId,
@@ -120,28 +119,28 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         super.setTemplate(daoId, templateParam);
     }
 
-    function setRatio(
-        bytes32 daoId,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
-    )
-        public
-        override(ID4AProtocolSetter, D4AProtocolSetter)
-    {
-        _checkSetAbility(daoId, true, false);
+    // function setRatio(
+    //     bytes32 daoId,
+    //     uint256 daoCreatorERC20Ratio,
+    //     uint256 canvasCreatorERC20Ratio,
+    //     uint256 nftMinterERC20Ratio,
+    //     uint256 daoFeePoolETHRatio,
+    //     uint256 daoFeePoolETHRatioFlatPrice
+    // )
+    //     public
+    //     override(ID4AProtocolSetter, D4AProtocolSetter)
+    // {
+    //     _checkSetAbility(daoId, true, false);
 
-        super.setRatio(
-            daoId,
-            daoCreatorERC20Ratio,
-            canvasCreatorERC20Ratio,
-            nftMinterERC20Ratio,
-            daoFeePoolETHRatio,
-            daoFeePoolETHRatioFlatPrice
-        );
-    }
+    //     super.setRatio(
+    //         daoId,
+    //         daoCreatorERC20Ratio,
+    //         canvasCreatorERC20Ratio,
+    //         nftMinterERC20Ratio,
+    //         daoFeePoolETHRatio,
+    //         daoFeePoolETHRatioFlatPrice
+    //     );
+    // }
 
     function setCanvasRebateRatioInBps(
         bytes32 canvasId,
@@ -162,7 +161,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         super.setCanvasRebateRatioInBps(canvasId, newCanvasRebateRatioInBps);
     }
 
-    function setDailyMintCap(
+    function setRoundMintCap(
         bytes32 daoId,
         uint256 dailyMintCap
     )
@@ -171,19 +170,19 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     {
         _checkSetAbility(daoId, true, true);
 
-        super.setDailyMintCap(daoId, dailyMintCap);
+        super.setRoundMintCap(daoId, dailyMintCap);
     }
 
-    function setDaoTokenSupply(
-        bytes32 daoId,
-        uint256 addedDaoToken
-    )
-        public
-        override(ID4AProtocolSetter, D4AProtocolSetter)
-    {
-        _checkSetAbility(daoId, true, false);
-        super.setDaoTokenSupply(daoId, addedDaoToken);
-    }
+    // function setDaoTokenSupply(
+    //     bytes32 daoId,
+    //     uint256 addedDaoToken
+    // )
+    //     public
+    //     override(ID4AProtocolSetter, D4AProtocolSetter)
+    // {
+    //     _checkSetAbility(daoId, true, false);
+    //     super.setDaoTokenSupply(daoId, addedDaoToken);
+    // }
 
     function setWhitelistMintCap(
         bytes32 daoId,
@@ -238,7 +237,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         revert NotDaoOwner();
     }
 
-    function setDaoParamsFunding(SetDaoParamFunding calldata vars) public {
+    function setDaoParams(SetDaoParam calldata vars) public {
         _checkSetAbility(vars.daoId, true, true);
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
@@ -247,12 +246,12 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         } //1
         setDaoRemainingRound(vars.daoId, vars.mintableRound); //2
         setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
-        setDailyMintCap(vars.daoId, vars.dailyMintCap); //4
+        setRoundMintCap(vars.daoId, vars.dailyMintCap); //4
         setDaoFloorPrice(vars.daoId, vars.daoFloorPrice); //5
         setDaoUnifiedPrice(vars.daoId, vars.unifiedPrice);
         setDaoPriceTemplate(vars.daoId, vars.priceTemplateType, vars.nftPriceFactor); //6
         setChildren(vars.daoId, vars.setChildrenParam); //7
-        setRatioForFunding(vars.daoId, vars.allRatioForFundingParam); // 8 mint fee , 9 reward roles ratio
+        setRatio(vars.daoId, vars.allRatioParam); // 8 mint fee , 9 reward roles ratio
     }
 
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) public {
@@ -304,7 +303,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
     //in PD1.3, we always use ratios w.r.t all 4 roles
 
-    function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) public {
+    function setRatio(bytes32 daoId, AllRatioParam calldata vars) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkSetAbility(daoId, true, true);
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
@@ -343,7 +342,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.canvasCreatorETHRewardRatio = vars.canvasCreatorETHRewardRatio;
         treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
 
-        emit RatioForFundingSet(daoId, vars);
+        emit RatioSet(daoId, vars);
     }
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
@@ -365,24 +364,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
     }
 
-    // function setDaoMintableRoundFunding(bytes32 daoId, uint256 newMintableRound) public {
-    //     _checkSetAbility(daoId, true, true);
-    //     //uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
-    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-    //     if (IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId) == 0) {
-    //         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
-    //         roundInfo.roundInLastModify = 1;
-    //         roundInfo.blockInLastModify = block.number;
-    //         delete RewardStorage.layout().rewardInfos[daoId].activeRoundsFunding;
-    //         daoInfo.mintableRound = newMintableRound;
-    //         PriceStorage.layout().daoMaxPrices[daoId] = PriceStorage.MintInfo(0, 0);
-    //         emit DaoRestart(daoId, newMintableRound, block.number);
-    //     } else {
-    //         daoInfo.mintableRound = newMintableRound;
-    //         emit DaoMintableRoundSet(daoId, newMintableRound);
-    //     }
-    // }
-
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) public {
         _checkSetAbility(daoId, true, true);
         if (newRemainingRound == 0) return;
@@ -392,7 +373,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
             roundInfo.roundInLastModify = 1;
             roundInfo.blockInLastModify = block.number;
-            delete RewardStorage.layout().rewardInfos[daoId].activeRoundsFunding;
+            delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
             daoInfo.mintableRound = newRemainingRound;
             delete PriceStorage.layout().daoMaxPrices[daoId];
             bytes32[] memory canvases = IPDProtocolReadable(address(this)).getDaoCanvases(daoId);

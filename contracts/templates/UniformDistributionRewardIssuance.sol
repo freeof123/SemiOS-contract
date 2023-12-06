@@ -6,8 +6,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
-import { IRewardTemplateFunding } from "contracts/interface/IRewardTemplateFunding.sol";
-import { UpdateRewardParamFunding } from "contracts/interface/D4AStructs.sol";
+import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
+import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -31,23 +31,21 @@ import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 //import "forge-std/Test.sol";
 
-contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
-    function updateRewardFunding(UpdateRewardParamFunding memory param) public payable {
+contract UniformDistributionRewardIssuance is IRewardTemplate {
+    function updateReward(UpdateRewardParam memory param) public payable {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[param.daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] storage activeRounds = rewardInfo.activeRounds;
 
         if (activeRounds.length == 0 || activeRounds[activeRounds.length - 1] != param.currentRound) {
             uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
             if (remainingRound == 0) revert ExceedMaxMintableRound();
-            uint256 distributeAmount = getDaoCurrentRoundDistributeAmount(
-                param.daoId, param.token, param.startRound, param.currentRound, remainingRound
-            );
+            uint256 distributeAmount =
+                getDaoCurrentRoundDistributeAmount(param.daoId, param.token, param.currentRound, remainingRound);
             _distributeRoundReward(param.daoId, distributeAmount, param.token, param.currentRound);
             if (!param.topUpMode) {
-                distributeAmount = getDaoCurrentRoundDistributeAmount(
-                    param.daoId, address(0), param.startRound, param.currentRound, remainingRound
-                );
+                distributeAmount =
+                    getDaoCurrentRoundDistributeAmount(param.daoId, address(0), param.currentRound, remainingRound);
                 _distributeRoundReward(param.daoId, distributeAmount, address(0), param.currentRound);
             }
             activeRounds.push(param.currentRound);
@@ -86,7 +84,6 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
     function getDaoCurrentRoundDistributeAmount(
         bytes32 daoId,
         address token,
-        uint256 startRound,
         uint256 currentRound,
         uint256 remainingRound
     )
@@ -100,7 +97,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         distributeAmount = token == address(0) ? daoAssetPool.balance : IERC20(token).balanceOf(daoAssetPool);
         if (rewardInfo.isProgressiveJackpot) {
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, currentRound); //not include current round
-            uint256 progressiveJackpotRound = currentRound - (lastActiveRound == 0 ? startRound - 1 : lastActiveRound);
+            uint256 progressiveJackpotRound = currentRound - lastActiveRound; // include current round
+            if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14 && lastActiveRound == 0) {
+                progressiveJackpotRound = currentRound - DaoStorage.layout().daoInfos[daoId].startBlock + 1;
+            }
             distributeAmount =
                 distributeAmount * progressiveJackpotRound / (progressiveJackpotRound + remainingRound - 1);
         } else {
@@ -143,10 +143,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
 
         //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
 
         // enumerate all active rounds, not including current round
-        uint256 j = rewardInfo.daoCreatorClaimableRoundIndexFunding;
+        uint256 j = rewardInfo.daoCreatorClaimableRoundIndex;
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
             // rewardInfo.totalWeights = 0 is IMPOSSIBLE since weight is either non-zero price or 1 ether for 0 price
             // given a past active round, get round reward
@@ -166,7 +166,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
                 ++j;
             }
         }
-        rewardInfo.daoCreatorClaimableRoundIndexFunding = j;
+        rewardInfo.daoCreatorClaimableRoundIndex = j;
 
         if (protocolClaimableERC20Reward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableERC20Reward);
         if (daoCreatorClaimableERC20Reward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableERC20Reward);
@@ -200,10 +200,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
 
         //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
 
         // enumerate all active rounds, not including current round
-        uint256 j = rewardInfo.canvasCreatorClaimableRoundIndexesFunding[canvasId];
+        uint256 j = rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
             // given a past active round, get round reward
             uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
@@ -219,7 +219,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
                 ++j;
             }
         }
-        rewardInfo.canvasCreatorClaimableRoundIndexesFunding[canvasId] = j;
+        rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId] = j;
 
         if (claimableERC20Reward > 0) D4AERC20(token).transfer(canvasCreator, claimableERC20Reward);
         if (claimableETHReward > 0) {
@@ -245,10 +245,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
 
         //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
-        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
         bool topUpMode = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode;
         // enumerate all active rounds, not including current round
-        uint256 j = rewardInfo.nftMinterClaimableRoundIndexesFunding[nftMinter];
+        uint256 j = rewardInfo.nftMinterClaimableRoundIndexes[nftMinter];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
             uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
             claimableERC20Reward += roundReward * rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
@@ -266,7 +266,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
                 ++j;
             }
         }
-        rewardInfo.nftMinterClaimableRoundIndexesFunding[nftMinter] = j;
+        rewardInfo.nftMinterClaimableRoundIndexes[nftMinter] = j;
         if (!topUpMode) {
             if (claimableERC20Reward > 0) D4AERC20(token).transfer(nftMinter, claimableERC20Reward);
             if (claimableETHReward > 0) {
@@ -307,7 +307,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplateFunding {
         view
         returns (uint256)
     {
-        uint256[] storage activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] storage activeRounds = rewardInfo.activeRounds;
         if (activeRounds.length > 0) {
             for (uint256 j = activeRounds.length - 1; ~j != 0;) {
                 if (activeRounds[j] < round) return activeRounds[j];

@@ -10,6 +10,8 @@ import "contracts/interface/D4AConstants.sol";
 import "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
+import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
+
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
@@ -30,47 +32,6 @@ contract MintNftTest is DeployHelper {
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
-    function test_mintNFT_pay_lower_price_when_canvasRebateRatioInBps_is_set() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        createDaoParam.nftMinterERC20RatioInBps = 300;
-        createDaoParam.actionType = 16;
-        daoId = _createDao(createDaoParam);
-
-        drb.changeRound(1);
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
-
-        string memory tokenUri = "test token uri";
-        uint256 flatPrice = 0;
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
-        hoax(nftMinter.addr);
-        protocol.mintNFT{ value: price - price * 6750 * 3000 / BASIS_POINT ** 2 }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-        );
-    }
-
-    function test_RevertIf_mintNFT_with_too_low_price_when_canvasRebateRatioInBps_is_set() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        daoId = _createDao(createDaoParam);
-
-        drb.changeRound(1);
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
-
-        string memory tokenUri = "test token uri";
-        uint256 flatPrice = 0;
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
-        vm.expectRevert(NotEnoughEther.selector);
-        hoax(nftMinter.addr);
-        protocol.mintNFT{ value: price - price * 6750 * 3000 / BASIS_POINT ** 2 - 1 }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-        );
-    }
-
     function test_RevertIf_mintNft_when_reward_isProgressiveJackpot_and_exceed_mintable_round() public {
         DeployHelper.CreateDaoParam memory createDaoParam;
         createDaoParam.isProgressiveJackpot = true;
@@ -82,265 +43,18 @@ contract MintNftTest is DeployHelper {
 
         drb.changeRound(11);
         hoax(daoCreator.addr);
-        D4AProtocolSetter(address(protocol)).setDaoMintableRound(daoId, 10);
+        IPDProtocolSetter(address(protocol)).setDaoRemainingRound(daoId, 10);
 
         string memory tokenUri = "test token uri";
         uint256 flatPrice = 0;
         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-        uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+        uint256 price = protocol.getCanvasNextPrice(daoId, canvasId);
         vm.expectRevert(ExceedMaxMintableRound.selector);
         hoax(nftMinter.addr);
         protocol.mintNFT{ value: price }(
             daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
         );
-    }
-
-    function test_Mint_ETH_Split() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        daoId = _createDao(createDaoParam);
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-
-        (,,, address daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
-
-        hoax(daoCreator.addr);
-        D4AProtocolSetter(address(protocol)).setRatio(daoId, 300, 9500, 0, 9750, 9750);
-
-        deal(D4ASettingsReadable(address(protocol)).protocolFeePool(), 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-
-        string memory tokenUri = "test token uri";
-        uint256 flatPrice = 0.01 ether;
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-
-        hoax(nftMinter.addr);
-        protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-        );
-        assertEq(D4ASettingsReadable(address(protocol)).protocolFeePool().balance, 0.01 ether * 250 / 10_000);
-        assertEq(daoFeePool.balance, 0.01 ether * 9750 / 10_000);
-        assertEq(canvasCreator.addr.balance, 0);
-    }
-
-    function test_Batch_mint_ETH_Split() public {
-        vm.skip(true);
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        daoId = _createDao(createDaoParam);
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-
-        (,,, address daoFeePool,,,,) = ID4AProtocolReadable(address(protocol)).getProjectInfo(daoId);
-
-        hoax(daoCreator.addr);
-        D4AProtocolSetter(address(protocol)).setRatio(daoId, 300, 9500, 0, 9750, 9750);
-
-        deal(D4ASettingsReadable(address(protocol)).protocolFeePool(), 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-
-        MintNftInfo[] memory mintNftInfos = new MintNftInfo[](10);
-        bytes[] memory signatures = new bytes[](10);
-        uint256 totalPrice;
-        for (uint256 i; i < 10; i++) {
-            string memory tokenUri = string.concat("test token uri ", vm.toString(i));
-            uint256 flatPrice = 0.01 ether * (i + 1);
-            totalPrice += flatPrice;
-            bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-            mintNftInfos[i] = MintNftInfo(tokenUri, flatPrice);
-            signatures[i] = abi.encodePacked(r, s, v);
-        }
-
-        hoax(nftMinter.addr);
-
-        // batchMint问题
-        protocol.batchMint{ value: totalPrice }(daoId, canvasId, new bytes32[](0), mintNftInfos, signatures);
-        assertEq(D4ASettingsReadable(address(protocol)).protocolFeePool().balance, totalPrice * 250 / 10_000);
-        assertEq(daoFeePool.balance, totalPrice * 9750 / 10_000);
-        assertEq(canvasCreator.addr.balance, 0);
-    }
-
-    function test_PriceShouldUpdateCorrectlyWhenBatchMintAndLPV() public {
-        vm.skip(true);
-        DeployHelper.CreateDaoParam memory param;
-        param.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
-        param.priceFactor = 0.042 ether;
-        daoId = _createDao(param);
-
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-
-        string[] memory tokenUris = new string[](2);
-        tokenUris[0] = "test token uri 1";
-        tokenUris[1] = "test token uri 2";
-        uint256[] memory flatPrices = new uint256[](2);
-        flatPrices[0] = 0;
-        flatPrices[1] = 0;
-        // batchMint问题
-        _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.01 ether + 0.042 ether * 2);
-    }
-
-    function test_batchMint_ShouldSplitETHCorrectly() public {
-        vm.skip(true);
-        DeployHelper.CreateDaoParam memory param;
-        param.daoFeePoolETHRatioInBps = 9750;
-        param.daoFeePoolETHRatioInBpsFlatPrice = 9750;
-        param.nftMinterERC20RatioInBps = 300;
-        param.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
-        param.priceFactor = 0.6 ether;
-        param.floorPriceRank = 2;
-        param.actionType = 16;
-        daoId = _createDao(param);
-
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 2000);
-
-        deal(protocolFeePool.addr, 0);
-        address daoFeePool = protocol.getDaoFeePool(daoId);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-        deal(nftMinter.addr, 0);
-
-        {
-            string[] memory tokenUris = new string[](2);
-            tokenUris[0] = "test token uri 1";
-            tokenUris[1] = "test token uri 2";
-            uint256[] memory flatPrices = new uint256[](2);
-            flatPrices[0] = 0;
-            flatPrices[1] = 0.5 ether;
-            // batchMint问题
-            _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-        }
-
-        assertEq(protocolFeePool.addr.balance, 0.01325 ether);
-        assertEq(daoFeePool.balance, 0.51675 ether);
-        assertEq(canvasCreator.addr.balance, 0);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.63 ether);
-
-        drb.changeRound(3);
-
-        hoax(daoCreator.addr);
-        protocol.setRatio(daoId, 300, 9000, 500, 4750, 5250);
-        hoax(daoCreator.addr);
-        protocol.setDaoPriceTemplate(daoId, PriceTemplateType.LINEAR_PRICE_VARIATION, 0.6 ether);
-        hoax(canvasCreator.addr);
-        protocol.setCanvasRebateRatioInBps(canvasId, 0);
-
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.015 ether);
-
-        deal(protocolFeePool.addr, 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-        deal(nftMinter.addr, 0);
-
-        {
-            string[] memory tokenUris = new string[](2);
-            tokenUris[0] = "test token uri 3";
-            tokenUris[1] = "test token uri 4";
-            uint256[] memory flatPrices = new uint256[](2);
-            flatPrices[0] = 0;
-            flatPrices[1] = 0;
-            // batchMint问题
-            _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-        }
-
-        assertEq(protocolFeePool.addr.balance, 0.001125 ether);
-        assertEq(daoFeePool.balance, 0.021375 ether);
-        assertEq(canvasCreator.addr.balance, 0.0225 ether);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.63 ether);
-
-        hoax(canvasCreator.addr);
-        protocol.setCanvasRebateRatioInBps(canvasId, 1e4);
-
-        deal(protocolFeePool.addr, 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-        deal(nftMinter.addr, 0);
-
-        {
-            string[] memory tokenUris = new string[](2);
-            tokenUris[0] = "test token uri 5";
-            tokenUris[1] = "test token uri 6";
-            uint256[] memory flatPrices = new uint256[](2);
-            flatPrices[0] = 0.0301 ether;
-            flatPrices[1] = 0.0302 ether;
-            // batchMint问题
-            _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-        }
-
-        assertEq(protocolFeePool.addr.balance, 0.0015075 ether);
-        assertEq(daoFeePool.balance, 0.0316575 ether);
-        assertEq(canvasCreator.addr.balance, 0);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.63 ether);
-
-        drb.changeRound(5);
-
-        hoax(canvasCreator.addr);
-        protocol.setCanvasRebateRatioInBps(canvasId, 0.15e4);
-
-        deal(protocolFeePool.addr, 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-        deal(nftMinter.addr, 0);
-
-        {
-            string[] memory tokenUris = new string[](4);
-            tokenUris[0] = "test token uri 7";
-            tokenUris[1] = "test token uri 8";
-            tokenUris[2] = "test token uri 9";
-            tokenUris[3] = "test token uri 10";
-            uint256[] memory flatPrices = new uint256[](4);
-            flatPrices[0] = 0.0303 ether;
-            flatPrices[1] = 0.0304 ether;
-            flatPrices[2] = 0 ether;
-            flatPrices[3] = 0 ether;
-            // batchMint问题
-            _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-        }
-
-        assertEq(protocolFeePool.addr.balance, 0.0026425 ether);
-        assertEq(daoFeePool.balance, 0.0532425 ether);
-        assertEq(canvasCreator.addr.balance, 0.04234275 ether);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.63 ether);
-
-        hoax(daoCreator.addr);
-        protocol.setRatio(daoId, 300, 7500, 2000, 9750, 9750);
-        hoax(daoCreator.addr);
-        protocol.setDaoPriceTemplate(daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 16_000);
-        hoax(daoCreator.addr);
-        protocol.setDaoFloorPrice(daoId, 1 ether);
-        hoax(canvasCreator.addr);
-        protocol.setCanvasRebateRatioInBps(canvasId, 0);
-
-        drb.changeRound(7);
-
-        assertEq(protocol.getCanvasNextPrice(canvasId), 0.5 ether);
-
-        deal(protocolFeePool.addr, 0);
-        deal(daoFeePool, 0);
-        deal(canvasCreator.addr, 0);
-        deal(nftMinter.addr, 0);
-
-        {
-            string[] memory tokenUris = new string[](2);
-            tokenUris[0] = "test token uri 11";
-            tokenUris[1] = "test token uri 12";
-            uint256[] memory flatPrices = new uint256[](2);
-            flatPrices[0] = 0 ether;
-            flatPrices[1] = 1.2 ether;
-            // batchMint问题
-            _batchMint(daoId, canvasId, tokenUris, flatPrices, canvasCreator.key, nftMinter.addr);
-        }
-
-        assertEq(protocolFeePool.addr.balance, 0.0425 ether);
-        assertEq(daoFeePool.balance, 1.6575 ether);
-        assertEq(canvasCreator.addr.balance, 0 ether);
-        assertEq(protocol.getCanvasNextPrice(canvasId), 1 ether);
     }
 
     function test_TokenIdShouldStartAtOne() public {

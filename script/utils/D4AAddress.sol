@@ -18,7 +18,6 @@ import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
-import { PDCreateFunding } from "contracts/PDCreateFunding.sol";
 
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
@@ -66,7 +65,7 @@ contract D4AAddress is CommonBase {
     PDProtocolSetter public pdProtocolSetter = PDProtocolSetter(json.readAddress(".PDProtocol.PDProtocolSetter"));
     D4ACreate public d4aCreate = D4ACreate(json.readAddress(".PDProtocol.D4ACreate"));
     PDCreate public pdCreate = PDCreate(json.readAddress(".PDProtocol.PDCreate"));
-    PDCreateFunding public pdCreateFunding = PDCreateFunding(json.readAddress(".PDProtocol.PDCreateFunding"));
+    //PDCreateFunding public pdCreateFunding = PDCreateFunding(json.readAddress(".PDProtocol.PDCreateFunding"));
 
     PDBasicDao public pdBasicDao = PDBasicDao(json.readAddress(".PDProtocol.PDBasicDao"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".PDProtocol.D4ASettings"));

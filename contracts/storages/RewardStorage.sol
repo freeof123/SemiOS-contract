@@ -2,20 +2,20 @@
 pragma solidity ^0.8.18;
 
 library RewardStorage {
-    struct RewardCheckpoint {
-        uint256 startRound;
-        uint256 totalRound;
-        uint256 totalReward;
-        uint256 lastActiveRound; // deprecated
-        uint256[] activeRounds;
-        // claimable round index
-        uint256 daoCreatorClaimableRoundIndex;
-        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
-        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
-    }
+    // struct RewardCheckpoint {
+    //     uint256 startRound;
+    //     uint256 totalRound;
+    //     uint256 totalReward;
+    //     uint256 lastActiveRound; // deprecated
+    //     uint256[] activeRounds;
+    //     // claimable round index
+    //     uint256 daoCreatorClaimableRoundIndex;
+    //     mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
+    //     mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
+    // }
 
     struct RewardInfo {
-        RewardCheckpoint[] rewardCheckpoints;
+        //RewardCheckpoint[] rewardCheckpoints;
         uint256 rewardIssuePendingRound;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
@@ -28,7 +28,7 @@ library RewardStorage {
         uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
         //1.3add ------------------------------------
-        uint256[] activeRoundsFunding;
+        uint256[] activeRounds;
         mapping(uint256 ronud => uint256 amount) selfRoundERC20Reward;
         mapping(uint256 ronud => uint256 amount) selfRoundETHReward;
         // weights for eth
@@ -36,9 +36,9 @@ library RewardStorage {
         mapping(uint256 round => uint256 weight) daoCreatorWeightsETH;
         mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeightsETH;
         mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterWeightsETH;
-        uint256 daoCreatorClaimableRoundIndexFunding;
-        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexesFunding;
-        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexesFunding;
+        uint256 daoCreatorClaimableRoundIndex;
+        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
+        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
         mapping(uint256 round => mapping(address investor => uint256 amount)) topUpInvestorPendingETH;
     }
 

@@ -26,7 +26,7 @@ contract FundingDaoParamSet is DeployHelper {
         param.topUpMode = false;
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
 
-        SetDaoParamFunding memory vars;
+        SetDaoParam memory vars;
         vars.daoId = daoId;
         vars.nftMaxSupplyRank = 0;
         vars.mintableRoundRank = 1;
@@ -37,8 +37,7 @@ contract FundingDaoParamSet is DeployHelper {
         vars.initialTokenSupply = 1 ether;
         vars.unifiedPrice = 1006;
         vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
-        vars.allRatioForFundingParam =
-            AllRatioForFundingParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
 
         // 修改MainDAO的参数
         hoax(daoCreator.addr);

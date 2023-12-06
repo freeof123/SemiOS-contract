@@ -44,6 +44,6 @@ contract EventMock is DeployHelper {
         daoIds[0] = daoId;
         claimParam.canvasIds = cavansIds;
         claimParam.daoIds = daoIds;
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
     }
 }

@@ -97,24 +97,24 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao;
     }
 
-    function getDaoLastActiveRoundFunding(bytes32 daoId) public view returns (uint256) {
+    function getDaoLastActiveRound(bytes32 daoId) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        if (rewardInfo.activeRoundsFunding.length == 0) return DaoStorage.layout().daoInfos[daoId].startRound;
-        return rewardInfo.activeRoundsFunding[rewardInfo.activeRoundsFunding.length - 1];
+        if (rewardInfo.activeRounds.length == 0) return 0;
+        return rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1];
     }
 
     function getDaoPassedRound(bytes32 daoId) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (!rewardInfo.isProgressiveJackpot) {
-            if (rewardInfo.activeRoundsFunding.length == 0) return 0;
+            if (rewardInfo.activeRounds.length == 0) return 0;
             if (
-                rewardInfo.activeRoundsFunding[rewardInfo.activeRoundsFunding.length - 1]
+                rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1]
                     == IPDRound(address(this)).getDaoCurrentRound(daoId)
             ) {
-                return rewardInfo.activeRoundsFunding.length - 1;
+                return rewardInfo.activeRounds.length - 1;
             } else {
-                return rewardInfo.activeRoundsFunding.length;
+                return rewardInfo.activeRounds.length;
             }
         } else {
             uint256 passedRound = IPDRound(address(this)).getDaoCurrentRound(daoId) - 1;
@@ -177,7 +177,7 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getERC20RewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
 
         uint256 totalRoundReward;
         for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {
@@ -189,7 +189,7 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getETHRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        uint256[] memory activeRounds = rewardInfo.activeRoundsFunding;
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
 
         uint256 totalRoundReward;
         for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {

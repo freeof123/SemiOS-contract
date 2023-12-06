@@ -13,7 +13,7 @@ import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswa
 
 library SettingsStorage {
     struct Layout {
-        // fee related
+        // fee related //deprecated
         uint256 createDaoFeeAmount;
         uint256 createCanvasFeeAmount;
         uint256 protocolMintFeeRatioInBps;

@@ -29,7 +29,7 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
     function getDaoAssetPool(bytes32 daoId) external view returns (address);
     function getIsAncestorDao(bytes32 daoId) external view returns (bool);
-    function getDaoLastActiveRoundFunding(bytes32 daoId) external view returns (uint256);
+    function getDaoLastActiveRound(bytes32 daoId) external view returns (uint256);
     function getDaoPassedRound(bytes32 daoId) external view returns (uint256);
     function getDaoRemainingRound(bytes32 daoId) external view returns (uint256);
     function getDaoChildren(bytes32 daoId) external view returns (bytes32[] memory);

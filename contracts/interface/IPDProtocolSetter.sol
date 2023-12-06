@@ -8,9 +8,9 @@ import {
     Blacklist,
     SetDaoParam,
     NftMinterCapInfo,
-    AllRatioForFundingParam,
+    AllRatioParam,
     SetChildrenParam,
-    SetDaoParamFunding
+    SetDaoParam
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolSetter } from "./ID4AProtocolSetter.sol";
@@ -27,15 +27,15 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
         uint256 selfRewardRatioETH
     );
 
-    event RatioForFundingSet(bytes32 daoId, AllRatioForFundingParam vars);
+    event RatioSet(bytes32 daoId, AllRatioParam vars);
 
     event InitialTokenSupplyForSubDaoSet(bytes32 daoId, uint256 initialTokenSupply);
 
     event DaoRestart(bytes32 daoId, uint256 remainingRound, uint256 startBlock);
 
-    function setDaoParamsFunding(SetDaoParamFunding calldata vars) external;
+    function setDaoParams(SetDaoParam calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
-    function setRatioForFunding(bytes32 daoId, AllRatioForFundingParam calldata vars) external;
+    function setRatio(bytes32 daoId, AllRatioParam calldata vars) external;
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;

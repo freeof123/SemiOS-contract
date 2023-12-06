@@ -20,7 +20,7 @@ contract EventEmitter {
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
         uint256 actionType,
-        AllRatioForFundingParam allRatioForFundingParam
+        AllRatioParam allRatioParam
     );
 
     event CreateContinuousProjectParamEmittedForFunding(
@@ -60,7 +60,7 @@ contract EventEmitter {
         uint256 selfRewardRatioETH
     );
 
-    event RatioForFundingSet(bytes32 daoId, AllRatioForFundingParam vars);
+    event RatioForFundingSet(bytes32 daoId, AllRatioParam vars);
 
     event InitialTokenSupplyForSubDaoSet(bytes32 daoId, uint256 initialTokenSupply);
 
@@ -134,7 +134,7 @@ contract EventEmitter {
             0xc9c8a2A73d591B1411Acbbf5423CCEEdF36F8e97,
             0xe6342d41b9Fa0b899705354EFfC45736079C7131,
             0x0a42d4714Af9600844482087c5A17Dcd28E94b0e,
-            DaoMetadataParam(1, 60, 0, 2, 1250, "test dao uri", 0),
+            DaoMetadataParam(1, 1, 60, 0, 2, 1250, "test dao uri", 0),
             Whitelist(
                 0x357d85896d1f85a5facf8f42da91aee7b1cf0b826b71d4cc3213beb0e077af3d,
                 zeroAddressArray,
@@ -152,7 +152,7 @@ contract EventEmitter {
                 "test dao"
             ),
             20,
-            AllRatioForFundingParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
+            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
         );
 
         emit NewProjectForFunding(
@@ -190,7 +190,7 @@ contract EventEmitter {
 
         emit RatioForFundingSet(
             0xe9f6527f34fb69a20cfc91e2d1a3f3ad3671c7e6bdf38b3af98f4dd528e96986,
-            AllRatioForFundingParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
+            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
         );
 
         emit InitialTokenSupplyForSubDaoSet(0xe9f6527f34fb69a20cfc91e2d1a3f3ad3671c7e6bdf38b3af98f4dd528e96986, 1e28);

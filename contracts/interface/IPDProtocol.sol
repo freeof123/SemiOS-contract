@@ -74,33 +74,16 @@ interface IPDProtocol {
         payable
         returns (uint256);
 
-    function batchMint(
-        bytes32 daoId,
-        bytes32 canvasId,
-        bytes32[] calldata proof,
-        MintNftInfo[] calldata mintNftInfos,
-        bytes[] calldata signatures
-    )
-        external
-        payable
-        returns (uint256[] memory);
-
-    function claimProjectERC20Reward(bytes32 daoId) external returns (uint256);
-
-    function claimCanvasReward(bytes32 canvasId) external returns (uint256);
-
-    function claimNftMinterReward(bytes32 daoId, address minter) external returns (uint256);
-
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
 
-    function claimDaoCreatorRewardFunding(bytes32 daoId)
+    function claimDaoCreatorReward(bytes32 daoId)
         external
         returns (uint256 daoCreatorERC20Reward, uint256 daoCreatorETHReward);
 
-    function claimCanvasRewardFunding(bytes32 canvasId)
+    function claimCanvasReward(bytes32 canvasId)
         external
         returns (uint256 canvasCreatorERC20Reward, uint256 canvasCreatorETHReward);
-    function claimNftMinterRewardFunding(
+    function claimNftMinterReward(
         bytes32 daoId,
         address minter
     )

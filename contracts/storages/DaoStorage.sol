@@ -32,7 +32,7 @@ library DaoStorage {
         uint256 daoFeePoolETHRatioInBpsFlatPrice;
         NftMinterCap nftMinterCap;
         NftMinterCapInfo[] nftMinterCapInfo;
-        mapping(uint256 => uint256) dailyMint;
+        mapping(uint256 => uint256) roundMint;
     }
 
     struct Layout {

@@ -104,7 +104,7 @@ contract DaoDistribution is DeployHelper {
         claimParam.daoIds = daoIds;
         // console2.log(protocol.getRoundERC20Reward(daoId, 1));
         vm.prank(daoCreator.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         //assert
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 50_000_000 / 10 / 2 * 0.98 ether);
 
@@ -129,10 +129,9 @@ contract DaoDistribution is DeployHelper {
         );
         // 原参数：allRatioForFundingParam: (750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
         // 修改ERC20分配比例（Minter: 50%, Builder: 20%, Starter: 28%, PDAO: 2%）
-        AllRatioForFundingParam memory vars =
-            AllRatioForFundingParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
+        AllRatioParam memory vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
         hoax(daoCreator.addr);
-        protocol.setRatioForFunding(daoId, vars);
+        protocol.setRatio(daoId, vars);
 
         // 等待Drb结束 奖励分配
         drb.changeRound(2);
@@ -146,9 +145,9 @@ contract DaoDistribution is DeployHelper {
         claimParam.canvasIds = cavansIds;
         claimParam.daoIds = daoIds;
         vm.prank(daoCreator.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         vm.prank(nftMinter.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
 
         // 查看资产分配数量 分配比例应该是修改后的比例
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 3_150_000 ether);
@@ -157,11 +156,10 @@ contract DaoDistribution is DeployHelper {
 
     // 1.3-91 修改上面6个
     function test_DistributParamInsideDaoEffective() public {
-        AllRatioForFundingParam memory vars =
-            AllRatioForFundingParam(5750, 1000, 3000, 7000, 500, 2250, 800, 2000, 7000, 800, 2000, 7000);
+        AllRatioParam memory vars = AllRatioParam(5750, 1000, 3000, 7000, 500, 2250, 800, 2000, 7000, 800, 2000, 7000);
         hoax(daoCreator.addr);
 
-        protocol.setRatioForFunding(daoId2, vars);
+        protocol.setRatio(daoId2, vars);
 
         deal(daoCreator.addr, 0 ether);
         deal(nftMinter.addr, 0.02 ether);
@@ -217,7 +215,7 @@ contract DaoDistribution is DeployHelper {
         mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
         assertEq(mintableRound, 10);
         hoax(daoCreator.addr);
-        protocol.setDaoMintableRoundFunding(jackpotDaoId, 20);
+        protocol.setDaoRemainingRound(jackpotDaoId, 20);
         // (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
         mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
         assertEq(mintableRound, 20);
@@ -249,9 +247,9 @@ contract DaoDistribution is DeployHelper {
         claimParam.daoIds = daoIds;
 
         vm.prank(daoCreator.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         vm.prank(nftMinter.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         // // 验证DaoCreator 和 NftMinter的奖励分配
         // 60000000/20 *3 *0.7 * (0.2 + 0.7) = 5.670000
         assertEq(IERC20(jackpotToken).balanceOf(daoCreator.addr) / 1 ether, 5_670_000);

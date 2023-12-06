@@ -6,14 +6,14 @@ library BasicDaoStorage {
         bool unlocked;
         bytes32 canvasIdOfSpecialNft;
         uint256 tokenId;
-        uint256 dailyMintCap;
+        uint256 roundMintCap;
         uint256 reserveNftNumber;
         bool unifiedPriceModeOff;
         uint256 unifiedPrice;
         //---------1.3 add
         bool exist;
         address daoAssetPool;
-        address daoFundingPool;
+        address daoFundingPool; //deprecated
         bool isThirdPartyToken;
         bool topUpMode;
         bool needMintableWork;

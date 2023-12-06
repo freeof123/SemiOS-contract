@@ -13,7 +13,6 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
-import { IPDCreateFunding } from "contracts/interface/IPDCreateFunding.sol";
 
 function getD4ACreateSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
@@ -38,10 +37,7 @@ function getPDCreateSelectors() pure returns (bytes4[] memory) {
     uint256 selectorIndex;
     // register PDCreate
     bytes4 interfaceId;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createBasicDao.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createOwnerBasicDao.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createCanvas.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createContinuousDao.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDCreate.createDao.selector;
     assert(interfaceId == type(IPDCreate).interfaceId);
 
     /// @solidity memory-safe-assembly
@@ -154,7 +150,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getProjectCanvasCount.selector;
     // new functions
     // DAO related functions
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoStartRound.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoStartBlock.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintableRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoIndex.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoUri.selector;
@@ -173,10 +169,8 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoNftHolderMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getUserMintInfo.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFeePoolETHRatioFlatPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTag.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoDailyMintCap.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRoundMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoUnifiedPriceModeOff.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoUnifiedPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoReserveNftNumber.selector;
@@ -190,30 +184,19 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasExist.selector;
     // prices related functions
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasLastPrice.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoMaxPriceInfo.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoFloorPrice.selector;
     // reward related functions
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardStartRound.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardTotalRound.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoTotalReward.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardDecayFactor.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardIsProgressiveJackpot.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardLastActiveRound.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoRewardActiveRounds.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoIsProgressiveJackpot.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoActiveRounds.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCreatorClaimableRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorClaimableRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterClaimableRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getTotalWeight.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getProtocolWeight.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCreatorWeight.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorWeight.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterWeight.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCreatorERC20Ratio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorERC20Ratio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterERC20Ratio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRoundReward.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getRewardTillRound.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getProtocolWeights.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCreatorWeights.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorWeights.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterWeights.selector;
     // protocol related functions
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getNFTTokenCanvas.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
@@ -235,7 +218,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCreatorETHRewardRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoAssetPool.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getIsAncestorDao.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoLastActiveRoundFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoLastActiveRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoPassedRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRemainingRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoChildren.selector;
@@ -269,26 +252,22 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     // register D4AProtoclReadable
     bytes4 interfaceId;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setMintCapAndPermission.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoParams.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoPriceTemplate.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoNftMaxSupply.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoMintableRound.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoFloorPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setTemplate.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setCanvasRebateRatioInBps.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDailyMintCap.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoTokenSupply.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setRoundMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setWhitelistMintCap.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolSetter.setDaoUnifiedPrice.selector;
 
     //PDProtocal related functions
 
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setChildren.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setRatioForFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setInitialTokenSupplyForSubDao.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoParamsFunding.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoMintableRoundFunding.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoParams.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoRemainingRound.selector;
 
     assert(interfaceId == type(IPDProtocolSetter).interfaceId ^ type(ID4AProtocolSetter).interfaceId);
 
@@ -323,21 +302,21 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     return selectors;
 }
 
-function getPDCreateFundingSelectors() pure returns (bytes4[] memory) {
-    bytes4[] memory selectors = new bytes4[](256);
-    uint256 selectorIndex;
-    // register D4AGrant
-    bytes4 interfaceId;
-    interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createDaoForFunding.selector;
+// function getPDCreateFundingSelectors() pure returns (bytes4[] memory) {
+//     bytes4[] memory selectors = new bytes4[](256);
+//     uint256 selectorIndex;
+//     // register D4AGrant
+//     bytes4 interfaceId;
+//     interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createDaoForFunding.selector;
 
-    assert(interfaceId == type(IPDCreateFunding).interfaceId);
+//     assert(interfaceId == type(IPDCreateFunding).interfaceId);
 
-    /// @solidity memory-safe-assembly
-    assembly {
-        mstore(selectors, selectorIndex)
-    }
+//     /// @solidity memory-safe-assembly
+//     assembly {
+//         mstore(selectors, selectorIndex)
+//     }
 
-    return selectors;
-}
+//     return selectors;
+// }
 
 // 是否要添加selector

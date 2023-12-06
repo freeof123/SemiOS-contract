@@ -26,8 +26,7 @@ import {
     getProtocolSetterSelectors,
     getD4ACreateSelectors,
     getPDCreateSelectors,
-    getPDBasicDaoSelectors,
-    getPDCreateFundingSelectors
+    getPDBasicDaoSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import "./utils/D4AAddress.sol";
@@ -359,7 +358,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDCreate");
 
-        pdCreate = new PDCreate();
+        pdCreate = new PDCreate(address(WETH));
         assertTrue(address(pdCreate) != address(0));
 
         vm.toString(address(pdCreate)).write(path, ".PDProtocol.PDCreate");
@@ -429,18 +428,18 @@ contract DeployDemo is Script, Test, D4AAddress {
     //     console2.log("================================================================================\n");
     // }
 
-    function _deployPDCreateFunding() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy PDCreate");
+    // function _deployPDCreateFunding() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy PDCreate");
 
-        pdCreateFunding = new PDCreateFunding(address(WETH));
-        assertTrue(address(pdCreateFunding) != address(0));
+    //     pdCreateFunding = new PDCreateFunding(address(WETH));
+    //     assertTrue(address(pdCreateFunding) != address(0));
 
-        vm.toString(address(pdCreateFunding)).write(path, ".PDProtocol.PDCreateFunding");
+    //     vm.toString(address(pdCreateFunding)).write(path, ".PDProtocol.PDCreateFunding");
 
-        console2.log("PDCreate address: ", address(pdCreateFunding));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("PDCreate address: ", address(pdCreateFunding));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _cutFacetsPDCreateFunding(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
@@ -448,8 +447,8 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = getPDCreateFundingSelectors();
-        console2.log("PDCreateFunding facet cut selectors number: ", selectors.length);
+        //bytes4[] memory selectors = getPDCreateFundingSelectors();
+        //console2.log("PDCreateFunding facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
 
@@ -463,22 +462,22 @@ contract DeployDemo is Script, Test, D4AAddress {
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
-        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
-            facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreateFunding),
-                action: IDiamondWritableInternal.FacetCutAction.ADD,
-                selectors: selectors
-            });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-        }
-        if (deployMethod == DeployMethod.REPLACE) {
-            facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(pdCreateFunding),
-                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
-                selectors: selectors
-            });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-        }
+        // if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+        //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
+        //         target: address(pdCreateFunding),
+        //         action: IDiamondWritableInternal.FacetCutAction.ADD,
+        //         selectors: selectors
+        //     });
+        //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        // }
+        // if (deployMethod == DeployMethod.REPLACE) {
+        //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
+        //         target: address(pdCreateFunding),
+        //         action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+        //         selectors: selectors
+        //     });
+        //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        // }
 
         console2.log("================================================================================\n");
     }
@@ -667,64 +666,64 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployLinearRewardIssuance() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy LinearRewardIssuance");
+    // function _deployLinearRewardIssuance() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy LinearRewardIssuance");
 
-        //linearRewardIssuance = new LinearRewardIssuance();
-        //assertTrue(address(linearRewardIssuance) != address(0));
+    //     //linearRewardIssuance = new LinearRewardIssuance();
+    //     //assertTrue(address(linearRewardIssuance) != address(0));
 
-        //vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
+    //     //vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
 
-        console2.log("Set Linear Reward Template Data:");
-        console2.logBytes(
-            abi.encodeCall(
-                D4ASettings.setTemplateAddress,
-                (
-                    TemplateChoice.REWARD,
-                    uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE),
-                    0xAc8362825D4bC08d50F7B195Bcebe4E302C7965a
-                )
-            )
-        );
-        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
-        // );
+    //     console2.log("Set Linear Reward Template Data:");
+    //     console2.logBytes(
+    //         abi.encodeCall(
+    //             D4ASettings.setTemplateAddress,
+    //             (
+    //                 TemplateChoice.REWARD,
+    //                 uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE),
+    //                 0xAc8362825D4bC08d50F7B195Bcebe4E302C7965a
+    //             )
+    //         )
+    //     );
+    //     // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+    //     //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
+    //     // );
 
-        console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
+    //     console2.log("================================================================================\n");
+    // }
 
-    function _deployExponentialRewardIssuance() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy ExponentialRewardIssuance");
+    // function _deployExponentialRewardIssuance() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy ExponentialRewardIssuance");
 
-        //exponentialRewardIssuance = new ExponentialRewardIssuance();
-        //assertTrue(address(exponentialRewardIssuance) != address(0));
+    //     //exponentialRewardIssuance = new ExponentialRewardIssuance();
+    //     //assertTrue(address(exponentialRewardIssuance) != address(0));
 
-        //vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
+    //     //vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
 
-        console2.log("Set Exponential Reward Template Data:");
-        console2.logBytes(
-            abi.encodeCall(
-                D4ASettings.setTemplateAddress,
-                (
-                    TemplateChoice.REWARD,
-                    uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-                    0x555D5FdC1fcbEB86d404D9D861A4481876c65524
-                )
-            )
-        );
+    //     console2.log("Set Exponential Reward Template Data:");
+    //     console2.logBytes(
+    //         abi.encodeCall(
+    //             D4ASettings.setTemplateAddress,
+    //             (
+    //                 TemplateChoice.REWARD,
+    //                 uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+    //                 0x555D5FdC1fcbEB86d404D9D861A4481876c65524
+    //             )
+    //         )
+    //     );
 
-        // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.REWARD,
-        //     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-        //     address(exponentialRewardIssuance)
-        // );
+    //     // D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+    //     //     TemplateChoice.REWARD,
+    //     //     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+    //     //     address(exponentialRewardIssuance)
+    //     // );
 
-        console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _deployUniformDistributionRewardIssuance() internal {
         console2.log("\n================================================================================");
