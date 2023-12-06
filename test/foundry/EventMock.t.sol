@@ -34,7 +34,7 @@ contract EventMock is DeployHelper {
         // param.topUpMode = false;
         // param.topUpMode = true;
         // bytes32 daoId2 = _createDaoForFunding(param, daoCreator.addr);
-        drb.changeRound(2);
+        vm.roll(2);
         ClaimMultiRewardParam memory claimParam;
         claimParam.protocol = address(protocol);
         bytes32[] memory cavansIds = new bytes32[](1);

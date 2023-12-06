@@ -41,7 +41,7 @@ contract ProtoDaoPriceTest is DeployHelper {
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         //address token = protocol.getDaoToken(daoId);
         vm.prank(daoCreator.addr);
-        protocol.setDailyMintCap(daoId, 2);
+        protocol.setRoundMintCap(daoId, 2);
         super._mintNft(
             daoId,
             canvasId1,
@@ -52,6 +52,8 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
+        console2.log("here1");
+
         super._mintNft(
             daoId,
             canvasId1,
@@ -62,6 +64,7 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
+        console2.log("here2");
         string memory uri = string.concat(
             tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
         );

@@ -86,11 +86,11 @@ contract ProtoDaoMintFee is DeployHelper {
         assertEq(pool.balance, 10 ether + 2 ether * 4 / 5);
         assertEq(IERC20(token).balanceOf(pool), 50_000_000 ether + 4000 ether * 4 / 5);
 
-        drb.changeRound(2);
+        vm.roll(2);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorRewardFunding(daoId);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimCanvasRewardFunding(canvasId1);
+        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 0);
         assertEq(nftMinter.addr.balance, 0);
@@ -161,12 +161,12 @@ contract ProtoDaoMintFee is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        drb.changeRound(2);
+        vm.roll(2);
 
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorRewardFunding(daoId);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimCanvasRewardFunding(canvasId1);
+        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimCanvasReward(canvasId1);
         // 10/10*0.9
         assertEq(daoCreator.addr.balance, 0.9 ether);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 4_500_000 ether);

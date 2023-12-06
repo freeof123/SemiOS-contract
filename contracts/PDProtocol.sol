@@ -192,8 +192,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         }
         {
             uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
-            DaoStorage.layout().daoInfos[daoId].roundMint[currentRound] += 1;
             _checkMintEligibility(daoId, msg.sender, proof, currentRound, 1);
+            DaoStorage.layout().daoInfos[daoId].roundMint[currentRound] += 1;
         }
         DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         tokenId = _mintNft(daoId, canvasId, tokenUri, flatPrice, to);

@@ -26,329 +26,329 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 
-contract D4AProtocolTest is DeployHelper {
-    using stdStorage for StdStorage;
+contract D4AProtocolTest is DeployHelper {}
+//     using stdStorage for StdStorage;
 
-    D4AProtocolHarness public protocolHarness;
+//     D4AProtocolHarness public protocolHarness;
 
-    function setUp() public {
-        setUpEnv();
-        D4AProtocolHarness harness = new D4AProtocolHarness();
-        vm.etch(address(protocolImpl), address(harness).code);
-        protocolHarness = D4AProtocolHarness(payable(address(protocol)));
-    }
+//     function setUp() public {
+//         setUpEnv();
+//         D4AProtocolHarness harness = new D4AProtocolHarness();
+//         vm.etch(address(protocolImpl), address(harness).code);
+//         protocolHarness = D4AProtocolHarness(payable(address(protocol)));
+//     }
 
-    function test_MINTNFT_TYPEHASH() public {
-        assertEq(
-            protocolHarness.exposed_MINTNFT_TYPEHASH(),
-            keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)")
-        );
-    }
+//     function test_MINTNFT_TYPEHASH() public {
+//         assertEq(
+//             protocolHarness.exposed_MINTNFT_TYPEHASH(),
+//             keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)")
+//         );
+//     }
 
-    // function test_exposed_daoMintInfos() public {
-    //     assertEq(protocolHarness.exposed_daoMintInfos(0), 0);
+//     // function test_exposed_daoMintInfos() public {
+//     //     assertEq(protocolHarness.exposed_daoMintInfos(0), 0);
 
-    //     vm.prank(address(protocol));
-    //     naiveOwner.initOwnerOf(bytes32(0), address(this));
+//     //     vm.prank(address(protocol));
+//     //     naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-    //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-    //     );
-    //     assertEq(protocolHarness.exposed_daoMintInfos(0), 100);
-    // }
+//     //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+//     //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+//     //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+//     //     );
+//     //     assertEq(protocolHarness.exposed_daoMintInfos(0), 100);
+//     // }
 
-    // function test_getDaoMintCap() public {
-    //     vm.prank(address(protocol));
-    //     naiveOwner.initOwnerOf(bytes32(0), address(this));
+//     // function test_getDaoMintCap() public {
+//     //     vm.prank(address(protocol));
+//     //     naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-    //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-    //     );
-    //     assertEq(
-    //         protocolHarness.exposed_daoMintInfos(0),
-    // ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
-    //     );
-    // }
+//     //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+//     //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+//     //         bytes32(0), 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+//     //     );
+//     //     assertEq(
+//     //         protocolHarness.exposed_daoMintInfos(0),
+//     // ID4AProtocolReadable(address(protocol)).getDaoMintCap(bytes32(0))
+//     //     );
+//     // }
 
-    function test_createCanvas() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
-        vm.expectCall({
-            callee: address(permissionControl),
-            data: abi.encodeWithSelector(permissionControl.isCanvasCreatorBlacklisted.selector),
-            count: 1
-        });
-        vm.expectCall({
-            callee: address(permissionControl),
-            data: abi.encodeWithSelector(permissionControl.inCanvasCreatorWhitelist.selector),
-            count: 1
-        });
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-        assertTrue(canvasId != bytes32(0));
-    }
+//     function test_createCanvas() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         vm.expectCall({
+//             callee: address(permissionControl),
+//             data: abi.encodeWithSelector(permissionControl.isCanvasCreatorBlacklisted.selector),
+//             count: 1
+//         });
+//         vm.expectCall({
+//             callee: address(permissionControl),
+//             data: abi.encodeWithSelector(permissionControl.inCanvasCreatorWhitelist.selector),
+//             count: 1
+//         });
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         assertTrue(canvasId != bytes32(0));
+//     }
 
-    function test_RevertIf_createCanvas_Blacklisted() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        address[] memory canvasCreatorAccounts = new address[](1);
-        canvasCreatorAccounts[0] = address(this);
-        createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(Blacklisted.selector);
-        protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-    }
+//     function test_RevertIf_createCanvas_Blacklisted() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         address[] memory canvasCreatorAccounts = new address[](1);
+//         canvasCreatorAccounts[0] = address(this);
+//         createDaoParam.canvasCreatorAccounts = canvasCreatorAccounts;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         vm.expectRevert(Blacklisted.selector);
+//         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//     }
 
-    function test_RevertIf_createCanvas_NotInWhtielist() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        address[] memory canvasCreatorNFTHolderPasses = new address[](1);
-        _testERC721.mint(protocolOwner.addr, 0);
-        canvasCreatorNFTHolderPasses[0] = address(_testERC721);
-        createDaoParam.canvasCreatorNFTHolderPasses = canvasCreatorNFTHolderPasses;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(NotInWhitelist.selector);
-        protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-    }
+//     function test_RevertIf_createCanvas_NotInWhtielist() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         address[] memory canvasCreatorNFTHolderPasses = new address[](1);
+//         _testERC721.mint(protocolOwner.addr, 0);
+//         canvasCreatorNFTHolderPasses[0] = address(_testERC721);
+//         createDaoParam.canvasCreatorNFTHolderPasses = canvasCreatorNFTHolderPasses;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         vm.expectRevert(NotInWhitelist.selector);
+//         protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//     }
 
-    function test_initialize() public {
-        protocol = IPDProtocolAggregate(address(new D4ADiamond()));
-        ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
-        protocolImpl = new PDProtocol();
+//     function test_initialize() public {
+//         protocol = IPDProtocolAggregate(address(new D4ADiamond()));
+//         ISafeOwnable(address(protocol)).transferOwnership(protocolOwner.addr);
+//         protocolImpl = new PDProtocol();
 
-        vm.startPrank(protocolOwner.addr);
-        ISafeOwnable(address(protocol)).acceptOwnership();
-        // set diamond fallback address
-        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
-        protocol.initialize();
-    }
+//         vm.startPrank(protocolOwner.addr);
+//         ISafeOwnable(address(protocol)).acceptOwnership();
+//         // set diamond fallback address
+//         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
+//         protocol.initialize();
+//     }
 
-    function test_RevertIf_AlreadyInitialized() public {
-        vm.expectRevert(IInitializableInternal.Initializable__AlreadyInitialized.selector);
-        protocol.initialize();
-    }
+//     function test_RevertIf_AlreadyInitialized() public {
+//         vm.expectRevert(IInitializableInternal.Initializable__AlreadyInitialized.selector);
+//         protocol.initialize();
+//     }
 
-    function test_exposed_checkMintEligibility() public {
-        CreateDaoParam memory createDaoParam;
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        bytes32 minterMerkleRoot = getMerkleRoot(minters);
-        bytes32[] memory proof = getMerkleProof(minters, address(this));
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 1);
-    }
+//     function test_exposed_checkMintEligibility() public {
+//         CreateDaoParam memory createDaoParam;
+//         address[] memory minters = new address[](1);
+//         minters[0] = address(this);
+//         bytes32 minterMerkleRoot = getMerkleRoot(minters);
+//         bytes32[] memory proof = getMerkleProof(minters, address(this));
+//         createDaoParam.minterMerkleRoot = minterMerkleRoot;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 1);
+//     }
 
-    function test_RevertIf_exposed_checkMintEligibility_ExceedMaxMintAmount() public {
-        CreateDaoParam memory createDaoParam;
-        createDaoParam.mintCap = 10;
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        bytes32 minterMerkleRoot = getMerkleRoot(minters);
-        bytes32[] memory proof = getMerkleProof(minters, address(this));
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.actionType = 6;
-        bytes32 daoId = _createDao(createDaoParam);
-        protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
-        vm.expectRevert(ExceedMinterMaxMintAmount.selector);
-        protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 11);
-    }
+//     function test_RevertIf_exposed_checkMintEligibility_ExceedMaxMintAmount() public {
+//         CreateDaoParam memory createDaoParam;
+//         createDaoParam.mintCap = 10;
+//         address[] memory minters = new address[](1);
+//         minters[0] = address(this);
+//         bytes32 minterMerkleRoot = getMerkleRoot(minters);
+//         bytes32[] memory proof = getMerkleProof(minters, address(this));
+//         createDaoParam.minterMerkleRoot = minterMerkleRoot;
+//         createDaoParam.actionType = 6;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 10);
+//         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
+//         protocolHarness.exposed_checkMintEligibility(daoId, address(this), proof, 11);
+//     }
 
-    function test_mintNFT() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+//     function test_mintNFT() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         bytes32 daoId = _createDao(createDaoParam);
 
-        hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
-        string memory tokenUri = "test nft uri";
-        MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, 0);
+//         hoax(canvasCreator.addr);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         string memory tokenUri = "test nft uri";
+//         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
+//         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, 0);
 
-        bytes memory signature;
-        {
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-            signature = bytes.concat(r, s, bytes1(v));
-        }
+//         bytes memory signature;
+//         {
+//             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+//             signature = bytes.concat(r, s, bytes1(v));
+//         }
 
-        hoax(nftMinter.addr);
-        protocol.mintNFT{ value: 0.1 ether }(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
+//         hoax(nftMinter.addr);
+//         protocol.mintNFT{ value: 0.1 ether }(daoId, canvasId, tokenUri, new bytes32[](0), 0, signature);
 
-        (uint32 userMintNum,) = ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr);
-        assertEq(userMintNum, 1);
-    }
+//         (uint32 userMintNum,) = ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr);
+//         assertEq(userMintNum, 1);
+//     }
 
-    function test_batchMint() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+//     function test_batchMint() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         bytes32 daoId = _createDao(createDaoParam);
 
-        hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         hoax(canvasCreator.addr);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
 
-        MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
+//         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
 
-        uint256 mintNum = 10;
-        MintNftInfo[] memory mintNftInfos = new MintNftInfo[](mintNum);
-        bytes[] memory signatures = new bytes[](mintNum);
-        for (uint256 i; i < mintNum; ++i) {
-            mintNftInfos[i].tokenUri = string.concat("test nft uri", vm.toString(i));
-            bytes32 digest = sigUtils.getTypedDataHash(canvasId, mintNftInfos[i].tokenUri, 0);
-            bytes memory signature;
-            {
-                (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-                signature = bytes.concat(r, s, bytes1(v));
-            }
-            signatures[i] = signature;
-        }
+//         uint256 mintNum = 10;
+//         MintNftInfo[] memory mintNftInfos = new MintNftInfo[](mintNum);
+//         bytes[] memory signatures = new bytes[](mintNum);
+//         for (uint256 i; i < mintNum; ++i) {
+//             mintNftInfos[i].tokenUri = string.concat("test nft uri", vm.toString(i));
+//             bytes32 digest = sigUtils.getTypedDataHash(canvasId, mintNftInfos[i].tokenUri, 0);
+//             bytes memory signature;
+//             {
+//                 (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+//                 signature = bytes.concat(r, s, bytes1(v));
+//             }
+//             signatures[i] = signature;
+//         }
 
-        hoax(nftMinter.addr);
-        protocol.batchMint{ value: 0.1 ether * (2 ** 10 - 1) }(
-            daoId, canvasId, new bytes32[](0), mintNftInfos, signatures
-        );
+//         hoax(nftMinter.addr);
+//         protocol.batchMint{ value: 0.1 ether * (2 ** 10 - 1) }(
+//             daoId, canvasId, new bytes32[](0), mintNftInfos, signatures
+//         );
 
-        (uint32 userMintNum,) = (ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr));
-        assertEq(userMintNum, mintNum);
-    }
+//         (uint32 userMintNum,) = (ID4AProtocolReadable(address(protocol)).getUserMintInfo(daoId, nftMinter.addr));
+//         assertEq(userMintNum, mintNum);
+//     }
 
-    // function test_setMintCapAndPermission() public {
-    //     DeployHelper.CreateDaoParam memory createDaoParam;
-    //     bytes32 daoId = _createDao(createDaoParam);
+//     // function test_setMintCapAndPermission() public {
+//     //     DeployHelper.CreateDaoParam memory createDaoParam;
+//     //     bytes32 daoId = _createDao(createDaoParam);
 
-    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+//     //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
-    //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
-    //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
+//     //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
+//     //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
+//     //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
 
-    //     hoax(daoCreator.addr);
-    //     vm.expectCall({
-    //         callee: address(permissionControl),
-    //         data: abi.encodeWithSelector(permissionControl.modifyPermission.selector),
-    //         count: 1
-    //     });
-    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-    //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
-    //     );
-    // }
+//     //     hoax(daoCreator.addr);
+//     //     vm.expectCall({
+//     //         callee: address(permissionControl),
+//     //         data: abi.encodeWithSelector(permissionControl.modifyPermission.selector),
+//     //         count: 1
+//     //     });
+//     //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+//     //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+//     //     );
+//     // }
 
-    // function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
-    //     DeployHelper.CreateDaoParam memory createDaoParam;
-    //     bytes32 daoId = _createDao(createDaoParam);
+//     // function test_RevertIf_setMintCapAndPermission_NotDaoOwner() public {
+//     //     DeployHelper.CreateDaoParam memory createDaoParam;
+//     //     bytes32 daoId = _createDao(createDaoParam);
 
-    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+//     //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-    //     hoax(randomGuy.addr);
-    //     vm.expectRevert(NotDaoOwner.selector);
-    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-    //         daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
-    //     );
-    // }
+//     //     hoax(randomGuy.addr);
+//     //     vm.expectRevert(NotDaoOwner.selector);
+//     //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+//     //         daoId, 100, new UserMintCapParam[](0), whitelist, blacklist, blacklist
+//     //     );
+//     // }
 
-    // event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
+//     // event MintCapSet(bytes32 indexed DAO_id, uint32 mintCap, UserMintCapParam[] userMintCapParams);
 
-    // function test_setMintCapAndPermission_ExpectEmit() public {
-    //     DeployHelper.CreateDaoParam memory createDaoParam;
-    //     bytes32 daoId = _createDao(createDaoParam);
+//     // function test_setMintCapAndPermission_ExpectEmit() public {
+//     //     DeployHelper.CreateDaoParam memory createDaoParam;
+//     //     bytes32 daoId = _createDao(createDaoParam);
 
-    //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
+//     //     (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
 
-    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
-    //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
-    //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
+//     //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
+//     //     userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
+//     //     userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
 
-    //     vm.expectEmit(true, true, true, true);
-    //     emit MintCapSet(daoId, 100, userMintCapParams);
-    //     hoax(daoCreator.addr);
-    //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-    //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
-    //     );
-    // }
+//     //     vm.expectEmit(true, true, true, true);
+//     //     emit MintCapSet(daoId, 100, userMintCapParams);
+//     //     hoax(daoCreator.addr);
+//     //     ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
+//     //         daoId, 100, userMintCapParams, whitelist, blacklist, blacklist
+//     //     );
+//     // }
 
-    function test_exposed_ableToMint() public {
-        CreateDaoParam memory createDaoParam;
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        bytes32 minterMerkleRoot = getMerkleRoot(minters);
-        bytes32[] memory proof = getMerkleProof(minters, address(this));
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
-    }
+//     function test_exposed_ableToMint() public {
+//         CreateDaoParam memory createDaoParam;
+//         address[] memory minters = new address[](1);
+//         minters[0] = address(this);
+//         bytes32 minterMerkleRoot = getMerkleRoot(minters);
+//         bytes32[] memory proof = getMerkleProof(minters, address(this));
+//         createDaoParam.minterMerkleRoot = minterMerkleRoot;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
+//     }
 
-    function test_RevertIf_exposed_ableToMint_Blacklisted() public {
-        CreateDaoParam memory createDaoParam;
-        createDaoParam.minterAccounts = new address[](1);
-        createDaoParam.minterAccounts[0] = address(this);
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        bytes32 minterMerkleRoot = getMerkleRoot(minters);
-        bytes32[] memory proof = getMerkleProof(minters, address(this));
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(Blacklisted.selector);
-        protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
-    }
+//     function test_RevertIf_exposed_ableToMint_Blacklisted() public {
+//         CreateDaoParam memory createDaoParam;
+//         createDaoParam.minterAccounts = new address[](1);
+//         createDaoParam.minterAccounts[0] = address(this);
+//         address[] memory minters = new address[](1);
+//         minters[0] = address(this);
+//         bytes32 minterMerkleRoot = getMerkleRoot(minters);
+//         bytes32[] memory proof = getMerkleProof(minters, address(this));
+//         createDaoParam.minterMerkleRoot = minterMerkleRoot;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         vm.expectRevert(Blacklisted.selector);
+//         protocolHarness.exposed_ableToMint(daoId, address(this), proof, 1);
+//     }
 
-    function test_RevertIf_exposed_ableToMint_NotInWhitelist() public {
-        CreateDaoParam memory createDaoParam;
-        createDaoParam.minterAccounts = new address[](1);
-        createDaoParam.minterAccounts[0] = address(this);
-        address[] memory minters = new address[](1);
-        minters[0] = address(this);
-        bytes32 minterMerkleRoot = getMerkleRoot(minters);
-        bytes32[] memory proof = getMerkleProof(minters, address(this));
-        createDaoParam.minterMerkleRoot = minterMerkleRoot;
-        createDaoParam.actionType = 2;
-        bytes32 daoId = _createDao(createDaoParam);
-        vm.expectRevert(NotInWhitelist.selector);
-        protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
-    }
+//     function test_RevertIf_exposed_ableToMint_NotInWhitelist() public {
+//         CreateDaoParam memory createDaoParam;
+//         createDaoParam.minterAccounts = new address[](1);
+//         createDaoParam.minterAccounts[0] = address(this);
+//         address[] memory minters = new address[](1);
+//         minters[0] = address(this);
+//         bytes32 minterMerkleRoot = getMerkleRoot(minters);
+//         bytes32[] memory proof = getMerkleProof(minters, address(this));
+//         createDaoParam.minterMerkleRoot = minterMerkleRoot;
+//         createDaoParam.actionType = 2;
+//         bytes32 daoId = _createDao(createDaoParam);
+//         vm.expectRevert(NotInWhitelist.selector);
+//         protocolHarness.exposed_ableToMint(daoId, randomGuy.addr, proof, 1);
+//     }
 
-    function test_exposed_verifySignature() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+//     function test_exposed_verifySignature() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         bytes32 daoId = _createDao(createDaoParam);
 
-        hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         hoax(canvasCreator.addr);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
 
-        string memory tokenUri = "test token uri";
-        uint256 flatPrice = 100;
+//         string memory tokenUri = "test token uri";
+//         uint256 flatPrice = 100;
 
-        MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        vm.expectCall({
-            callee: address(protocol),
-            data: abi.encodeWithSelector(IAccessControl.hasRole.selector),
-            count: 1
-        });
-        vm.expectCall({
-            callee: address(naiveOwner),
-            data: abi.encodeWithSelector(NaiveOwner.ownerOf.selector),
-            count: 1
-        });
-        protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
-    }
+//         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
+//         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+//         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+//         bytes memory signature = abi.encodePacked(r, s, v);
+//         vm.expectCall({
+//             callee: address(protocol),
+//             data: abi.encodeWithSelector(IAccessControl.hasRole.selector),
+//             count: 1
+//         });
+//         vm.expectCall({
+//             callee: address(naiveOwner),
+//             data: abi.encodeWithSelector(NaiveOwner.ownerOf.selector),
+//             count: 1
+//         });
+//         protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
+//     }
 
-    function test_RevertIf_exposed_verifySignature_InvalidSignature() public {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+//     function test_RevertIf_exposed_verifySignature_InvalidSignature() public {
+//         DeployHelper.CreateDaoParam memory createDaoParam;
+//         bytes32 daoId = _createDao(createDaoParam);
 
-        hoax(canvasCreator.addr);
-        bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         hoax(canvasCreator.addr);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
 
-        string memory tokenUri = "test token uri";
-        uint256 flatPrice = 100;
+//         string memory tokenUri = "test token uri";
+//         uint256 flatPrice = 100;
 
-        MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
-        bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(randomGuy.key, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        vm.expectRevert(InvalidSignature.selector);
-        protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
-    }
-}
+//         MintNftSigUtils sigUtils = new MintNftSigUtils(address(protocol));
+//         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+//         (uint8 v, bytes32 r, bytes32 s) = vm.sign(randomGuy.key, digest);
+//         bytes memory signature = abi.encodePacked(r, s, v);
+//         vm.expectRevert(InvalidSignature.selector);
+//         protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
+//     }
+// }

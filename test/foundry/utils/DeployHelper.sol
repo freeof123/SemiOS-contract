@@ -27,7 +27,8 @@ import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
-    getGrantSelectors
+    getGrantSelectors,
+    getPDRoundSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
@@ -51,6 +52,7 @@ import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 // import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
+import { PDRound } from "contracts/PDRound.sol";
 import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
@@ -83,6 +85,7 @@ contract DeployHelper is Test {
     IPDProtocolAggregate public protocol;
     PDProtocol public protocolImpl;
     PDCreate public pdCreate;
+    PDRound public pdRound;
     D4ACreate public d4aCreate;
     PDBasicDao public pdBasicDao;
     PDCreateProjectProxy public daoProxy;
@@ -303,6 +306,7 @@ contract DeployHelper is Test {
         _deployProtocolSetter();
         _deploySettings();
         _deployGrant();
+        _deployPDRound();
         //_deployPDCreateFunding();
 
         _cutFacetsD4ACreate();
@@ -312,6 +316,8 @@ contract DeployHelper is Test {
         _cutFacetsProtocolSetter();
         _cutFacetsSettings();
         _cutFacetsGrant();
+        _cutFacetsPDRound();
+
         //_cutFacetsPDCreateFunding();
 
         // set diamond fallback address
@@ -355,6 +361,11 @@ contract DeployHelper is Test {
     function _deployGrant() internal {
         grant = new PDGrant();
         vm.label(address(grant), "Grant");
+    }
+
+    function _deployPDRound() internal {
+        pdRound = new PDRound();
+        vm.label(address(pdRound), "Protocol Round");
     }
 
     // function _deployPDCreateFunding() internal {
@@ -454,6 +465,20 @@ contract DeployHelper is Test {
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
             target: address(grant),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDRound() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDCreate facet cut
+        bytes4[] memory selectors = getPDRoundSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdRound),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
@@ -1263,6 +1288,51 @@ contract DeployHelper is Test {
 
         vm.stopPrank();
         // deal(hoaxer, bal);
+    }
+
+    function _createCanvasAndMintNft(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string memory tokenUri,
+        string memory canvasUri,
+        uint256 flatPrice,
+        uint256 canvasCreatorKey,
+        address to,
+        address hoaxer
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        vm.startPrank(hoaxer);
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        CreateCanvasAndMintNFTParam memory vars;
+        vars.daoId = daoId;
+        vars.canvasId = canvasId;
+        vars.canvasUri = canvasUri;
+        vars.to = to;
+        vars.tokenUri = tokenUri;
+        vars.signature = abi.encodePacked(r, s, v);
+        vars.flatPrice = flatPrice;
+        vars.proof = new bytes32[](0);
+        vars.canvasProof = new bytes32[](0);
+        vars.nftOwner = hoaxer;
+        uint256 value;
+        if (
+            flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
+                && !protocol.getDaoUnifiedPriceModeOff(daoId)
+        ) {
+            //开启全局一口价，但是为0
+            value = 0;
+        } else {
+            //未开启全局一口价，或开启全局一口价但不为0，value=flatPrice，或flatPrice=0时value为系统定价
+            value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
+        }
+
+        hoax(daoCreator.addr);
+        // !!!! 1.3-14 step 5
+        tokenId = protocol.createCanvasAndMintNFT{ value: value }(vars);
+        vm.stopPrank();
     }
 
     struct MintNftWithProofLocalVars {

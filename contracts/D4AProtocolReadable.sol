@@ -13,6 +13,8 @@ import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.s
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
+import { IPDRound } from "contracts/interface/IPDRound.sol";
+
 contract D4AProtocolReadable is ID4AProtocolReadable {
     // legacy functions
     function getProjectCanvasAt(bytes32 daoId, uint256 index) public view returns (bytes32) {
@@ -208,19 +210,19 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return (mintInfo.round, mintInfo.price);
     }
 
-    // function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
-    //     bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
-    //     uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
-    //     PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
-    //     PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
-    //     DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
-    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-    //     return IPriceTemplate(
-    //         settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
-    //     ).getCanvasNextPrice(
-    //         1, getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
-    //     );
-    // }
+    function getCanvasNextPrice(bytes32 canvasId) public view returns (uint256) {
+        bytes32 daoId = CanvasStorage.layout().canvasInfos[canvasId].daoId;
+        uint256 daoFloorPrice = PriceStorage.layout().daoFloorPrices[daoId];
+        PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];
+        PriceStorage.MintInfo memory mintInfo = PriceStorage.layout().canvasLastMintInfos[canvasId];
+        DaoStorage.DaoInfo storage pi = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        return IPriceTemplate(
+            settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
+        ).getCanvasNextPrice(
+            1, IPDRound(address(this)).getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+        );
+    }
 
     function getDaoMaxPriceInfo(bytes32 daoId) external view returns (uint256 round, uint256 price) {
         PriceStorage.MintInfo memory maxPrice = PriceStorage.layout().daoMaxPrices[daoId];

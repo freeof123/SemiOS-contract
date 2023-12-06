@@ -244,7 +244,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
             setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
         } //1
-        setDaoRemainingRound(vars.daoId, vars.mintableRound); //2
+        setDaoRemainingRound(vars.daoId, vars.remainingRound); //2
         setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
         setRoundMintCap(vars.daoId, vars.dailyMintCap); //4
         setDaoFloorPrice(vars.daoId, vars.daoFloorPrice); //5

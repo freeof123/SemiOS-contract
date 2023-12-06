@@ -85,7 +85,8 @@ contract Deploy is Script, Test, D4AAddress {
     }
 
     function run() public {
-        vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
+        console2.log("asdf");
+        // vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
         //_eventEmiter();
 
@@ -100,10 +101,10 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
@@ -165,7 +166,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployUnlocker();
         // );
 
-        vm.stopBroadcast();
+        // vm.stopBroadcast();
     }
 
     function getMerkleRoot(address[] memory accounts) public returns (bytes32) {

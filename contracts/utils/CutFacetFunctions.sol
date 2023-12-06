@@ -13,6 +13,7 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
+import { IPDRound } from "contracts/interface/IPDRound.sol";
 
 function getD4ACreateSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
@@ -197,6 +198,8 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getDaoCreatorWeights.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasCreatorWeights.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getNftMinterWeights.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4AProtocolReadable.getCanvasNextPrice.selector;
+
     // protocol related functions
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getNFTTokenCanvas.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getLastestDaoIndex.selector;
@@ -302,21 +305,24 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     return selectors;
 }
 
-// function getPDCreateFundingSelectors() pure returns (bytes4[] memory) {
-//     bytes4[] memory selectors = new bytes4[](256);
-//     uint256 selectorIndex;
-//     // register D4AGrant
-//     bytes4 interfaceId;
-//     interfaceId ^= selectors[selectorIndex++] = IPDCreateFunding.createDaoForFunding.selector;
+function getPDRoundSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4AGrant
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDRound.getDaoCurrentRound.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDRound.setDaoDuation.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDRound.getDaoLastModifyBlock.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDRound.getDaoLastModifyRound.selector;
 
-//     assert(interfaceId == type(IPDCreateFunding).interfaceId);
+    assert(interfaceId == type(IPDRound).interfaceId);
 
-//     /// @solidity memory-safe-assembly
-//     assembly {
-//         mstore(selectors, selectorIndex)
-//     }
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
 
-//     return selectors;
-// }
+    return selectors;
+}
 
 // 是否要添加selector

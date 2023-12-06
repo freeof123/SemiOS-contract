@@ -48,7 +48,7 @@ contract ProtoDaoRedeemTest is DeployHelper {
             nftMinter.addr
         );
 
-        drb.changeRound(2);
+        vm.roll(2);
         //trigger reward distribution, fee pool bal = 0.01 * 0.35 = 0.0035 ether, distribute 0.0035 ether / 9 to redeem
         // pool
         super._mintNft(
@@ -62,10 +62,10 @@ contract ProtoDaoRedeemTest is DeployHelper {
             nftMinter2.addr
         );
 
-        drb.changeRound(3);
+        vm.roll(3);
 
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter2.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);
         //5000000 * minterratio(800) / 10000
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 400_000 ether);
         assertEq(IERC20(token).balanceOf(nftMinter2.addr), 400_000 ether);

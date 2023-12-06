@@ -30,11 +30,11 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 10;
         param.uniPriceModeOff = true;
-        param.floorPriceRank = 1;
+        param.floorPrice = 0.02 ether;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         bytes32 canvasId1 = "0abcd";
         assertEq(protocol.getCanvasNextPrice(daoId, canvasId1), 0.02 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(daoId, canvasId1), 0.01 ether);
     }
 
@@ -116,9 +116,9 @@ contract ProtoDaoPriceTest is DeployHelper {
         vm.prank(daoCreator.addr);
         protocol.setDaoPriceTemplate(daoId, PriceTemplateType(0), 30_000);
         console2.log(protocol.getCanvasNextPrice(canvasId1));
-        drb.changeRound(2);
+        vm.roll(2);
         console2.log(protocol.getCanvasNextPrice(canvasId1));
-        drb.changeRound(3);
+        vm.roll(3);
         console2.log(protocol.getCanvasNextPrice(canvasId1));
     }
 
@@ -182,7 +182,7 @@ contract ProtoDaoPriceTest is DeployHelper {
             nftMinter.addr
         );
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.019 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
     }
 
@@ -216,7 +216,7 @@ contract ProtoDaoPriceTest is DeployHelper {
             nftMinter.addr
         );
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.019 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
     }
 
@@ -248,7 +248,7 @@ contract ProtoDaoPriceTest is DeployHelper {
             nftMinter.addr
         );
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.015 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
     }
 
@@ -282,7 +282,7 @@ contract ProtoDaoPriceTest is DeployHelper {
             nftMinter.addr
         );
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.025 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
     }
 
@@ -300,7 +300,7 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.uniPriceModeOff = true;
         param.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         param.priceFactor = 0.02 ether;
-        param.floorPriceRank = 4;
+        param.floorPrice = 0.1 ether;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         //address token = protocol.getDaoToken(daoId);
@@ -332,11 +332,11 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 10;
         param.uniPriceModeOff = true;
-        param.floorPriceRank = 1;
+        param.floorPrice = 0.02 ether;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         //address token = protocol.getDaoToken(daoId);
-        drb.changeRound(2);
+        vm.roll(2);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
         super._mintNft(
             daoId,

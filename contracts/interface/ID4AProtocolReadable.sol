@@ -101,7 +101,7 @@ interface ID4AProtocolReadable {
     // prices related functions
     function getCanvasLastPrice(bytes32 canvasId) external view returns (uint256 round, uint256 price);
 
-    //function getCanvasNextPrice(bytes32 canvasId) external view returns (uint256 price);
+    function getCanvasNextPrice(bytes32 canvasId) external view returns (uint256 price);
 
     function getDaoMaxPriceInfo(bytes32 daoId) external view returns (uint256 round, uint256 price);
 

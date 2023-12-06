@@ -88,7 +88,7 @@ contract DaoDistribution is DeployHelper {
         // console2.log("Redeem pool balance:", protocol.getDaoFeePool(subDaoId).balance);
         // console2.log("Children DAO assetPool balance:", protocol.getDaoAssetPool(subDaoId).balance);
 
-        drb.changeRound(2);
+        vm.roll(2);
 
         // // 验证每个角色的分得资产数量
         ClaimMultiRewardParam memory claimParam;
@@ -134,7 +134,7 @@ contract DaoDistribution is DeployHelper {
         protocol.setRatio(daoId, vars);
 
         // 等待Drb结束 奖励分配
-        drb.changeRound(2);
+        vm.roll(2);
         ClaimMultiRewardParam memory claimParam;
         claimParam.protocol = address(protocol);
         bytes32[] memory cavansIds = new bytes32[](1);
@@ -201,7 +201,7 @@ contract DaoDistribution is DeployHelper {
         address jackpotPool = protocol.getDaoAssetPool(jackpotDaoId);
 
         // 累计2个Drb
-        drb.changeRound(3);
+        vm.roll(3);
 
         // 在铸造前追加1000万Token,
         assertEq(IERC20(jackpotToken).totalSupply(), 50_000_000 ether); // 追加前总量5000万
@@ -235,7 +235,7 @@ contract DaoDistribution is DeployHelper {
         );
 
         // 结束Drb验证资产发放    ERC20/ETH
-        drb.changeRound(4);
+        vm.roll(4);
         ClaimMultiRewardParam memory claimParam;
 
         claimParam.protocol = address(protocol);
@@ -257,7 +257,7 @@ contract DaoDistribution is DeployHelper {
         assertEq(IERC20(jackpotToken).balanceOf(nftMinter.addr) / 1 ether, 504_000);
 
         // // 再换一个Drb
-        drb.changeRound(5);
+        vm.roll(5);
 
         // 先铸造Nft
         deal(nftMinter2.addr, 0.01 ether);
@@ -276,7 +276,8 @@ contract DaoDistribution is DeployHelper {
 
         // 修改Mint window 追加100万Token
         hoax(daoCreator.addr);
-        protocol.setDaoMintableRoundFunding(jackpotDaoId, 1000);
+        //before: setDaoMintableRound
+        protocol.setDaoRemainingRound(jackpotDaoId, 1000);
         (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
         assertEq(mintableRound, 1000);
 
@@ -289,11 +290,11 @@ contract DaoDistribution is DeployHelper {
         assertEq(IERC20(jackpotToken).totalSupply(), 61_000_000 ether); // 追加后总量6100万
 
         // DaoCreator 以及 NftMinter2的奖励分配
-        drb.changeRound(6);
+        vm.roll(6);
         vm.prank(daoCreator.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         vm.prank(nftMinter2.addr);
-        universalClaimer.claimMultiRewardFunding(claimParam);
+        universalClaimer.claimMultiReward(claimParam);
         // 53700000 / 17 * 2 * 0.7 * (0.2 + 0.7) + 5_670_000 = 9_650_117
         assertEq(IERC20(jackpotToken).balanceOf(daoCreator.addr) / 1 ether, 9_650_117);
         assertEq(IERC20(jackpotToken).balanceOf(nftMinter2.addr) / 1 ether, 353_788);

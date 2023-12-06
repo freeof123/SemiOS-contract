@@ -199,14 +199,14 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(IERC20(token).balanceOf(assetPool2), 300_000 ether);
         assertEq(IERC20(token).balanceOf(address(protocol)), 200_000 ether);
 
-        drb.changeRound(2);
-        protocol.claimDaoCreatorRewardFunding(subDaoId2);
+        vm.roll(2);
+        protocol.claimDaoCreatorReward(subDaoId2);
         //1000000 * 20% * 70%
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
-        protocol.claimCanvasRewardFunding(canvasId3);
+        protocol.claimCanvasReward(canvasId3);
         //add 1000000 * 20% * 20%
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 180_000 ether);
-        protocol.claimNftMinterRewardFunding(subDaoId2, nftMinter.addr);
+        protocol.claimNftMinterReward(subDaoId2, nftMinter.addr);
         //1000000 * 20% * 8%
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 16_000 ether);
         assertEq(IERC20(token).balanceOf(protocol.protocolFeePool()), 4000 ether);
@@ -314,7 +314,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
-        drb.changeRound(2);
+        vm.roll(2);
         address token = protocol.getDaoToken(daoId2);
         deal(nftMinter.addr, 1 ether);
         // vm.expectEmit(address(protocol));
@@ -368,7 +368,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
         vm.prank(daoCreator.addr);
         protocol.setDaoUnifiedPrice(daoId2, 0.03 ether);
-        drb.changeRound(2);
+        vm.roll(2);
         address token = protocol.getDaoToken(daoId2);
         deal(nftMinter.addr, 1 ether);
         // vm.expectEmit(address(protocol));
@@ -386,7 +386,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         //default 60 drb,
         assertEq(nftMinter.addr.balance, 0.97 ether);
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
-        drb.changeRound(3);
+        vm.roll(3);
         (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
         //50000000/10 + 10000000/20
         assertEq(topUpERC20, 5_500_000 ether);
@@ -406,7 +406,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.selfRewardRatioERC20 = 10_000;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
-        drb.changeRound(2);
+        vm.roll(2);
         super._mintNft(
             daoId,
             canvasId1,
@@ -417,7 +417,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        drb.changeRound(3);
+        vm.roll(3);
         super._mintNft(
             daoId,
             canvasId1,
@@ -428,7 +428,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        drb.changeRound(5);
+        vm.roll(5);
         super._mintNft(
             daoId,
             canvasId1,
@@ -439,7 +439,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        drb.changeRound(8);
+        vm.roll(8);
         super._mintNft(
             daoId,
             canvasId1,

@@ -174,7 +174,7 @@ struct UpdateRewardParam {
 struct SetDaoParam {
     bytes32 daoId;
     uint256 nftMaxSupplyRank;
-    uint256 mintableRound;
+    uint256 remainingRound;
     uint256 daoFloorPrice;
     PriceTemplateType priceTemplateType;
     uint256 nftPriceFactor;

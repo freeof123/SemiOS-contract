@@ -63,7 +63,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
         assertEq(topUpERC20, 0);
         assertEq(topUpETH, 0);
-        drb.changeRound(2);
+        vm.roll(2);
         //step 4
         super._mintNft(
             daoId,
@@ -119,7 +119,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
             daoCreator.key,
             nftMinter2.addr
         );
-        drb.changeRound(3);
+        vm.roll(3);
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
         uint256 a = (50_000_000 ether - 50_000_000 ether / uint256(60)) / 59;
         assertEq(topUpERC20, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2 + a * 2 / 3);
@@ -205,7 +205,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
             daoCreator.key,
             nftMinter2.addr
         );
-        drb.changeRound(2);
+        vm.roll(2);
         (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nftMinter.addr);
         assertEq(topUpERC20, (50_000_000 ether + 700_000 ether) / 10 / 2);
         assertEq(topUpETH, 0.1 ether);

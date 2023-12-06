@@ -8,9 +8,7 @@ import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
-
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
@@ -182,7 +180,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.reserveNftNumber,
             continuousDaoParam.topUpMode
         );
-
         _config(protocol, vars);
 
         //if (!continuousDaoParam.isAncestorDao) {
@@ -218,32 +215,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
 
-        {
-            if (daoMetadataParam.startBlock < block.number) revert StartBlockAlreadyPassed();
-            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-            SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-            RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
-            roundInfo.roundDuration = daoMetadataParam.duration;
-            roundInfo.roundInLastModify = 1;
-            roundInfo.blockInLastModify = block.number;
-
-            daoInfo.startBlock = daoMetadataParam.startBlock;
-            daoInfo.mintableRound = daoMetadataParam.mintableRounds;
-            PriceStorage.layout().daoFloorPrices[daoId] = daoMetadataParam.floorPrice;
-            daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[daoMetadataParam.maxNftRank];
-            daoInfo.daoUri = daoMetadataParam.projectUri;
-            {
-                uint256 protocolRoyaltyFeeRatioInBps = settingsStorage.protocolRoyaltyFeeRatioInBps;
-                if (
-                    daoMetadataParam.royaltyFee < settingsStorage.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
-                        || daoMetadataParam.royaltyFee
-                            > settingsStorage.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
-                ) revert RoyaltyFeeRatioOutOfRange();
-            }
-            daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
-            daoInfo.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
-            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
-        }
+        if (daoMetadataParam.startBlock < block.number) revert StartBlockAlreadyPassed();
 
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
@@ -279,6 +251,33 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
         }
+        //common initializaitions
+        {
+            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+            SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+            RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+            roundInfo.roundDuration = daoMetadataParam.duration;
+            roundInfo.roundInLastModify = 1;
+            roundInfo.blockInLastModify = block.number;
+
+            daoInfo.startBlock = daoMetadataParam.startBlock;
+            daoInfo.mintableRound = daoMetadataParam.mintableRounds;
+            PriceStorage.layout().daoFloorPrices[daoId] = daoMetadataParam.floorPrice;
+            daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[daoMetadataParam.maxNftRank];
+            daoInfo.daoUri = daoMetadataParam.projectUri;
+            {
+                uint256 protocolRoyaltyFeeRatioInBps = settingsStorage.protocolRoyaltyFeeRatioInBps;
+                if (
+                    daoMetadataParam.royaltyFee < settingsStorage.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                        || daoMetadataParam.royaltyFee
+                            > settingsStorage.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                ) revert RoyaltyFeeRatioOutOfRange();
+            }
+            daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
+            daoInfo.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+        }
+
         emit NewProject(
             daoId,
             daoMetadataParam.projectUri,

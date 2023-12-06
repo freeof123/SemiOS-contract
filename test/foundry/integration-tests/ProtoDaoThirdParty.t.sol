@@ -51,11 +51,11 @@ contract ProtoDaoThirdParty is DeployHelper {
             nftMinter.addr
         );
         assertEq(_testERC20.balanceOf(pool), 10_000);
-        drb.changeRound(2);
+        vm.roll(2);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorRewardFunding(daoId);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimCanvasRewardFunding(canvasId1);
+        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 0);
         assertEq(nftMinter.addr.balance, 0);
@@ -94,13 +94,13 @@ contract ProtoDaoThirdParty is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        drb.changeRound(2);
+        vm.roll(2);
 
         assertEq(_testERC20.balanceOf(pool), 5_900_000);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorRewardFunding(daoId);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimCanvasRewardFunding(canvasId1);
+        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 90_000);
         assertEq(nftMinter.addr.balance, 0);
@@ -166,7 +166,7 @@ contract ProtoDaoThirdParty is DeployHelper {
         vm.prank(protocolOwner.addr);
         _testERC20.transfer(pool, 6_000_000);
 
-        drb.changeRound(3);
+        vm.roll(3);
 
         super._mintNft(
             daoId,
@@ -180,12 +180,12 @@ contract ProtoDaoThirdParty is DeployHelper {
         );
         //100000 * 3 / 2
         assertEq(_testERC20.balanceOf(pool2), 150_000);
-        drb.changeRound(4);
+        vm.roll(4);
 
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorRewardFunding(daoId);
-        protocol.claimNftMinterRewardFunding(daoId, nftMinter.addr);
-        protocol.claimCanvasRewardFunding(canvasId1);
+        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), 150_000 * 9 / 10);
         assertEq(nftMinter.addr.balance, 0);

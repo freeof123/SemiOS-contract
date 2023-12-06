@@ -29,8 +29,8 @@ contract FundingDaoParamSet is DeployHelper {
         SetDaoParam memory vars;
         vars.daoId = daoId;
         vars.nftMaxSupplyRank = 0;
-        vars.mintableRoundRank = 1;
-        vars.daoFloorPriceRank = 2;
+        vars.remainingRound = 1;
+        vars.daoFloorPrice = 0.03 ether;
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
@@ -41,7 +41,7 @@ contract FundingDaoParamSet is DeployHelper {
 
         // 修改MainDAO的参数
         hoax(daoCreator.addr);
-        protocol.setDaoParamsFunding(vars);
+        protocol.setDaoParams(vars);
 
         // 在上面创建的MainDAO基础上创建一个ContinuousDAO
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
@@ -58,12 +58,12 @@ contract FundingDaoParamSet is DeployHelper {
         vars.initialTokenSupply = 2 ether;
         address daoToken = protocol.getDaoToken(daoId);
         hoax(daoCreator2.addr);
-        protocol.setDaoParamsFunding(vars);
+        protocol.setDaoParams(vars);
         assertEq(IERC20(daoToken).balanceOf(protocol.getDaoAssetPool(continuousDaoId)), 0 ether);
 
         // 用MainDAO创建者的地址尝试修改ContinuousDAO的参数，可以成功追加DAO Token
         hoax(daoCreator.addr);
-        protocol.setDaoParamsFunding(vars);
+        protocol.setDaoParams(vars);
         assertEq(IERC20(daoToken).balanceOf(protocol.getDaoAssetPool(continuousDaoId)), 2 ether);
     }
 }
