@@ -50,7 +50,7 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.uniPriceModeOff = true;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
 
         super._mintNft(
             daoId,
@@ -62,10 +62,10 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.02 ether);
         vm.prank(daoCreator.addr);
         protocol.setDaoPriceTemplate(daoId, PriceTemplateType(0), 15_000);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.015 ether);
     }
 
     function test_PDCreateFunding_InexhaustiblePrice() public {

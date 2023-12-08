@@ -43,7 +43,8 @@ contract PDRound is IPDRound {
         if (block.number < roundInfo.blockInLastModify) {
             return 0;
         }
-        return (block.number - roundInfo.blockInLastModify) / roundInfo.roundDuration + roundInfo.roundInLastModify;
+        return
+            (block.number - roundInfo.blockInLastModify) * 1e18 / roundInfo.roundDuration + roundInfo.roundInLastModify;
     }
 
     function getDaoLastModifyBlock(bytes32 daoId) public view returns (uint256) {

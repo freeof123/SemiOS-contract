@@ -27,6 +27,7 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { ID4AProtocolReadable } from "./interface/ID4AProtocolReadable.sol";
 import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
+import { IPDRound } from "./interface/IPDRound.sol";
 
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
@@ -171,21 +172,21 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) public virtual {
         PriceStorage.Layout storage priceStorage = PriceStorage.layout();
         if (priceStorage.daoFloorPrices[daoId] == newFloorPrice) return;
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        if (newFloorPrice == 0) revert CannotUseZeroFloorPrice();
         bytes32[] memory canvases = DaoStorage.layout().daoInfos[daoId].canvases;
         uint256 length = canvases.length;
+        uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
         for (uint256 i; i < length;) {
             uint256 canvasNextPrice = IPDProtocolReadable(address(this)).getCanvasNextPrice(daoId, canvases[i]);
             if (canvasNextPrice >= newFloorPrice) {
                 priceStorage.canvasLastMintInfos[canvases[i]] =
-                    PriceStorage.MintInfo({ round: l.drb.currentRound() - 1, price: canvasNextPrice });
+                    PriceStorage.MintInfo({ round: currentRound - 1, price: canvasNextPrice });
             }
             unchecked {
                 ++i;
             }
         }
-
-        priceStorage.daoMaxPrices[daoId] = PriceStorage.MintInfo({ round: l.drb.currentRound(), price: newFloorPrice });
+        priceStorage.daoMaxPrices[daoId] = PriceStorage.MintInfo({ round: currentRound, price: newFloorPrice });
         priceStorage.daoFloorPrices[daoId] = newFloorPrice;
 
         emit DaoFloorPriceSet(daoId, newFloorPrice);

@@ -293,7 +293,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     struct ExchangeERC20ToETHLocalVars {
         uint256 tokenCirculation;
         uint256 tokenAmount;
-        uint256 version;
     }
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 tokenAmount, address to) public nonReentrant returns (uint256) {
@@ -301,6 +300,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         _checkPauseStatus(daoId);
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) return 0;
         address token = daoInfo.token;
         address daoFeePool = daoInfo.daoFeePool;
 
@@ -308,11 +308,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         D4AERC20(token).mint(daoFeePool, tokenAmount);
 
         ExchangeERC20ToETHLocalVars memory vars;
-        vars.version = BasicDaoStorage.layout().basicDaoInfos[daoId].version;
 
-        vars.tokenCirculation = PoolStorage.layout().poolInfos[daoFeePool].circulateERC20Amount + tokenAmount
+        // vars.tokenCirculation = PoolStorage.layout().poolInfos[daoFeePool].circulateERC20Amount + tokenAmount
+        //     - D4AERC20(token).balanceOf(daoFeePool);
+        vars.tokenCirculation = IPDProtocolReadable(address(this)).getDaoCirculateTokenAmount(daoId) + tokenAmount
             - D4AERC20(token).balanceOf(daoFeePool);
-
         if (vars.tokenCirculation == 0) return 0;
 
         GrantStorage.Layout storage grantStorage = GrantStorage.layout();

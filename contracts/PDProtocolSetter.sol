@@ -385,11 +385,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             }
             emit DaoRestart(daoId, newRemainingRound, block.number);
         } else {
-            if (newRemainingRound > remainingRound) {
-                daoInfo.mintableRound += newRemainingRound - remainingRound;
-            } else {
-                daoInfo.mintableRound += remainingRound - newRemainingRound;
-            }
+            daoInfo.mintableRound += newRemainingRound;
+            daoInfo.mintableRound -= remainingRound;
             emit DaoMintableRoundSet(daoId, newRemainingRound);
         }
     }

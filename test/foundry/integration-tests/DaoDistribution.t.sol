@@ -198,7 +198,6 @@ contract DaoDistribution is DeployHelper {
         bytes32 jackpotCanvasId = param.canvasId;
         uint256 mintableRound;
         address jackpotToken = protocol.getDaoToken(jackpotDaoId);
-        address jackpotPool = protocol.getDaoAssetPool(jackpotDaoId);
 
         // 累计2个Drb
         vm.roll(3);
@@ -215,7 +214,7 @@ contract DaoDistribution is DeployHelper {
         mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
         assertEq(mintableRound, 10);
         hoax(daoCreator.addr);
-        protocol.setDaoRemainingRound(jackpotDaoId, 20);
+        protocol.setDaoRemainingRound(jackpotDaoId, 18);
         // (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
         mintableRound = protocol.getDaoMintableRound(jackpotDaoId);
         assertEq(mintableRound, 20);
@@ -262,7 +261,6 @@ contract DaoDistribution is DeployHelper {
         // 先铸造Nft
         deal(nftMinter2.addr, 0.01 ether);
         //erc20 balance: 60000000 - 60000000/20 * 3 * 0.7 = 53700000
-        console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
         super._mintNftChangeBal(
             jackpotDaoId,
             jackpotCanvasId,
@@ -277,12 +275,12 @@ contract DaoDistribution is DeployHelper {
         // 修改Mint window 追加100万Token
         hoax(daoCreator.addr);
         //before: setDaoMintableRound
-        protocol.setDaoRemainingRound(jackpotDaoId, 1000);
+        protocol.setDaoRemainingRound(jackpotDaoId, 996);
         (, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
         assertEq(mintableRound, 1000);
 
         initialTokenSupply = 1_000_000 ether;
-        console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
+        //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
         hoax(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(jackpotDaoId, initialTokenSupply);
         //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));

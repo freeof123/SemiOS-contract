@@ -104,3 +104,7 @@ error VersionDenied();
 error InvalidTemplate();
 
 error NotCanvasIdOfDao();
+
+error DurationIsZero();
+
+error CannotUseZeroFloorPrice();

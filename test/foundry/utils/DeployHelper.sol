@@ -1113,8 +1113,8 @@ contract DeployHelper is Test {
         vars.daoMetadataParam = DaoMetadataParam({
             startBlock: createDaoParam.startBlock == 0 ? block.number : createDaoParam.startBlock,
             mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
-            duration: createDaoParam.duration == 0 ? 1 : createDaoParam.duration,
-            floorPrice: createDaoParam.floorPrice == 0 ? 0.01 ether : createDaoParam.floorPrice,
+            duration: createDaoParam.duration == 0 ? 1e18 : createDaoParam.duration,
+            floorPrice: (createDaoParam.floorPrice == 0 ? 0.01 ether : createDaoParam.floorPrice),
             maxNftRank: 2,
             royaltyFee: createDaoParam.royaltyFee == 0 ? 1250 : createDaoParam.royaltyFee,
             projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
@@ -1303,16 +1303,18 @@ contract DeployHelper is Test {
         internal
         returns (uint256 tokenId)
     {
-        vm.startPrank(hoaxer);
-        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+        startHoax(hoaxer);
         CreateCanvasAndMintNFTParam memory vars;
         vars.daoId = daoId;
         vars.canvasId = canvasId;
         vars.canvasUri = canvasUri;
         vars.to = to;
         vars.tokenUri = tokenUri;
-        vars.signature = abi.encodePacked(r, s, v);
+        {
+            bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            vars.signature = abi.encodePacked(r, s, v);
+        }
         vars.flatPrice = flatPrice;
         vars.proof = new bytes32[](0);
         vars.canvasProof = new bytes32[](0);
@@ -1328,9 +1330,6 @@ contract DeployHelper is Test {
             //未开启全局一口价，或开启全局一口价但不为0，value=flatPrice，或flatPrice=0时value为系统定价
             value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
-
-        hoax(daoCreator.addr);
-        // !!!! 1.3-14 step 5
         tokenId = protocol.createCanvasAndMintNFT{ value: value }(vars);
         vm.stopPrank();
     }

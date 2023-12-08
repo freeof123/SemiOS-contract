@@ -6,7 +6,7 @@ import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
 struct DaoMetadataParam {
     uint256 startBlock;
     uint256 mintableRounds;
-    uint256 duration;
+    uint256 duration; // blocknumber * 1e18
     uint256 floorPrice;
     uint256 maxNftRank;
     uint96 royaltyFee;

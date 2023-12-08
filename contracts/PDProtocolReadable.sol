@@ -15,8 +15,9 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
-
+import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
@@ -105,6 +106,7 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getDaoPassedRound(bytes32 daoId) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (!rewardInfo.isProgressiveJackpot) {
             if (rewardInfo.activeRounds.length == 0) return 0;
@@ -118,6 +120,10 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
             }
         } else {
             uint256 passedRound = IPDRound(address(this)).getDaoCurrentRound(daoId) - 1;
+            if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14) {
+                SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+                passedRound = settingsStorage.drb.currentRound() - DaoStorage.layout().daoInfos[daoId].startBlock;
+            }
             if (passedRound > daoInfo.mintableRound) return daoInfo.mintableRound;
             return passedRound;
         }
@@ -214,5 +220,72 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         ).getCanvasNextPrice(
             1, IPDRound(address(this)).getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
         );
+    }
+
+    function getDaoCirculateTokenAmount(bytes32 daoId) public view returns (uint256) {
+        bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+        bytes32[] memory daos = InheritTreeStorage.layout().inheritTreeInfos[ancestor].familyDaos;
+        uint256 amount;
+        address token = DaoStorage.layout().daoInfos[daoId].token;
+        for (uint256 i; i < daos.length;) {
+            amount += IERC20(token).balanceOf(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool);
+            unchecked {
+                ++i;
+            }
+        }
+        return IERC20(token).totalSupply() - amount;
+    }
+
+    function getDaoRoundDistributeAmount(
+        bytes32 daoId,
+        address token,
+        uint256 currentRound,
+        uint256 remainingRound
+    )
+        public
+        view
+        returns (uint256)
+    {
+        return _castgetDaoRoundDistributeAmountToView(_getDaoRoundDistributeAmount)(
+            daoId, token, currentRound, remainingRound
+        );
+    }
+
+    function _getDaoRoundDistributeAmount(
+        bytes32 daoId,
+        address token,
+        uint256 currentRound,
+        uint256 remainingRound
+    )
+        internal
+        returns (uint256)
+    {
+        address rewardTemplate =
+            SettingsStorage.layout().rewardTemplates[uint8(DaoStorage.layout().daoInfos[daoId].rewardTemplateType)];
+        (bool succ, bytes memory data) = rewardTemplate.delegatecall(
+            abi.encodeWithSelector(
+                IRewardTemplate.getDaoRoundDistributeAmount.selector, daoId, token, currentRound, remainingRound
+            )
+        );
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+        return abi.decode(data, (uint256));
+    }
+
+    function _castgetDaoRoundDistributeAmountToView(
+        function(bytes32, address, uint256, uint256) internal returns (uint256) fnIn
+    )
+        internal
+        pure
+        returns (function(bytes32, address, uint256, uint256) internal view returns (uint256) fnOut)
+    {
+        assembly {
+            fnOut := fnIn
+        }
     }
 }

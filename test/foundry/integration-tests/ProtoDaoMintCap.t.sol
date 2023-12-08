@@ -52,7 +52,6 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        console2.log("here1");
 
         super._mintNft(
             daoId,
@@ -64,7 +63,6 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        console2.log("here2");
         string memory uri = string.concat(
             tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
         );

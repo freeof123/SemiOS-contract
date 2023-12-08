@@ -49,4 +49,13 @@ interface IRewardTemplate {
         payable
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
     function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
+    function getDaoRoundDistributeAmount(
+        bytes32 daoId,
+        address token,
+        uint256 currentRound,
+        uint256 remainingRound
+    )
+        external
+        view
+        returns (uint256 distributeAmount);
 }

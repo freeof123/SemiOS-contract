@@ -41,11 +41,11 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
             if (remainingRound == 0) revert ExceedMaxMintableRound();
             uint256 distributeAmount =
-                getDaoCurrentRoundDistributeAmount(param.daoId, param.token, param.currentRound, remainingRound);
+                getDaoRoundDistributeAmount(param.daoId, param.token, param.currentRound, remainingRound);
             _distributeRoundReward(param.daoId, distributeAmount, param.token, param.currentRound);
             if (!param.topUpMode) {
                 distributeAmount =
-                    getDaoCurrentRoundDistributeAmount(param.daoId, address(0), param.currentRound, remainingRound);
+                    getDaoRoundDistributeAmount(param.daoId, address(0), param.currentRound, remainingRound);
                 _distributeRoundReward(param.daoId, distributeAmount, address(0), param.currentRound);
             }
             activeRounds.push(param.currentRound);
@@ -81,7 +81,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         }
     }
 
-    function getDaoCurrentRoundDistributeAmount(
+    function getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,
         uint256 currentRound,
@@ -92,7 +92,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         returns (uint256 distributeAmount)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-
+        if (remainingRound == 0) return 0;
         address daoAssetPool = IPDProtocolReadable(address(this)).getDaoAssetPool(daoId);
         distributeAmount = token == address(0) ? daoAssetPool.balance : IERC20(token).balanceOf(daoAssetPool);
         if (rewardInfo.isProgressiveJackpot) {

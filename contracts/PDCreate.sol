@@ -152,10 +152,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         vars.dailyMintCap = continuousDaoParam.dailyMintCap;
         vars.allRatioParam = allRatioParam;
 
-        if (
-            daoMetadataParam.floorPrice == 0
-                && templateParam.priceTemplateType != PriceTemplateType.EXPONENTIAL_PRICE_VARIATION
-        ) revert ZeroFloorPriceCannotUseLinearPriceVariation();
+        if (daoMetadataParam.floorPrice == 0) revert CannotUseZeroFloorPrice();
 
         if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
@@ -256,6 +253,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
             SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
             RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+            if (daoMetadataParam.duration == 0) revert DurationIsZero();
             roundInfo.roundDuration = daoMetadataParam.duration;
             roundInfo.roundInLastModify = 1;
             roundInfo.blockInLastModify = block.number;

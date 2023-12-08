@@ -1,194 +1,219 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.18;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
 
-// import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
-// import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
-// import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
-// import "contracts/interface/D4AStructs.sol";
-// import "contracts/interface/D4AErrors.sol";
-// import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-// import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
+import "contracts/interface/D4AStructs.sol";
+import "contracts/interface/D4AErrors.sol";
+import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
+import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 
-// contract D4AProtocolSetterTest is DeployHelper {
-//     MintNftSigUtils public sigUtils;
+contract D4AProtocolSetterTest is DeployHelper {
+    MintNftSigUtils public sigUtils;
 
-//     function setUp() public {
-//         setUpEnv();
-//         sigUtils = new MintNftSigUtils(address(protocol));
-//     }
+    function setUp() public {
+        setUpEnv();
+        sigUtils = new MintNftSigUtils(address(protocol));
+    }
 
-//     function test_setDaoParams_when_daoFloorPrice_is_zero() public {
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 9999;
-//         bytes32 daoId = _createDao(createDaoParam);
+    function test_setDaoParams_when_daoFloorPrice_is_zero() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.floorPrice = 0;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.isBasicDao = true;
 
-//         drb.changeRound(1);
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
 
-//         hoax(daoCreator.addr);
+        SetDaoParam memory vars;
+        vars.daoId = daoId;
+        vars.nftMaxSupplyRank = 0;
+        vars.remainingRound = 1;
+        vars.daoFloorPrice = 0;
+        vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
+        vars.nftPriceFactor = 1000;
+        vars.dailyMintCap = 100;
+        vars.initialTokenSupply = 1 ether;
+        vars.unifiedPrice = 1006;
+        vars.setChildrenParam = SetChildrenParam(new bytes32[](0), new uint256[](0), new uint256[](0), 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
 
-//         // 需要先构造一个结构体然后传递参数，否则栈溢出
-//         // D4AProtocolSetter(address(protocol)).setDaoParams(
-//         //     daoId, 0, 1, 9999, PriceTemplateType(0), 20_000, 300, 9500, 0, 250, 750, 10, 10_000_000
-//         // );
-//     }
+        // 修改MainDAO的参数
+        vm.expectRevert(CannotUseZeroFloorPrice.selector);
+        hoax(daoCreator.addr);
+        protocol.setDaoParams(vars);
+    }
+    /**
+     * dev when current price is lower than new floor price, should increase current round price to new floor
+     * price
+     * instead of floor price / 2
+     */
 
-//     /**
-//      * dev when current price is lower than new floor price, should increase current round price to new floor price
-//      * instead of floor price / 2
-//      */
-//     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3 ETH
-//         // canvas price now should be 0.3 ETH
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 7;
-//         bytes32 daoId = _createDao(createDaoParam);
+    // function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price() public {
+    //     // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3 ETH
+    //     // canvas price now should be 0.3 ETH
+    //     DeployHelper.CreateDaoParam memory createDaoParam;
+    //     createDaoParam.floorPriceRank = 7;
+    //     bytes32 daoId = _createDao(createDaoParam);
 
-//         drb.changeRound(1);
+    //     drb.changeRound(1);
 
-//         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+    //     hoax(canvasCreator.addr);
+    //     bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
 
-//         drb.changeRound(5);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
-//         hoax(daoCreator.addr);
-//         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.3 ether);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.3 ether);
-//     }
+    //     drb.changeRound(5);
+    //     assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
+    //     hoax(daoCreator.addr);
+    //     D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.3 ether);
+    //     assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.3 ether);
+    // }
 
-//     /**
-//      * dev when current price is higher than new floor price, current price should stay the same
-//      */
-//     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
-//         // canvas price now should be 0.25 ETH
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 7;
-//         bytes32 daoId = _createDao(createDaoParam);
+    /**
+     * dev when current price is higher than new floor price, current price should stay the same
+     */
+    //     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price() public {
+    //         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+    // ETH
+    //         // canvas price now should be 0.25 ETH
+    //         DeployHelper.CreateDaoParam memory createDaoParam;
+    //         createDaoParam.floorPriceRank = 7;
+    //         bytes32 daoId = _createDao(createDaoParam);
 
-//         drb.changeRound(1);
+    //         drb.changeRound(1);
 
-//         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+    //         hoax(canvasCreator.addr);
+    //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+    // 0);
 
-//         drb.changeRound(5);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
-//         hoax(daoCreator.addr);
-//         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.01 ether);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
-//     }
+    //         drb.changeRound(5);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
+    //         hoax(daoCreator.addr);
+    //         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.01 ether);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
+    //     }
 
-//     /**
-//      * dev when current price is equal to new floor price, current price should stay the same
-//      */
-//     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
-//         // canvas price now should be 0.25 ETH
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 7;
-//         bytes32 daoId = _createDao(createDaoParam);
+    //     /**
+    //      * dev when current price is equal to new floor price, current price should stay the same
+    //      */
+    //     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price() public {
+    //         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+    // ETH
+    //         // canvas price now should be 0.25 ETH
+    //         DeployHelper.CreateDaoParam memory createDaoParam;
+    //         createDaoParam.floorPriceRank = 7;
+    //         bytes32 daoId = _createDao(createDaoParam);
 
-//         drb.changeRound(1);
+    //         drb.changeRound(1);
 
-//         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+    //         hoax(canvasCreator.addr);
+    //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+    // 0);
 
-//         drb.changeRound(5);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
-//         hoax(daoCreator.addr);
-//         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.25 ether);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
-//     }
+    //         drb.changeRound(5);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
+    //         hoax(daoCreator.addr);
+    //         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.25 ether);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
+    //     }
 
-//     /**
-//      * dev when current price is lower than new floor price, should increase current round price to new floor price
-//      * instead of floor price / 2
-//      */
-//     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price_two_canvases() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3 ETH
-//         // canvas price now should be 0.3 ETH
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 7;
-//         bytes32 daoId = _createDao(createDaoParam);
+    //     /**
+    //      * dev when current price is lower than new floor price, should increase current round price to new floor
+    // price
+    //      * instead of floor price / 2
+    //      */
+    //     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price_two_canvases() public {
+    //         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3
+    // ETH
+    //         // canvas price now should be 0.3 ETH
+    //         DeployHelper.CreateDaoParam memory createDaoParam;
+    //         createDaoParam.floorPriceRank = 7;
+    //         bytes32 daoId = _createDao(createDaoParam);
 
-//         drb.changeRound(1);
+    //         drb.changeRound(1);
 
-//         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+    //         hoax(canvasCreator.addr);
+    //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+    // 0);
 
-//         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
-// 0);
+    //         hoax(canvasCreator2.addr);
+    //         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+    // bytes32[](0),
+    // 0);
 
-//         drb.changeRound(3);
-//         for (uint256 i; i < 10; ++i) {
-//             string memory tokenUri = string.concat("test token uri", vm.toString(i));
-//             uint256 flatPrice = 0;
-//             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-//             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-//             uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
-//             hoax(nftMinter.addr);
-//             protocol.mintNFT{ value: price }(
-//                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-//             );
-//         }
+    //         drb.changeRound(3);
+    //         for (uint256 i; i < 10; ++i) {
+    //             string memory tokenUri = string.concat("test token uri", vm.toString(i));
+    //             uint256 flatPrice = 0;
+    //             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+    //             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+    //             uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+    //             hoax(nftMinter.addr);
+    //             protocol.mintNFT{ value: price }(
+    //                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+    //             );
+    //         }
 
-//         drb.changeRound(5);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
-//         hoax(daoCreator.addr);
-//         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.69 ether);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.69 ether);
-//     }
+    //         drb.changeRound(5);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
+    //         hoax(daoCreator.addr);
+    //         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.69 ether);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.69 ether);
+    //     }
 
-//     /**
-//      * dev when current price is higher than new floor price, current price should stay the same
-//      */
-//     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price_two_canvases() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
-//         // canvas price now should be 0.25 ETH
-//         DeployHelper.CreateDaoParam memory createDaoParam;
-//         createDaoParam.floorPriceRank = 7;
-//         bytes32 daoId = _createDao(createDaoParam);
+    //     /**
+    //      * dev when current price is higher than new floor price, current price should stay the same
+    //      */
+    //     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price_two_canvases() public {
+    //         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+    // ETH
+    //         // canvas price now should be 0.25 ETH
+    //         DeployHelper.CreateDaoParam memory createDaoParam;
+    //         createDaoParam.floorPriceRank = 7;
+    //         bytes32 daoId = _createDao(createDaoParam);
 
-//         drb.changeRound(1);
+    //         drb.changeRound(1);
 
-//         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+    //         hoax(canvasCreator.addr);
+    //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+    // 0);
 
-//         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
-// 0);
+    //         hoax(canvasCreator2.addr);
+    //         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+    // bytes32[](0),
+    // 0);
 
-//         drb.changeRound(3);
-//         for (uint256 i; i < 10; ++i) {
-//             string memory tokenUri = string.concat("test token uri", vm.toString(i));
-//             uint256 flatPrice = 0;
-//             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-//             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-//             uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
-//             hoax(nftMinter.addr);
-//             protocol.mintNFT{ value: price }(
-//                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-//             );
-//         }
+    //         drb.changeRound(3);
+    //         for (uint256 i; i < 10; ++i) {
+    //             string memory tokenUri = string.concat("test token uri", vm.toString(i));
+    //             uint256 flatPrice = 0;
+    //             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+    //             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+    //             uint256 price = D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+    //             hoax(nftMinter.addr);
+    //             protocol.mintNFT{ value: price }(
+    //                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+    //             );
+    //         }
 
-//         drb.changeRound(5);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
-//         hoax(daoCreator.addr);
-//         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.01 ether);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
-//         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
-//     }
+    //         drb.changeRound(5);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
+    //         hoax(daoCreator.addr);
+    //         D4AProtocolSetter(address(protocol)).setDaoFloorPrice(daoId, 0.01 ether);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.5 ether * 128);
+    //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId2), 0.5 ether);
+}
 
 //     /**
 //      * dev when current price is equal to new floor price, current price should stay the same
 //      */
 //     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price_two_canvases() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+// ETH
 //         // canvas price now should be 0.25 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -197,10 +222,12 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
+//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+// bytes32[](0),
 // 0);
 
 //         drb.changeRound(3);
@@ -226,11 +253,13 @@
 //     }
 
 //     /**
-//      * dev when current price is lower than new floor price, should increase current round price to new floor price
+//      * dev when current price is lower than new floor price, should increase current round price to new floor
+// price
 //      * instead of floor price / 2
 //      */
 //     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3 ETH
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3
+// ETH
 //         // canvas price now should be 0.3 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -239,7 +268,8 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         drb.changeRound(5);
 //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
@@ -252,7 +282,8 @@
 //      * dev when current price is higher than new floor price, current price should stay the same
 //      */
 //     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+// ETH
 //         // canvas price now should be 0.25 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -261,7 +292,8 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         drb.changeRound(5);
 //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
@@ -274,7 +306,8 @@
 //      * dev when current price is equal to new floor price, current price should stay the same
 //      */
 //     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+// ETH
 //         // canvas price now should be 0.25 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -283,7 +316,8 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         drb.changeRound(5);
 //         assertEq(D4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId), 0.25 ether);
@@ -293,11 +327,14 @@
 //     }
 
 //     /**
-//      * dev when current price is lower than new floor price, should increase current round price to new floor price
+//      * dev when current price is lower than new floor price, should increase current round price to new floor
+// price
 //      * instead of floor price / 2
 //      */
-//     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price_two_canvases_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3 ETH
+//     function test_setDaoFloorPrice_when_current_price_is_lower_than_new_price_two_canvases_1x_priceFactor()
+// public {
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.3
+// ETH
 //         // canvas price now should be 0.3 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -306,10 +343,12 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
+//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+// bytes32[](0),
 // 0);
 
 //         drb.changeRound(3);
@@ -342,8 +381,10 @@
 //     /**
 //      * dev when current price is higher than new floor price, current price should stay the same
 //      */
-//     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price_two_canvases_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
+//     function test_setDaoFloorPrice_when_current_price_is_higher_than_new_price_two_canvases_1x_priceFactor()
+// public {
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+// ETH
 //         // canvas price now should be 0.25 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -352,10 +393,12 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
+//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+// bytes32[](0),
 // 0);
 
 //         drb.changeRound(3);
@@ -388,8 +431,10 @@
 //     /**
 //      * dev when current price is equal to new floor price, current price should stay the same
 //      */
-//     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price_two_canvases_1x_priceFactor() public {
-//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01 ETH
+//     function test_setDaoFloorPrice_when_current_price_is_equal_to_new_price_two_canvases_1x_priceFactor() public
+// {
+//         // set DAO floor price to 0.5 ETH, change round such that current price is 0.25 ETH, change price to 0.01
+// ETH
 //         // canvas price now should be 0.25 ETH
 //         DeployHelper.CreateDaoParam memory createDaoParam;
 //         createDaoParam.floorPriceRank = 7;
@@ -398,10 +443,12 @@
 //         drb.changeRound(1);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         hoax(canvasCreator2.addr);
-//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new bytes32[](0),
+//         bytes32 canvasId2 = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri 2", new
+// bytes32[](0),
 // 0);
 
 //         drb.changeRound(3);
@@ -753,7 +800,8 @@
 //         bytes32 daoId = _createDao(createDaoParam);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -773,13 +821,16 @@
 //         assertEq(D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0),
 // 22_222_222_222_222_222_222_222_222);
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1), 977_777_777_777_777_777_777_777_778
+//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1),
+// 977_777_777_777_777_777_777_777_778
 //         );
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1), 11_111_111_111_111_111_111_111_111
+//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1),
+// 11_111_111_111_111_111_111_111_111
 //         );
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2), 22_222_222_222_222_222_222_222_222
+//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2),
+// 22_222_222_222_222_222_222_222_222
 //         );
 //     }
 
@@ -789,7 +840,8 @@
 //         bytes32 daoId = _createDao(createDaoParam);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -809,13 +861,16 @@
 //         assertEq(D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0),
 // 22_222_222_222_222_222_222_222_222);
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1), 977_777_777_777_777_777_777_777_778
+//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1),
+// 977_777_777_777_777_777_777_777_778
 //         );
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1), 11_111_111_111_111_111_111_111_111
+//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 1),
+// 11_111_111_111_111_111_111_111_111
 //         );
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2), 22_222_222_222_222_222_222_222_222
+//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2),
+// 22_222_222_222_222_222_222_222_222
 //         );
 //     }
 
@@ -830,7 +885,8 @@
 //         drb.changeRound(2);
 
 //         hoax(canvasCreator.addr);
-//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 0);
+//         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
+// 0);
 
 //         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
@@ -845,10 +901,11 @@
 //         assertEq(D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 0),
 // 74_232_049_461_655_383_750_589_661);
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1), 925_767_950_538_344_616_249_410_339
+//             D4AProtocolReadable(address(protocol)).getDaoTotalReward(daoId, 1),
+// 925_767_950_538_344_616_249_410_339
 //         );
 //         assertEq(
-//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2), 74_232_049_461_655_383_750_589_661
+//             D4AProtocolReadable(address(protocol)).getRewardTillRound(daoId, 2),
+// 74_232_049_461_655_383_750_589_661
 //         );
 //     }
-// }
