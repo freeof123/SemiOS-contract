@@ -179,6 +179,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         for (uint256 i; i < length;) {
             uint256 canvasNextPrice = IPDProtocolReadable(address(this)).getCanvasNextPrice(daoId, canvases[i]);
             if (canvasNextPrice >= newFloorPrice) {
+                //recall that currentRound must begin at 1
                 priceStorage.canvasLastMintInfos[canvases[i]] =
                     PriceStorage.MintInfo({ round: currentRound - 1, price: canvasNextPrice });
             }
