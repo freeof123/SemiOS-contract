@@ -244,7 +244,11 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
             setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
         } //1
-        setDaoRemainingRound(vars.daoId, vars.remainingRound); //2
+        if (!vars.changeInfiniteMode) {
+            setDaoRemainingRound(vars.daoId, vars.remainingRound); //2
+        } else {
+            changeDaoInfiniteMode(vars.daoId, vars.remainingRound);
+        }
         setDaoNftMaxSupply(vars.daoId, settingsStorage.nftMaxSupplies[vars.nftMaxSupplyRank]); //3
         setRoundMintCap(vars.daoId, vars.dailyMintCap); //4
         setDaoFloorPrice(vars.daoId, vars.daoFloorPrice); //5
@@ -368,6 +372,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         //Todo infinitemode
         _checkSetAbility(daoId, true, true);
         if (newRemainingRound == 0) return;
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode) return;
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId);
         if (remainingRound == 0) {
@@ -392,9 +397,21 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         }
     }
 
-    function turnOnInfiniteMode(bytes32 daoId) public {
+    function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) public {
         _checkSetAbility(daoId, true, true);
-        require(!BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode, "infinite mode already on");
-        BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = true;
+        bool infiniteMode = BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode;
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
+        //uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
+        uint256 passedRound = IPDProtocolReadable(address(this)).getDaoPassedRound(daoId);
+
+        if (!infiniteMode) {
+            BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = true;
+        } else {
+            BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = false;
+            daoInfo.mintableRound = passedRound + remainingRound;
+        }
+        if (rewardInfo.isProgressiveJackpot) { }
     }
 }

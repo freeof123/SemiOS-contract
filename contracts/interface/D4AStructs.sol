@@ -181,6 +181,7 @@ struct SetDaoParam {
     uint256 dailyMintCap;
     uint256 initialTokenSupply;
     uint256 unifiedPrice;
+    bool changeInfiniteMode;
     SetChildrenParam setChildrenParam;
     AllRatioParam allRatioParam;
 }
