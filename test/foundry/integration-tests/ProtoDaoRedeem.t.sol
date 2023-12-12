@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
-import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, SetChildrenParam } from "contracts/interface/D4AStructs.sol";
 import { ClaimMultiRewardParam } from "contracts/D4AUniversalClaimer.sol";
 
 import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D4AErrors.sol";
@@ -18,6 +18,80 @@ import { console2 } from "forge-std/Test.sol";
 contract ProtoDaoRedeemTest is DeployHelper {
     function setUp() public {
         super.setUpEnv();
+    }
+
+    function test_circulateERC20Amount() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.selfRewardRatioERC20 = 10_000;
+        param.noPermission = true;
+        param.mintableRound = 10;
+
+        bytes32 daoId = super._createDaoForFunding(param, address(this));
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        bytes32 canvasId2 = param.canvasId;
+        param.daoUri = "test dao uri 2";
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator.addr);
+
+        SetChildrenParam memory vars;
+
+        vars.childrenDaoId = new bytes32[](1);
+        vars.childrenDaoId[0] = daoId2;
+        vars.erc20Ratios = new uint256[](1);
+        vars.erc20Ratios[0] = 5000;
+        vars.ethRatios = new uint256[](1);
+        vars.ethRatios[0] = 5000;
+        vars.selfRewardRatioERC20 = 5000;
+        vars.selfRewardRatioETH = 5000;
+        protocol.setChildren(daoId, vars);
+        vars.childrenDaoId[0] = daoId;
+        protocol.setChildren(daoId2, vars);
+        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        address token = protocol.getDaoToken(daoId);
+
+        //after mint, dao1 left 45000000, dao2 have 12500000
+        super._mintNft(
+            daoId2,
+            canvasId2,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        vm.roll(2);
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        protocol.claimNftMinterReward(daoId2, nftMinter.addr);
+        //eth.bal:0.012 ether, circu erc20: 5000000/2+1250000/2 = 3125000 ether
+        console2.log(protocol.getDaoFeePool(daoId).balance);
+        console2.log(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)));
+        console2.log(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)));
+        console2.log(protocol.getDaoCirculateTokenAmount(daoId));
+        console2.log(protocol.getDaoCirculateTokenAmount(daoId2));
+
+        vm.prank(nftMinter.addr);
+        uint256 ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
+        // 0.012/3125000 = ...384
+        assertEq(ethAmount, 384_000_000_000);
+        vm.prank(nftMinter.addr);
+        ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
+        assertEq(ethAmount, 384_000_000_000);
     }
 
     // testcase 1.3-15
@@ -78,6 +152,8 @@ contract ProtoDaoRedeemTest is DeployHelper {
         a = protocol.exchangeERC20ToETH(daoId, 1 ether, nftMinter.addr);
         assertEq(a, (0.012 ether + 0.0035 ether / uint256(9)) / 10_000_000);
     }
+
+    receive() external payable { }
 }
 
 /*

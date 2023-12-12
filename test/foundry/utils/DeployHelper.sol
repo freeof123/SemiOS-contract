@@ -1111,7 +1111,7 @@ contract DeployHelper is Test {
         }
         vars.existDaoId = createDaoParam.existDaoId;
         vars.daoMetadataParam = DaoMetadataParam({
-            startBlock: createDaoParam.startBlock == 0 ? block.number : createDaoParam.startBlock,
+            startBlock: createDaoParam.startBlock,
             mintableRounds: createDaoParam.mintableRound == 0 ? 60 : createDaoParam.mintableRound,
             duration: createDaoParam.duration == 0 ? 1e18 : createDaoParam.duration,
             floorPrice: (createDaoParam.floorPrice == 0 ? 0.01 ether : createDaoParam.floorPrice),

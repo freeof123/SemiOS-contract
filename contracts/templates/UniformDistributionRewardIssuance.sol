@@ -91,10 +91,14 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         view
         returns (uint256 distributeAmount)
     {
-        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        if (remainingRound == 0) return 0;
         address daoAssetPool = IPDProtocolReadable(address(this)).getDaoAssetPool(daoId);
         distributeAmount = token == address(0) ? daoAssetPool.balance : IERC20(token).balanceOf(daoAssetPool);
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode) {
+            return distributeAmount;
+        }
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        if (remainingRound == 0) return 0;
+
         if (rewardInfo.isProgressiveJackpot) {
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, currentRound); //not include current round
             uint256 progressiveJackpotRound = currentRound - lastActiveRound; // include current round

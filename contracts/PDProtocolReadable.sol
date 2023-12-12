@@ -228,11 +228,14 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         uint256 amount;
         address token = DaoStorage.layout().daoInfos[daoId].token;
         for (uint256 i; i < daos.length;) {
-            amount += IERC20(token).balanceOf(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool);
+            amount += IERC20(token).balanceOf(BasicDaoStorage.layout().basicDaoInfos[daos[i]].daoAssetPool);
             unchecked {
                 ++i;
             }
         }
+        // need not, because done in protocol.sol
+        // address redeemPool = DaoStorage.layout().daoInfos[daoId].daoFeePool;
+        // amount += IERC20(token).balanceOf(redeemPool);
         return IERC20(token).totalSupply() - amount;
     }
 

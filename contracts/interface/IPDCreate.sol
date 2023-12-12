@@ -42,7 +42,9 @@ interface IPDCreate is ICreate {
         bool unifiedPriceModeOff,
         uint256 unifiedPrice,
         uint256 reserveNftNumber,
-        bool topUpMode
+        bool topUpMode,
+        bool infiniteMode,
+        bool erc20PaymentMode
     );
 
     event NewProject(

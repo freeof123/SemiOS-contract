@@ -47,6 +47,12 @@ contract PDRound is IPDRound {
             (block.number - roundInfo.blockInLastModify) * 1e18 / roundInfo.roundDuration + roundInfo.roundInLastModify;
     }
 
+    // function getDaoCurrentRoundStartBlock(bytes32 daoId) public view returns (uint256) {
+    //     RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+    //     return roundInfo.blockInLastModify + (block.number - roundInfo.blockInLastModify) * 1e18 /
+    // roundInfo.roundDuration
+    // }
+
     function getDaoLastModifyBlock(bytes32 daoId) public view returns (uint256) {
         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
         return roundInfo.blockInLastModify;

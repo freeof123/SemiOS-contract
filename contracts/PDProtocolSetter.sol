@@ -365,6 +365,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     }
 
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) public {
+        //Todo infinitemode
         _checkSetAbility(daoId, true, true);
         if (newRemainingRound == 0) return;
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
@@ -389,5 +390,11 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             daoInfo.mintableRound -= remainingRound;
             emit DaoMintableRoundSet(daoId, newRemainingRound);
         }
+    }
+
+    function turnOnInfiniteMode(bytes32 daoId) public {
+        _checkSetAbility(daoId, true, true);
+        require(!BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode, "infinite mode already on");
+        BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = true;
     }
 }

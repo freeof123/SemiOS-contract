@@ -175,7 +175,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.unifiedPriceModeOff,
             ID4AProtocolReadable(protocol).getDaoUnifiedPrice(daoId),
             continuousDaoParam.reserveNftNumber,
-            continuousDaoParam.topUpMode
+            continuousDaoParam.topUpMode,
+            continuousDaoParam.infiniteMode,
+            continuousDaoParam.erc20PaymentMode
         );
         _config(protocol, vars);
 
@@ -196,9 +198,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
     function _createDao(
         bytes32 existDaoId,
-        DaoMetadataParam memory daoMetadataParam,
-        BasicDaoParam memory basicDaoParam,
-        ContinuousDaoParam memory continuousDaoParam
+        DaoMetadataParam calldata daoMetadataParam,
+        BasicDaoParam calldata basicDaoParam,
+        ContinuousDaoParam calldata continuousDaoParam
     )
         internal
         returns (bytes32 daoId)
@@ -212,7 +214,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
 
-        if (daoMetadataParam.startBlock < block.number) revert StartBlockAlreadyPassed();
+        if (daoMetadataParam.startBlock != 0 && daoMetadataParam.startBlock < block.number) {
+            revert StartBlockAlreadyPassed();
+        }
 
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
@@ -258,7 +262,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             roundInfo.roundInLastModify = 1;
             roundInfo.blockInLastModify = block.number;
 
-            daoInfo.startBlock = daoMetadataParam.startBlock;
+            daoInfo.startBlock = daoMetadataParam.startBlock == 0 ? block.number : daoMetadataParam.startBlock;
             daoInfo.mintableRound = daoMetadataParam.mintableRounds;
             PriceStorage.layout().daoFloorPrices[daoId] = daoMetadataParam.floorPrice;
             daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[daoMetadataParam.maxNftRank];

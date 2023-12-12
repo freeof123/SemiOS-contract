@@ -23,12 +23,15 @@ import {
     getProtocolSetterSelectors,
     getD4ACreateSelectors,
     getPDCreateSelectors,
-    getPDBasicDaoSelectors
+    getPDBasicDaoSelectors,
+    getPDRoundSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import "./utils/D4AAddress.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 
 import "contracts/interface/D4AStructs.sol";
+//-----------------------------interface for event----------------------------------
+import "contracts/interface/IPDCreate.sol";
 
 contract Deploy is Script, Test, D4AAddress {
     using stdJson for string;
@@ -85,8 +88,7 @@ contract Deploy is Script, Test, D4AAddress {
     }
 
     function run() public {
-        console2.log("asdf");
-        // vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
+        vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
         //_eventEmiter();
 
@@ -101,22 +103,25 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        //_deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        //_deployProtocolReadable();
+        //_cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        //_deployProtocolSetter();
+        //_cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
+        //_deployPDCreateFunding();
+        //_cutFacetsPDCreateFunding(DeployMethod.REMOVE);
+
         //_deployPDCreate();
         //_cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
-        // _deployPDCreateFunding();
-        // _cutFacetsPDCreateFunding(DeployMethod.REPLACE);
+        //_deployPDRound();
+        //_cutFacetsPDRound(DeployMethod.ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao();
@@ -133,13 +138,6 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPermissionControl();
         // _deployPermissionControlProxy();
 
-        //TODO is done, need to do in main.s
-        //todo:
-        // need set royal splliter owner in settings, owner is multisig1 in mainnet, call
-        // d4asettings->setRoyaltySplitterAndSwapFactoryAddress(); in deployhelper: _changeAddressInDaoProxy();
-        //todo:
-        //setETHRewardRatio in Settings, in deployhelper: _changeSettingsRatio();
-
         //_initSettings();
         //_initSettings13();
 
@@ -149,14 +147,6 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialRewardIssuance();
         //_deployUniformDistributionRewardIssuance();
 
-        // todo: deploy new templete, set this template,
-        // in deployhelper:new UniformDistributionRewardIssuance();
-        // D4ASettings(address(protocol)).setTemplateAddress(
-        //     TemplateChoice.REWARD,
-        //     uint8(RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD),
-        //     address(uniformDistributionRewardIssuance)
-        // );
-
         // pdProtocol_proxy.initialize();
 
         // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
@@ -165,6 +155,8 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployUnlocker();
         // );
+
+        _createDao();
 
         // vm.stopBroadcast();
     }
@@ -315,7 +307,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xE221d6CD0C5df656049952FfB8e425bC53e0f2D8
+                    0x9EB43f421B796Ce06a49E89236104658603D2Ee0
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -369,7 +361,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x9F5Ea675025D042c6e0eF156B014c8958c458ef0
+                    0x538914da8De039B901644fb80A135d6897139a32
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -475,7 +467,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    0x735C4988473712fF62646D324993E4cEb079C3B5
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -529,7 +521,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x6027C2Ac203f12cf03e5FdeC098740FC393729BE
+                    0xCefAb7d0868B0DBEf7b9A2f4cEEFEeC64FbE3361
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -597,6 +589,60 @@ contract Deploy is Script, Test, D4AAddress {
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
                 target: address(pdBasicDao),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDRound() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDRound");
+
+        pdRound = new PDRound();
+        assertTrue(address(pdRound) != address(0));
+
+        vm.toString(address(pdRound)).write(path, ".PDProtocol.PDRound");
+
+        console2.log("PDRound address: ", address(pdRound));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDRound(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDRound facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDRoundSelectors();
+        console2.log("PDRound facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -1002,5 +1048,56 @@ contract Deploy is Script, Test, D4AAddress {
 
         console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
         console2.log("================================================================================\n");
+    }
+
+    //----------------------------------for event emit---------------------------------------------------
+    function _createDao() internal {
+        UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](0);
+        NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](0);
+
+        bytes32 daoId = IPDCreate(address(pdProtocol_proxy)).createDao(
+            bytes32(0),
+            DaoMetadataParam(
+                0,
+                60,
+                239_055_188_367_481_833_171,
+                0.01 ether,
+                2,
+                750,
+                "test dao uri for event", // projectUri
+                0
+            ),
+            Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
+            Blacklist(new address[](0), new address[](0)),
+            DaoMintCapParam(0, userMintCapParams),
+            nftMinterCapInfo,
+            TemplateParam(PriceTemplateType(0), 20_000, RewardTemplateType(2), 0, true),
+            BasicDaoParam(
+                500,
+                keccak256("test canvasId for event"), // canvasId
+                "canvas for event", // canvasUri
+                "mock dao" //dao name
+            ),
+            ContinuousDaoParam(
+                1000,
+                false,
+                0.01 ether,
+                true,
+                10_000,
+                new bytes32[](0),
+                new uint256[](0),
+                new uint256[](0),
+                1000,
+                5000,
+                5000,
+                true,
+                0x0000000000000000000000000000000000000000,
+                false,
+                false,
+                false
+            ),
+            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000),
+            20
+        );
     }
 }
