@@ -352,8 +352,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         } else {
             daoInfo.mintableRound += newRemainingRound;
             daoInfo.mintableRound -= remainingRound;
-            emit DaoMintableRoundSet(daoId, newRemainingRound);
         }
+        emit DaoRemainingRoundSet(daoId, newRemainingRound);
     }
 
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) public {

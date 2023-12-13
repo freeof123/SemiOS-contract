@@ -34,6 +34,8 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     event DaoRestart(bytes32 daoId, uint256 remainingRound, uint256 startBlock);
     event DaoInfiniteModeChanged(bytes32 daoId, bool infiniteMode, uint256 remainingRound);
 
+    event DaoRemainingRoundSet(bytes32 daoId, uint256 remainingRound);
+
     function setDaoParams(SetDaoParam calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatio(bytes32 daoId, AllRatioParam calldata vars) external;
