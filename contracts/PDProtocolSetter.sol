@@ -209,34 +209,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     // 1.3 add--------------------------------------
     // check set ability, protocol always can set
 
-    function _checkSetAbility(bytes32 daoId, bool ownerSet, bool v13set) internal view {
-        BasicDaoStorage.BasicDaoInfo memory basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-
-        if (basicDaoInfo.version < 12) {
-            if (msg.sender == settingsStorage.createProjectProxy || msg.sender == address(this)) {
-                return;
-            }
-            if (
-                DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                    && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-            ) revert BasicDaoLocked();
-            if (ownerSet && msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)) return;
-        } else {
-            if (!v13set) revert VersionDenied();
-            if (msg.sender == address(this)) return;
-            bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
-            if (
-                ownerSet
-                    && (
-                        msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
-                            || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)
-                    )
-            ) return;
-        }
-        revert NotDaoOwner();
-    }
-
     function setDaoParams(SetDaoParam calldata vars) public {
         _checkSetAbility(vars.daoId, true, true);
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
@@ -376,20 +348,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId);
         if (remainingRound == 0) {
-            RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
-            roundInfo.roundInLastModify = 1;
-            roundInfo.blockInLastModify = block.number;
-            delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
-            daoInfo.mintableRound = newRemainingRound;
-            delete PriceStorage.layout().daoMaxPrices[daoId];
-            bytes32[] memory canvases = IPDProtocolReadable(address(this)).getDaoCanvases(daoId);
-            for (uint256 i; i < canvases.length;) {
-                delete PriceStorage.layout().canvasLastMintInfos[canvases[i]];
-                unchecked {
-                    ++i;
-                }
-            }
-            emit DaoRestart(daoId, newRemainingRound, block.number);
+            _daoRestart(daoId, newRemainingRound);
         } else {
             daoInfo.mintableRound += newRemainingRound;
             daoInfo.mintableRound -= remainingRound;
@@ -403,15 +362,77 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
-        //uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
+        uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
         uint256 passedRound = IPDProtocolReadable(address(this)).getDaoPassedRound(daoId);
 
         if (!infiniteMode) {
+            if (IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId) == 0) {
+                _daoRestart(daoId, 1);
+            }
             BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = true;
         } else {
+            if (remainingRound == 0) revert TurnOffInfiniteModeWithZeroRemainingRound();
             BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode = false;
             daoInfo.mintableRound = passedRound + remainingRound;
+            if (rewardInfo.isProgressiveJackpot) {
+                if (
+                    rewardInfo.activeRounds.length == 0
+                        || rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound
+                            && rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound - 1
+                ) {
+                    //delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
+                    if (currentRound > 1) {
+                        rewardInfo.activeRounds.push(currentRound - 1);
+                    }
+                }
+            }
         }
-        if (rewardInfo.isProgressiveJackpot) { }
+        emit DaoInfiniteModeChanged(daoId, !infiniteMode, remainingRound);
+    }
+
+    function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
+        roundInfo.roundInLastModify = 1;
+        roundInfo.blockInLastModify = block.number;
+        delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
+        daoInfo.mintableRound = newRemainingRound;
+        delete PriceStorage.layout().daoMaxPrices[daoId];
+        bytes32[] memory canvases = IPDProtocolReadable(address(this)).getDaoCanvases(daoId);
+        for (uint256 i; i < canvases.length;) {
+            delete PriceStorage.layout().canvasLastMintInfos[canvases[i]];
+            unchecked {
+                ++i;
+            }
+        }
+        emit DaoRestart(daoId, newRemainingRound, block.number);
+    }
+
+    function _checkSetAbility(bytes32 daoId, bool ownerSet, bool v13set) internal view {
+        BasicDaoStorage.BasicDaoInfo memory basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+
+        if (basicDaoInfo.version < 12) {
+            if (msg.sender == settingsStorage.createProjectProxy || msg.sender == address(this)) {
+                return;
+            }
+            if (
+                DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
+                    && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
+            ) revert BasicDaoLocked();
+            if (ownerSet && msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)) return;
+        } else {
+            if (!v13set) revert VersionDenied();
+            if (msg.sender == address(this)) return;
+            bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+            if (
+                ownerSet
+                    && (
+                        msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
+                            || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)
+                    )
+            ) return;
+        }
+        revert NotDaoOwner();
     }
 }

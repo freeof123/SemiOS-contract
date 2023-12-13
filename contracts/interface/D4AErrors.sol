@@ -108,3 +108,4 @@ error NotCanvasIdOfDao();
 error DurationIsZero();
 
 error CannotUseZeroFloorPrice();
+error TurnOffInfiniteModeWithZeroRemainingRound();

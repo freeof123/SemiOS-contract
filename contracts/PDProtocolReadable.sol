@@ -106,8 +106,6 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getDaoPassedRound(bytes32 daoId) public view returns (uint256) {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         if (!rewardInfo.isProgressiveJackpot) {
             if (rewardInfo.activeRounds.length == 0) return 0;
             if (
@@ -124,7 +122,6 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
                 SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
                 passedRound = settingsStorage.drb.currentRound() - DaoStorage.layout().daoInfos[daoId].startBlock;
             }
-            if (passedRound > daoInfo.mintableRound) return daoInfo.mintableRound;
             return passedRound;
         }
     }
@@ -132,6 +129,7 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     function getDaoRemainingRound(bytes32 daoId) public view returns (uint256) {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 passedRound = getDaoPassedRound(daoId);
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode) return 1;
         if (daoInfo.mintableRound > passedRound) return daoInfo.mintableRound - passedRound;
         else return 0;
     }
@@ -233,9 +231,6 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
                 ++i;
             }
         }
-        // need not, because done in protocol.sol
-        // address redeemPool = DaoStorage.layout().daoInfos[daoId].daoFeePool;
-        // amount += IERC20(token).balanceOf(redeemPool);
         return IERC20(token).totalSupply() - amount;
     }
 

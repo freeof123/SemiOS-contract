@@ -80,8 +80,7 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.uniPriceModeOff = true;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
-
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
         super._mintNft(
             daoId,
             canvasId1,
@@ -112,14 +111,22 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.08 ether);
+
         vm.prank(daoCreator.addr);
         protocol.setDaoPriceTemplate(daoId, PriceTemplateType(0), 30_000);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), uint256(0.12 ether));
+
         vm.roll(2);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), uint256(0.12 ether) / 3);
+
         vm.roll(3);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), uint256(0.12 ether) / 9);
+
+        vm.roll(4);
+        //todo: since all canvas's normal price is lest than floor price 0.01 ether, the next price should be 0.005
+        //ether
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether);
     }
 
     function test_PDCreateFunding_SetPriceFactorAndPass() public {
@@ -135,7 +142,7 @@ contract ProtoDaoPriceTest is DeployHelper {
         param.needMintableWork = true;
         param.reserveNftNumber = 500;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
 
         super._mintNft(
             daoId,
@@ -147,10 +154,11 @@ contract ProtoDaoPriceTest is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
+
         vm.prank(daoCreator.addr);
         protocol.setDaoPriceTemplate(daoId, PriceTemplateType(0), 15_000);
-        console2.log(protocol.getCanvasNextPrice(canvasId1));
+        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
     }
 
     // testcase 1.3-15

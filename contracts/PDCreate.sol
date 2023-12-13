@@ -84,6 +84,7 @@ struct CreateAncestorDaoParam {
     string daoName;
     bool needMintableWork;
     address daoToken;
+    uint256 reserveNftNumber;
 }
 
 struct CreateContinuousDaoParam {
@@ -244,7 +245,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                     basicDaoParam.initTokenSupplyRatio,
                     basicDaoParam.daoName,
                     continuousDaoParam.needMintableWork,
-                    continuousDaoParam.daoToken
+                    continuousDaoParam.daoToken,
+                    continuousDaoParam.reserveNftNumber
                 )
             );
 
@@ -377,8 +379,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender); //before: createprojectproxy, now :user
 
-            daoInfo.nft =
-                _createERC721Token(vars.daoIndex, vars.daoName, vars.needMintableWork, BASIC_DAO_RESERVE_NFT_NUMBER);
+            daoInfo.nft = _createERC721Token(vars.daoIndex, vars.daoName, vars.needMintableWork, vars.reserveNftNumber);
             D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the user??
             D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
@@ -387,7 +388,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
             //We copy from setting in case setting may change later.
             daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * vars.initTokenSupplyRatio) / BASIS_POINT;
-
             daoInfo.daoExist = true;
         }
     }
