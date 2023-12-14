@@ -1145,7 +1145,7 @@ contract DeployHelper is Test {
             daoName: "test dao"
         });
         vars.continuousDaoParam = ContinuousDaoParam({
-            reserveNftNumber: createDaoParam.reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
+            reserveNftNumber: createDaoParam.reserveNftNumber == 0 ? 1000 : createDaoParam.reserveNftNumber, // 传一个500进来，spetialTokenUri应该501会Revert
             unifiedPriceModeOff: createDaoParam.uniPriceModeOff, // 把这个模式关掉之后应该会和之前按照签名的方式一样铸造，即铸造价格为0.01
             unifiedPrice: createDaoParam.unifiedPrice == 0 ? 0.01 ether : createDaoParam.unifiedPrice,
             needMintableWork: createDaoParam.needMintableWork,
