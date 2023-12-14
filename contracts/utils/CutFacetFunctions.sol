@@ -240,6 +240,8 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getCanvasNextPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoCirculateTokenAmount.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRoundDistributeAmount.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoInfiniteMode.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoERC20PaymentMode.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 

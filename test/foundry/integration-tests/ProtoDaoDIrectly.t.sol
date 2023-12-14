@@ -460,4 +460,101 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(protocol.getERC20RewardTillRound(daoId, 8), 8_000_000 ether);
         assertEq(protocol.getERC20RewardTillRound(daoId, 9), 8_000_000 ether);
     }
+
+    function test_erc20Payment_SimpleMint() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
+        param.mintableRound = 50;
+        param.selfRewardRatioERC20 = 10_000;
+        param.erc20PaymentMode = true;
+        param.thirdPartyToken = address(_testERC20);
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        vm.prank(protocolOwner.addr);
+        _testERC20.transfer(nftMinter.addr, 1 ether);
+        vm.prank(nftMinter.addr);
+        _testERC20.approve(address(protocol), 0.01 ether);
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
+    }
+
+    function test_erc20Payment_topUpAccountShouldBeUsedWhenMintInFurtherRound() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.topUpMode = true;
+        param.noPermission = true;
+        param.mintableRound = 50;
+        param.daoUri = "topup dao uri";
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        param.topUpMode = false;
+        param.erc20PaymentMode = true;
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        param.daoUri = "normal dao uri";
+        param.thirdPartyToken = address(_testERC20);
+        param.uniPriceModeOff = true;
+        bytes32 canvasId2 = param.canvasId;
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        vm.roll(2);
+        address token = protocol.getDaoToken(daoId2);
+        deal(token, nftMinter.addr, 100_000_000 ether);
+        // vm.expectEmit(address(protocol));
+        // emit TopUpAmountUsed(nftMinter.addr, daoId2, protocol.getDaoFeePool(daoId2), 5_000_000 ether, 0.01 ether);
+        {
+            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
+            assertEq(topUpERC20, 1_000_000 ether);
+            assertEq(topUpETH, 0.01 ether);
+        }
+
+        vm.prank(nftMinter.addr);
+        _testERC20.approve(address(protocol), 0.01 ether);
+        super._mintNftChangeBal(
+            daoId2,
+            canvasId2,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            500_000 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+
+        {
+            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
+            assertEq(topUpERC20, 500_000 ether);
+            assertEq(topUpETH, 0.005 ether);
+        }
+        assertEq(nftMinter.addr.balance, 0.005 ether);
+    }
 }

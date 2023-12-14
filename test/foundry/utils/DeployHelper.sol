@@ -1242,17 +1242,23 @@ contract DeployHelper is Test {
         startHoax(hoaxer);
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        if (
+        bytes memory sig;
+        {
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            sig = abi.encodePacked(r, s, v);
+        }
+        uint256 value;
+        if (protocol.getDaoERC20PaymentMode(daoId)) {
+            value = 0;
+        } else if (
             flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
                 && !protocol.getDaoUnifiedPriceModeOff(daoId)
         ) {
-            tokenId = protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, abi.encodePacked(r, s, v));
+            value = 0;
         } else {
-            tokenId = protocol.mintNFT{
-                value: flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice
-            }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
+            value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
+        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig);
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -1274,18 +1280,23 @@ contract DeployHelper is Test {
         // startHoax(hoaxer);
         vm.startPrank(hoaxer);
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-        if (
+        bytes memory sig;
+        {
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
+            sig = abi.encodePacked(r, s, v);
+        }
+        uint256 value;
+        if (protocol.getDaoERC20PaymentMode(daoId)) {
+            value = 0;
+        } else if (
             flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
                 && !protocol.getDaoUnifiedPriceModeOff(daoId)
         ) {
-            tokenId = protocol.mintNFT(daoId, canvasId, tokenUri, new bytes32[](0), 0, abi.encodePacked(r, s, v));
+            value = 0;
         } else {
-            tokenId = protocol.mintNFT{
-                value: flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice
-            }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v));
+            value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
-
+        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig);
         vm.stopPrank();
         // deal(hoaxer, bal);
     }
@@ -1320,7 +1331,9 @@ contract DeployHelper is Test {
         vars.canvasProof = new bytes32[](0);
         vars.nftOwner = hoaxer;
         uint256 value;
-        if (
+        if (protocol.getDaoERC20PaymentMode(daoId)) {
+            value = 0;
+        } else if (
             flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
                 && !protocol.getDaoUnifiedPriceModeOff(daoId)
         ) {

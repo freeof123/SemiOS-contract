@@ -159,7 +159,11 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
 
-        daoId = _createDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam);
+        if (continuousDaoParam.erc20PaymentMode && continuousDaoParam.topUpMode) {
+            revert PaymentModeAndTopUpModeCannotBeBothOn();
+        }
+        daoId = _createDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam, actionType);
+
         vars.daoId = daoId;
 
         // Use the exist DaoFeePool and DaoToken
@@ -201,7 +205,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,
         BasicDaoParam calldata basicDaoParam,
-        ContinuousDaoParam calldata continuousDaoParam
+        ContinuousDaoParam calldata continuousDaoParam,
+        uint256 actionType
     )
         internal
         returns (bytes32 daoId)
@@ -218,12 +223,25 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         if (daoMetadataParam.startBlock != 0 && daoMetadataParam.startBlock < block.number) {
             revert StartBlockAlreadyPassed();
         }
-
+        uint256 daoIndex;
+        if (actionType & 0x1 != 0) {
+            SettingsStorage.Layout storage l = SettingsStorage.layout();
+            if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
+            if (((protocolStorage.d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+                revert DaoIndexAlreadyExist();
+            }
+            protocolStorage.d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+            protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
+            daoIndex = daoMetadataParam.projectIndex;
+        } else {
+            daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+        }
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
             if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao(); //Todo
 
-            createContinuousDaoParam.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            createContinuousDaoParam.daoIndex = daoIndex;
             createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
             createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
             createContinuousDaoParam.daoName = basicDaoParam.daoName;
@@ -240,7 +258,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         } else {
             daoId = _createProject(
                 CreateAncestorDaoParam(
-                    protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)],
+                    daoIndex,
                     daoMetadataParam.projectUri,
                     basicDaoParam.initTokenSupplyRatio,
                     basicDaoParam.daoName,
@@ -249,7 +267,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                     continuousDaoParam.reserveNftNumber
                 )
             );
-
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
@@ -278,7 +295,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 ) revert RoyaltyFeeRatioOutOfRange();
             }
             daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
-            daoInfo.daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            daoInfo.daoIndex = daoIndex;
             daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
         }
 
@@ -291,15 +308,12 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.isAncestorDao
         );
 
-        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]]
-        = daoId;
-        ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoIndex] = daoId;
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
 
         {
-            address daoAssetPool =
-                _createDaoAssetPool(daoId, protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)]);
+            address daoAssetPool = _createDaoAssetPool(daoId, daoIndex);
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
                 D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
             }

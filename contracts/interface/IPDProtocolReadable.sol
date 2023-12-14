@@ -47,6 +47,9 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function royaltySplitters(bytes32 daoId) external view returns (address);
     function getCanvasNextPrice(bytes32 daoId, bytes32 canvasId) external view returns (uint256);
     function getDaoCirculateTokenAmount(bytes32 daoId) external view returns (uint256);
+    function getDaoInfiniteMode(bytes32 daoId) external view returns (bool);
+    function getDaoERC20PaymentMode(bytes32 daoId) external view returns (bool);
+
     function getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,

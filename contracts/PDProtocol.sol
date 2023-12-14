@@ -621,7 +621,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                     ? IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatio(daoId)
                     : IPDProtocolReadable(address(this)).getAssetPoolMintFeeRatioFiatPrice(daoId)
             ) * price / BASIS_POINT;
-            daoFee = _splitFee(vars);
+            daoFee =
+                BasicDaoStorage.layout().basicDaoInfos[daoId].erc20PaymentMode ? _splitFeeERC20(vars) : _splitFee(vars);
         }
 
         _updateReward(
@@ -631,11 +632,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             price == 0 ? 1 ether : daoFee,
             price == 0
         );
-        if (
-            !BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0
-                && BasicDaoStorage.layout().basicDaoInfos[daoId].version > 12
-        ) {
-            SafeTransferLib.safeTransferETH(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0) {
+            if (!BasicDaoStorage.layout().basicDaoInfos[daoId].erc20PaymentMode) {
+                SafeTransferLib.safeTransferETH(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
+            } else {
+                SafeTransferLib.safeTransfer(
+                    daoInfo.token, BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee
+                );
+            }
         }
     }
 
@@ -763,17 +767,68 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (topUpETHQuota > 0) {
             PoolStorage.PoolInfo storage poolInfo =
                 PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
-            uint256 topAmountERC20 = topUpAmountETHToUse * poolInfo.topUpInvestorERC20Quota[msg.sender] / topUpETHQuota;
+            uint256 topUpAmountERC20 =
+                topUpAmountETHToUse * poolInfo.topUpInvestorERC20Quota[msg.sender] / topUpETHQuota;
             poolInfo.topUpInvestorETHQuota[msg.sender] -= topUpAmountETHToUse;
-            poolInfo.topUpInvestorERC20Quota[msg.sender] -= topAmountERC20;
+            poolInfo.topUpInvestorERC20Quota[msg.sender] -= topUpAmountERC20;
 
-            SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topAmountERC20);
+            SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topUpAmountERC20);
             emit TopUpAmountUsed(
                 msg.sender,
                 vars.daoId,
                 DaoStorage.layout().daoInfos[vars.daoId].daoFeePool,
-                topAmountERC20,
+                topUpAmountERC20,
                 topUpAmountETHToUse
+            );
+        }
+        emit MintFeeSplitted(
+            vars.daoId,
+            vars.daoRedeemPool,
+            vars.redeemPoolFee,
+            vars.canvasOwner,
+            canvasCreatorFee,
+            vars.daoAssetPool,
+            vars.assetPoolFee
+        );
+        return vars.assetPoolFee;
+    }
+
+    function _splitFeeERC20(SplitFeeLocalVars memory vars) internal returns (uint256) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+        (uint256 topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, msg.sender);
+
+        uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
+        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
+        address token = DaoStorage.layout().daoInfos[vars.daoId].token;
+        //if (msg.value + topUpETHQuota < vars.price) revert NotEnoughEther();
+        uint256 topUpAmountERC20ToUse;
+        if (topUpERC20Quota < vars.price) {
+            topUpAmountERC20ToUse = topUpERC20Quota;
+            SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
+        } else {
+            topUpAmountERC20ToUse = vars.price;
+        }
+        if (protocolFee > 0) SafeTransferLib.safeTransfer(token, vars.protocolFeePool, protocolFee);
+        if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransfer(token, vars.daoRedeemPool, vars.redeemPoolFee);
+        //should split after update reward
+        //if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
+        if (canvasCreatorFee > 0) SafeTransferLib.safeTransfer(token, vars.canvasOwner, canvasCreatorFee);
+
+        if (topUpERC20Quota > 0) {
+            PoolStorage.PoolInfo storage poolInfo =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
+            uint256 topUpAmountETH =
+                topUpAmountERC20ToUse * poolInfo.topUpInvestorETHQuota[msg.sender] / topUpERC20Quota;
+            poolInfo.topUpInvestorETHQuota[msg.sender] -= topUpAmountETH;
+            poolInfo.topUpInvestorERC20Quota[msg.sender] -= topUpAmountERC20ToUse;
+
+            SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
+            emit TopUpAmountUsed(
+                msg.sender,
+                vars.daoId,
+                DaoStorage.layout().daoInfos[vars.daoId].daoFeePool,
+                topUpAmountERC20ToUse,
+                topUpAmountETH
             );
         }
         emit MintFeeSplitted(

@@ -249,6 +249,14 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         );
     }
 
+    function getDaoInfiniteMode(bytes32 daoId) public view returns (bool) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode;
+    }
+
+    function getDaoERC20PaymentMode(bytes32 daoId) public view returns (bool) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].erc20PaymentMode;
+    }
+
     function _getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,
