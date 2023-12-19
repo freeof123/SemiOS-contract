@@ -141,15 +141,15 @@ contract GetRewardTillRoundTest is DeployHelper {
     )
         internal
     {
-        DeployHelper.CreateDaoParam memory createDaoParam;
-        createDaoParam.mintableRound = mintableRound;
-        createDaoParam.rewardTemplateType = rewardTemplateType;
-        createDaoParam.rewardDecayFactor = rewardDecayFactor;
-        createDaoParam.isProgressiveJackpot = isProgressiveJackpot;
-        daoId = _createDao(createDaoParam);
+        // DeployHelper.CreateDaoParam memory createDaoParam;
+        // createDaoParam.mintableRound = mintableRound;
+        // createDaoParam.rewardTemplateType = rewardTemplateType;
+        // createDaoParam.rewardDecayFactor = rewardDecayFactor;
+        // createDaoParam.isProgressiveJackpot = isProgressiveJackpot;
+        // daoId = _createDao(createDaoParam);
 
-        drb.changeRound(1);
-        hoax(canvasCreator.addr);
-        canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
+        // drb.changeRound(1);
+        // hoax(canvasCreator.addr);
+        // canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
     }
 }

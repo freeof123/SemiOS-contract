@@ -20,7 +20,6 @@ interface IPDProtocolAggregate is
     IPDBasicDao,
     IPDProtocolReadable,
     IPDGrant,
-    ID4ACreate,
     ID4AProtocolSetter,
     ID4ASettingsReadable,
     ID4ASettings,
