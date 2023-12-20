@@ -485,23 +485,23 @@ contract D4AProtocolSetterTest is DeployHelper {
     //     protocol.setDaoMintableRound(daoId, 69);
     // }
 
-    //     function test_RevertIf_setDaoMintableRound_when_new_end_round_less_than_current_round_isProgressiveJackpot()
-    //         public
-    //     {
-    //         DeployHelper.CreateDaoParam memory createDaoParam;
-    //         createDaoParam.mintableRound = 69;
-    //         createDaoParam.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
-    //         createDaoParam.priceFactor = 0.01 ether;
-    //         createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
-    //         createDaoParam.rewardDecayFactor = 12_600;
-    //         createDaoParam.isProgressiveJackpot = true;
-    //         bytes32 daoId = _createDao(createDaoParam);
+    // function test_RevertIf_setDaoMintableRound_when_new_end_round_less_than_current_round_isProgressiveJackpot()
+    //     public
+    // {
+    //     DeployHelper.CreateDaoParam memory createDaoParam;
+    //     createDaoParam.mintableRound = 69;
+    //     createDaoParam.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
+    //     createDaoParam.priceFactor = 0.01 ether;
+    //     createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
+    //     createDaoParam.rewardDecayFactor = 12_600;
+    //     createDaoParam.isProgressiveJackpot = true;
+    //     bytes32 daoId = _createDao(createDaoParam);
 
-    //         vm.roll(51);
-    //         vm.expectRevert(NewMintableRoundsFewerThanRewardIssuedRounds.selector);
-    //         hoax(daoCreator.addr);
-    //         protocol.setDaoMintableRound(daoId, 42);
-    //     }
+    //     vm.roll(51);
+    //     vm.expectRevert(NewMintableRoundsFewerThanRewardIssuedRounds.selector);
+    //     hoax(daoCreator.addr);
+    //     protocol.setDaoMintableRound(daoId, 42);
+    // }
 
     //     function test_RevertIf_setDaoMintableRound_when_exceed_mintable_round_notProgressiveJackpot() public {
     //         DeployHelper.CreateDaoParam memory createDaoParam;
