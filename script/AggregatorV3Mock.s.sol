@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import { Script } from "forge-std/Script.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { console2 } from "forge-std/Console2.sol";
+import { console2 } from "forge-std/console2.sol";
 
 import { D4AAddress } from "./utils/D4AAddress.sol";
 import { FeedRegistryMock } from "test/foundry/utils/mocks/FeedRegistryMock.sol";

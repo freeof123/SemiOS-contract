@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import { Script } from "forge-std/Script.sol";
 import { Test } from "forge-std/Test.sol";
-import { console2 } from "forge-std/Console2.sol";
+import { console2 } from "forge-std/console2.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";

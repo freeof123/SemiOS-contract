@@ -11,7 +11,7 @@ import { PDCreate } from "contracts/PDCreate.sol";
 import "contracts/interface/D4AStructs.sol";
 
 import { D4AERC721 } from "contracts/D4AERC721.sol";
-import { console2 } from "forge-std/Console2.sol";
+import { console2 } from "forge-std/console2.sol";
 import "contracts/interface/D4AErrors.sol";
 
 contract PDProtocolTest is DeployHelper {

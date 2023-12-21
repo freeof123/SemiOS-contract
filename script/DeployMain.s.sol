@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import { Script } from "forge-std/Script.sol";
 import { Test } from "forge-std/Test.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { console2 } from "forge-std/Console2.sol";
+import { console2 } from "forge-std/console2.sol";
 
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { AccessControl } from "@solidstate/contracts/access/access_control/AccessControl.sol";
