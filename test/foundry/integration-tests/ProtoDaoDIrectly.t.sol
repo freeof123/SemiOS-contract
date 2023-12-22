@@ -525,7 +525,8 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.uniPriceModeOff = true;
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
-
+        assertEq(protocol.getDaoToken(daoId), protocol.getDaoToken(daoId2));
+      
         vm.roll(2);
         address token = protocol.getDaoToken(daoId2);
         deal(token, nftMinter.addr, 100_000_000 ether);
@@ -538,7 +539,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         }
 
         vm.prank(nftMinter.addr);
-        _testERC20.approve(address(protocol), 0.01 ether);
+
         super._mintNftChangeBal(
             daoId2,
             canvasId2,
