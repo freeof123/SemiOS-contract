@@ -103,13 +103,13 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployERC721WithFilterFactory();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        //_deployProtocol();
 
         _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        _cutProtocolReadableFacet(DeployMethod.REPLACE);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
@@ -117,8 +117,8 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPDCreateFunding();
         //_cutFacetsPDCreateFunding(DeployMethod.REMOVE);
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         //_deployPDRound();
         //_cutFacetsPDRound(DeployMethod.ADD);
@@ -158,7 +158,7 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _createDao();
 
-        // vm.stopBroadcast();
+        vm.stopBroadcast();
     }
 
     function getMerkleRoot(address[] memory accounts) public returns (bytes32) {

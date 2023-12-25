@@ -526,7 +526,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
         assertEq(protocol.getDaoToken(daoId), protocol.getDaoToken(daoId2));
-      
+
         vm.roll(2);
         address token = protocol.getDaoToken(daoId2);
         deal(token, nftMinter.addr, 100_000_000 ether);

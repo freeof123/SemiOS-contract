@@ -1054,6 +1054,10 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.logBytes(abi.encodeCall(AccessControl.renounceRole, (PROTOCOL_ROLE)));
         console2.log("transfer feepool admin ");
         console2.logBytes(abi.encodeCall(Ownable.transferOwnership, (multisig3)));
+        console2.log("grant default admin role data");
+        console2.logBytes(abi.encodeCall(AccessControl.grantRole, (DEFAULT_ADMIN_ROLE, multisig3)));
+        console2.log("revoke default admin role data");
+        console2.logBytes(abi.encodeCall(AccessControl.revokeRole, (DEFAULT_ADMIN_ROLE, multisig)));
         //ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
     }
 
