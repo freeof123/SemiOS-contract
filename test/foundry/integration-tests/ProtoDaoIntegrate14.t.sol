@@ -22,7 +22,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         super.setUpEnv();
     }
 
-    // testcase 1.4-34
     function test_PDCreateFunding_4_34() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
@@ -96,7 +95,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.noPermission = true;
-        param.daoUri = "infiniteAndProgressive dao uri";
+        param.daoUri = "test 1.4-20 dao uri";
         param.isProgressiveJackpot = true;
         param.infiniteMode = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -126,8 +125,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.setChildren(daoId, vars);
 
         deal(protocol.getDaoAssetPool(daoId), 10 ether);
-
-
 
         vm.roll(3);
         super._mintNft(
@@ -184,13 +181,14 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.noPermission = true;
-        param.daoUri = "infiniteAndNotProgressive dao uri";
+        param.daoUri = "test 1.4-21 dao uri";
         param.isProgressiveJackpot = false;
         param.infiniteMode = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
-        assertGe(protocol.getDaoAssetPool(daoId).balance, 0);
-        assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)) , 0); 
+
+        // assertGe(protocol.getDaoAssetPool(daoId).balance, 1);
+        // assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)) , 1); 
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
         bytes32 canvasId2 = param.canvasId;
@@ -199,8 +197,69 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.daoUri = "sub dao uri";
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
-        uint256 subDaoERC20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2));
-        uint256 subDaoETHBalance = protocol.getDaoAssetPool(daoId2).balance;
+        uint256 erc20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2));
+        uint256 ethBalance = protocol.getDaoAssetPool(daoId2).balance;
+        assertEq(erc20Balance, 0 );
+        assertEq(ethBalance, 0);
+        deal(protocol.getDaoAssetPool(daoId2), 1 ether);
+        vm.prank(daoCreator.addr);
+        protocol.setInitialTokenSupplyForSubDao(daoId2, 1000000 ether);
+
+        super._mintNft(
+            daoId2,
+            canvasId2,
+            "a1234",
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), 1000000 ether);
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, 1 ether + 0.0035 ether);
+
+    }
+
+    function test_PDCreateFunding_4_22() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "test 1.4-22 dao uri";
+        param.isProgressiveJackpot = false;
+        param.infiniteMode = true;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
+        bytes32 canvasId2 = param.canvasId;
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.daoUri = "sub dao uri";
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+        SetChildrenParam memory vars;
+        vars.childrenDaoId = new bytes32[](1);
+        vars.childrenDaoId[0] = daoId2;
+
+        vars.erc20Ratios = new uint256[](1);
+        vars.erc20Ratios[0] = 3000;
+        vars.ethRatios = new uint256[](1);
+        vars.ethRatios[0] = 3000;
+
+        vars.selfRewardRatioERC20 = 5000;
+        vars.selfRewardRatioETH = 5000;
+        vars.redeemPoolRatioETH = 1000;
+
+        vm.prank(daoCreator.addr);
+        protocol.setChildren(daoId, vars);
+        deal(protocol.getDaoAssetPool(daoId), 10 ether);
+
+        assertGe(protocol.getDaoAssetPool(daoId).balance, 1);
+        assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)) , 1);
+
+        uint256 mainERC20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId));
+        uint256 mainETHBalance = protocol.getDaoAssetPool(daoId).balance;
 
         super._mintNft(
             daoId,
@@ -213,9 +272,84 @@ contract ProtoDaoIntergrate14 is DeployHelper {
             nftMinter.addr
         );
 
-        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), subDaoERC20Balance);
-        assertEq(protocol.getDaoAssetPool(daoId2).balance, subDaoETHBalance);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainERC20Balance * vars.erc20Ratios[0] / 10000);
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainETHBalance * vars.ethRatios[0] / 10000);
 
+        assertEq(protocol.getRoundERC20Reward(daoId, 1), mainERC20Balance * vars.selfRewardRatioERC20 / 10000);
+        assertEq(protocol.getRoundETHReward(daoId, 1), mainETHBalance * vars.selfRewardRatioETH / 10000);
+        //redeemPoolMintFeeRatioFiatPrice = 60% in DeployHelper.sol --> 0.01 ether * 0.6
+        assertEq(protocol.getDaoFeePool(daoId).balance, mainETHBalance * vars.redeemPoolRatioETH / 10000  +  0.01 ether *  0.6);
 
+        assertEq(protocol.getDaoAssetPool(daoId).balance, mainETHBalance * (10000 - vars.ethRatios[0] -  vars.selfRewardRatioETH - vars.redeemPoolRatioETH) / 10000  + 0.01 ether * 0.35);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), mainERC20Balance * (10000 - vars.erc20Ratios[0] - vars.selfRewardRatioERC20) / 10000);
     }
+
+    function test_PDCreateFunding_4_17() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "test 1.4-17 dao_1 uri";
+        param.isProgressiveJackpot = true;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+        vm.roll(protocol.getDaoRemainingRound(daoId) + 2);
+        assertEq(protocol.getDaoRemainingRound(daoId), 0);
+
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
+        bytes32 canvasId2 = param.canvasId;
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.daoUri = "sub dao uri";
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        SetChildrenParam memory vars;
+        vars.childrenDaoId = new bytes32[](1);
+        vars.childrenDaoId[0] = daoId2;
+        vars.erc20Ratios = new uint256[](1);
+        vars.erc20Ratios[0] = 10000;
+        vars.ethRatios = new uint256[](1);
+        vars.ethRatios[0] = 10000;
+
+        vm.prank(daoCreator.addr);
+        protocol.setChildren(daoId, vars);
+        deal(protocol.getDaoAssetPool(daoId), 10 ether);
+
+        uint256 mainDaoERC20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId));
+        uint256 mainDaoETHBalance = protocol.getDaoAssetPool(daoId).balance;
+
+        uint256 cycleRound = 50;
+        vm.prank(daoCreator.addr);
+        protocol.setDaoRemainingRound(daoId, cycleRound);
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainDaoETHBalance / 50);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainDaoERC20Balance / 50);
+
+        vm.roll(block.number + 49);
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainDaoETHBalance + 0.01 ether * 0.35);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainDaoERC20Balance);
+    }
+
 }
