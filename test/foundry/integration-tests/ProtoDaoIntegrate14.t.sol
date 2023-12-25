@@ -104,7 +104,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertGe(protocol.getDaoAssetPool(daoId).balance, 0);
         assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)) , 0);
 
-        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
@@ -175,5 +175,47 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         );
         assertEq(protocol.getDaoAssetPool(daoId).balance, (1 ether + 0.0035 ether) * 0.1 + 0.01 ether * 0.35);
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 5_000_000 ether * 2 * 0.2);
+    }
+
+    function test_PDCreateFunding_4_21() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "infiniteAndNotProgressive dao uri";
+        param.isProgressiveJackpot = false;
+        param.infiniteMode = true;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+        assertGe(protocol.getDaoAssetPool(daoId).balance, 0);
+        assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)) , 0); 
+
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
+        bytes32 canvasId2 = param.canvasId;
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.daoUri = "sub dao uri";
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        uint256 subDaoERC20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2));
+        uint256 subDaoETHBalance = protocol.getDaoAssetPool(daoId2).balance;
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), subDaoERC20Balance);
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, subDaoETHBalance);
+
+
     }
 }
