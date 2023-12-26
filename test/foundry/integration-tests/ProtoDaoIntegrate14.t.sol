@@ -5,7 +5,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
-import { UserMintCapParam, SetChildrenParam } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, SetChildrenParam,AllRatioParam } from "contracts/interface/D4AStructs.sol";
 import { ClaimMultiRewardParam } from "contracts/D4AUniversalClaimer.sol";
 
 import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D4AErrors.sol";
@@ -283,7 +283,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertEq(protocol.getDaoAssetPool(daoId).balance, mainETHBalance * (10000 - vars.ethRatios[0] -  vars.selfRewardRatioETH - vars.redeemPoolRatioETH) / 10000  + 0.01 ether * 0.35);
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), mainERC20Balance * (10000 - vars.erc20Ratios[0] - vars.selfRewardRatioERC20) / 10000);
     }
-
     function test_PDCreateFunding_4_17() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
@@ -351,5 +350,140 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertEq(protocol.getDaoAssetPool(daoId2).balance, mainDaoETHBalance + 0.01 ether * 0.35);
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainDaoERC20Balance);
     }
+    function test_PDCreateFunding_ZeroUnifiedPrice() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.uniPriceModeOff = false;
 
+        param.mintableRound = 10;
+        param.selfRewardRatioERC20 = 7000;
+        param.selfRewardRatioETH = 7000;
+        param.daoUri = "test 1.4-xx dao uri";
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+
+        vm.prank(daoCreator.addr);
+        protocol.setDaoUnifiedPrice(daoId, 0 ether);
+
+        deal(protocol.getDaoAssetPool(daoId), 10 ether);
+        uint256 ether_dao_asset_balance = protocol.getDaoAssetPool(daoId).balance;
+        uint256 token_dao_asset_balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId));
+
+        for(uint256 i=0; i<3; i++ ){
+            super._mintNft(
+                daoId,
+                canvasId1,
+                string.concat(
+                    tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(i)), ".json"
+                ),
+                0 ether,
+                daoCreator.key,
+                nftMinter.addr
+            );
+        }
+        for(uint256 i=3; i<5; i++ ){
+            super._mintNft(
+                daoId,
+                canvasId1,
+                string.concat(
+                    tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(i)), ".json"
+                ),
+                0 ether,
+                daoCreator.key,
+                nftMinter2.addr
+            );
+        }
+
+        vm.roll(2); 
+        uint256 remainingRound = protocol.getDaoRemainingRound(daoId) + 1;
+        uint256 token_balance_before = IERC20(token).balanceOf(nftMinter.addr);
+        uint256 eth_balance_before = nftMinter.addr.balance;
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        assertEq(IERC20(token).balanceOf(nftMinter.addr) - token_balance_before ,  token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 800 / 10000  * 3, "ERC20 balance nftMinter error in Round1");
+        assertEq(nftMinter.addr.balance - eth_balance_before , ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 800 / 10000 * 3, "ETH balance nftMinter error in Round1" );
+
+        token_balance_before = IERC20(token).balanceOf(nftMinter2.addr);
+        eth_balance_before = nftMinter2.addr.balance;
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);   
+        assertEq(IERC20(token).balanceOf(nftMinter2.addr) - token_balance_before ,  token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 800 / 10000  * 2, "ERC20 balance nftMinter2 error in Round1");
+        assertEq(nftMinter2.addr.balance - eth_balance_before , ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 800 / 10000 * 2, "ETH balance nftMinter2 Error in Round1" );
+
+        token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
+        eth_balance_before = daoCreator.addr.balance;
+        protocol.claimDaoCreatorReward(daoId);
+        assertEq(IERC20(token).balanceOf(daoCreator.addr) - token_balance_before ,  token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 7000 / 10000 * 5, "ERC20 balance daoCreator error in Round1");
+        assertEq(daoCreator.addr.balance - eth_balance_before , ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 7000 / 10000 * 5, "ETH balance daocreator Error in Round1");
+
+        token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
+        eth_balance_before = daoCreator.addr.balance;
+        protocol.claimCanvasReward(canvasId1);
+        assertEq(IERC20(token).balanceOf(daoCreator.addr) - token_balance_before ,  token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 2000 / 10000 * 5, "ERC20 Canvas Creator Error in Round1" );
+        assertEq(daoCreator.addr.balance - eth_balance_before , ether_dao_asset_balance * param.selfRewardRatioETH  / 10000 / remainingRound / 5 * 2000 / 10000 * 5, "ETH Canvas Creator Error in Round1");
+
+
+        //Start Second Active Round
+        ether_dao_asset_balance = protocol.getDaoAssetPool(daoId).balance;
+        token_dao_asset_balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)); 
+
+        for(uint256 i=5; i<7; i++ ){
+            super._mintNft(
+                daoId,
+                canvasId1,
+                string.concat(
+                    tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(i)), ".json"
+                ),
+                0 ether,
+                daoCreator.key,
+                nftMinter.addr
+            );
+        }
+        for(uint256 i=7; i<10; i++ ){
+            super._mintNft(
+                daoId,
+                canvasId1,
+                string.concat(
+                    tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(i)), ".json"
+                ),
+                0 ether,
+                daoCreator.key,
+                nftMinter2.addr
+            );
+        }
+
+        vm.roll(3); 
+        remainingRound = protocol.getDaoRemainingRound(daoId) + 1;
+
+        token_balance_before = IERC20(token).balanceOf(nftMinter.addr);
+        eth_balance_before = nftMinter.addr.balance;
+        protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        assertEq((IERC20(token).balanceOf(nftMinter.addr) - token_balance_before) / 10 ,  (token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 800 / 10000  * 2) / 10, "ERC20 balance nftMinter error in Round2" );
+        assertEq((nftMinter.addr.balance - eth_balance_before)/ 10 , (ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 800 / 10000 * 2)/ 10, "ETH balance nftMinter error in Round2" );
+
+        token_balance_before = IERC20(token).balanceOf(nftMinter2.addr);
+        eth_balance_before = nftMinter2.addr.balance;
+        protocol.claimNftMinterReward(daoId, nftMinter2.addr);   
+        assertEq((IERC20(token).balanceOf(nftMinter2.addr) - token_balance_before )/ 10,  (token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 800 / 10000  * 3)/ 10, "ERC20 balance nftMinter2 error in Round2" );
+        assertEq((nftMinter2.addr.balance - eth_balance_before)/ 10 , (ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 800 / 10000 * 3)/ 10, "ETH balance nftMinter2 Error in Round2");
+
+        token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
+        eth_balance_before = daoCreator.addr.balance;
+        protocol.claimDaoCreatorReward(daoId);
+        assertEq((IERC20(token).balanceOf(daoCreator.addr) - token_balance_before) / 10 ,  (token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 7000 / 10000 * 5) / 10, "ERC20 balance daoCreator error in Round2");
+        assertEq((daoCreator.addr.balance - eth_balance_before)/ 10 , (ether_dao_asset_balance * param.selfRewardRatioETH / 10000 / remainingRound / 5 * 7000 / 10000 * 5) / 10, "ETH balance daocreator Error in Round2");
+
+        token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
+        eth_balance_before = daoCreator.addr.balance;
+        protocol.claimCanvasReward(canvasId1);
+        assertEq((IERC20(token).balanceOf(daoCreator.addr) - token_balance_before)/10 ,  (token_dao_asset_balance * param.selfRewardRatioERC20 / 10000 / remainingRound / 5 * 2000 / 10000 * 5)/10, "ERC20 balance canvas creator Error in Round2" );
+        assertEq( (daoCreator.addr.balance - eth_balance_before)/10 , (ether_dao_asset_balance * param.selfRewardRatioETH  / 10000 / remainingRound / 5 * 2000 / 10000 * 5) / 10, "ETH balance  canvas creator Error in Round2");
+
+
+        //q1. redeem pool ProtocolFeePool balance ?
+
+
+    }
 }
