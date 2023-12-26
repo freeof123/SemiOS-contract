@@ -24,74 +24,74 @@ contract GetRoundRewardTest is DeployHelper {
         sigUtils = new MintNftSigUtils(address(protocol));
     }
 
-    //     function
+    // function
     // test_getRoundReward_Exponential_reward_issuance_2x_decayFactor_notProgressiveJackpot_max_mintableRounds()
-    //         public
-    //     {
-    //         // _createDaoAndCanvas(366, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, 20_000, false);
+    //     public
+    // {
+    //     _createDaoAndCanvas(366, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, 20_000, false);
 
-    //         // for (uint256 i = 1; i < 11; i++) {
-    //         //     assertApproxEqAbs(
-    //         //         ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, i),
-    //         //         5e26,
-    //         //         1,
-    //         //         string.concat("round ", vm.toString(i))
-    //         //     );
-    //         // }
-
-    //         // // mint for 30 rounds
-    //         // for (uint256 j = 2; j < 368; j++) {
-    //         //     drb.changeRound(j);
-
-    //         //     string memory tokenUri = string.concat("test token uri", vm.toString(j));
-    //         //     uint256 flatPrice = 0;
-    //         //     bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-    //         //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
-    //         //     startHoax(nftMinter.addr);
-    //         //     protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) }(
-    //         //         daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
-    //         //     );
-    //         //     vm.stopPrank();
-
-    //         //     uint256 temp = 5e26;
-    //         //     for (uint256 k; k < j - 2; k++) {
-    //         //         temp /= 2;
-    //         //     }
-    //         //     assertApproxEqAbs(
-    //         //         ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
-    //         //         temp,
-    //         //         1,
-    //         //         string.concat("round ", vm.toString(j))
-    //         //     );
-
-    //         //     drb.changeRound(j + 1);
-
-    //         //     assertApproxEqAbs(
-    //         //         ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
-    //         //         temp,
-    //         //         1,
-    //         //         string.concat("round ", vm.toString(j))
-    //         //     );
-    //         //     for (uint256 i = j + 1; i < j + 11; i++) {
-    //         //         assertApproxEqAbs(
-    //         //             ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, i),
-    //         //             temp / 2,
-    //         //             1,
-    //         //             string.concat("round ", vm.toString(i))
-    //         //         );
-    //         //     }
-    //         // }
-
-    //         // drb.changeRound(371);
-    //         // // 有claim但是这个测试过了
-    //         // protocol.claimProjectERC20Reward(daoId);
-    //         // assertApproxEqAbs(
-    //         //     D4AERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId)).totalSupply(),
-    //         //     ID4AProtocolReadable(address(protocol)).getDaoTokenMaxSupply(daoId),
-    //         //     100,
-    //         //     "total supply"
-    //         // );
+    //     for (uint256 i = 1; i < 11; i++) {
+    //         assertApproxEqAbs(
+    //             ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, i),
+    //             5e26,
+    //             1,
+    //             string.concat("round ", vm.toString(i))
+    //         );
     //     }
+
+    //     // mint for 30 rounds
+    //     for (uint256 j = 2; j < 368; j++) {
+    //         vm.roll(j);
+
+    //         string memory tokenUri = string.concat("test token uri", vm.toString(j));
+    //         uint256 flatPrice = 0;
+    //         bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
+    //         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
+    //         startHoax(nftMinter.addr);
+    //         protocol.mintNFT{ value: ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId) }(
+    //             daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+    //         );
+    //         vm.stopPrank();
+
+    //         uint256 temp = 5e26;
+    //         for (uint256 k; k < j - 2; k++) {
+    //             temp /= 2;
+    //         }
+    //         assertApproxEqAbs(
+    //             ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
+    //             temp,
+    //             1,
+    //             string.concat("round ", vm.toString(j))
+    //         );
+
+    //         vm.roll(j + 1);
+
+    //         assertApproxEqAbs(
+    //             ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
+    //             temp,
+    //             1,
+    //             string.concat("round ", vm.toString(j))
+    //         );
+    //         for (uint256 i = j + 1; i < j + 11; i++) {
+    //             assertApproxEqAbs(
+    //                 ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, i),
+    //                 temp / 2,
+    //                 1,
+    //                 string.concat("round ", vm.toString(i))
+    //             );
+    //         }
+    //     }
+
+    //     vm.roll(371);
+    //     // 有claim但是这个测试过了
+    //     protocol.claimProjectERC20Reward(daoId);
+    //     assertApproxEqAbs(
+    //         D4AERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId)).totalSupply(),
+    //         ID4AProtocolReadable(address(protocol)).getDaoTokenMaxSupply(daoId),
+    //         100,
+    //         "total supply"
+    //     );
+    // }
 
     //     function
     // test_getRoundReward_Exponential_reward_issuance_3x_decayFactor_notProgressiveJackpot_max_mintableRounds()
@@ -109,7 +109,7 @@ contract GetRoundRewardTest is DeployHelper {
 
     //         // // mint for 30 rounds
     //         // for (uint256 j = 2; j < 368; j++) {
-    //         //     drb.changeRound(j);
+    //         //     vm.roll(j);
 
     //         //     string memory tokenUri = string.concat("test token uri", vm.toString(j));
     //         //     uint256 flatPrice = 0;
@@ -132,7 +132,7 @@ contract GetRoundRewardTest is DeployHelper {
     //         //         string.concat("round ", vm.toString(j))
     //         //     );
 
-    //         //     drb.changeRound(j + 1);
+    //         //     vm.roll(j + 1);
 
     //         //     assertApproxEqAbs(
     //         //         ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
@@ -150,7 +150,7 @@ contract GetRoundRewardTest is DeployHelper {
     //         //     }
     //         // }
 
-    //         // drb.changeRound(371);
+    //         // vm.roll(371);
     //         // protocol.claimProjectERC20Reward(daoId);
     //         // assertApproxEqAbs(
     //         //     D4AERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId)).totalSupply(),
@@ -177,7 +177,7 @@ contract GetRoundRewardTest is DeployHelper {
 
     //         // mint for 30 rounds
     //         for (uint256 j = 2; j < 368; j++) {
-    //             drb.changeRound(j);
+    //             vm.roll(j);
 
     //             string memory tokenUri = string.concat("test token uri", vm.toString(j));
     //             uint256 flatPrice = 0;
@@ -200,7 +200,7 @@ contract GetRoundRewardTest is DeployHelper {
     //                 string.concat("round ", vm.toString(j))
     //             );
 
-    //             drb.changeRound(j + 1);
+    //             vm.roll(j + 1);
 
     //             assertApproxEqAbs(
     //                 ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
@@ -220,7 +220,7 @@ contract GetRoundRewardTest is DeployHelper {
     //             }
     //         }
 
-    //         drb.changeRound(371);
+    //         vm.roll(371);
     //         protocol.claimProjectERC20Reward(daoId);
     //         assertApproxEqAbs(
     //             D4AERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId)).totalSupply(),
@@ -248,7 +248,7 @@ contract GetRoundRewardTest is DeployHelper {
 
     //         // mint for 30 rounds
     //         for (uint256 j = 2; j < 32; j++) {
-    //             drb.changeRound(j);
+    //             vm.roll(j);
 
     //             string memory tokenUri = string.concat("test token uri", vm.toString(j));
     //             uint256 flatPrice = 0;
@@ -271,7 +271,7 @@ contract GetRoundRewardTest is DeployHelper {
     //                 string.concat("round ", vm.toString(j))
     //             );
 
-    //             drb.changeRound(j + 1);
+    //             vm.roll(j + 1);
 
     //             assertApproxEqAbs(
     //                 ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
@@ -291,7 +291,7 @@ contract GetRoundRewardTest is DeployHelper {
     //             }
     //         }
 
-    //         drb.changeRound(42);
+    //         vm.roll(42);
     //         // claim问题
     //         protocol.claimProjectERC20Reward(daoId);
     //         assertApproxEqAbs(
@@ -512,7 +512,7 @@ contract GetRoundRewardTest is DeployHelper {
 
     //         // mint for 30 rounds
     //         for (uint256 j = 2; j < 32; j++) {
-    //             drb.changeRound(j);
+    //             vm.roll(j);
 
     //             string memory tokenUri = string.concat("test token uri", vm.toString(j));
     //             uint256 flatPrice = 0;
@@ -530,7 +530,7 @@ contract GetRoundRewardTest is DeployHelper {
     //                 string.concat("round ", vm.toString(j))
     //             );
 
-    //             drb.changeRound(j + 1);
+    //             vm.roll(j + 1);
 
     //             assertEq(
     //                 ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
@@ -546,7 +546,7 @@ contract GetRoundRewardTest is DeployHelper {
     //             }
     //         }
 
-    //         drb.changeRound(42);
+    //         vm.roll(42);
     //         // claim问题
     //         protocol.claimProjectERC20Reward(daoId);
     //         assertEq(
@@ -572,7 +572,7 @@ contract GetRoundRewardTest is DeployHelper {
 
     //         // mint for 366 rounds
     //         for (uint256 j = 2; j < 368; j++) {
-    //             drb.changeRound(j);
+    //             vm.roll(j);
 
     //             string memory tokenUri = string.concat("test token uri", vm.toString(j));
     //             uint256 flatPrice = 0;
@@ -590,7 +590,7 @@ contract GetRoundRewardTest is DeployHelper {
     //                 string.concat("round ", vm.toString(j))
     //             );
 
-    //             drb.changeRound(j + 1);
+    //             vm.roll(j + 1);
 
     //             assertEq(
     //                 ID4AProtocolReadable(address(protocol)).getRoundReward(daoId, j),
@@ -606,7 +606,7 @@ contract GetRoundRewardTest is DeployHelper {
     //             }
     //         }
 
-    //         drb.changeRound(420);
+    //         vm.roll(420);
     //         // claim问题
     //         protocol.claimProjectERC20Reward(daoId);
     //         assertEq(
@@ -628,7 +628,7 @@ contract GetRoundRewardTest is DeployHelper {
     // 370_479_534_683_558_798_115_818_789);
 
     //         {
-    //             drb.changeRound(2);
+    //             vm.roll(2);
     //             string memory tokenUri = "test token uri 1";
     //             uint256 flatPrice = 0;
     //             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
@@ -672,7 +672,7 @@ contract GetRoundRewardTest is DeployHelper {
     //         }
 
     //         {
-    //             drb.changeRound(2);
+    //             vm.roll(2);
     //             string memory tokenUri = "test token uri 2";
     //             uint256 flatPrice = 0;
     //             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
@@ -713,9 +713,9 @@ contract GetRoundRewardTest is DeployHelper {
     //         createDaoParam.rewardTemplateType = rewardTemplateType;
     //         createDaoParam.rewardDecayFactor = rewardDecayFactor;
     //         createDaoParam.isProgressiveJackpot = isProgressiveJackpot;
-    //         daoId = _createDao(createDaoParam);
+    //         daoId = _createDaoForFunding(createDaoParam);
 
-    //         drb.changeRound(1);
+    //         vm.roll(1);
     //         hoax(canvasCreator.addr);
     //         canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0), 3000);
     //     }

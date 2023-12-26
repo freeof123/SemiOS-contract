@@ -477,7 +477,7 @@ contract D4AProtocolSetterTest is DeployHelper {
     //     createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
     //     createDaoParam.rewardDecayFactor = 12_600;
     //     createDaoParam.isProgressiveJackpot = true;
-    //     bytes32 daoId = _createDao(createDaoParam);
+    //     bytes32 daoId = _createDaoForFunding(createDaoParam);
 
     //     vm.roll(31);
     //     vm.expectRevert(ExceedDaoMintableRound.selector);
@@ -495,7 +495,7 @@ contract D4AProtocolSetterTest is DeployHelper {
     //     createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
     //     createDaoParam.rewardDecayFactor = 12_600;
     //     createDaoParam.isProgressiveJackpot = true;
-    //     bytes32 daoId = _createDao(createDaoParam);
+    //     bytes32 daoId = _createDaoForFunding(createDaoParam);
 
     //     vm.roll(51);
     //     vm.expectRevert(NewMintableRoundsFewerThanRewardIssuedRounds.selector);
@@ -509,7 +509,7 @@ contract D4AProtocolSetterTest is DeployHelper {
     //         createDaoParam.priceFactor = 0.01 ether;
     //         createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
     //         createDaoParam.rewardDecayFactor = 12_600;
-    //         bytes32 daoId = _createDao(createDaoParam);
+    //         bytes32 daoId = _createDaoForFunding(createDaoParam);
 
     //         vm.roll(1);
     //         hoax(canvasCreator.addr);
@@ -551,7 +551,7 @@ contract D4AProtocolSetterTest is DeployHelper {
     //         createDaoParam.priceFactor = 0.01 ether;
     //         createDaoParam.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
     //         createDaoParam.rewardDecayFactor = 12_600;
-    //         bytes32 daoId = _createDao(createDaoParam);
+    //         bytes32 daoId = _createDaoForFunding(createDaoParam);
 
     //         vm.roll(1);
     //         hoax(canvasCreator.addr);

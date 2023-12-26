@@ -16,7 +16,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
     // function test_daoToken() public {
     //     DeployHelper.CreateDaoParam memory param;
-    //     bytes32 daoId = _createDao(param);
+    //     bytes32 daoId = _createDaoForFunding(param);
 
     //     hoax(operationRoleMember.addr);
     //     protocol.addAllowedToken(address(_testERC20));
@@ -34,7 +34,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_lastUpdatedDaoTokenIncrease_ETH() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -61,7 +61,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_lastUpdatedDaoTokenIncrease_Token() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -95,7 +95,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_getTotalDaoTokenIssuance() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -124,7 +124,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_release_ETH() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -152,7 +152,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_release_ETH_ExpectEmit() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -178,7 +178,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_release_Token() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -211,7 +211,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_release_Token_ExpectEmit() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -242,7 +242,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_releasable_ETH() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -266,7 +266,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_releasable_Token() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -294,7 +294,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
     //     function test_beneficiary() public {
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(operationRoleMember.addr);
     //         protocol.addAllowedToken(address(_testERC20));
@@ -313,7 +313,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_released_ETH() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),
@@ -339,7 +339,7 @@ contract D4AVestingWalletTest is DeployHelper {
     //     function test_released_Token() public {
     //         vm.skip(true);
     //         DeployHelper.CreateDaoParam memory param;
-    //         bytes32 daoId = _createDao(param);
+    //         bytes32 daoId = _createDaoForFunding(param);
 
     //         hoax(canvasCreator.addr);
     //         bytes32 canvasId = protocol.createCanvas{ value: 0.01 ether }(daoId, "test canvas uri", new bytes32[](0),

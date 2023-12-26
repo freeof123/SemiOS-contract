@@ -23,7 +23,7 @@ contract D4ARoyaltySplitterTest is DeployHelper {
         protocolShare = ID4ASettingsReadable(address(protocol)).tradeProtocolFeeRatio();
 
         DeployHelper.CreateDaoParam memory createDaoParam;
-        bytes32 daoId = _createDao(createDaoParam);
+        bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
 
         splitter = D4ARoyaltySplitter(payable(daoProxy.royaltySplitters(daoId)));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
