@@ -267,7 +267,7 @@ contract NftPriceTest is DeployHelper {
     function test_PriceUnderDfpShouldElevateToDfpAfterMint() public {
         // DeployHelper.CreateDaoParam memory param;
         // param.floorPriceRank = 2;
-        // bytes32 daoId = _createDao(param);
+        // bytes32 daoId = _createDaoForFunding(param);
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
