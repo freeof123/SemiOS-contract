@@ -334,7 +334,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
         userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
 
-        // ???不明白这个emit的意义
+        // 不明白这个emit的意义
         // vm.expectEmit(true, true, true, true);
         // emit MintCapSet(daoId, 100, userMintCapParams);
         hoax(daoCreator.addr);

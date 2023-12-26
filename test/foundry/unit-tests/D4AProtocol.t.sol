@@ -198,19 +198,18 @@ contract D4AProtocolTest is DeployHelper {
         }
 
         vm.roll(2);
-        // protocol.claimProjectERC20Reward(daoId);  // #@! 为什么找不到这个方法
+        protocol.claimDaoCreatorReward(daoId);
         protocol.claimCanvasReward(canvasId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // protocol.claimProjectERC20Reward(daoId);
+        protocol.claimDaoCreatorReward(daoId);
         protocol.claimCanvasReward(canvasId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
     }
 
     function test_claimReward_of_old_checkpoint() public {
-        vm.skip(true);
         {
             string memory tokenUri = "test token uri";
-            uint256 flatPrice = 0;
+            uint256 flatPrice = 0.01 ether;
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
@@ -224,8 +223,8 @@ contract D4AProtocolTest is DeployHelper {
         protocol.setDaoRemainingRound(daoId, 41);
 
         vm.roll(2);
-        // claim问题
-        // assertTrue(protocol.claimProjectERC20Reward(daoId) != 0); // #@! 为什么找不到这个方法
+        (uint256 rewardETHCreator,) = protocol.claimDaoCreatorReward(daoId);
+        assertTrue(rewardETHCreator != 0);
         (uint256 rewardETH,) = protocol.claimCanvasReward(canvasId);
         assertTrue(rewardETH != 0);
     }

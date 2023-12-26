@@ -470,6 +470,7 @@ contract D4AProtocolSetterTest is DeployHelper {
         protocol.setDaoPriceTemplate(daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 9999);
     }
 
+    // 以下几个注释掉的测试均为setDaoMintableRound对应的测试，setDaoMintableRound已被删除
     // function test_RevertIf_setDaoMintableRound_when_exceed_mintable_round_isProgressiveJackpot() public {
     //     DeployHelper.CreateDaoParam memory createDaoParam;
     //     createDaoParam.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
