@@ -47,7 +47,7 @@ contract FundingDaoParamSet is DeployHelper {
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
         param.daoUri = "continuous dao";
         param.existDaoId = daoId; // MainDAO的id
-        param.isBasicDao = false; // 不是MainDAO，即为SubDAOß
+        param.isBasicDao = false; // 不是MainDAO，即为SubDAO
         param.uniPriceModeOff = true;
         param.topUpMode = false;
 
