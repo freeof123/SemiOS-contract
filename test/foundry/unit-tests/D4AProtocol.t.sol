@@ -26,6 +26,7 @@ contract D4AProtocolTest is DeployHelper {
         createDaoParam.mintableRound = 50;
         createDaoParam.isBasicDao = true;
         createDaoParam.noPermission = true;
+        createDaoParam.selfRewardRatioETH = 5000;
         daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);
@@ -208,13 +209,15 @@ contract D4AProtocolTest is DeployHelper {
 
     function test_claimReward_of_old_checkpoint() public {
         {
+            vm.roll(2);
             string memory tokenUri = "test token uri";
             uint256 flatPrice = 0.01 ether;
             bytes32 digest = sigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
+            assertEq(price, 0.005 ether);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
+            protocol.mintNFT{ value: flatPrice }(
                 daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
             );
         }
@@ -222,10 +225,10 @@ contract D4AProtocolTest is DeployHelper {
         hoax(daoCreator.addr);
         protocol.setDaoRemainingRound(daoId, 41);
 
-        vm.roll(2);
-        (uint256 rewardETHCreator,) = protocol.claimDaoCreatorReward(daoId);
+        vm.roll(3);
+        (, uint256 rewardETHCreator) = protocol.claimDaoCreatorReward(daoId);
         assertTrue(rewardETHCreator != 0);
-        (uint256 rewardETH,) = protocol.claimCanvasReward(canvasId);
+        (, uint256 rewardETH) = protocol.claimCanvasReward(canvasId);
         assertTrue(rewardETH != 0);
     }
 }

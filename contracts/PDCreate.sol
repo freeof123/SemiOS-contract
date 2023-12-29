@@ -314,17 +314,17 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         {
             address daoAssetPool = _createDaoAssetPool(daoId, daoIndex);
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
-                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
                 daoStorage.daoInfos[daoId].tokenMaxSupply =
                     (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
             }
             if (
                 !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
                     && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
             ) {
-                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
                 daoStorage.daoInfos[daoId].tokenMaxSupply =
                     (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
             }
         }
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
