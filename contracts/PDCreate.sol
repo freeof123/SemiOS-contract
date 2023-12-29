@@ -296,7 +296,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             }
             daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
             daoInfo.daoIndex = daoIndex;
-            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
         }
 
         emit NewProject(
@@ -316,12 +315,16 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             address daoAssetPool = _createDaoAssetPool(daoId, daoIndex);
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
                 D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
+                daoStorage.daoInfos[daoId].tokenMaxSupply =
+                    (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
             }
             if (
                 !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
                     && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
             ) {
                 D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
+                daoStorage.daoInfos[daoId].tokenMaxSupply =
+                    (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
             }
         }
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
@@ -401,7 +404,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
             //We copy from setting in case setting may change later.
-            daoInfo.tokenMaxSupply = (settingsStorage.tokenMaxSupply * vars.initTokenSupplyRatio) / BASIS_POINT;
             daoInfo.daoExist = true;
         }
     }
@@ -439,8 +441,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
             ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
             //We copy from setting in case setting may change later.
-            daoInfo.tokenMaxSupply =
-                (settingsStorage.tokenMaxSupply * createContinuousDaoParam.initTokenSupplyRatio) / BASIS_POINT;
 
             daoInfo.daoExist = true;
         }
