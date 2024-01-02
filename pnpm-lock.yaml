@@ -14,8 +14,8 @@ dependencies:
 
 devDependencies:
   '@chainlink/contracts':
-    specifier: ^0.6.1
-    version: 0.6.1(ethers@6.9.1)
+    specifier: ^0.8.0
+    version: 0.8.0(ethers@6.9.1)
   '@openzeppelin/contracts':
     specifier: ^4.9.3
     version: 4.9.5
@@ -68,12 +68,12 @@ packages:
       js-tokens: 4.0.0
     dev: true
 
-  /@chainlink/contracts@0.6.1(ethers@6.9.1):
-    resolution: {integrity: sha512-EuwijGexttw0UjfrW+HygwhQIrGAbqpf1ue28R55HhWMHBzphEH0PhWm8DQmFfj5OZNy8Io66N4L0nStkZ3QKQ==}
+  /@chainlink/contracts@0.8.0(ethers@6.9.1):
+    resolution: {integrity: sha512-nUv1Uxw5Mn92wgLs2bgPYmo8hpdQ3s9jB/lcbdU0LmNOVu0hbfmouVnqwRLa28Ll50q6GczUA+eO0ikNIKLZsA==}
     dependencies:
       '@eth-optimism/contracts': 0.5.40(ethers@6.9.1)
       '@openzeppelin/contracts': 4.3.3
-      '@openzeppelin/contracts-upgradeable': 4.9.5
+      '@openzeppelin/contracts-upgradeable-4.7.3': /@openzeppelin/contracts-upgradeable@4.7.3
       '@openzeppelin/contracts-v0.7': /@openzeppelin/contracts@3.4.2
     transitivePeerDependencies:
       - bufferutil
@@ -358,6 +358,10 @@ packages:
 
   /@noble/secp256k1@1.7.1:
     resolution: {integrity: sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==}
+    dev: true
+
+  /@openzeppelin/contracts-upgradeable@4.7.3:
+    resolution: {integrity: sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==}
     dev: true
 
   /@openzeppelin/contracts-upgradeable@4.9.5:
