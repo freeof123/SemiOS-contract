@@ -12,6 +12,8 @@ interface IRewardTemplate {
     );
     event DaoBlockRewardForSelf(bytes32 daoId, address token, uint256 amount, uint256 round);
 
+    event DaoBlockRewardTotal(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, uint256 round);
+
     function updateReward(UpdateRewardParam memory param) external payable;
 
     function claimDaoCreatorReward(

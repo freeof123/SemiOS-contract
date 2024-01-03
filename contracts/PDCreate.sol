@@ -385,7 +385,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             }
 
             address daoFeePool = settingsStorage.feePoolFactory.createD4AFeePool(
-                string(abi.encodePacked("Redeem Pool for DAO4Art Project ", LibString.toString(vars.daoIndex)))
+                string(abi.encodePacked("Redeem Pool for Semios Project ", LibString.toString(vars.daoIndex)))
             ); //this feepool is redeem pool for erc20->eth
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
@@ -472,7 +472,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         string memory name = daoName;
-        string memory sym = string(abi.encodePacked("PDAO.T", LibString.toString(daoIndex)));
+        string memory sym = string(abi.encodePacked("SEMI.T", LibString.toString(daoIndex)));
         return settingsStorage.erc20Factory.createD4AERC20(name, sym, address(this));
     }
 
@@ -487,7 +487,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         string memory name = daoName;
-        string memory sym = string(abi.encodePacked("PDAO.N", LibString.toString(daoIndex)));
+        string memory sym = string(abi.encodePacked("SEMI.N", LibString.toString(daoIndex)));
         return settingsStorage.erc721Factory.createD4AERC721(name, sym, needMintableWork ? startIndex : 0);
     }
 
@@ -495,7 +495,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         address daoAssetPool = settingsStorage.feePoolFactory.createD4AFeePool(
-            string(abi.encodePacked("Dao Asset Pool for ProtoDao Project ", LibString.toString(daoIndex)))
+            string(abi.encodePacked("Dao Asset Pool for Semios Project ", LibString.toString(daoIndex)))
         ); //this feepool is dao asset pool for reward
         basicDaoInfo.daoAssetPool = daoAssetPool;
         D4AFeePool(payable(daoAssetPool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));

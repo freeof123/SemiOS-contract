@@ -40,15 +40,19 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         if (activeRounds.length == 0 || activeRounds[activeRounds.length - 1] != param.currentRound) {
             uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(param.daoId);
             if (remainingRound == 0) revert ExceedMaxMintableRound();
-            uint256 distributeAmount =
+            uint256 erc20DistributeAmount =
                 getDaoRoundDistributeAmount(param.daoId, param.token, param.currentRound, remainingRound);
-            _distributeRoundReward(param.daoId, distributeAmount, param.token, param.currentRound);
+            _distributeRoundReward(param.daoId, erc20DistributeAmount, param.token, param.currentRound);
+            uint256 ethDistributeAmount;
             if (!param.topUpMode) {
-                distributeAmount =
+                ethDistributeAmount =
                     getDaoRoundDistributeAmount(param.daoId, address(0), param.currentRound, remainingRound);
-                _distributeRoundReward(param.daoId, distributeAmount, address(0), param.currentRound);
+                _distributeRoundReward(param.daoId, ethDistributeAmount, address(0), param.currentRound);
             }
             activeRounds.push(param.currentRound);
+            emit DaoBlockRewardTotal(
+                param.daoId, param.token, erc20DistributeAmount, ethDistributeAmount, param.currentRound
+            );
         }
 
         rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
