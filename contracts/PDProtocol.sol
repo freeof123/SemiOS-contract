@@ -22,7 +22,8 @@ import {
     Whitelist,
     NftMinterCapInfo,
     UpdateRewardParam,
-    CreateCanvasAndMintNFTParam
+    CreateCanvasAndMintNFTParam,
+    CreateCanvasAndMintNFTCanvasParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -54,6 +55,8 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 
+import { CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
+
 //import "forge-std/Test.sol";
 
 contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGuard, Multicallable, EIP712 {
@@ -75,6 +78,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, vars.signature, vars.nftOwner
         );
     }
+
+    function createCanvasAndMintNFT(CreateCanvasAndMintNFTCanvasParam calldata vars)
+        external
+        payable
+        returns (uint256)
+    { }
 
     function _createCanvas(
         bytes32 daoId,

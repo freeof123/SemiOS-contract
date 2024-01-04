@@ -6,7 +6,7 @@ import "forge-std/Test.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
-import { PDProtocolCanvas } from "contracts/PDProtocolCanvas.sol";
+import { PDProtocolCanvas, CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 
 import "contracts/interface/D4AStructs.sol";
@@ -76,18 +76,21 @@ contract PDCanvasTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
         signature = abi.encodePacked(r, s, v);
 
-        CreateCanvasAndMintNFTParam memory vars;
+        CreateCanvasAndMintNFTCanvasParam memory vars;
         vars.daoId = daoId;
         vars.canvasId = canvasId;
         vars.canvasUri = "test canvas2 uri";
         vars.to = daoCreator.addr;
-        vars.tokenUri = "test token2 uri";
         vars.signature = signature;
 
         vars.flatPrice = 0.01 ether;
         vars.proof = new bytes32[](0);
         vars.canvasProof = new bytes32[](0);
         vars.nftOwner = nftMinter.addr;
+
+        //here interface need change IPDProtocol  add function
+        //IPDProtocol need change as import struct, change D4Struct
+        vars.tokenUri = "test token2 uri";
         protocol.createCanvasAndMintNFT{ value: 0.01 ether }(vars);
 
         vars.tokenUri = "test token3 uri";
