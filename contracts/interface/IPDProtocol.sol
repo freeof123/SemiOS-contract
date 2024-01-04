@@ -49,11 +49,6 @@ interface IPDProtocol {
         payable
         returns (uint256);
 
-    function createCanvasAndMintNFT(CreateCanvasAndMintNFTCanvasParam calldata createCanvasAndMintNFTParam)
-        external
-        payable
-        returns (uint256);
-
     function mintNFT(
         bytes32 daoId,
         bytes32 canvasId,
@@ -101,4 +96,24 @@ interface IPDProtocol {
     )
         external
         returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);
+
+    function createCanvasAndMintNFT(CreateCanvasAndMintNFTCanvasParam calldata createCanvasAndMintNFTParam)
+        external
+        payable
+        returns (uint256);
+
+    function mintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 nftFlatPrice,
+        bytes calldata signature,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
+    )
+        external
+        payable
+        returns (uint256);
 }

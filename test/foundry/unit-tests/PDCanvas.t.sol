@@ -5,6 +5,8 @@ import "forge-std/Test.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
+import { ERC20SigUtils } from "test/foundry/utils/ERC20SigUtils.sol";
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 
 import { PDProtocolCanvas, CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -88,8 +90,10 @@ contract PDCanvasTest is DeployHelper {
         vars.canvasProof = new bytes32[](0);
         vars.nftOwner = nftMinter.addr;
 
+        //q1.
         //here interface need change IPDProtocol  add function
         //IPDProtocol need change as import struct, change D4Struct
+
         vars.tokenUri = "test token2 uri";
         protocol.createCanvasAndMintNFT{ value: 0.01 ether }(vars);
 
@@ -98,5 +102,43 @@ contract PDCanvasTest is DeployHelper {
 
         vars.tokenUri = "test token4 uri";
         protocol.createCanvasAndMintNFT{ value: 0.01 ether }(vars);
+    }
+
+    function test_erc20Payment_without_approve() public {
+        PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
+        vm.startPrank(protocolOwner.addr);
+        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
+
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
+        param.mintableRound = 50;
+        param.selfRewardRatioERC20 = 10_000;
+        param.erc20PaymentMode = true;
+        param.thirdPartyToken = address(_testERC20);
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        vm.prank(protocolOwner.addr);
+        _testERC20.transfer(nftMinter.addr, 1 ether);
+        // vm.prank(nftMinter.addr);
+        // _testERC20.approve(address(protocol), 0.01 ether);
+
+        startHoax(nftMinter.addr);
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, "B", 0.01 ether);
+        bytes memory sig;
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+        sig = abi.encodePacked(r, s, v);
+
+        ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
+        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 1e6 ether, block.timestamp + 1 days);
+        (v, r, s) = vm.sign(nftMinter.key, digest);
+        IERC20Permit(_testERC20).permit(nftMinter.addr, address(protocol), 1e6 ether, block.timestamp + 1 days, v, r, s);
+        uint256 value = 0;
+        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, r, s, v);
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
     }
 }

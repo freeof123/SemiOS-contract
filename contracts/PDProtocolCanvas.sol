@@ -133,7 +133,10 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         string calldata tokenUri,
         bytes32[] calldata proof,
         uint256 flatPrice,
-        bytes calldata signature
+        bytes calldata signature,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
     )
         external
         payable
@@ -215,15 +218,17 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
     }
 
     function _mintNFTAndTransfer(MintNFTAndTransferParam memory vars)
-        // bytes32 daoId,
-        // bytes32 canvasId,
-        // string calldata tokenUri,
-        // bytes32[] calldata proof,
-        // uint256 flatPrice,
-        // bytes calldata signature,
-        // address to
         internal
-        returns (uint256 tokenId)
+        returns (
+            // bytes32 daoId,
+            // bytes32 canvasId,
+            // string calldata tokenUri,
+            // bytes32[] calldata proof,
+            // uint256 flatPrice,
+            // bytes calldata signature,
+            // address to
+            uint256 tokenId
+        )
     {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
         if (DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
@@ -239,7 +244,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             DaoStorage.layout().daoInfos[vars.daoId].roundMint[currentRound] += 1;
         }
         DaoStorage.layout().daoInfos[vars.daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        tokenId = _mintNft(vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.to);
+        tokenId = _mintNft(vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.to, vars.r, vars.s, vars.v);
     }
 
     function claimDaoCreatorReward(bytes32 daoId)
@@ -540,7 +545,10 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         bytes32 canvasId,
         string memory tokenUri,
         uint256 flatPrice,
-        address to
+        address to,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
     )
         internal
         returns (uint256 tokenId)
@@ -585,7 +593,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             price = _getCanvasNextPrice(daoId, canvasId, flatPrice, 1, currentRound, nftPriceFactor);
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
             // split fee
-            _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice, currentRound);
+            _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice, currentRound, r, s, v);
         }
 
         // mint
@@ -611,7 +619,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         uint256 assetPoolFee;
         bytes32 r;
         bytes32 s;
-        bytes32 v;
+        uint8 v;
     }
 
     function _calculateAndSplitFeeAndUpdateReward(
@@ -619,7 +627,10 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         bytes32 canvasId,
         uint256 price,
         uint256 flatPrice,
-        uint256 currentRound
+        uint256 currentRound,
+        bytes32 r,
+        bytes32 s,
+        uint8 v
     )
         internal
     {
@@ -657,6 +668,9 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             vars.daoRedeemPool = daoInfo.daoFeePool;
             vars.daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
             vars.canvasOwner = l.ownerProxy.ownerOf(canvasId);
+            vars.r = r;
+            vars.s = s;
+            vars.v = v;
             vars.redeemPoolFee = (
                 (
                     flatPrice == 0
@@ -854,6 +868,9 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         uint256 topUpAmountERC20ToUse;
         if (topUpERC20Quota < vars.price) {
             topUpAmountERC20ToUse = topUpERC20Quota;
+            if (vars.r != bytes32(0) && vars.s != bytes32(0) && vars.s != 0) {
+                //todo
+            }
             SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
         } else {
             topUpAmountERC20ToUse = vars.price;
@@ -901,6 +918,21 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
     function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata createCanvasAndMintNFTParam)
         external
         payable
+        override
+        returns (uint256)
+    { }
+
+    function mintNFT(
+        bytes32 daoId,
+        bytes32 canvasId,
+        string calldata tokenUri,
+        bytes32[] calldata proof,
+        uint256 nftFlatPrice,
+        bytes calldata signature
+    )
+        external
+        payable
+        override
         returns (uint256)
     { }
 }
