@@ -23,7 +23,8 @@ import {
     NftMinterCapInfo,
     UpdateRewardParam,
     CreateCanvasAndMintNFTParam,
-    CreateCanvasAndMintNFTCanvasParam
+    CreateCanvasAndMintNFTCanvasParam,
+    ERC20PermitParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -862,13 +863,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         bytes32[] calldata proof,
         uint256 nftFlatPrice,
         bytes calldata signature,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        ERC20PermitParam memory permit
     )
         external
         payable
-        override
         returns (uint256)
     { }
 

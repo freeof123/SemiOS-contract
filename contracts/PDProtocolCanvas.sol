@@ -25,7 +25,8 @@ import {
     UpdateRewardParam,
     CreateCanvasAndMintNFTParam,
     CreateCanvasAndMintNFTCanvasParam,
-    MintNFTAndTransferParam
+    MintNFTAndTransferParam,
+    ERC20PermitParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -86,9 +87,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             flatPrice: vars.flatPrice,
             signature: vars.signature,
             to: vars.to,
-            r: vars.r,
-            s: vars.s,
-            v: vars.v
+            erc20PermitParam: vars.erc20PermitParam
         });
         return _mintNFTAndTransfer(mintNFTAndTransferParam);
     }
@@ -135,15 +134,18 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         bytes32[] calldata proof,
         uint256 flatPrice,
         bytes calldata signature,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        // bytes32 r,
+        // bytes32 s,
+        // uint8 v,
+        // uint256 deadline
+        ERC20PermitParam memory erc20PermitParam
     )
         external
         payable
         nonReentrant
         returns (uint256)
     {
+        // ERC20PermitParam memory erc20PermitParam = ERC20PermitParam({ r: r, s: s, v: v, deadline: deadline });
         MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
             daoId: daoId,
             canvasId: canvasId,
@@ -152,9 +154,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             flatPrice: flatPrice,
             signature: signature,
             to: msg.sender,
-            r: r,
-            s: s,
-            v: v
+            erc20PermitParam: erc20PermitParam
         });
         return _mintNFTAndTransfer(vars);
     }
@@ -189,6 +189,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
     }
 
     //here, if this change, the interface need change or add same function overload
+    //todo
     function mintNFTAndTransfer(
         bytes32 daoId,
         bytes32 canvasId,
@@ -211,9 +212,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             flatPrice: flatPrice,
             signature: signature,
             to: to,
-            r: bytes32(0),
-            s: bytes32(0),
-            v: 0
+            erc20PermitParam: ERC20PermitParam({ r: bytes32(0), s: bytes32(0), v: 0, deadline: 0 })
         });
         return _mintNFTAndTransfer(vars);
     }
@@ -231,6 +230,21 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             uint256 tokenId
         )
     {
+        if (
+            vars.erc20PermitParam.r != bytes32(0) && vars.erc20PermitParam.s != bytes32(0)
+                && vars.erc20PermitParam.s != 0
+        ) {
+            address token = DaoStorage.layout().daoInfos[vars.daoId].token;
+            IERC20Permit(token).permit(
+                msg.sender,
+                address(this),
+                1e6 ether,
+                vars.erc20PermitParam.deadline,
+                vars.erc20PermitParam.v,
+                vars.erc20PermitParam.r,
+                vars.erc20PermitParam.s
+            );
+        }
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
         if (DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
             if (vars.flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(vars.daoId)) {
@@ -245,7 +259,16 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             DaoStorage.layout().daoInfos[vars.daoId].roundMint[currentRound] += 1;
         }
         DaoStorage.layout().daoInfos[vars.daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
-        tokenId = _mintNft(vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.to, vars.r, vars.s, vars.v);
+        tokenId = _mintNft(
+            vars.daoId,
+            vars.canvasId,
+            vars.tokenUri,
+            vars.flatPrice,
+            vars.to,
+            vars.erc20PermitParam.r,
+            vars.erc20PermitParam.s,
+            vars.erc20PermitParam.v
+        );
     }
 
     function claimDaoCreatorReward(bytes32 daoId)
@@ -870,11 +893,11 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         if (topUpERC20Quota < vars.price) {
             topUpAmountERC20ToUse = topUpERC20Quota;
             //change here
-            if (vars.r != bytes32(0) && vars.s != bytes32(0) && vars.s != 0) {
-                IERC20Permit(token).permit(
-                    msg.sender, address(this), 1e6 ether, block.timestamp + 1 days, vars.v, vars.r, vars.s
-                );
-            }
+            // if (vars.r != bytes32(0) && vars.s != bytes32(0) && vars.s != 0) {
+            //     IERC20Permit(token).permit(
+            //         msg.sender, address(this), 1e6 ether, block.timestamp + 1 days, vars.v, vars.r, vars.s
+            //     );
+            // }
             SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
         } else {
             topUpAmountERC20ToUse = vars.price;

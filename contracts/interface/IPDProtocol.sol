@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { MintNftInfo, CreateCanvasAndMintNFTParam, CreateCanvasAndMintNFTCanvasParam } from "./D4AStructs.sol";
+import {
+    MintNftInfo,
+    CreateCanvasAndMintNFTParam,
+    CreateCanvasAndMintNFTCanvasParam,
+    ERC20PermitParam
+} from "./D4AStructs.sol";
 
 interface IPDProtocol {
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
@@ -109,9 +114,7 @@ interface IPDProtocol {
         bytes32[] calldata proof,
         uint256 nftFlatPrice,
         bytes calldata signature,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        ERC20PermitParam memory erc20PermitParam
     )
         external
         payable

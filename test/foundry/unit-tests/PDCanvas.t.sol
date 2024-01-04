@@ -56,7 +56,7 @@ contract PDCanvasTest is DeployHelper {
         protocol.createCanvasAndMintNFT{ value: 0.01 ether }(vars);
     }
 
-    function test_create_canvas_expectRevert() public {
+    function test_create_canvas_newLogic_shouldWork() public {
         PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
         vm.startPrank(protocolOwner.addr);
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
@@ -139,11 +139,14 @@ contract PDCanvasTest is DeployHelper {
         // IERC20Permit(_testERC20).permit(nftMinter.addr, address(protocol), 1e6 ether, block.timestamp + 1 days, v, r,
         // s);
         uint256 value = 0;
-        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, r, s, v);
+        ERC20PermitParam memory erc20PermitParam =
+            ERC20PermitParam({ r: r, s: s, v: v, deadline: block.timestamp + 1 days });
+
+        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, erc20PermitParam);
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
     }
 
-    function test_erc20Payment_without_approve_expectRevert() public {
+    function test_erc20Payment_without_approve_expectRevert_expiredDeadline() public {
         PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
         vm.startPrank(protocolOwner.addr);
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
@@ -170,17 +173,54 @@ contract PDCanvasTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
         sig = abi.encodePacked(r, s, v);
 
+        uint256 deadline = block.timestamp + 1 days;
         ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
-        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 1e6 ether, block.timestamp + 1 days);
+        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 1e6 ether, deadline);
         (v, r, s) = vm.sign(nftMinter.key, digest);
+        ERC20PermitParam memory erc20PermitParam = ERC20PermitParam({ r: r, s: s, v: v, deadline: deadline });
         uint256 value = 0;
         vm.warp(block.timestamp + 2 days);
-        //not the ERC2612ExpiredSignature, in the function, it has check again block.timestamp + 1days,
-        // so the owner and the signer is not the same
-        // vm.expectRevert("ERC20Permit: invalid signature");
-        vm.expectRevert("ERC20Permit: invalid signature");
-        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, r, s, v);
-        //if add deadline to formal param, could permit tx more early
+        vm.expectRevert("ERC20Permit: expired deadline");
+        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, erc20PermitParam);
+        //value could be maxSupply
+    }
+
+    function test_erc20Payment_without_approve_expectRevert_invalidSignature() public {
+        PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
+        vm.startPrank(protocolOwner.addr);
+        D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
+
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
+        param.mintableRound = 50;
+        param.selfRewardRatioERC20 = 10_000;
+        param.erc20PaymentMode = true;
+        param.thirdPartyToken = address(_testERC20);
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        vm.prank(protocolOwner.addr);
+        _testERC20.transfer(nftMinter.addr, 1 ether);
+
+        startHoax(nftMinter.addr);
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, "B", 0.01 ether);
+        bytes memory sig;
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+        sig = abi.encodePacked(r, s, v);
+
+        uint256 deadline = block.timestamp + 1 days;
+        ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
+        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 1e6 ether, deadline);
+        (v, r, s) = vm.sign(nftMinter.key, digest);
+        ERC20PermitParam memory erc20PermitParam = ERC20PermitParam({ r: r, s: s, v: v, deadline: deadline - 1 days });
+        uint256 value = 0;
+        vm.warp(block.timestamp + 2 days);
+        vm.expectRevert("ERC20Permit: expired deadline");
+        protocol.mintNFT{ value: value }(daoId, canvasId, "B", new bytes32[](0), 0.01 ether, sig, erc20PermitParam);
         //value could be maxSupply
     }
 }

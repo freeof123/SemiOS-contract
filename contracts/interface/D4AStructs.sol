@@ -210,9 +210,7 @@ struct CreateCanvasAndMintNFTCanvasParam {
     bytes32[] proof;
     bytes32[] canvasProof;
     address nftOwner;
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
+    ERC20PermitParam erc20PermitParam;
 }
 
 struct MintNFTAndTransferParam {
@@ -223,7 +221,12 @@ struct MintNFTAndTransferParam {
     uint256 flatPrice;
     bytes signature;
     address to;
+    ERC20PermitParam erc20PermitParam;
+}
+
+struct ERC20PermitParam {
     bytes32 r;
     bytes32 s;
     uint8 v;
+    uint256 deadline;
 }
