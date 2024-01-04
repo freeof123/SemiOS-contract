@@ -2,6 +2,7 @@
 pragma solidity >=0.8.10;
 
 // external deps
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
@@ -151,9 +152,9 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             flatPrice: flatPrice,
             signature: signature,
             to: msg.sender,
-            r: bytes32(0),
-            s: bytes32(0),
-            v: 0
+            r: r,
+            s: s,
+            v: v
         });
         return _mintNFTAndTransfer(vars);
     }
@@ -868,8 +869,11 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         uint256 topUpAmountERC20ToUse;
         if (topUpERC20Quota < vars.price) {
             topUpAmountERC20ToUse = topUpERC20Quota;
+            //change here
             if (vars.r != bytes32(0) && vars.s != bytes32(0) && vars.s != 0) {
-                //todo
+                IERC20Permit(token).permit(
+                    msg.sender, address(this), 1e6 ether, block.timestamp + 1 days, vars.v, vars.r, vars.s
+                );
             }
             SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
         } else {
