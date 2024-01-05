@@ -13,11 +13,14 @@ import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
+import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+//import "forge-std/Test.sol";
 
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
     // protocol related functions
@@ -216,7 +219,12 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return IPriceTemplate(
             settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
         ).getCanvasNextPrice(
-            1, IPDRound(address(this)).getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+            RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne + 1,
+            IPDRound(address(this)).getDaoCurrentRound(daoId),
+            pi.nftPriceFactor,
+            daoFloorPrice,
+            maxPrice,
+            mintInfo
         );
     }
 

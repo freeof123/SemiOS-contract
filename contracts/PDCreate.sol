@@ -75,6 +75,7 @@ struct CreateProjectLocalVars {
     bool needMintableWork;
     uint256 dailyMintCap;
     uint8 version;
+    bool topUpMode;
 }
 
 struct CreateAncestorDaoParam {
@@ -171,6 +172,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(daoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
         vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
+        vars.topUpMode = continuousDaoParam.topUpMode;
 
         emit CreateContinuousProjectParamEmitted(
             vars.existDaoId,
@@ -184,6 +186,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.infiniteMode,
             continuousDaoParam.erc20PaymentMode
         );
+
         _config(protocol, vars);
 
         //if (!continuousDaoParam.isAncestorDao) {
@@ -506,6 +509,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
     // ========================== optimized code =========================
     function _config(address protocol, CreateProjectLocalVars memory vars) internal {
+        AllRatioParam memory allRatioParam =
+            vars.topUpMode ? AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0) : vars.allRatioParam;
         emit CreateProjectParamEmitted(
             vars.daoId,
             vars.daoFeePool,
@@ -519,7 +524,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.templateParam,
             vars.basicDaoParam,
             vars.actionType,
-            vars.allRatioParam
+            allRatioParam
         );
 
         bytes32 daoId = vars.daoId;
@@ -562,13 +567,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             settingsStorage.d4aswapFactory.createPair(vars.token, WETH);
         }
 
-        SetRatioParam memory ratioVars;
-        ratioVars.daoId = daoId;
-        ratioVars.daoCreatorERC20Ratio = vars.splitRatioParam.daoCreatorERC20Ratio;
-        ratioVars.canvasCreatorERC20Ratio = vars.splitRatioParam.canvasCreatorERC20Ratio;
-        ratioVars.nftMinterERC20Ratio = vars.splitRatioParam.nftMinterERC20Ratio;
-        ratioVars.daoFeePoolETHRatio = vars.splitRatioParam.daoFeePoolETHRatio;
-        ratioVars.daoFeePoolETHRatioFlatPrice = vars.splitRatioParam.daoFeePoolETHRatioFlatPrice;
+        //SetRatioParam memory ratioVars;
+        // ratioVars.daoId = daoId;
+        // ratioVars.daoCreatorERC20Ratio = vars.splitRatioParam.daoCreatorERC20Ratio;
+        // ratioVars.canvasCreatorERC20Ratio = vars.splitRatioParam.canvasCreatorERC20Ratio;
+        // ratioVars.nftMinterERC20Ratio = vars.splitRatioParam.nftMinterERC20Ratio;
+        // ratioVars.daoFeePoolETHRatio = vars.splitRatioParam.daoFeePoolETHRatio;
+        // ratioVars.daoFeePoolETHRatioFlatPrice = vars.splitRatioParam.daoFeePoolETHRatioFlatPrice;
 
         // if ((actionType & 0x10) != 0) {
         //     ID4AProtocolSetter(protocol).setRatio(

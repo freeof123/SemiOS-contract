@@ -46,6 +46,8 @@ import { SettingsStorage } from "./storages/SettingsStorage.sol";
 import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
+import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
@@ -539,7 +541,14 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         {
             uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
             uint256 nftPriceFactor = daoInfo.nftPriceFactor;
-            price = _getCanvasNextPrice(daoId, canvasId, flatPrice, 1, currentRound, nftPriceFactor);
+            price = _getCanvasNextPrice(
+                daoId,
+                canvasId,
+                flatPrice,
+                RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne + 1,
+                currentRound,
+                nftPriceFactor
+            );
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
             // split fee
             _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice, currentRound);

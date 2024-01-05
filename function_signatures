@@ -3,3 +3,4 @@
 "setMintCapAndPermission(bytes32,uint32,(address,uint32)[],(address,uint256)[],(bytes32,address[],bytes32,address[]),(address[],address[]),(address[],address[]))": "1441e75f"
 //"createCanvasAndMintNFT(bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],address)": "415902d0"
 "createCanvasAndMintNFT((bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],bytes32[],address))": "7fb597fb"
+"setDaoParams((bytes32,uint256,uint256,uint256,uint8,uint256,uint256,uint256,uint256,bool,(bytes32[],uint256[],uint256[],uint256,uint256,uint256),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)))": "eccaf66d"

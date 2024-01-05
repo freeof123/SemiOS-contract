@@ -25,6 +25,8 @@ contract TestTest is Test {
         Foo1[] foo1s;
     }
 
+    uint256[][] arr2;
+
     mapping(uint256 => Foo) foos;
     Foo foo;
     Foo foo1;

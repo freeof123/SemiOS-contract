@@ -9,6 +9,7 @@ import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RewardStorage } from "./storages/RewardStorage.sol";
 import { SettingsStorage } from "./storages/SettingsStorage.sol";
+import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
@@ -220,7 +221,12 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         return IPriceTemplate(
             settingsStorage.priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
         ).getCanvasNextPrice(
-            1, IPDRound(address(this)).getDaoCurrentRound(daoId), pi.nftPriceFactor, daoFloorPrice, maxPrice, mintInfo
+            RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne + 1,
+            IPDRound(address(this)).getDaoCurrentRound(daoId),
+            pi.nftPriceFactor,
+            daoFloorPrice,
+            maxPrice,
+            mintInfo
         );
     }
 

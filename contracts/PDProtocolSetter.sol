@@ -19,9 +19,7 @@ import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
-
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
-
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
 import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
@@ -32,6 +30,7 @@ import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
 
 import { D4AERC20 } from "./D4AERC20.sol";
+//import "forge-std/Test.sol";
 
 contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     // 修改黑白名单方法
@@ -266,15 +265,19 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.selfRewardRatioERC20 = vars.selfRewardRatioERC20;
         treeInfo.selfRewardRatioETH = vars.selfRewardRatioETH;
 
-        emit ChildrenSet(
-            daoId,
-            vars.childrenDaoId,
-            vars.erc20Ratios,
-            vars.ethRatios,
-            vars.redeemPoolRatioETH,
-            vars.selfRewardRatioERC20,
-            vars.selfRewardRatioETH
-        );
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            emit ChildrenSet(
+                daoId,
+                vars.childrenDaoId,
+                vars.erc20Ratios,
+                vars.ethRatios,
+                vars.redeemPoolRatioETH,
+                vars.selfRewardRatioERC20,
+                vars.selfRewardRatioETH
+            );
+        } else {
+            emit ChildrenSet(daoId, new bytes32[](0), new uint256[](0), new uint256[](0), 0, 10_000, 0);
+        }
     }
 
     //in PD1.3, we always use ratios w.r.t all 4 roles
@@ -318,10 +321,14 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.canvasCreatorETHRewardRatio = vars.canvasCreatorETHRewardRatio;
         treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
 
-        emit RatioSet(daoId, vars);
+        AllRatioParam memory allRatioParam = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode
+            ? AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0)
+            : vars;
+        emit RatioSet(daoId, allRatioParam);
     }
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) return;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         bytes32 ancestor = treeInfo.ancestor;
@@ -380,7 +387,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
                         || rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound
                             && rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound - 1
                 ) {
-                    //delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
                     if (currentRound > 1) {
                         rewardInfo.activeRounds.push(currentRound - 1);
                     }
@@ -393,11 +399,28 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
-        roundInfo.roundInLastModify = 1;
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+        uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(daoId);
+        uint256 passedRound = IPDProtocolReadable(address(this)).getDaoPassedRound(daoId);
+
+        roundInfo.roundInLastModify = currentRound;
         roundInfo.blockInLastModify = block.number;
-        delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
-        daoInfo.mintableRound = newRemainingRound;
+        //delete RewardStorage.layout().rewardInfos[daoId].activeRounds;
+        daoInfo.mintableRound = newRemainingRound + passedRound;
+        RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne = currentRound - 1;
         delete PriceStorage.layout().daoMaxPrices[daoId];
+        if (rewardInfo.isProgressiveJackpot) {
+            if (
+                rewardInfo.activeRounds.length == 0
+                    || rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound
+                        && rewardInfo.activeRounds[rewardInfo.activeRounds.length - 1] != currentRound - 1
+            ) {
+                if (currentRound > 1) {
+                    rewardInfo.activeRounds.push(currentRound - 1);
+                }
+            }
+        }
+
         bytes32[] memory canvases = IPDProtocolReadable(address(this)).getDaoCanvases(daoId);
         for (uint256 i; i < canvases.length;) {
             delete PriceStorage.layout().canvasLastMintInfos[canvases[i]];

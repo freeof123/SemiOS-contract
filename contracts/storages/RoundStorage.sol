@@ -6,6 +6,7 @@ library RoundStorage {
         uint256 roundInLastModify;
         uint256 blockInLastModify;
         uint256 roundDuration;
+        uint256 lastRestartRoundMinusOne;
     }
 
     struct Layout {

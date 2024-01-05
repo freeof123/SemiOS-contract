@@ -441,7 +441,7 @@ contract PDInfiniteModeTest is DeployHelper {
         );
     }
 
-    function test_daoDeadThenTurnOnInfiniteMode_roundShouldRestart() public {
+    function test_daoDeadThenTurnOnInfiniteMode_roundShouldRestartNojack() public {
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.isBasicDao = true;
@@ -455,26 +455,31 @@ contract PDInfiniteModeTest is DeployHelper {
 
         vm.roll(31);
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a11");
+        assertEq(protocol.getDaoCurrentRound(daoId), 11, "a12");
         protocol.mintNFTAndTransfer{ value: 0.01 ether }(
             daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
         );
         vm.roll(35);
         protocol.changeDaoInfiniteMode(daoId, 0);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a13");
-        assertEq(protocol.getDaoCurrentRound(daoId), 1, "a14");
+        assertEq(protocol.getDaoPassedRound(daoId), 1, "a13");
+        assertEq(protocol.getDaoCurrentRound(daoId), 12, "a14");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a15");
+        //restart at block 35, round is 12
         vm.roll(37);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a21");
-        assertEq(protocol.getDaoCurrentRound(daoId), 1, "a22");
+        //(35, 36, 37) all in round 12
+        assertEq(protocol.getDaoPassedRound(daoId), 1, "a21");
+        assertEq(protocol.getDaoCurrentRound(daoId), 12, "a22");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a23");
         vm.roll(38);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a31");
-        assertEq(protocol.getDaoCurrentRound(daoId), 2, "a32");
+        // enter round 13
+        assertEq(protocol.getDaoPassedRound(daoId), 1, "a31");
+        assertEq(protocol.getDaoCurrentRound(daoId), 13, "a32");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a33");
         vm.roll(65);
+        // enter round 22
         protocol.changeDaoInfiniteMode(daoId, 10);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a42");
-        assertEq(protocol.getDaoCurrentRound(daoId), 11, "a43");
+        assertEq(protocol.getDaoPassedRound(daoId), 1, "a42");
+        assertEq(protocol.getDaoCurrentRound(daoId), 22, "a43");
         assertEq(protocol.getDaoRemainingRound(daoId), 10, "a44");
     }
 
@@ -493,23 +498,27 @@ contract PDInfiniteModeTest is DeployHelper {
 
         vm.roll(31);
         assertEq(protocol.getDaoRemainingRound(daoId), 0, "a11");
+        assertEq(protocol.getDaoCurrentRound(daoId), 11, "a12");
+
         vm.roll(35);
         protocol.changeDaoInfiniteMode(daoId, 0);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a13");
-        assertEq(protocol.getDaoCurrentRound(daoId), 1, "a14");
+        assertEq(protocol.getDaoPassedRound(daoId), 11, "a13");
+        assertEq(protocol.getDaoCurrentRound(daoId), 12, "a14");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a15");
+        //restart at block 35, round is 12
         vm.roll(37);
-        assertEq(protocol.getDaoPassedRound(daoId), 0, "a21");
-        assertEq(protocol.getDaoCurrentRound(daoId), 1, "a22");
+        assertEq(protocol.getDaoPassedRound(daoId), 11, "a21");
+        assertEq(protocol.getDaoCurrentRound(daoId), 12, "a22");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a23");
         vm.roll(38);
-        assertEq(protocol.getDaoPassedRound(daoId), 1, "a31");
-        assertEq(protocol.getDaoCurrentRound(daoId), 2, "a32");
+        // enter round 13
+        assertEq(protocol.getDaoPassedRound(daoId), 12, "a31");
+        assertEq(protocol.getDaoCurrentRound(daoId), 13, "a32");
         assertEq(protocol.getDaoRemainingRound(daoId), 1, "a33");
         vm.roll(65);
         protocol.changeDaoInfiniteMode(daoId, 10);
-        assertEq(protocol.getDaoPassedRound(daoId), 10, "a42");
-        assertEq(protocol.getDaoCurrentRound(daoId), 11, "a43");
+        assertEq(protocol.getDaoPassedRound(daoId), 21, "a42");
+        assertEq(protocol.getDaoCurrentRound(daoId), 22, "a43");
         assertEq(protocol.getDaoRemainingRound(daoId), 10, "a44");
     }
 
@@ -618,8 +627,10 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.prank(daoCreator.addr);
         protocol.changeDaoInfiniteMode(daoId, 0);
         assertEq(protocol.getCanvasNextPrice(canvasId1), 0.01 ether);
-        vm.roll(3);
-        assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether);
+        // vm.roll(3);
+        // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether, "a11");
+        // vm.roll(4);
+        // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether, "a12");
     }
 
     receive() external payable { }

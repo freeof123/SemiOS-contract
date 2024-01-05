@@ -191,7 +191,7 @@ contract PDRoundTest is DeployHelper {
         );
     }
 
-    function test_daoRestart() public {
+    function test_daoRestart_basic() public {
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.isBasicDao = true;
@@ -209,6 +209,8 @@ contract PDRoundTest is DeployHelper {
             daoId, param.canvasId, "nft2", new bytes32[](0), 0.01 ether, hex"110011", nftMinter.addr
         );
         protocol.setDaoRemainingRound(daoId, 20);
+        assertEq(protocol.getDaoCurrentRound(daoId), 2);
+        assertEq(protocol.getDaoRemainingRound(daoId), 20);
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId,
@@ -216,7 +218,8 @@ contract PDRoundTest is DeployHelper {
                 protocol.getDaoCurrentRound(daoId),
                 protocol.getDaoRemainingRound(daoId)
             ),
-            2_500_000 ether
+            2_500_000 ether,
+            "distribution amount should be 2.5M"
         );
     }
 
