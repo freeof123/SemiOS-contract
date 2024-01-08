@@ -13,6 +13,7 @@ import { IERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ER
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { LibString } from "solady/utils/LibString.sol";
 import { Multicallable } from "solady/utils/Multicallable.sol";
+import { console2 } from "forge-std/Test.sol";
 
 // D4A constants, structs, enums && errors
 import { BASIS_POINT, SIGNER_ROLE, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
@@ -25,8 +26,7 @@ import {
     UpdateRewardParam,
     CreateCanvasAndMintNFTParam,
     CreateCanvasAndMintNFTCanvasParam,
-    MintNFTAndTransferParam,
-    ERC20PermitParam
+    MintNFTAndTransferParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -85,9 +85,10 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             tokenUri: vars.tokenUri,
             proof: vars.proof,
             flatPrice: vars.flatPrice,
-            signature: vars.signature,
+            nftSignature: vars.nftSignature,
             to: vars.to,
-            erc20PermitParam: vars.erc20PermitParam
+            erc20Signature: vars.erc20Signature,
+            deadline: vars.deadline
         });
         return _mintNFTAndTransfer(mintNFTAndTransferParam);
     }
@@ -133,12 +134,9 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         string calldata tokenUri,
         bytes32[] calldata proof,
         uint256 flatPrice,
-        bytes calldata signature,
-        // bytes32 r,
-        // bytes32 s,
-        // uint8 v,
-        // uint256 deadline
-        ERC20PermitParam memory erc20PermitParam
+        bytes calldata nftSignature,
+        bytes calldata erc20Signature,
+        uint256 deadline
     )
         external
         payable
@@ -152,9 +150,10 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             tokenUri: tokenUri,
             proof: proof,
             flatPrice: flatPrice,
-            signature: signature,
+            nftSignature: nftSignature,
             to: msg.sender,
-            erc20PermitParam: erc20PermitParam
+            erc20Signature: erc20Signature,
+            deadline: deadline
         });
         return _mintNFTAndTransfer(vars);
     }
@@ -196,7 +195,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         string calldata tokenUri,
         bytes32[] calldata proof,
         uint256 flatPrice,
-        bytes calldata signature,
+        bytes calldata nftSignature,
         address to
     )
         external
@@ -204,17 +203,19 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         nonReentrant
         returns (uint256 tokenId)
     {
-        MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
-            daoId: daoId,
-            canvasId: canvasId,
-            tokenUri: tokenUri,
-            proof: proof,
-            flatPrice: flatPrice,
-            signature: signature,
-            to: to,
-            erc20PermitParam: ERC20PermitParam({ r: bytes32(0), s: bytes32(0), v: 0, deadline: 0 })
-        });
-        return _mintNFTAndTransfer(vars);
+        // MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
+        //     daoId: daoId,
+        //     canvasId: canvasId,
+        //     tokenUri: tokenUri,
+        //     proof: proof,
+        //     flatPrice: flatPrice,
+        //     nftSignature: nftSignature,
+        //     to: to,
+        //     erc20Signature: "",
+        //     deadline: 0
+        // });
+        tokenId = 1;
+        // return _mintNFTAndTransfer(vars);
     }
 
     function _mintNFTAndTransfer(MintNFTAndTransferParam memory vars)
@@ -230,28 +231,13 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             uint256 tokenId
         )
     {
-        if (
-            vars.erc20PermitParam.r != bytes32(0) && vars.erc20PermitParam.s != bytes32(0)
-                && vars.erc20PermitParam.s != 0
-        ) {
-            address token = DaoStorage.layout().daoInfos[vars.daoId].token;
-            IERC20Permit(token).permit(
-                msg.sender,
-                address(this),
-                1e6 ether,
-                vars.erc20PermitParam.deadline,
-                vars.erc20PermitParam.v,
-                vars.erc20PermitParam.r,
-                vars.erc20PermitParam.s
-            );
-        }
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
         if (DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
             if (vars.flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(vars.daoId)) {
                 revert NotBasicDaoNftFlatPrice();
             }
         } else {
-            _verifySignature(vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.signature);
+            _verifySignature(vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.nftSignature);
         }
         {
             uint256 currentRound = IPDRound(address(this)).getDaoCurrentRound(vars.daoId);
@@ -260,14 +246,7 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         }
         DaoStorage.layout().daoInfos[vars.daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         tokenId = _mintNft(
-            vars.daoId,
-            vars.canvasId,
-            vars.tokenUri,
-            vars.flatPrice,
-            vars.to,
-            vars.erc20PermitParam.r,
-            vars.erc20PermitParam.s,
-            vars.erc20PermitParam.v
+            vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.to, vars.erc20Signature, vars.deadline
         );
     }
 
@@ -570,9 +549,8 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         string memory tokenUri,
         uint256 flatPrice,
         address to,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        bytes memory erc20Signature,
+        uint256 deadline
     )
         internal
         returns (uint256 tokenId)
@@ -617,7 +595,9 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             price = _getCanvasNextPrice(daoId, canvasId, flatPrice, 1, currentRound, nftPriceFactor);
             _updatePrice(currentRound, daoId, canvasId, price, flatPrice, nftPriceFactor);
             // split fee
-            _calculateAndSplitFeeAndUpdateReward(daoId, canvasId, price, flatPrice, currentRound, r, s, v);
+            _calculateAndSplitFeeAndUpdateReward(
+                daoId, canvasId, price, flatPrice, currentRound, erc20Signature, deadline
+            );
         }
 
         // mint
@@ -641,9 +621,8 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         address canvasOwner;
         uint256 redeemPoolFee;
         uint256 assetPoolFee;
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
+        bytes erc20Signature;
+        uint256 deadline;
     }
 
     function _calculateAndSplitFeeAndUpdateReward(
@@ -652,9 +631,8 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         uint256 price,
         uint256 flatPrice,
         uint256 currentRound,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
+        bytes memory erc20Signature,
+        uint256 deadline
     )
         internal
     {
@@ -692,9 +670,8 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
             vars.daoRedeemPool = daoInfo.daoFeePool;
             vars.daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
             vars.canvasOwner = l.ownerProxy.ownerOf(canvasId);
-            vars.r = r;
-            vars.s = s;
-            vars.v = v;
+            vars.deadline = deadline;
+            vars.erc20Signature = erc20Signature;
             vars.redeemPoolFee = (
                 (
                     flatPrice == 0
@@ -892,12 +869,13 @@ contract PDProtocolCanvas is IPDProtocol, ProtocolChecker, Initializable, Reentr
         uint256 topUpAmountERC20ToUse;
         if (topUpERC20Quota < vars.price) {
             topUpAmountERC20ToUse = topUpERC20Quota;
-            //change here
-            // if (vars.r != bytes32(0) && vars.s != bytes32(0) && vars.s != 0) {
-            //     IERC20Permit(token).permit(
-            //         msg.sender, address(this), 1e6 ether, block.timestamp + 1 days, vars.v, vars.r, vars.s
-            //     );
-            // }
+            //deadline rather than erc20Signature
+            if (vars.deadline != 0) {
+                (uint8 v, bytes32 r, bytes32 s) = abi.decode(vars.erc20Signature, (uint8, bytes32, bytes32));
+                IERC20Permit(token).permit(
+                    msg.sender, address(this), vars.price - topUpERC20Quota, vars.deadline, v, r, s
+                );
+            }
             SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
         } else {
             topUpAmountERC20ToUse = vars.price;
