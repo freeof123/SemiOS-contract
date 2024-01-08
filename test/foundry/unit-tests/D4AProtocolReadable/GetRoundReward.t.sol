@@ -155,6 +155,7 @@ contract GetRoundRewardTest is DeployHelper {
             uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
             uint256 distirbuteDaoAssetETHBalance = protocol.getDaoAssetPool(daoId).balance;
             uint256 reward = distirbuteDaoAssetETHBalance / remaingRound;
+            console2.log(j, reward);
             // uint256 reward = protocol.getDaoRoundDistributeAmount(daoId, address(0), j, remaingRound);
             // assertEq(reward, protocol.getDaoRoundDistributeAmount(daoId, address(0), j, remaingRound));
 
