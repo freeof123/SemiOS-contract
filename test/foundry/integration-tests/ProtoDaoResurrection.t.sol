@@ -353,6 +353,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         param.mintableRound = 5;
         param.noPermission = true;
         param.selfRewardRatioERC20 = 10_000;
+        param.isProgressiveJackpot = true;
 
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
@@ -531,6 +532,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         param.mintableRound = 5;
         param.noPermission = true;
         param.selfRewardRatioERC20 = 10_000;
+        param.isProgressiveJackpot = true;
 
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);

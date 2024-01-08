@@ -156,7 +156,15 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.daoCreatorClaimableRoundIndex;
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
-            // rewardInfo.totalWeights = 0 is IMPOSSIBLE since weight is either non-zero price or 1 ether for 0 price
+            // rewardInfo.totalWeights = 0 is IMPOSSIBLE since weight is either non-zero price or 1 ether for 0 price,
+            // except that the active round is pushed for dao restarting
+            // todo: change active round push for dao restart in next version
+            if (rewardInfo.totalWeights[activeRounds[j]] == 0) {
+                unchecked {
+                    ++j;
+                }
+                continue;
+            }
             // given a past active round, get round reward
             uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
             // update protocol's and creator's claimable reward, use weights caculated by ratios w.r.t. 4 roles
@@ -213,6 +221,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
+            if (rewardInfo.totalWeights[activeRounds[j]] == 0) {
+                unchecked {
+                    ++j;
+                }
+                continue;
+            }
             // given a past active round, get round reward
             uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
             // update dao creator's claimable reward
@@ -258,6 +272,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.nftMinterClaimableRoundIndexes[nftMinter];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
+            if (rewardInfo.totalWeights[activeRounds[j]] == 0) {
+                unchecked {
+                    ++j;
+                }
+                continue;
+            }
             uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
             claimableERC20Reward += roundReward * rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
                 / rewardInfo.totalWeights[activeRounds[j]];

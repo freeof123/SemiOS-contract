@@ -117,8 +117,8 @@ contract Deploy is Script, Test, D4AAddress {
         //_deployPDCreateFunding();
         //_cutFacetsPDCreateFunding(DeployMethod.REMOVE);
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        //_deployPDCreate();
+        //_cutFacetsPDCreate(DeployMethod.REPLACE);
 
         //_deployPDRound();
         //_cutFacetsPDRound(DeployMethod.ADD);
@@ -204,7 +204,7 @@ contract Deploy is Script, Test, D4AAddress {
         // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
         // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
         // +UTC
-        d4aDrb = new D4ADrb({startBlock: 8335355, blocksPerDrbE18: 5737324520819563996120});
+        d4aDrb = new D4ADrb({ startBlock: 8_335_355, blocksPerDrbE18: 5_737_324_520_819_563_996_120 });
         assertTrue(address(d4aDrb) != address(0));
 
         vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
@@ -884,8 +884,8 @@ contract Deploy is Script, Test, D4AAddress {
                             "initialize(address,address,address,address)",
                             address(uniswapV2Factory),
                             address(pdProtocol_proxy),
-                            address(d4aRoyaltySplitterFactory), 
-                            address(owner) 
+                            address(d4aRoyaltySplitterFactory),
+                            address(owner)
                         )
                     )
                 )
@@ -922,12 +922,9 @@ contract Deploy is Script, Test, D4AAddress {
         permissionControl_proxy = PermissionControl(
             address(
                 new TransparentUpgradeableProxy(
-                    address(permissionControl_impl), 
+                    address(permissionControl_impl),
                     address(proxyAdmin),
-                    abi.encodeWithSignature(
-                        "initialize(address)",
-                        address(naiveOwner_proxy)
-                    )
+                    abi.encodeWithSignature("initialize(address)", address(naiveOwner_proxy))
                 )
             )
         );
