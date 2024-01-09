@@ -3,6 +3,7 @@ pragma solidity ^0.8.18;
 
 import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
@@ -98,11 +99,14 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFTAndTransfer{ value: 0.01 ether }(
             daoId, canvasId1, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
         );
+        assertEq(protocol.getDaoAssetPool(daoId).balance, 0.0035 ether);
         protocol.changeDaoInfiniteMode(daoId, 0);
         protocol.setDaoUnifiedPrice(daoId, 0.02 ether);
         protocol.mintNFTAndTransfer{ value: 0.02 ether }(
             daoId, canvasId1, "nft2", new bytes32[](0), 0.02 ether, hex"11", nftMinter.addr
         );
+        assertEq(protocol.getDaoAssetPool(daoId).balance, 0.0035 ether + 0.007 ether);
+        // aeth amount
         vm.roll(2);
         assertEq(
             protocol.getDaoRoundDistributeAmount(
@@ -631,6 +635,163 @@ contract PDInfiniteModeTest is DeployHelper {
         // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether, "a11");
         // vm.roll(4);
         // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.005 ether, "a12");
+    }
+
+    function test_daoInfiniteMode_transfer_noJack() public {
+        uint256 erc20Reward;
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.isBasicDao = true;
+        param.topUpMode = false;
+        param.noPermission = true;
+        param.mintableRound = 5;
+        param.selfRewardRatioERC20 = 10_000;
+
+        bytes32 daoId = super._createDaoForFunding(param, address(this));
+        address token = protocol.getDaoToken(daoId);
+        vm.roll(2);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(4);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft2", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(5);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft3", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        vm.roll(6);
+        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(erc20Reward, 30_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 1");
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 30_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 2");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 30_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 3");
+
+        //from normal to inifiteMode
+        protocol.changeDaoInfiniteMode(daoId, 0);
+        vm.roll(7);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft4", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(8);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft5", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        vm.roll(10);
+        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(erc20Reward, 20_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 4");
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 20_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 5");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 20_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 6");
+
+        //from inifiteMode to normal
+        protocol.changeDaoInfiniteMode(daoId, 3);
+        deal(token, protocol.getDaoAssetPool(daoId), 300 ether);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft6", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+
+        vm.roll(12);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft7", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        assertEq(
+            erc20Reward, (100 + 20_000_000 + 30_000_000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_noJack test 7"
+        );
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 100 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 8");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 100 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 9");
+    }
+
+    function test_daoInfiniteMode_transfer_Jackpot() public {
+        uint256 erc20Reward;
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.isBasicDao = true;
+        param.topUpMode = false;
+        param.noPermission = true;
+        param.mintableRound = 5;
+        param.selfRewardRatioERC20 = 10_000;
+        param.isProgressiveJackpot = true;
+
+        bytes32 daoId = super._createDaoForFunding(param, address(this));
+        address token = protocol.getDaoToken(daoId);
+        vm.roll(2);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(4);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft2", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(5);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft3", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        vm.roll(6);
+        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(erc20Reward, 50_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 1");
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 50_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 2");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 50_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 3");
+
+        //from normal to inifiteMode
+        protocol.changeDaoInfiniteMode(daoId, 0);
+        deal(token, protocol.getDaoAssetPool(daoId), 1000 ether);
+        vm.roll(7);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft4", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.roll(8);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft5", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        vm.roll(10);
+        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(erc20Reward, 1000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 4");
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 1000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 5");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 1000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 6");
+
+        //from inifiteMode to normal
+        protocol.changeDaoInfiniteMode(daoId, 3);
+        deal(token, protocol.getDaoAssetPool(daoId), 300 ether);
+        startHoax(nftMinter.addr);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft6", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+
+        vm.roll(12);
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+            daoId, canvasId1, "nft7", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
+        );
+        vm.stopPrank();
+        vm.roll(13);
+        (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        assertEq(erc20Reward, (300 + 50_000_000 + 1000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 7");
+        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        assertEq(erc20Reward, 300 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 8");
+        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(erc20Reward, 300 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 9");
     }
 
     receive() external payable { }
