@@ -62,7 +62,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -76,7 +76,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -90,7 +90,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -168,7 +168,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -184,7 +184,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -238,7 +238,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -252,7 +252,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 
@@ -266,7 +266,7 @@ contract GetCanvasNextPriceTest is DeployHelper {
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 

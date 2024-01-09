@@ -12,7 +12,7 @@ import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
-
+import { MintNFTAndTransferParam } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
@@ -68,9 +68,17 @@ contract ProtoDaoPriceTest is DeployHelper {
         );
         vm.expectRevert(ExceedDailyMintCap.selector);
         hoax(nftMinter.addr);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, canvasId1, uri, new bytes32[](0), 0.01 ether, "0x0", nftMinter.addr
-        );
+        MintNFTAndTransferParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = canvasId1;
+        mintNftTransferParam.tokenUri = uri;
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = "0x0";
+        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
     }
 }
 

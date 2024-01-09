@@ -1256,7 +1256,7 @@ contract DeployHelper is Test {
         } else {
             value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
-        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig);
+        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig, "", 1);
 
         vm.stopPrank();
         deal(hoaxer, bal);
@@ -1294,7 +1294,7 @@ contract DeployHelper is Test {
         } else {
             value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
-        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig);
+        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig, "", 0);
         vm.stopPrank();
         // deal(hoaxer, bal);
     }
@@ -1377,7 +1377,7 @@ contract DeployHelper is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
         tokenId = protocol.mintNFT{
             value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.daoId, vars.canvasId) : vars.flatPrice
-        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v));
+        }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v), "", 0);
 
         vm.stopPrank();
         deal(hoaxer, bal);

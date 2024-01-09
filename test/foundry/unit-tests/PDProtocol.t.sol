@@ -190,9 +190,17 @@ contract PDProtocolTest is DeployHelper {
             bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             hoax(daoCreator.addr);
-            protocol.mintNFTAndTransfer{ value: flatPrice }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
-            );
+            MintNFTAndTransferParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = param.canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFTAndTransfer{ value: flatPrice }(mintNftTransferParam);
         }
         address nft = protocol.getDaoNft(daoId);
         assertEq(D4AERC721(nft).ownerOf(1), nftMinter.addr);
@@ -224,9 +232,18 @@ contract PDProtocolTest is DeployHelper {
             vm.expectEmit(protocol.getDaoNft(daoId));
             emit Transfer(address(0), address(nftMinter.addr), 1);
             hoax(daoCreator.addr);
-            protocol.mintNFTAndTransfer{ value: flatPrice }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), nftMinter.addr
-            );
+
+            MintNFTAndTransferParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = param.canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFTAndTransfer{ value: flatPrice }(mintNftTransferParam);
         }
     }
 

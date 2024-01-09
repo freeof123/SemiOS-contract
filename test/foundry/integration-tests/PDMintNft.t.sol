@@ -32,7 +32,7 @@ contract PDMintNftTest is DeployHelper {
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
         hoax(nftMinter.addr);
         protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
         );
     }
 
@@ -110,7 +110,7 @@ contract PDMintNftTest is DeployHelper {
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
         vm.prank(daoCreator.addr);
         protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
         );
     }
 
@@ -136,7 +136,7 @@ contract PDMintNftTest is DeployHelper {
             vm.expectRevert(ExceedMinterMaxMintAmount.selector);
             hoax(nftMinter.addr);
             protocol.mintNFT{ value: flatPrice }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v)
+                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
             );
         }
 

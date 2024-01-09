@@ -161,9 +161,17 @@ contract PDRoundTest is DeployHelper {
             ),
             20_000_000 ether
         );
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        MintNFTAndTransferParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = param.canvasId;
+        mintNftTransferParam.tokenUri = "nft1";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = hex"11";
+        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         assertEq(protocol.getDaoRemainingRound(daoId), 11);
         //total: 40000000, mint: block 5,
         vm.roll(15);
@@ -199,15 +207,26 @@ contract PDRoundTest is DeployHelper {
         param.noPermission = true;
         bytes32 daoId = _createDaoForFunding(param, address(this));
         protocol.setDaoRemainingRound(daoId, 1);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        MintNFTAndTransferParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = param.canvasId;
+        mintNftTransferParam.tokenUri = "nft1";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = hex"11";
+        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+        // protocol.mintNFTAndTransfer{ value: 0.01 ether }(
+        //     daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr, "", 0
+        // );
         vm.roll(2);
         vm.expectRevert(ExceedMaxMintableRound.selector);
         hoax(nftMinter.addr);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft2", new bytes32[](0), 0.01 ether, hex"110011", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft2";
+        mintNftTransferParam.nftSignature = hex"110011";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         protocol.setDaoRemainingRound(daoId, 20);
         assertEq(protocol.getDaoCurrentRound(daoId), 2);
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
@@ -231,17 +250,24 @@ contract PDRoundTest is DeployHelper {
         param.noPermission = true;
         param.selfRewardRatioERC20 = 10_000;
         bytes32 daoId = _createDaoForFunding(param, address(this));
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+
+        MintNFTAndTransferParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = param.canvasId;
+        mintNftTransferParam.tokenUri = "nft1";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = hex"11";
+        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(2);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft2", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft2";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(3);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft3", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft3";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(10);
         protocol.setDaoRemainingRound(daoId, 1);
         assertEq(
@@ -253,9 +279,8 @@ contract PDRoundTest is DeployHelper {
             ),
             35_000_000 ether
         );
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft4", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft4";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId,
@@ -278,14 +303,12 @@ contract PDRoundTest is DeployHelper {
             0
         );
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft5", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft5";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(12);
         assertEq(protocol.getDaoRemainingRound(daoId), 19);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft6", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        mintNftTransferParam.tokenUri = "nft6";
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(13);
         assertEq(protocol.getDaoRemainingRound(daoId), 18);
     }
@@ -332,9 +355,17 @@ contract PDRoundTest is DeployHelper {
             2_500_000 ether
         );
         vm.roll(21);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(
-            daoId, param.canvasId, "nft1", new bytes32[](0), 0.01 ether, hex"11", nftMinter.addr
-        );
+        MintNFTAndTransferParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = param.canvasId;
+        mintNftTransferParam.tokenUri = "nft1";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = hex"11";
+        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(31);
         //dead
         assertEq(

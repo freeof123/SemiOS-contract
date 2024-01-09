@@ -219,13 +219,6 @@
 //     function _mintNFTAndTransfer(MintNFTAndTransferParam memory vars)
 //         internal
 //         returns (
-//             // bytes32 daoId,
-//             // bytes32 canvasId,
-//             // string calldata tokenUri,
-//             // bytes32[] calldata proof,
-//             // uint256 flatPrice,
-//             // bytes calldata signature,
-//             // address to
 //             uint256 tokenId
 //         )
 //     {
