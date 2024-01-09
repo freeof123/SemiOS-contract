@@ -3,6 +3,7 @@ pragma solidity >=0.8.10;
 
 // external deps
 import { IAccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/IAccessControlUpgradeable.sol";
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Initializable } from "@solidstate/contracts/security/initializable/Initializable.sol";
 import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
@@ -107,19 +108,19 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
         mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos = CanvasStorage.layout().canvasInfos;
         uint256 canvasIndex = DaoStorage.layout().daoInfos[daoId].canvases.length;
-
-        if (canvasInfos[canvasId].canvasExist) revert D4ACanvasAlreadyExist(canvasId);
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        {
-            CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
-            canvasInfo.daoId = daoId;
-            canvasInfo.canvasUri = canvasUri;
-            canvasInfo.index = canvasIndex + 1;
-            settingsStorage.ownerProxy.initOwnerOf(canvasId, to);
-            canvasInfo.canvasExist = true;
+        if (!canvasInfos[canvasId].canvasExist) {
+            SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+            {
+                CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
+                canvasInfo.daoId = daoId;
+                canvasInfo.canvasUri = canvasUri;
+                canvasInfo.index = canvasIndex + 1;
+                settingsStorage.ownerProxy.initOwnerOf(canvasId, to);
+                canvasInfo.canvasExist = true;
+            }
+            emit NewCanvasForMint(daoId, canvasId, canvasUri);
+            DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
         }
-        emit NewCanvasForMint(daoId, canvasId, canvasUri);
-        DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
     }
 
     function mintNFT(
@@ -829,6 +830,13 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         uint256 topUpAmountERC20ToUse;
         if (topUpERC20Quota < vars.price) {
             topUpAmountERC20ToUse = topUpERC20Quota;
+            //deadline rather than erc20Signature
+            if (vars.deadline != 0) {
+                (uint8 v, bytes32 r, bytes32 s) = abi.decode(vars.erc20Signature, (uint8, bytes32, bytes32));
+                IERC20Permit(token).permit(
+                    msg.sender, address(this), vars.price - topUpERC20Quota, vars.deadline, v, r, s
+                );
+            }
             SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
         } else {
             topUpAmountERC20ToUse = vars.price;

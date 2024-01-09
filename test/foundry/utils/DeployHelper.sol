@@ -1256,7 +1256,7 @@ contract DeployHelper is Test {
         } else {
             value = flatPrice == 0 ? protocol.getCanvasNextPrice(daoId, canvasId) : flatPrice;
         }
-        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig, "", 1);
+        tokenId = protocol.mintNFT{ value: value }(daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, sig, "", 0);
 
         vm.stopPrank();
         deal(hoaxer, bal);
