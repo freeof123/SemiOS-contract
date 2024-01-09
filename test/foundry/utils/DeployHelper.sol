@@ -245,9 +245,7 @@ contract DeployHelper is Test {
         naiveOwner = NaiveOwner(
             address(
                 new TransparentUpgradeableProxy(
-                    address(naiveOwnerImpl),
-                    address(proxyAdmin),
-                    abi.encodeWithSignature("initialize()")
+                    address(naiveOwnerImpl), address(proxyAdmin), abi.encodeWithSignature("initialize()")
                 )
             )
         );
@@ -586,7 +584,7 @@ contract DeployHelper is Test {
 
     function _deployAggregator() internal prank(protocolOwner.addr) {
         feedRegistry.setAggregator(
-            address(_testERC20), Denominations.ETH, address(new AggregatorV3Mock(1e18 / 2_000, 18))
+            address(_testERC20), Denominations.ETH, address(new AggregatorV3Mock(1e18 / 2000, 18))
         );
     }
 
@@ -1324,7 +1322,7 @@ contract DeployHelper is Test {
         {
             bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-            vars.signature = abi.encodePacked(r, s, v);
+            vars.nftSignature = abi.encodePacked(r, s, v);
         }
         vars.flatPrice = flatPrice;
         vars.proof = new bytes32[](0);

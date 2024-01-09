@@ -60,7 +60,7 @@ contract ProtoDaoPermissionTest is DeployHelper {
             vars.canvasUri = "test canvas uri 1";
             vars.to = canvasCreator.addr;
             vars.tokenUri = tokenUri;
-            vars.signature = abi.encodePacked(r, s, v);
+            vars.nftSignature = abi.encodePacked(r, s, v);
             vars.flatPrice = 0.01 ether;
             vars.proof = new bytes32[](0);
             vars.canvasProof = new bytes32[](0);

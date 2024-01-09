@@ -637,7 +637,7 @@ contract ProtoDaoExtendTest is DeployHelper {
             vars.canvasUri = "test canvas uri 2";
             vars.to = canvasCreator2.addr;
             vars.tokenUri = tokenUri;
-            vars.signature = abi.encodePacked(r, s, v);
+            vars.nftSignature = abi.encodePacked(r, s, v);
             vars.flatPrice = 0.01 ether;
             vars.proof = new bytes32[](0);
             vars.canvasProof = new bytes32[](0);

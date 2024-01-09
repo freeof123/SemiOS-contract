@@ -22,8 +22,7 @@ import {
     Whitelist,
     NftMinterCapInfo,
     UpdateRewardParam,
-    CreateCanvasAndMintNFTParam,
-    CreateCanvasAndMintNFTCanvasParam
+    CreateCanvasAndMintNFTParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -57,7 +56,7 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 
-import { CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
+// import { CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
 
 //import "forge-std/Test.sol";
 
@@ -77,7 +76,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256) {
         _createCanvas(vars.daoId, vars.canvasId, vars.canvasUri, vars.to, vars.canvasProof);
         return _mintNFTAndTransfer(
-            vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, vars.signature, vars.nftOwner
+            vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, vars.nftSignature, vars.nftOwner
         );
     }
 
@@ -874,12 +873,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         bytes calldata erc20Signature,
         uint256 deadline
     )
-        external
-        payable
-        returns (uint256)
-    { }
-
-    function createCanvasAndMintNFT(CreateCanvasAndMintNFTCanvasParam calldata vars)
         external
         payable
         returns (uint256)
