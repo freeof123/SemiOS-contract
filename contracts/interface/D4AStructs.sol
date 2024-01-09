@@ -198,3 +198,30 @@ struct CreateCanvasAndMintNFTParam {
     bytes32[] canvasProof;
     address nftOwner;
 }
+
+struct CreateCanvasAndMintNFTCanvasParam {
+    bytes32 daoId;
+    bytes32 canvasId;
+    string canvasUri;
+    address to;
+    string tokenUri;
+    bytes nftSignature;
+    uint256 flatPrice;
+    bytes32[] proof;
+    bytes32[] canvasProof;
+    address nftOwner;
+    bytes erc20Signature;
+    uint256 deadline;
+}
+
+struct MintNFTAndTransferParam {
+    bytes32 daoId;
+    bytes32 canvasId;
+    string tokenUri;
+    bytes32[] proof;
+    uint256 flatPrice;
+    bytes nftSignature;
+    address to;
+    bytes erc20Signature;
+    uint256 deadline;
+}
