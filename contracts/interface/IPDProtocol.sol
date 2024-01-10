@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { MintNftInfo, CreateCanvasAndMintNFTParam, MintNFTParam } from "./D4AStructs.sol";
+import { MintNftInfo, CreateCanvasAndMintNFTParam, MintNFTParam, NftIdentifier } from "./D4AStructs.sol";
 
 interface IPDProtocol {
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
@@ -18,7 +18,7 @@ interface IPDProtocol {
 
     event PDClaimNftMinterReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
 
-    event PDClaimNftMinterRewardTopUp(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimNftTopUpBalance(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
 
     event D4AExchangeERC20ToERC20(
         bytes32 daoId, address owner, address to, address grantToken, uint256 tokenAmount, uint256 grantTokenAmount
@@ -83,7 +83,7 @@ interface IPDProtocol {
 
     function updateTopUpAccount(
         bytes32 daoId,
-        address account
+        NftIdentifier memory nft
     )
         external
         returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);

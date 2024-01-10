@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
+import { UpdateRewardParam, NftIdentifier } from "contracts/interface/D4AStructs.sol";
 
 interface IRewardTemplate {
     event DaoBlockRewardDistributedToChildrenDao(
@@ -44,6 +44,16 @@ interface IRewardTemplate {
     function claimNftMinterReward(
         bytes32 daoId,
         address nftMinter,
+        uint256 currentRound,
+        address token
+    )
+        external
+        payable
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
+
+    function claimNftTopUpBalance(
+        bytes32 daoId,
+        NftIdentifier memory nft,
         uint256 currentRound,
         address token
     )
