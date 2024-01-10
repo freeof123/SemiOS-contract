@@ -44,18 +44,18 @@ contract MintNftTest is DeployHelper {
         daoId = _createDaoForFunding(param, address(this));
         IPDProtocolSetter(address(protocol)).setDaoRemainingRound(daoId, 10);
         vm.roll(11);
-        MintNFTAndTransferParam memory mintNftTransferParam;
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
         mintNftTransferParam.daoId = daoId;
         mintNftTransferParam.canvasId = param.canvasId;
         mintNftTransferParam.tokenUri = "nft1";
         mintNftTransferParam.proof = new bytes32[](0);
         mintNftTransferParam.flatPrice = 0.01 ether;
         mintNftTransferParam.nftSignature = hex"11";
-        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
         vm.expectRevert(ExceedMaxMintableRound.selector);
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+        protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
 
         // cannot catch the error during minting
         // super._createCanvasAndMintNft(
@@ -116,21 +116,21 @@ contract MintNftTest is DeployHelper {
                 tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
             );
 
-            MintNFTAndTransferParam memory mintNftTransferParam;
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
             mintNftTransferParam.daoId = daoId;
             mintNftTransferParam.canvasId = canvasId;
             mintNftTransferParam.tokenUri = tokenUri;
             mintNftTransferParam.proof = new bytes32[](0);
             mintNftTransferParam.flatPrice = 0.02 ether;
             mintNftTransferParam.nftSignature = "0x0";
-            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.nftOwner = nftMinter.addr;
             mintNftTransferParam.erc20Signature = "";
             mintNftTransferParam.deadline = 0;
 
             // 传入一个不是0.01的flatPrice期望revert
             vm.expectRevert(NotBasicDaoNftFlatPrice.selector);
             hoax(daoCreator.addr);
-            protocol.mintNFTAndTransfer{ value: 0.02 ether }(mintNftTransferParam);
+            protocol.mintNFT{ value: 0.02 ether }(mintNftTransferParam);
         }
 
         // 使用setDaoUnifiedPrice方法更改全局一口价，并测试更改后的价格能够正确铸造
@@ -146,17 +146,17 @@ contract MintNftTest is DeployHelper {
             vm.expectEmit(protocol.getDaoNft(daoId));
             emit Transfer(address(0), address(nftMinter.addr), 1);
             hoax(daoCreator.addr);
-            MintNFTAndTransferParam memory mintNftTransferParam;
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
             mintNftTransferParam.daoId = daoId;
             mintNftTransferParam.canvasId = canvasId;
             mintNftTransferParam.tokenUri = tokenUri;
             mintNftTransferParam.proof = new bytes32[](0);
             mintNftTransferParam.flatPrice = flatPrice;
             mintNftTransferParam.nftSignature = "0x0";
-            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.nftOwner = nftMinter.addr;
             mintNftTransferParam.erc20Signature = "";
             mintNftTransferParam.deadline = 0;
-            protocol.mintNFTAndTransfer{ value: flatPrice }(mintNftTransferParam);
+            protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
         }
 
         // 在上面的Dao基础上创建一个延续的Dao, 关闭全局一口价，设置全局一口价0.03 ether
@@ -202,17 +202,17 @@ contract MintNftTest is DeployHelper {
             uint256 flatPrice = 0.01 ether;
             vm.expectRevert("ECDSA: invalid signature length");
             hoax(daoCreator.addr);
-            MintNFTAndTransferParam memory mintNftTransferParam;
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
             mintNftTransferParam.daoId = continuousDaoId;
             mintNftTransferParam.canvasId = canvasId;
             mintNftTransferParam.tokenUri = normalTokenUri;
             mintNftTransferParam.proof = new bytes32[](0);
             mintNftTransferParam.flatPrice = flatPrice;
             mintNftTransferParam.nftSignature = "0x0";
-            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.nftOwner = nftMinter.addr;
             mintNftTransferParam.erc20Signature = "";
             mintNftTransferParam.deadline = 0;
-            protocol.mintNFTAndTransfer{ value: flatPrice }(mintNftTransferParam);
+            protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
         }
 
         // // 3.关闭全局一口价，格式与SpecialTokenUri相同但是超过预留数量，铸造失败（原因：签名无法验证）
@@ -228,17 +228,17 @@ contract MintNftTest is DeployHelper {
             uint256 flatPrice = 0.01 ether;
             vm.expectRevert("ECDSA: invalid signature length");
             hoax(daoCreator.addr);
-            MintNFTAndTransferParam memory mintNftTransferParam;
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
             mintNftTransferParam.daoId = continuousDaoId;
             mintNftTransferParam.canvasId = canvasId;
             mintNftTransferParam.tokenUri = tokenUri;
             mintNftTransferParam.proof = new bytes32[](0);
             mintNftTransferParam.flatPrice = flatPrice;
             mintNftTransferParam.nftSignature = "0x0";
-            mintNftTransferParam.to = nftMinter.addr;
+            mintNftTransferParam.nftOwner = nftMinter.addr;
             mintNftTransferParam.erc20Signature = "";
             mintNftTransferParam.deadline = 0;
-            protocol.mintNFTAndTransfer{ value: flatPrice }(mintNftTransferParam);
+            protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
         }
 
         // // 创建另一个延续的Dao，开启全局一口价，全局一口价设为0.03 , 预留数量更改为2000

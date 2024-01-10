@@ -23,7 +23,7 @@ import {
     Whitelist,
     NftMinterCapInfo,
     UpdateRewardParam,
-    MintNFTAndTransferParam,
+    MintNFTParam,
     CreateCanvasAndMintNFTParam
 } from "contracts/interface/D4AStructs.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
@@ -75,18 +75,19 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)] = reservedDaoAmount;
     }
 
-    function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256) {
-        _createCanvas(vars.daoId, vars.canvasId, vars.canvasUri, vars.to, vars.canvasProof);
-        MintNFTAndTransferParam memory mintNFTAndTransferParam = MintNFTAndTransferParam({
+    function mintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256) {
+        _createCanvas(vars.daoId, vars.canvasId, vars.canvasUri, vars.canvasCreator, vars.canvasProof);
+        MintNFTParam memory mintNFTAndTransferParam = MintNFTParam({
             daoId: vars.daoId,
             canvasId: vars.canvasId,
             tokenUri: vars.tokenUri,
             proof: vars.proof,
             flatPrice: vars.flatPrice,
             nftSignature: vars.nftSignature,
-            to: vars.to,
+            nftOwner: vars.nftOwner,
             erc20Signature: vars.erc20Signature,
-            deadline: vars.deadline
+            deadline: vars.deadline,
+            nftIdentifier: vars.nftIdentifier
         });
         return _mintNFTAndTransfer(mintNFTAndTransferParam);
     }
@@ -95,62 +96,64 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         bytes32 daoId,
         bytes32 canvasId,
         string memory canvasUri,
-        address to,
+        address canvasCreator,
         bytes32[] calldata proof
     )
         internal
     {
+        mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos = CanvasStorage.layout().canvasInfos;
+        if (canvasInfos[canvasId].canvasExist) return;
+
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (l.permissionControl.isCanvasCreatorBlacklisted(daoId, to)) revert Blacklisted();
-        if (!l.permissionControl.inCanvasCreatorWhitelist(daoId, to, proof)) {
+        if (l.permissionControl.isCanvasCreatorBlacklisted(daoId, canvasCreator)) revert Blacklisted();
+        if (!l.permissionControl.inCanvasCreatorWhitelist(daoId, canvasCreator, proof)) {
             revert NotInWhitelist();
         }
         ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(canvasUri))] = true;
-        mapping(bytes32 => CanvasStorage.CanvasInfo) storage canvasInfos = CanvasStorage.layout().canvasInfos;
+
         uint256 canvasIndex = DaoStorage.layout().daoInfos[daoId].canvases.length;
-        if (!canvasInfos[canvasId].canvasExist) {
-            SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-            {
-                CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
-                canvasInfo.daoId = daoId;
-                canvasInfo.canvasUri = canvasUri;
-                canvasInfo.index = canvasIndex + 1;
-                settingsStorage.ownerProxy.initOwnerOf(canvasId, to);
-                canvasInfo.canvasExist = true;
-            }
-            emit NewCanvasForMint(daoId, canvasId, canvasUri);
-            DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
+
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        {
+            CanvasStorage.CanvasInfo storage canvasInfo = canvasInfos[canvasId];
+            canvasInfo.daoId = daoId;
+            canvasInfo.canvasUri = canvasUri;
+            canvasInfo.index = canvasIndex + 1;
+            settingsStorage.ownerProxy.initOwnerOf(canvasId, canvasCreator);
+            canvasInfo.canvasExist = true;
         }
+        emit NewCanvasForMint(daoId, canvasId, canvasUri);
+        DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
     }
 
-    function mintNFT(
-        bytes32 daoId,
-        bytes32 canvasId,
-        string calldata tokenUri,
-        bytes32[] calldata proof,
-        uint256 flatPrice,
-        bytes calldata nftSignature,
-        bytes calldata erc20Signature,
-        uint256 deadline
-    )
-        external
-        payable
-        nonReentrant
-        returns (uint256)
-    {
-        MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
-            daoId: daoId,
-            canvasId: canvasId,
-            tokenUri: tokenUri,
-            proof: proof,
-            flatPrice: flatPrice,
-            nftSignature: nftSignature,
-            to: msg.sender,
-            erc20Signature: erc20Signature,
-            deadline: deadline
-        });
-        return _mintNFTAndTransfer(vars);
-    }
+    // function mintNFT(
+    //     bytes32 daoId,
+    //     bytes32 canvasId,
+    //     string calldata tokenUri,
+    //     bytes32[] calldata proof,
+    //     uint256 flatPrice,
+    //     bytes calldata nftSignature,
+    //     bytes calldata erc20Signature,
+    //     uint256 deadline
+    // )
+    //     external
+    //     payable
+    //     nonReentrant
+    //     returns (uint256)
+    // {
+    //     MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
+    //         daoId: daoId,
+    //         canvasId: canvasId,
+    //         tokenUri: tokenUri,
+    //         proof: proof,
+    //         flatPrice: flatPrice,
+    //         nftSignature: nftSignature,
+    //         to: msg.sender,
+    //         erc20Signature: erc20Signature,
+    //         deadline: deadline
+    //     });
+    //     return _mintNFTAndTransfer(vars);
+    // }
 
     function updateTopUpAccount(bytes32 daoId, address account) external returns (uint256, uint256) {
         return _usingTopUpAccount(daoId, account);
@@ -182,16 +185,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     }
 
     //todo
-    function mintNFTAndTransfer(MintNFTAndTransferParam memory vars)
-        external
-        payable
-        nonReentrant
-        returns (uint256 tokenId)
-    {
-        return _mintNFTAndTransfer(vars);
-    }
+    // function mintNFT(MintNFTParam memory vars) external payable nonReentrant returns (uint256 tokenId) {
+    //     return _mintNFTAndTransfer(vars);
+    // }
 
-    function _mintNFTAndTransfer(MintNFTAndTransferParam memory vars) internal returns (uint256 tokenId) {
+    function _mintNFTAndTransfer(MintNFTParam memory vars) internal returns (uint256 tokenId) {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
         if (DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
             if (vars.flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(vars.daoId)) {
@@ -207,7 +205,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         }
         DaoStorage.layout().daoInfos[vars.daoId].daoMintInfo.userMintInfos[msg.sender].minted += 1;
         tokenId = _mintNft(
-            vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.to, vars.erc20Signature, vars.deadline
+            vars.daoId, vars.canvasId, vars.tokenUri, vars.flatPrice, vars.nftOwner, vars.erc20Signature, vars.deadline
         );
     }
 

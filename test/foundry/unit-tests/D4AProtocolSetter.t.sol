@@ -151,9 +151,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         vm.roll(5);
@@ -193,9 +202,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         vm.roll(5);
@@ -236,9 +254,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         vm.roll(5);
@@ -348,9 +375,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         hoax(daoCreator.addr);
@@ -392,9 +428,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         hoax(daoCreator.addr);
@@ -437,9 +482,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         hoax(daoCreator.addr);
@@ -606,9 +660,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 1);
@@ -622,9 +685,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 2);
@@ -641,9 +713,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 2);
@@ -659,9 +740,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         vm.roll(4);
@@ -676,9 +766,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 4);
@@ -737,9 +836,18 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getCanvasNextPrice(canvasId), 0.0198 ether);
@@ -761,9 +869,17 @@ contract D4AProtocolSetterTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             uint256 price = protocol.getCanvasNextPrice(canvasId);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         assertEq(protocol.getCanvasNextPrice(canvasId), 0.0398 ether);

@@ -85,12 +85,15 @@ contract ProtoDaoTest is DeployHelper {
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
 
+        CreateCanvasAndMintNFTParam memory mintParam;
+        mintParam.daoId = daoId;
+        mintParam.canvasId = canvasId;
+        mintParam.tokenUri = tokenUri;
+        mintParam.flatPrice = flatPrice;
+        mintParam.nftSignature = abi.encodePacked(r, s, v);
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
-
         vm.prank(daoCreator.addr);
-        protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-        );
+        protocol.mintNFT{ value: flatPrice }(mintParam);
     }
 
     function test_ShouldIncreaseDaoTurnoverAfterTransferETHIntoDaoFeePool() public {
@@ -128,24 +131,18 @@ contract ProtoDaoTest is DeployHelper {
 
         address[] memory accounts = new address[](1);
         accounts[0] = daoCreator.addr;
-        _mintNftWithProof(
-            daoId,
-            param.canvasId,
-            string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "1", ".json"),
-            0.01 ether,
-            daoCreator.key,
-            daoCreator.addr,
-            getMerkleProof(accounts, daoCreator.addr)
-        );
-        _mintNftWithProof(
-            daoId,
-            param.canvasId,
-            string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "1", ".json"),
-            0.01 ether,
-            daoCreator.key,
-            daoCreator.addr,
-            getMerkleProof(accounts, daoCreator.addr)
-        );
+
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = param.canvasId;
+        nftParam.tokenUri = string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "1", ".json");
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.proof = getMerkleProof(accounts, daoCreator.addr);
+        nftParam.canvasCreatorKey = daoCreator.key;
+
+        super._mintNftWithParam(nftParam, daoCreator.addr);
+        super._mintNftWithParam(nftParam, daoCreator.addr);
+
         D4AERC721 nft = D4AERC721(protocol.getDaoNft(daoId));
         assertEq(nft.balanceOf(daoCreator.addr), 2);
         assertEq(

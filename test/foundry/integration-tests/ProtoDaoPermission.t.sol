@@ -58,7 +58,7 @@ contract ProtoDaoPermissionTest is DeployHelper {
             vars.daoId = daoId;
             vars.canvasId = "0x1234";
             vars.canvasUri = "test canvas uri 1";
-            vars.to = canvasCreator.addr;
+            vars.canvasCreator = canvasCreator.addr;
             vars.tokenUri = tokenUri;
             vars.nftSignature = abi.encodePacked(r, s, v);
             vars.flatPrice = 0.01 ether;
@@ -67,25 +67,25 @@ contract ProtoDaoPermissionTest is DeployHelper {
             vars.nftOwner = address(this);
             vm.expectRevert(NotInWhitelist.selector);
             hoax(nftMinter.addr);
-            protocol.createCanvasAndMintNFT{ value: flatPrice }(vars);
+            protocol.mintNFT{ value: flatPrice }(vars);
             vars.canvasProof = getMerkleProof(canvasCreators, canvasCreator.addr);
-            protocol.createCanvasAndMintNFT{ value: flatPrice }(vars);
+            protocol.mintNFT{ value: flatPrice }(vars);
 
             _testERC721.mint(vm.addr(0x4), 1);
             vars.canvasProof = new bytes32[](0);
             vars.canvasId = "0x2345";
             vars.canvasUri = "test canvas uri 2";
             vars.tokenUri = "test token uri 4";
-            vars.to = vm.addr(0x4);
-            protocol.createCanvasAndMintNFT{ value: flatPrice }(vars);
+            vars.canvasCreator = vm.addr(0x4);
+            protocol.mintNFT{ value: flatPrice }(vars);
 
             _testERC721.mint(vm.addr(0x5), 2);
             vars.canvasId = "0x3456";
             vars.canvasUri = "test canvas uri 3";
             vars.tokenUri = "test token uri 5";
-            vars.to = vm.addr(0x5);
+            vars.canvasCreator = vm.addr(0x5);
             vm.expectRevert(Blacklisted.selector);
-            protocol.createCanvasAndMintNFT{ value: flatPrice }(vars);
+            protocol.mintNFT{ value: flatPrice }(vars);
         }
 
         // 设置有限及无限白名单白名单

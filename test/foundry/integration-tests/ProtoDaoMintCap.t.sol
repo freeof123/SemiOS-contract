@@ -5,14 +5,14 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
-import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
+import { UserMintCapParam, CreateCanvasAndMintNFTParam } from "contracts/interface/D4AStructs.sol";
 import { ClaimMultiRewardParam } from "contracts/D4AUniversalClaimer.sol";
 
 import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D4AErrors.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
-import { MintNFTAndTransferParam } from "contracts/interface/D4AStructs.sol";
+import { MintNFTParam } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
 import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
@@ -67,18 +67,19 @@ contract ProtoDaoPriceTest is DeployHelper {
             tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
         );
         vm.expectRevert(ExceedDailyMintCap.selector);
-        hoax(nftMinter.addr);
-        MintNFTAndTransferParam memory mintNftTransferParam;
+
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
         mintNftTransferParam.daoId = daoId;
         mintNftTransferParam.canvasId = canvasId1;
         mintNftTransferParam.tokenUri = uri;
         mintNftTransferParam.proof = new bytes32[](0);
         mintNftTransferParam.flatPrice = 0.01 ether;
         mintNftTransferParam.nftSignature = "0x0";
-        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+        hoax(nftMinter.addr);
+        protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
     }
 }
 

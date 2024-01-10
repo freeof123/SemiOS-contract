@@ -189,26 +189,33 @@ struct SetDaoParam {
 struct CreateCanvasAndMintNFTParam {
     bytes32 daoId;
     bytes32 canvasId;
-    string canvasUri;
-    address to;
+    string canvasUri; // be empty when not creating a canvas
+    address canvasCreator; // be empty when not creating a canvas
     string tokenUri;
     bytes nftSignature;
     uint256 flatPrice;
     bytes32[] proof;
-    bytes32[] canvasProof;
+    bytes32[] canvasProof; // be empty when not creating a canvas
     address nftOwner;
     bytes erc20Signature;
     uint256 deadline;
+    NftIdentifier nftIdentifier;
 }
 
-struct MintNFTAndTransferParam {
+struct MintNFTParam {
     bytes32 daoId;
     bytes32 canvasId;
     string tokenUri;
     bytes32[] proof;
     uint256 flatPrice;
     bytes nftSignature;
-    address to;
+    address nftOwner;
     bytes erc20Signature;
     uint256 deadline;
+    NftIdentifier nftIdentifier;
+}
+
+struct NftIdentifier {
+    address erc721Address;
+    uint256 tokenId;
 }

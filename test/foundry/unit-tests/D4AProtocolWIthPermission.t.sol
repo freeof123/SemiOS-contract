@@ -24,7 +24,8 @@ import {
     NftMinterCapInfo,
     Whitelist,
     Blacklist,
-    MintNftInfo
+    MintNftInfo,
+    CreateCanvasAndMintNFTParam
 } from "contracts/interface/D4AStructs.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
@@ -265,9 +266,18 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreator.key, digest);
             uint256 price = ID4AProtocolReadable(address(protocol)).getCanvasNextPrice(canvasId1);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: price }(
-                daoId, canvasId1, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId1;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: price }(mintNftTransferParam);
         }
 
         hoax(nftMinter.addr);

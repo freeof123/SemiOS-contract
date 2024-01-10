@@ -5,6 +5,7 @@ import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
 import { NotInWhitelist, ExceedMinterMaxMintAmount } from "contracts/interface/D4AErrors.sol";
 import { D4AERC721 } from "contracts/D4AERC721.sol";
+import "contracts/interface/D4AStructs.sol";
 
 contract PDMintNftTest is DeployHelper {
     function setUp() public {
@@ -31,9 +32,17 @@ contract PDMintNftTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
         hoax(nftMinter.addr);
-        protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-        );
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = canvasId;
+        mintNftTransferParam.tokenUri = tokenUri;
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = flatPrice;
+        mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+        mintNftTransferParam.nftOwner = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
     }
 
     function test_CanOnlyMintFiveNfts() public {
@@ -109,9 +118,17 @@ contract PDMintNftTest is DeployHelper {
         //  直接调用mintNFT无法正确获取错误，因此需要使用下面的铸造方式
         vm.expectRevert(ExceedMinterMaxMintAmount.selector);
         vm.prank(daoCreator.addr);
-        protocol.mintNFT{ value: flatPrice }(
-            daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-        );
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = canvasId;
+        mintNftTransferParam.tokenUri = tokenUri;
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = flatPrice;
+        mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+        mintNftTransferParam.nftOwner = daoCreator.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+        protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
     }
 
     function test_CanMintOnceHaveNft() public {
@@ -135,9 +152,17 @@ contract PDMintNftTest is DeployHelper {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
             vm.expectRevert(ExceedMinterMaxMintAmount.selector);
             hoax(nftMinter.addr);
-            protocol.mintNFT{ value: flatPrice }(
-                daoId, canvasId, tokenUri, new bytes32[](0), flatPrice, abi.encodePacked(r, s, v), "", 0
-            );
+            CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+            mintNftTransferParam.daoId = daoId;
+            mintNftTransferParam.canvasId = canvasId;
+            mintNftTransferParam.tokenUri = tokenUri;
+            mintNftTransferParam.proof = new bytes32[](0);
+            mintNftTransferParam.flatPrice = flatPrice;
+            mintNftTransferParam.nftSignature = abi.encodePacked(r, s, v);
+            mintNftTransferParam.nftOwner = nftMinter.addr;
+            mintNftTransferParam.erc20Signature = "";
+            mintNftTransferParam.deadline = 0;
+            protocol.mintNFT{ value: flatPrice }(mintNftTransferParam);
         }
 
         _mintNft(

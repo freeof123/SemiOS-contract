@@ -79,25 +79,16 @@ struct CreateProjectLocalVars {
 }
 
 struct CreateAncestorDaoParam {
+    bytes32 daoId;
     uint256 daoIndex;
-    string daoUri;
-    uint256 initTokenSupplyRatio;
     string daoName;
-    bool needMintableWork;
     address daoToken;
-    uint256 reserveNftNumber;
 }
 
 struct CreateContinuousDaoParam {
-    uint256 daoIndex;
-    string daoUri;
-    uint256 initTokenSupplyRatio;
-    string daoName;
+    bytes32 daoId;
     address tokenAddress;
     address feePoolAddress;
-    bool needMintableWork;
-    uint256 dailyMintCap;
-    uint256 reserveNftNumber;
 }
 
 contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
@@ -215,8 +206,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         returns (bytes32 daoId)
     {
         // here need to check daoid if exist // we checked it in this function
-        address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
-        address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
 
         super._checkPauseStatus();
         super._checkUriNotExist(daoMetadataParam.projectUri);
@@ -226,58 +215,66 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         if (daoMetadataParam.startBlock != 0 && daoMetadataParam.startBlock < block.number) {
             revert StartBlockAlreadyPassed();
         }
-        uint256 daoIndex;
-        if (actionType & 0x1 != 0) {
-            SettingsStorage.Layout storage l = SettingsStorage.layout();
-            if (daoMetadataParam.projectIndex >= l.reservedDaoAmount) revert DaoIndexTooLarge();
-            if (((protocolStorage.d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
-                revert DaoIndexAlreadyExist();
+        daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+
+        {
+            uint256 daoIndex;
+
+            if (actionType & 0x1 != 0) {
+                if (daoMetadataParam.projectIndex >= settingsStorage.reservedDaoAmount) revert DaoIndexTooLarge();
+                if (((protocolStorage.d4aDaoIndexBitMap >> daoMetadataParam.projectIndex) & 1) != 0) {
+                    revert DaoIndexAlreadyExist();
+                }
+                protocolStorage.d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
+                daoIndex = daoMetadataParam.projectIndex;
+            } else {
+                daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+                ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
             }
-            protocolStorage.d4aDaoIndexBitMap |= (1 << daoMetadataParam.projectIndex);
-            protocolStorage.uriExists[keccak256(abi.encodePacked(daoMetadataParam.projectUri))] = true;
-            daoIndex = daoMetadataParam.projectIndex;
-        } else {
-            daoIndex = protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
-            ++protocolStorage.lastestDaoIndexes[uint8(DaoTag.BASIC_DAO)];
+            daoInfo.daoIndex = daoIndex;
         }
+        // repeat part
+
+        daoInfo.daoUri = daoMetadataParam.projectUri;
+
+        settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender); //before: createprojectproxy, now :user
+
+        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
+        daoInfo.daoExist = true;
+
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
             if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao(); //Todo
-
-            createContinuousDaoParam.daoIndex = daoIndex;
-            createContinuousDaoParam.daoUri = daoMetadataParam.projectUri;
-            createContinuousDaoParam.initTokenSupplyRatio = basicDaoParam.initTokenSupplyRatio;
-            createContinuousDaoParam.daoName = basicDaoParam.daoName;
+            createContinuousDaoParam.daoId = daoId;
+            address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
+            address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
             createContinuousDaoParam.tokenAddress = tokenAddress;
             createContinuousDaoParam.feePoolAddress = feePoolAddress;
-            createContinuousDaoParam.needMintableWork = continuousDaoParam.needMintableWork;
-            createContinuousDaoParam.dailyMintCap = continuousDaoParam.dailyMintCap;
-            createContinuousDaoParam.reserveNftNumber = continuousDaoParam.reserveNftNumber;
-            daoId = _createContinuousProject(createContinuousDaoParam);
+            _createContinuousProject(createContinuousDaoParam);
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = existDaoId;
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken =
                 BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
-            daoId = _createProject(
-                CreateAncestorDaoParam(
-                    daoIndex,
-                    daoMetadataParam.projectUri,
-                    basicDaoParam.initTokenSupplyRatio,
-                    basicDaoParam.daoName,
-                    continuousDaoParam.needMintableWork,
-                    continuousDaoParam.daoToken,
-                    continuousDaoParam.reserveNftNumber
-                )
+            _createProject(
+                CreateAncestorDaoParam(daoId, daoInfo.daoIndex, basicDaoParam.daoName, continuousDaoParam.daoToken)
             );
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
         }
+        _createDaoERC721(
+            daoId,
+            daoInfo.daoIndex,
+            basicDaoParam.daoName,
+            continuousDaoParam.needMintableWork,
+            continuousDaoParam.reserveNftNumber,
+            daoMetadataParam.projectUri
+        );
         //common initializaitions
         {
-            DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-            SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
             RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
             if (daoMetadataParam.duration == 0) revert DurationIsZero();
             roundInfo.roundDuration = daoMetadataParam.duration;
@@ -298,7 +295,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 ) revert RoyaltyFeeRatioOutOfRange();
             }
             daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
-            daoInfo.daoIndex = daoIndex;
         }
 
         emit NewProject(
@@ -310,12 +306,12 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.isAncestorDao
         );
 
-        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoIndex] = daoId;
+        protocolStorage.daoIndexToIds[uint8(DaoTag.BASIC_DAO)][daoInfo.daoIndex] = daoId;
 
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
 
         {
-            address daoAssetPool = _createDaoAssetPool(daoId, daoIndex);
+            address daoAssetPool = _createDaoAssetPool(daoId, daoInfo.daoIndex);
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
                 daoStorage.daoInfos[daoId].tokenMaxSupply =
                     (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
@@ -367,16 +363,12 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         );
     }
 
-    function _createProject(CreateAncestorDaoParam memory vars) internal returns (bytes32 daoId) {
+    function _createProject(CreateAncestorDaoParam memory vars) internal {
+        bytes32 daoId = vars.daoId;
+
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-
-        daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-
-        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
         {
-            daoInfo.daoUri = vars.daoUri;
-            daoInfo.daoIndex = vars.daoIndex;
             if (vars.daoToken == address(0)) {
                 daoInfo.token = _createERC20Token(vars.daoIndex, vars.daoName);
                 D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
@@ -396,57 +388,17 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoFeePool).changeAdmin(settingsStorage.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
-
-            settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender); //before: createprojectproxy, now :user
-
-            daoInfo.nft = _createERC721Token(vars.daoIndex, vars.daoName, vars.needMintableWork, vars.reserveNftNumber);
-            D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the user??
-            D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
-
-            D4AERC721(daoInfo.nft).setContractUri(vars.daoUri);
-            ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
-            ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
-            //We copy from setting in case setting may change later.
-            daoInfo.daoExist = true;
         }
     }
 
-    function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam)
-        internal
-        returns (bytes32 daoId)
-    {
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        daoId = keccak256(abi.encodePacked(block.number, msg.sender, msg.data, tx.origin));
+    function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam) internal {
+        bytes32 daoId = createContinuousDaoParam.daoId;
+
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
-        if (daoInfo.daoExist) revert D4AProjectAlreadyExist(daoId);
-        {
-            daoInfo.daoUri = createContinuousDaoParam.daoUri;
-            daoInfo.daoIndex = createContinuousDaoParam.daoIndex;
-            daoInfo.token = createContinuousDaoParam.tokenAddress;
-            address daoFeePool = createContinuousDaoParam.feePoolAddress;
-
-            daoInfo.daoFeePool = daoFeePool; //all subdaos use the same redeem pool
-
-            settingsStorage.ownerProxy.initOwnerOf(daoId, msg.sender);
-
-            daoInfo.nft = _createERC721Token(
-                createContinuousDaoParam.daoIndex,
-                createContinuousDaoParam.daoName,
-                createContinuousDaoParam.needMintableWork,
-                createContinuousDaoParam.reserveNftNumber
-            );
-
-            D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this));
-            D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
-
-            D4AERC721(daoInfo.nft).setContractUri(createContinuousDaoParam.daoUri);
-            ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
-            ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender);
-            //We copy from setting in case setting may change later.
-
-            daoInfo.daoExist = true;
-        }
+        daoInfo.token = createContinuousDaoParam.tokenAddress;
+        address daoFeePool = createContinuousDaoParam.feePoolAddress;
+        daoInfo.daoFeePool = daoFeePool; //all subdaos use the same redeem pool
     }
 
     function _createCanvas(
@@ -470,6 +422,26 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             canvasInfo.canvasExist = true;
         }
         emit NewCanvas(daoId, canvasId, canvasUri);
+    }
+
+    function _createDaoERC721(
+        bytes32 daoId,
+        uint256 daoIndex,
+        string memory daoName,
+        bool needMintableWork,
+        uint256 reserveNftNumber,
+        string memory daoUri
+    )
+        internal
+    {
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+        daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, reserveNftNumber);
+        D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the user??
+        D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
+        D4AERC721(daoInfo.nft).setContractUri(daoUri);
+        ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
+        ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {

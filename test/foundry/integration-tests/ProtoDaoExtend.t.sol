@@ -635,7 +635,7 @@ contract ProtoDaoExtendTest is DeployHelper {
             vars.daoId = daoId;
             vars.canvasId = canvasId2;
             vars.canvasUri = "test canvas uri 2";
-            vars.to = canvasCreator2.addr;
+            vars.canvasCreator = canvasCreator2.addr;
             vars.tokenUri = tokenUri;
             vars.nftSignature = abi.encodePacked(r, s, v);
             vars.flatPrice = 0.01 ether;
@@ -645,7 +645,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
             hoax(daoCreator.addr);
             // !!!! 1.3-14 step 5
-            protocol.createCanvasAndMintNFT{ value: flatPrice }(vars);
+            protocol.mintNFT{ value: flatPrice }(vars);
         }
         // !!!! 1.3-14 step 6
         assertEq(assetPool.balance, 0.007 ether);

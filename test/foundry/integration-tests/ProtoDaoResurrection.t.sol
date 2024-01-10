@@ -27,17 +27,17 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         param.noPermission = true;
         bytes32 daoId = _createDaoForFunding(param, address(this));
         protocol.setDaoRemainingRound(daoId, 1);
-        MintNFTAndTransferParam memory mintNftTransferParam;
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
         mintNftTransferParam.daoId = daoId;
         mintNftTransferParam.canvasId = param.canvasId;
         mintNftTransferParam.tokenUri = "nft1";
         mintNftTransferParam.proof = new bytes32[](0);
         mintNftTransferParam.flatPrice = 0.01 ether;
         mintNftTransferParam.nftSignature = hex"11";
-        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+        protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
 
         assertEq(
             protocol.getDaoRoundDistributeAmount(
@@ -61,7 +61,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         vm.expectRevert(ExceedMaxMintableRound.selector);
         hoax(nftMinter.addr);
         mintNftTransferParam.tokenUri = "nft2";
-        protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+        protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId, address(0), protocol.getDaoCurrentRound(daoId), protocol.getDaoRemainingRound(daoId)
@@ -290,21 +290,20 @@ contract ProtoDaoResurrectionTest is DeployHelper {
 
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
-        MintNFTAndTransferParam memory mintNftTransferParam;
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
         mintNftTransferParam.daoId = daoId;
         mintNftTransferParam.canvasId = param.canvasId;
-
         mintNftTransferParam.proof = new bytes32[](0);
         mintNftTransferParam.flatPrice = 0.01 ether;
         mintNftTransferParam.nftSignature = hex"11";
-        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
         //erc20 = 50000000 ether
         for (uint256 i = 0; i < 5; i++) {
             hoax(nftMinter.addr);
             mintNftTransferParam.tokenUri = string.concat("nft", vm.toString(i));
-            protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+            protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
             assertEq(
                 IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)),
                 50_000_000 ether - (i + 1) * 10_000_000 ether,
@@ -545,21 +544,21 @@ contract ProtoDaoResurrectionTest is DeployHelper {
 
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
-        MintNFTAndTransferParam memory mintNftTransferParam;
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
         mintNftTransferParam.daoId = daoId;
         mintNftTransferParam.canvasId = param.canvasId;
 
         mintNftTransferParam.proof = new bytes32[](0);
         mintNftTransferParam.flatPrice = 0.01 ether;
         mintNftTransferParam.nftSignature = hex"11";
-        mintNftTransferParam.to = nftMinter.addr;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
         //erc20 = 50000000 ether
         for (uint256 i = 0; i < 5; i++) {
             hoax(nftMinter.addr);
             mintNftTransferParam.tokenUri = string.concat("nft", vm.toString(i));
-            protocol.mintNFTAndTransfer{ value: 0.01 ether }(mintNftTransferParam);
+            protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
             assertEq(
                 IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)),
                 50_000_000 ether - (i + 1) * 10_000_000 ether,

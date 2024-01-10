@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { MintNftInfo, CreateCanvasAndMintNFTParam, MintNFTAndTransferParam } from "./D4AStructs.sol";
+import { MintNftInfo, CreateCanvasAndMintNFTParam, MintNFTParam } from "./D4AStructs.sol";
 
 interface IPDProtocol {
     event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
@@ -44,26 +44,26 @@ interface IPDProtocol {
 
     function initialize() external;
 
-    function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata createCanvasAndMintNFTParam)
-        external
-        payable
-        returns (uint256);
+    // function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata createCanvasAndMintNFTParam)
+    //     external
+    //     payable
+    //     returns (uint256);
 
-    function mintNFT(
-        bytes32 daoId,
-        bytes32 canvasId,
-        string calldata tokenUri,
-        bytes32[] calldata proof,
-        uint256 nftFlatPrice,
-        bytes calldata nftSignature,
-        bytes calldata erc20Signature,
-        uint256 deadline
-    )
-        external
-        payable
-        returns (uint256);
+    // function mintNFT(
+    //     bytes32 daoId,
+    //     bytes32 canvasId,
+    //     string calldata tokenUri,
+    //     bytes32[] calldata proof,
+    //     uint256 nftFlatPrice,
+    //     bytes calldata nftSignature,
+    //     bytes calldata erc20Signature,
+    //     uint256 deadline
+    // )
+    //     external
+    //     payable
+    //     returns (uint256);
 
-    function mintNFTAndTransfer(MintNFTAndTransferParam calldata vars) external payable returns (uint256);
+    function mintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256);
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
 

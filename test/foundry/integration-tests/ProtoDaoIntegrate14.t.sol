@@ -5,7 +5,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
-import { UserMintCapParam, SetChildrenParam, AllRatioParam } from "contracts/interface/D4AStructs.sol";
+import {
+    UserMintCapParam,
+    SetChildrenParam,
+    AllRatioParam,
+    CreateCanvasAndMintNFTParam
+} from "contracts/interface/D4AStructs.sol";
 import { ClaimMultiRewardParam } from "contracts/D4AUniversalClaimer.sol";
 
 import { ExceedMinterMaxMintAmount, NotAncestorDao } from "contracts/interface/D4AErrors.sol";
@@ -74,11 +79,23 @@ contract ProtoDaoIntergrate14 is DeployHelper {
 
         vm.expectRevert(TransferFromFailed.selector);
         vm.prank(nftMinter.addr);
-        uint256 tokenId = protocol.mintNFT(daoId2, canvasId2, "a1234", new bytes32[](0), 2_000_000 ether, sig, "", 0);
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId2;
+        mintNftTransferParam.canvasId = canvasId2;
+        mintNftTransferParam.tokenUri = "a1234";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 2_000_000 ether;
+        mintNftTransferParam.nftSignature = sig;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = "";
+        mintNftTransferParam.deadline = 0;
+
+        protocol.mintNFT{ value: 0 }(mintNftTransferParam);
+        //uint256 tokenId = protocol.mintNFT(daoId2, canvasId2, "a1234", new bytes32[](0), 2_000_000 ether, sig, "", 0);
         vm.startPrank(nftMinter.addr);
 
         IERC20(token).approve(address(protocol), 1_000_000 ether);
-        tokenId = protocol.mintNFT(daoId2, canvasId2, "a1234", new bytes32[](0), 2_000_000 ether, sig, "", 0);
+        protocol.mintNFT(mintNftTransferParam);
 
         {
             (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
