@@ -169,6 +169,7 @@ struct UpdateRewardParam {
     address daoFeePool;
     bool zeroPrice;
     bool topUpMode;
+    bytes32 nftHash;
 }
 
 struct SetDaoParam {

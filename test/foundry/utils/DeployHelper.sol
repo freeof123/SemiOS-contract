@@ -835,7 +835,7 @@ contract DeployHelper is Test {
         string canvasUri;
         address canvasCreator;
         string tokenUri;
-        bytes nftSignature;
+        //bytes nftSignature;
         uint256 flatPrice;
         bytes32[] proof;
         bytes32[] canvasProof;
@@ -1005,7 +1005,6 @@ contract DeployHelper is Test {
         vars.canvasUri = param.canvasUri;
         vars.canvasCreator = param.canvasCreator;
         vars.tokenUri = param.tokenUri;
-        vars.nftSignature = param.nftSignature;
         vars.flatPrice = param.flatPrice;
         vars.proof = param.proof;
         vars.canvasProof = param.canvasProof;
@@ -1020,6 +1019,52 @@ contract DeployHelper is Test {
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(param.canvasCreatorKey, digest);
             sig = abi.encodePacked(r, s, v);
         }
+        vars.nftSignature = sig;
+        uint256 value;
+        if (protocol.getDaoERC20PaymentMode(param.daoId)) {
+            value = 0;
+        } else if (
+            param.flatPrice == 0 && LibString.eq(protocol.getDaoTag(param.daoId), "BASIC DAO")
+                && !protocol.getDaoUnifiedPriceModeOff(param.daoId)
+        ) {
+            value = 0;
+        } else {
+            value = param.flatPrice == 0 ? protocol.getCanvasNextPrice(param.daoId, param.canvasId) : param.flatPrice;
+        }
+
+        tokenId = protocol.mintNFT{ value: value }(vars);
+        vm.stopPrank();
+    }
+
+    function _mintNftWithParamChangeBal(
+        MintNftParamTest memory param,
+        address minter
+    )
+        internal
+        returns (uint256 tokenId)
+    {
+        vm.startPrank(minter);
+        CreateCanvasAndMintNFTParam memory vars;
+        vars.daoId = param.daoId;
+        vars.canvasId = param.canvasId;
+        vars.canvasUri = param.canvasUri;
+        vars.canvasCreator = param.canvasCreator;
+        vars.tokenUri = param.tokenUri;
+        vars.flatPrice = param.flatPrice;
+        vars.proof = param.proof;
+        vars.canvasProof = param.canvasProof;
+        vars.nftOwner = param.nftOwner == address(0) ? minter : param.nftOwner;
+        vars.erc20Signature = param.erc20Signature;
+        vars.deadline = param.deadline;
+        vars.nftIdentifier = param.nftIdentifier;
+
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(param.canvasId, param.tokenUri, param.flatPrice);
+        bytes memory sig;
+        {
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(param.canvasCreatorKey, digest);
+            sig = abi.encodePacked(r, s, v);
+        }
+        vars.nftSignature = sig;
         uint256 value;
         if (protocol.getDaoERC20PaymentMode(param.daoId)) {
             value = 0;

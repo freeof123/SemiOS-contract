@@ -9,7 +9,8 @@ import {
     UserMintCapParam,
     SetChildrenParam,
     AllRatioParam,
-    CreateCanvasAndMintNFTParam
+    CreateCanvasAndMintNFTParam,
+    NftIdentifier
 } from "contracts/interface/D4AStructs.sol";
 import { ClaimMultiRewardParam } from "contracts/D4AUniversalClaimer.sol";
 
@@ -50,6 +51,8 @@ contract ProtoDaoIntergrate14 is DeployHelper {
             nftMinter.addr
         );
 
+        NftIdentifier memory nft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
+
         //------------------
         param.isBasicDao = false;
         param.existDaoId = daoId;
@@ -65,7 +68,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         address token = protocol.getDaoToken(daoId2);
         deal(token, nftMinter.addr, 100_000_000 ether);
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
+            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
             assertEq(topUpERC20, 1_000_000 ether);
             assertEq(topUpETH, 0.01 ether);
         }
@@ -89,6 +92,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         mintNftTransferParam.nftOwner = nftMinter.addr;
         mintNftTransferParam.erc20Signature = "";
         mintNftTransferParam.deadline = 0;
+        mintNftTransferParam.nftIdentifier = nft1;
 
         protocol.mintNFT{ value: 0 }(mintNftTransferParam);
         //uint256 tokenId = protocol.mintNFT(daoId2, canvasId2, "a1234", new bytes32[](0), 2_000_000 ether, sig, "", 0);
@@ -98,7 +102,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.mintNFT(mintNftTransferParam);
 
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nftMinter.addr);
+            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
             assertEq(topUpERC20, 0);
             assertEq(topUpETH, 0);
         }

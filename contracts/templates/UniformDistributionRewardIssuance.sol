@@ -7,7 +7,7 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
-import { UpdateRewardParam } from "contracts/interface/D4AStructs.sol";
+import { UpdateRewardParam, NftIdentifier } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
@@ -81,7 +81,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             rewardInfo.nftMinterWeightsETH[param.currentRound][msg.sender] += param.daoFeeAmount
                 * IPDProtocolReadable(address(this)).getMinterETHRewardRatio(param.daoId) / BASIS_POINT;
         } else {
-            rewardInfo.nftMinterWeights[param.currentRound][msg.sender] += param.daoFeeAmount;
+            rewardInfo.nftTopUpInvestorWeights[param.currentRound][param.nftHash] += param.daoFeeAmount;
         }
     }
 
@@ -263,12 +263,13 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         payable
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
     {
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) return (0, 0);
+
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
         //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256[] memory activeRounds = rewardInfo.activeRounds;
-        bool topUpMode = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode;
         // enumerate all active rounds, not including current round
         uint256 j = rewardInfo.nftMinterClaimableRoundIndexes[nftMinter];
         for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
@@ -282,32 +283,65 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             claimableERC20Reward += roundReward * rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
                 / rewardInfo.totalWeights[activeRounds[j]];
 
-            if (!topUpMode) {
-                roundReward = getRoundReward(daoId, activeRounds[j], address(0));
-                claimableETHReward += roundReward * rewardInfo.nftMinterWeightsETH[activeRounds[j]][nftMinter]
-                    / rewardInfo.totalWeights[activeRounds[j]];
-            } else {
-                //handle topup eth
-                claimableETHReward += rewardInfo.topUpInvestorPendingETH[activeRounds[j]][nftMinter];
-            }
+            roundReward = getRoundReward(daoId, activeRounds[j], address(0));
+            claimableETHReward += roundReward * rewardInfo.nftMinterWeightsETH[activeRounds[j]][nftMinter]
+                / rewardInfo.totalWeights[activeRounds[j]];
             unchecked {
                 ++j;
             }
         }
         rewardInfo.nftMinterClaimableRoundIndexes[nftMinter] = j;
-        if (!topUpMode) {
-            if (claimableERC20Reward > 0) D4AERC20(token).transfer(nftMinter, claimableERC20Reward);
-            if (claimableETHReward > 0) {
-                (bool succ,) = nftMinter.call{ value: claimableETHReward }("");
-                require(succ, "transfer eth failed");
-            }
-        } else {
-            //同一family享用同一个redeem池子
-            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpInvestorETHQuota[nftMinter]
-            += claimableETHReward;
-            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpInvestorERC20Quota[nftMinter]
-            += claimableERC20Reward;
+
+        if (claimableERC20Reward > 0) D4AERC20(token).transfer(nftMinter, claimableERC20Reward);
+        if (claimableETHReward > 0) {
+            (bool succ,) = nftMinter.call{ value: claimableETHReward }("");
+            require(succ, "transfer eth failed");
         }
+    }
+
+    function claimNftTopUpBalance(
+        bytes32 daoId,
+        bytes32 nftHash,
+        uint256 currentRound,
+        address token
+    )
+        external
+        payable
+        returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
+    {
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) return (0, 0);
+
+        RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
+
+        //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
+
+        uint256[] memory activeRounds = rewardInfo.activeRounds;
+        // enumerate all active rounds, not including current round
+        uint256 j = rewardInfo.nftTopUpClaimableRoundIndexes[nftHash];
+        for (; j < activeRounds.length && activeRounds[j] < currentRound;) {
+            if (rewardInfo.totalWeights[activeRounds[j]] == 0) {
+                unchecked {
+                    ++j;
+                }
+                continue;
+            }
+            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+            claimableERC20Reward += roundReward * rewardInfo.nftTopUpInvestorWeights[activeRounds[j]][nftHash]
+                / rewardInfo.totalWeights[activeRounds[j]];
+
+            //handle topup eth
+            claimableETHReward += rewardInfo.nftTopUpInvestorPendingETH[activeRounds[j]][nftHash];
+            unchecked {
+                ++j;
+            }
+        }
+        rewardInfo.nftTopUpClaimableRoundIndexes[nftHash] = j;
+
+        //同一family享用同一个redeem池子
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftETH[nftHash] +=
+            claimableETHReward;
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftERC20[nftHash] +=
+            claimableERC20Reward;
     }
 
     /**

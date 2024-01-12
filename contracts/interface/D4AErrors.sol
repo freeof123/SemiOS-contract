@@ -108,5 +108,9 @@ error NotCanvasIdOfDao();
 error DurationIsZero();
 
 error CannotUseZeroFloorPrice();
+
 error TurnOffInfiniteModeWithZeroRemainingRound();
+
 error PaymentModeAndTopUpModeCannotBeBothOn();
+
+error NotNftOwner();
