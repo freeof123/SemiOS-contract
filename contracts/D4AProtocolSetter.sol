@@ -44,7 +44,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
-        daoMintInfo.daoMintCap = daoMintCap;
+        daoMintInfo.daoMintCap = uint32(l.nftMaxSupplies[daoMintCap]);
         address daoNft = DaoStorage.layout().daoInfos[daoId].nft;
 
         uint256 length = userMintCapParams.length;
