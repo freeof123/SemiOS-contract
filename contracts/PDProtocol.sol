@@ -374,21 +374,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         return ethAmount;
     }
 
-    //where should I put this function, UniformDistribution?
-    //if revert error, we don't need return value
-    //do we need add internal call replace this?
-    //question:
-    function stakeTopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) public {
-        if (msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
-            revert NotNftOwner();
-        }
-        PoolStorage.PoolInfo storage poolInfo =
-            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        if (poolInfo.lockedStatus[_nftHash(nft)]) revert NftHadLocked();
-        emit TopUpNftLock(daoId, nft.erc721Address, nft.tokenId, duration);
-        poolInfo.lockedStatus[_nftHash(nft)] = true;
-    }
-
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
     }
@@ -826,8 +811,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (vars.nft.erc721Address != address(0)) {
             PoolStorage.PoolInfo storage poolInfo =
                 PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
-            if (!poolInfo.lockedStatus[_nftHash(vars.nft)]) {
+            if (!poolInfo.lockedInfo[_nftHash(vars.nft)].lockedStatus) {
                 (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+            } else {
+                if (
+                    poolInfo.lockedInfo[_nftHash(vars.nft)].lockStartTime
+                        + poolInfo.lockedInfo[_nftHash(vars.nft)].duration < block.timestamp
+                ) {
+                    unstakeTopUpNFT(vars.daoId, vars.nft);
+                    (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+                }
             }
         }
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
@@ -886,8 +879,17 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (vars.nft.erc721Address != address(0)) {
             PoolStorage.PoolInfo storage poolInfo =
                 PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
-            if (!poolInfo.lockedStatus[_nftHash(vars.nft)]) {
+            if (!poolInfo.lockedInfo[_nftHash(vars.nft)].lockedStatus) {
                 (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+            } else {
+                //question unstake put here?, save gas
+                if (
+                    poolInfo.lockedInfo[_nftHash(vars.nft)].lockStartTime
+                        + poolInfo.lockedInfo[_nftHash(vars.nft)].duration < block.timestamp
+                ) {
+                    unstakeTopUpNFT(vars.daoId, vars.nft);
+                    (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+                }
             }
         }
 
@@ -952,5 +954,39 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
         name = "ProtoDaoProtocol";
         version = "1";
+    }
+
+    //where should I put this function, UniformDistribution?
+    //if revert error, we don't need return value
+    //do we need add internal call replace this?
+    //question:
+    function stakeTopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) public {
+        if (msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
+            revert NotNftOwner();
+        }
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        if (poolInfo.lockedInfo[_nftHash(nft)].lockedStatus) revert TopUpNftHadLocked();
+        poolInfo.lockedInfo[_nftHash(nft)].lockedStatus = true;
+        poolInfo.lockedInfo[_nftHash(nft)].lockStartTime = block.timestamp;
+        poolInfo.lockedInfo[_nftHash(nft)].duration = duration;
+        emit TopUpNftLock(daoId, nft.erc721Address, nft.tokenId, duration);
+    }
+
+    function unstakeTopUpNFT(bytes32 daoId, NftIdentifier memory nft) public {
+        if (msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
+            revert NotNftOwner();
+        }
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        if (!poolInfo.lockedInfo[_nftHash(nft)].lockedStatus) return;
+        if (
+            poolInfo.lockedInfo[_nftHash(nft)].lockStartTime + poolInfo.lockedInfo[_nftHash(nft)].duration
+                > block.timestamp
+        ) revert TopUpNFTIsLocking();
+        poolInfo.lockedInfo[_nftHash(nft)].lockedStatus = false;
+        poolInfo.lockedInfo[_nftHash(nft)].duration = 0;
+        poolInfo.lockedInfo[_nftHash(nft)].lockStartTime = 0;
+        emit TopUpNftUnlock(daoId, nft.erc721Address, nft.tokenId);
     }
 }

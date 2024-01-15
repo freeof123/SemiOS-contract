@@ -115,4 +115,6 @@ error PaymentModeAndTopUpModeCannotBeBothOn();
 
 error NotNftOwner();
 
-error NftHadLocked();
+error TopUpNftHadLocked();
+
+error TopUpNFTIsLocking();

@@ -2,6 +2,13 @@
 pragma solidity ^0.8.18;
 
 library PoolStorage {
+    struct LokcedInfo {
+        //question startTime and endTime
+        uint256 duration;
+        bool lockedStatus;
+        uint256 lockStartTime;
+    }
+
     struct PoolInfo {
         mapping(uint256 round => uint256 totalWeight) roundTotalETH;
         uint256 circulateERC20Amount; //????here??
@@ -11,7 +18,7 @@ library PoolStorage {
         mapping(bytes32 nftHash => bytes32[] daoId) nftInvestedTopUpDaos;
         mapping(bytes32 nftHash => uint256 amount) topUpNftETH;
         mapping(bytes32 nftHash => uint256 amount) topUpNftERC20;
-        mapping(bytes32 nftHash => bool) lockedStatus;
+        mapping(bytes32 nftHash => LokcedInfo) lockedInfo;
     }
 
     struct Layout {
