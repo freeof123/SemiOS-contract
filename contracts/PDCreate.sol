@@ -279,9 +279,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             if (daoMetadataParam.duration == 0) revert DurationIsZero();
             roundInfo.roundDuration = daoMetadataParam.duration;
             roundInfo.roundInLastModify = 1;
-            roundInfo.blockInLastModify = block.number;
 
             daoInfo.startBlock = daoMetadataParam.startBlock == 0 ? block.number : daoMetadataParam.startBlock;
+            roundInfo.blockInLastModify = daoInfo.startBlock;
+
             daoInfo.mintableRound = daoMetadataParam.mintableRounds;
             PriceStorage.layout().daoFloorPrices[daoId] = daoMetadataParam.floorPrice;
             daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[daoMetadataParam.maxNftRank];

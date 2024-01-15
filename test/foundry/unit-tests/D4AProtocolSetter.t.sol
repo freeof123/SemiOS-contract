@@ -965,8 +965,8 @@ contract D4AProtocolSetterTest is DeployHelper {
         protocol.setDaoRemainingRound(daoId, 120);
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 1);
-        assertEq(protocol.getDaoActiveRounds(daoId)[0], 2);
-        assertEq(protocol.getRoundERC20Reward(daoId, 2), 555_555_555_555_555_555_555_555);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 2), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getDaoActiveRounds(daoId)[0], 1);
+        assertEq(protocol.getRoundERC20Reward(daoId, 1), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getERC20RewardTillRound(daoId, 1), 555_555_555_555_555_555_555_555);
     }
 }
