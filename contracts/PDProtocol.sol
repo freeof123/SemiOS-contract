@@ -374,6 +374,21 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         return ethAmount;
     }
 
+    //where should I put this function, UniformDistribution?
+    //if revert error, we don't need return value
+    //do we need add internal call replace this?
+    //question:
+    function stakeTopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) public {
+        if (msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
+            revert NotNftOwner();
+        }
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        if (poolInfo.lockedStatus[_nftHash(nft)]) revert NftHadLocked();
+        emit TopUpNftLock(daoId, nft.erc721Address, nft.tokenId, duration);
+        poolInfo.lockedStatus[_nftHash(nft)] = true;
+    }
+
     function _checkCanvasExist(bytes32 canvasId) internal view {
         if (!CanvasStorage.layout().canvasInfos[canvasId].canvasExist) revert CanvasNotExist();
     }
@@ -809,7 +824,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpETHQuota;
         if (vars.nft.erc721Address != address(0)) {
-            (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+            PoolStorage.PoolInfo storage poolInfo =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
+            if (!poolInfo.lockedStatus[_nftHash(vars.nft)]) {
+                (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+            }
         }
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
@@ -865,7 +884,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpERC20Quota;
         if (vars.nft.erc721Address != address(0)) {
-            (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+            PoolStorage.PoolInfo storage poolInfo =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
+            if (!poolInfo.lockedStatus[_nftHash(vars.nft)]) {
+                (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+            }
         }
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;

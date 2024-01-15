@@ -114,3 +114,5 @@ error TurnOffInfiniteModeWithZeroRemainingRound();
 error PaymentModeAndTopUpModeCannotBeBothOn();
 
 error NotNftOwner();
+
+error NftHadLocked();

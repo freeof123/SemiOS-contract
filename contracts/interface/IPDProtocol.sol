@@ -34,6 +34,10 @@ interface IPDProtocol {
 
     event TopUpAmountUsed(NftIdentifier nft, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
 
+    //question: merge this
+    event TopUpNftLock(bytes32 daoId, address nftAddress, uint256 nftId, uint256 duration);
+    event TopUpNftUnlock(bytes32 daoId, address nftAddress, uint256 nftId);
+
     event MintFeeSplitted(
         bytes32 daoId,
         address daoRedeemPool,

@@ -11,6 +11,7 @@ library PoolStorage {
         mapping(bytes32 nftHash => bytes32[] daoId) nftInvestedTopUpDaos;
         mapping(bytes32 nftHash => uint256 amount) topUpNftETH;
         mapping(bytes32 nftHash => uint256 amount) topUpNftERC20;
+        mapping(bytes32 nftHash => bool) lockedStatus;
     }
 
     struct Layout {
