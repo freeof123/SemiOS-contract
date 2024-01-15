@@ -4,3 +4,4 @@
 //"createCanvasAndMintNFT(bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],address)": "415902d0"
 "createCanvasAndMintNFT((bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],bytes32[],address))": "7fb597fb"
 "setDaoParams((bytes32,uint256,uint256,uint256,uint8,uint256,uint256,uint256,uint256,bool,(bytes32[],uint256[],uint256[],uint256,uint256,uint256),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256)))": "eccaf66d"
+"mintNFT(bytes32,bytes32,string,bytes32[],uint256,bytes)"

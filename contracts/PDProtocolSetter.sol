@@ -235,6 +235,11 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         _checkSetAbility(daoId, true, true);
 
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            emit ChildrenSet(daoId, new bytes32[](0), new uint256[](0), new uint256[](0), 0, 10_000, 0);
+            return;
+        }
+
         uint256 sumERC20;
         uint256 sumETH;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
@@ -265,19 +270,15 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.selfRewardRatioERC20 = vars.selfRewardRatioERC20;
         treeInfo.selfRewardRatioETH = vars.selfRewardRatioETH;
 
-        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
-            emit ChildrenSet(
-                daoId,
-                vars.childrenDaoId,
-                vars.erc20Ratios,
-                vars.ethRatios,
-                vars.redeemPoolRatioETH,
-                vars.selfRewardRatioERC20,
-                vars.selfRewardRatioETH
-            );
-        } else {
-            emit ChildrenSet(daoId, new bytes32[](0), new uint256[](0), new uint256[](0), 0, 10_000, 0);
-        }
+        emit ChildrenSet(
+            daoId,
+            vars.childrenDaoId,
+            vars.erc20Ratios,
+            vars.ethRatios,
+            vars.redeemPoolRatioETH,
+            vars.selfRewardRatioERC20,
+            vars.selfRewardRatioETH
+        );
     }
 
     //in PD1.3, we always use ratios w.r.t all 4 roles
@@ -285,6 +286,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     function setRatio(bytes32 daoId, AllRatioParam calldata vars) public {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         _checkSetAbility(daoId, true, true);
+        if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            emit RatioSet(daoId, AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0));
+            return;
+        }
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         if (
             vars.canvasCreatorMintFeeRatio + vars.assetPoolMintFeeRatio + vars.redeemPoolMintFeeRatio
@@ -321,10 +326,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         treeInfo.canvasCreatorETHRewardRatio = vars.canvasCreatorETHRewardRatio;
         treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
 
-        AllRatioParam memory allRatioParam = BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode
-            ? AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0)
-            : vars;
-        emit RatioSet(daoId, allRatioParam);
+        emit RatioSet(daoId, vars);
     }
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
