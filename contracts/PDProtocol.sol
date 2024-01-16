@@ -141,7 +141,12 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
                 abi.encodeCall(
                     IRewardTemplate.claimNftMinterReward,
-                    (investedTopUpDaos[i], account, IPDRound(address(this)).getDaoCurrentRound(daoId), daoInfo.token)
+                    (
+                        investedTopUpDaos[i],
+                        account,
+                        IPDRound(address(this)).getDaoCurrentRound(investedTopUpDaos[i]),
+                        daoInfo.token
+                    )
                 )
             );
             require(succ, "delegate call failed");
