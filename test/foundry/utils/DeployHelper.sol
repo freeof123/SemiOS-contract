@@ -28,7 +28,8 @@ import {
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
     getGrantSelectors,
-    getPDRoundSelectors
+    getPDRoundSelectors,
+    getPDLockSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
@@ -53,6 +54,8 @@ import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import { PDRound } from "contracts/PDRound.sol";
+import { PDLock } from "contracts/PDLock.sol";
+
 import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
@@ -86,6 +89,7 @@ contract DeployHelper is Test {
     PDProtocol public protocolImpl;
     PDCreate public pdCreate;
     PDRound public pdRound;
+    PDLock public pdLock;
     D4ACreate public d4aCreate;
     PDBasicDao public pdBasicDao;
     PDCreateProjectProxy public daoProxy;
@@ -305,6 +309,7 @@ contract DeployHelper is Test {
         _deploySettings();
         _deployGrant();
         _deployPDRound();
+        _deployPDLock();
         //_deployPDCreateFunding();
 
         _cutFacetsD4ACreate();
@@ -315,6 +320,7 @@ contract DeployHelper is Test {
         _cutFacetsSettings();
         _cutFacetsGrant();
         _cutFacetsPDRound();
+        _cutFacetsPDLock();
 
         //_cutFacetsPDCreateFunding();
 
@@ -366,6 +372,10 @@ contract DeployHelper is Test {
         vm.label(address(pdRound), "Protocol Round");
     }
 
+    function _deployPDLock() internal {
+        pdLock = new PDLock();
+        vm.label(address(pdLock), "Protocol Lock");
+    }
     // function _deployPDCreateFunding() internal {
     //     pdCreateFunding = new PDCreateFunding(address(weth));
     //     vm.label(address(grant), "Proto DAO Create Funding");
@@ -477,6 +487,20 @@ contract DeployHelper is Test {
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
             target: address(pdRound),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
+
+    function _cutFacetsPDLock() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDCreate facet cut
+        bytes4[] memory selectors = getPDLockSelectors();
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdLock),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });

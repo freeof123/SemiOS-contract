@@ -99,6 +99,6 @@ interface IPDProtocol {
         returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);
 
     //question
-    function stakeTopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) external;
-    function unstakeTopUpNFT(bytes32 daoId, NftIdentifier memory nft) external;
+    // function TopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) external;
+    // function unstakeTopUpNFT(bytes32 daoId, NftIdentifier memory nft) external;
 }

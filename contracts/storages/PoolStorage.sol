@@ -5,8 +5,7 @@ library PoolStorage {
     struct LokcedInfo {
         //question startTime and endTime
         uint256 duration;
-        bool lockedStatus;
-        uint256 lockStartTime;
+        uint256 lockStartBlock;
     }
 
     struct PoolInfo {

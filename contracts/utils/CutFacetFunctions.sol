@@ -13,6 +13,7 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
+import { IPDLock } from "contracts/interface/IPDLock.sol";
 
 function getD4ACreateSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
@@ -329,4 +330,22 @@ function getPDRoundSelectors() pure returns (bytes4[] memory) {
     return selectors;
 }
 
+function getPDLockSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4AGrant
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDLock.lockTopUpNFT.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDLock.checkTopUpNftLockedStatus.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDLock.getTopUpNftLockedInfo.selector;
+
+    assert(interfaceId == type(IPDLock).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
 // 是否要添加selector

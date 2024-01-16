@@ -13,6 +13,7 @@ import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { IPDBasicDao } from "contracts/interface/IPDBasicDao.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
+import { IPDLock } from "contracts/interface/IPDLock.sol";
 
 interface IPDProtocolAggregate is
     IPDProtocol,
@@ -24,7 +25,8 @@ interface IPDProtocolAggregate is
     ID4ASettingsReadable,
     ID4ASettings,
     IPDProtocolSetter,
-    IPDRound
+    IPDRound,
+    IPDLock
 {
-    function testBug(bytes32) external payable;
+//function testBug(bytes32) external payable;
 }
