@@ -177,7 +177,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                     (
                         investedTopUpDaos[i],
                         _nftHash(nft),
-                        IPDRound(address(this)).getDaoCurrentRound(daoId),
+                        IPDRound(address(this)).getDaoCurrentRound(investedTopUpDaos[i]),
                         daoInfo.token
                     )
                 )
