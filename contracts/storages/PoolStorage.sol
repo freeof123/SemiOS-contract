@@ -3,7 +3,6 @@ pragma solidity ^0.8.18;
 
 library PoolStorage {
     struct LokcedInfo {
-        //question startTime and endTime
         uint256 duration;
         uint256 lockStartBlock;
     }

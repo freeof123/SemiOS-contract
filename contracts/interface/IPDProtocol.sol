@@ -34,10 +34,6 @@ interface IPDProtocol {
 
     event TopUpAmountUsed(NftIdentifier nft, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
 
-    //question: merge this
-    event TopUpNftLock(bytes32 daoId, address nftAddress, uint256 nftId, uint256 duration);
-    event TopUpNftUnlock(bytes32 daoId, address nftAddress, uint256 nftId);
-
     event MintFeeSplitted(
         bytes32 daoId,
         address daoRedeemPool,
@@ -97,8 +93,4 @@ interface IPDProtocol {
     )
         external
         returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);
-
-    //question
-    // function TopUpNFT(bytes32 daoId, NftIdentifier calldata nft, uint256 duration) external;
-    // function unstakeTopUpNFT(bytes32 daoId, NftIdentifier memory nft) external;
 }
