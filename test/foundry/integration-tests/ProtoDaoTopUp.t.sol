@@ -565,4 +565,133 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
         assertEq(topUpETH, 0.01 ether, "Topup B");
     }
+
+    function test_PDCreate_MainDaoTouUpEnd_SubDaoNotEnd() public {
+        // dao: daoCreator
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.selfRewardRatioETH = 10_000;
+        param.selfRewardRatioERC20 = 10_000;
+        param.noPermission = true;
+        param.topUpMode = true;
+        param.mintableRound = 3;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address token = protocol.getDaoToken(daoId);
+
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        bytes32 canvasId2 = param.canvasId;
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.selfRewardRatioETH = 8000;
+        param.selfRewardRatioERC20 = 8000;
+        param.noPermission = true;
+        param.topUpMode = false;
+        param.daoUri = "continuous dao uri";
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+
+        NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
+        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpERC20, 0);
+        assertEq(topUpETH, 0);
+
+        vm.roll(2);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK EE");
+        assertEq(topUpETH, 0.01 ether);
+
+        super._mintNft(
+            daoId,
+            canvasId1,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+
+        vm.roll(3);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "Topup C");
+        assertEq(topUpETH, 0.01 ether, "Topup D");
+
+        NftIdentifier memory mainNft2 = NftIdentifier(protocol.getDaoNft(daoId), 2);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
+        assertEq(topUpERC20, (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2), "TopUP A");
+        assertEq(topUpETH, 0.01 ether, "Topup B");
+
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
+        );
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.canvasCreatorKey = daoCreator2.key;
+        nftParam.nftIdentifier = mainNft1;
+
+        assertEq(IERC20(token).balanceOf(nftMinter.addr), 0, "ERC20 NFTMinter Should Be 0");
+
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
+        assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
+        assertEq(topUpETH, 0, "Topup E");
+        assertEq(
+            IERC20(token).balanceOf(nftMinter.addr), 50_000_000 ether / uint256(3), "ERC20 TopUp  Should not be  0"
+        );
+
+        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
+        assertEq(
+            topUpERC20,
+            (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2),
+            "mainNFT Topup account not change"
+        );
+        assertEq(topUpETH, 0.01 ether, "Topup B");
+
+        vm.roll(4);
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
+        );
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = mainNft1;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        vm.roll(5);
+        uint256 daoRemaingRound = protocol.getDaoRemainingRound(daoId);
+        assertEq(daoRemaingRound, 0, "main dao remaining round should be 0");
+        daoRemaingRound = protocol.getDaoRemainingRound(daoId2);
+        assertEq(daoRemaingRound, 2, "sub dao remaining round should be 2");
+
+        //maindao has dead, check whether subdao can mint
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(1)), ".json"
+        );
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.canvasCreatorKey = daoCreator2.key;
+        nftParam.nftIdentifier = mainNft1;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        vm.roll(7);
+        daoRemaingRound = protocol.getDaoRemainingRound(daoId2);
+        assertEq(daoRemaingRound, 1, "sub dao remaining round should be 2");
+    }
 }
