@@ -20,8 +20,10 @@ contract DaoDistribution is DeployHelper {
     DeployHelper.CreateDaoParam param;
     bytes32 daoId;
     bytes32 daoId2;
+    bytes32 daoId3;
     bytes32 canvasId1;
     bytes32 canvasId_nonFix;
+    bytes32 canvasId3;
     address token;
     address token2;
 
@@ -47,6 +49,16 @@ contract DaoDistribution is DeployHelper {
         daoId2 = super._createDaoForFunding(param, daoCreator.addr);
         token2 = protocol.getDaoToken(daoId2);
         canvasId_nonFix = param.canvasId;
+
+        //daoCreator2 create a subdao
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 2));
+        param.daoUri = "dao uri3";
+        param.existDaoId = daoId;
+        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardRatioETH = 10_000;
+
+        daoId3 = super._createDaoForFunding(param, daoCreator2.addr);
+        canvasId3 = param.canvasId;
     }
 
     // 1.3-93
@@ -296,5 +308,44 @@ contract DaoDistribution is DeployHelper {
         // 53700000 / 17 * 2 * 0.7 * (0.2 + 0.7) + 5_670_000 = 9_650_117
         assertEq(IERC20(jackpotToken).balanceOf(daoCreator.addr) / 1 ether, 9_650_117);
         assertEq(IERC20(jackpotToken).balanceOf(nftMinter2.addr) / 1 ether, 353_788);
+    }
+
+    // test daoCreate2 act as subdao could claim the daoCreator reward
+    function test_daoCreator2_asSubDaoCreator_couldClaimReward() public {
+        deal(nftMinter.addr, 0.01 ether);
+        // 铸造一个NFT
+        super._mintNftChangeBal(
+            daoId3,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId3)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+
+        vm.roll(3);
+        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoCreatorReward(daoId3);
+        assertEq(ercAmount, 50_000_000 ether / 10 * 0.7, "Check A");
+        assertEq(ethAmount, 0, "Check B");
+
+        deal(nftMinter.addr, 0.01 ether);
+        // 铸造一个NFT
+        super._mintNftChangeBal(
+            daoId3,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId3)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+
+        vm.roll(5);
+        (ercAmount, ethAmount) = protocol.claimDaoCreatorReward(daoId3);
+        assertEq(ercAmount, 50_000_000 ether / 10 * 0.7, "Check C");
+        assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 / uint256(9), 10, "Check D");
     }
 }
