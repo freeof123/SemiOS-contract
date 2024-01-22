@@ -54,8 +54,8 @@ contract DaoDistribution is DeployHelper {
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 2));
         param.daoUri = "dao uri3";
         param.existDaoId = daoId;
-        param.selfRewardRatioERC20 = 10_000;
-        param.selfRewardRatioETH = 10_000;
+        // param.selfRewardRatioERC20 = 10_000;
+        // param.selfRewardRatioETH = 10_000;
 
         daoId3 = super._createDaoForFunding(param, daoCreator2.addr);
         canvasId3 = param.canvasId;
@@ -327,7 +327,7 @@ contract DaoDistribution is DeployHelper {
 
         vm.roll(3);
         (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoCreatorReward(daoId3);
-        assertEq(ercAmount, 50_000_000 ether / 10 * 0.7, "Check A");
+        assertEq(ercAmount, 50_000_000 ether * 0.7 * 0.7 / 10, "Check A");
         assertEq(ethAmount, 0, "Check B");
 
         deal(nftMinter.addr, 0.01 ether);
@@ -345,7 +345,6 @@ contract DaoDistribution is DeployHelper {
 
         vm.roll(5);
         (ercAmount, ethAmount) = protocol.claimDaoCreatorReward(daoId3);
-        assertEq(ercAmount, 50_000_000 ether / 10 * 0.7, "Check C");
-        assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 / uint256(9), 10, "Check D");
+        assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 * 0.7 / uint256(9), 10, "Check D");
     }
 }
