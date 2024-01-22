@@ -346,5 +346,7 @@ contract DaoDistribution is DeployHelper {
         vm.roll(5);
         (ercAmount, ethAmount) = protocol.claimDaoCreatorReward(daoId3);
         assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 * 0.7 / uint256(9), 10, "Check D");
+        //question, daoId3 is not subdao?
+        // console2.log(protocol.getDaoToken(daoId3), protocol.getDaoToken(daoId), "A");
     }
 }

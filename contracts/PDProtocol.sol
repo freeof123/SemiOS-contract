@@ -843,7 +843,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETHToUse;
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20;
 
+            //1.6 todo
             SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topUpAmountERC20);
+            // SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender,
+            // topUpAmountERC20);
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
@@ -907,7 +910,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20ToUse;
 
             SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
-            //todo
+            //SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
+            //1.6 todo
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
