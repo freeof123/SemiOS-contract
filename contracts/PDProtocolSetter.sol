@@ -17,6 +17,7 @@ import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
@@ -398,6 +399,21 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         emit DaoInfiniteModeChanged(daoId, !infiniteMode, remainingRound);
     }
 
+    function setTopUpBalanceOutRatio(
+        bytes32 daoId,
+        uint256 ethToRedeemPoolRatio,
+        uint256 erc20ToTreasuryRatio
+    )
+        public
+    {
+        _checkTreasuryNFTOwner(daoId, msg.sender);
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        poolInfo.ethToRedeemPoolRatio = ethToRedeemPoolRatio;
+        poolInfo.erc20ToTreasuryRatio = erc20ToTreasuryRatio;
+        emit DaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
+    }
+
     function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
@@ -459,5 +475,9 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             ) return;
         }
         revert NotDaoOwner();
+    }
+
+    function _checkTreasuryNFTOwner(bytes32 daoId, address owner) internal view {
+        return;
     }
 }

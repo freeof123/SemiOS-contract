@@ -316,6 +316,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
                 daoStorage.daoInfos[daoId].tokenMaxSupply =
                     (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+                //1.6 todo
                 D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
             }
             if (

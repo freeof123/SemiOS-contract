@@ -209,7 +209,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         emit DaoPriceTemplateSet(daoId, priceTemplateType, nftPriceFactor);
     }
-    //1.6 todo notDaoOwner -> notDaoOwnershipNFTOwner
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
