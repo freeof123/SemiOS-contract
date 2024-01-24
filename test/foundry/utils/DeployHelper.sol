@@ -78,6 +78,8 @@ import { PDGrant } from "contracts/PDGrant.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract DeployHelper is Test {
+    using LibString for string;
+
     ProxyAdmin public proxyAdmin = new ProxyAdmin();
     DummyPRB public drb;
     D4ASettings public settings;
@@ -851,6 +853,8 @@ contract DeployHelper is Test {
         uint256 daoCreatorETHRewardRatio;
         bool infiniteMode;
         bool erc20PaymentMode;
+        //1.6 add-------------------------------------------
+        string ownershipUri;
     }
 
     struct MintNftParamTest {
@@ -954,7 +958,8 @@ contract DeployHelper is Test {
             daoToken: createDaoParam.thirdPartyToken,
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
-            erc20PaymentMode: createDaoParam.erc20PaymentMode
+            erc20PaymentMode: createDaoParam.erc20PaymentMode,
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({

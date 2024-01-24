@@ -1048,53 +1048,53 @@ contract Deploy is Script, Test, D4AAddress {
     }
 
     //----------------------------------for event emit---------------------------------------------------
-    function _createDao() internal {
-        UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](0);
-        NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](0);
+    // function _createDao() internal {
+    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](0);
+    //     NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](0);
 
-        bytes32 daoId = IPDCreate(address(pdProtocol_proxy)).createDao(
-            bytes32(0),
-            DaoMetadataParam(
-                0,
-                60,
-                239_055_188_367_481_833_171,
-                0.01 ether,
-                2,
-                750,
-                "test dao uri for event", // projectUri
-                0
-            ),
-            Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
-            Blacklist(new address[](0), new address[](0)),
-            DaoMintCapParam(0, userMintCapParams),
-            nftMinterCapInfo,
-            TemplateParam(PriceTemplateType(0), 20_000, RewardTemplateType(2), 0, true),
-            BasicDaoParam(
-                500,
-                keccak256("test canvasId for event"), // canvasId
-                "canvas for event", // canvasUri
-                "mock dao" //dao name
-            ),
-            ContinuousDaoParam(
-                1000,
-                false,
-                0.01 ether,
-                true,
-                10_000,
-                new bytes32[](0),
-                new uint256[](0),
-                new uint256[](0),
-                1000,
-                5000,
-                5000,
-                true,
-                0x0000000000000000000000000000000000000000,
-                false,
-                false,
-                false
-            ),
-            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000),
-            20
-        );
-    }
+    //     bytes32 daoId = IPDCreate(address(pdProtocol_proxy)).createDao(
+    //         bytes32(0),
+    //         DaoMetadataParam(
+    //             0,
+    //             60,
+    //             239_055_188_367_481_833_171,
+    //             0.01 ether,
+    //             2,
+    //             750,
+    //             "test dao uri for event", // projectUri
+    //             0
+    //         ),
+    //         Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
+    //         Blacklist(new address[](0), new address[](0)),
+    //         DaoMintCapParam(0, userMintCapParams),
+    //         nftMinterCapInfo,
+    //         TemplateParam(PriceTemplateType(0), 20_000, RewardTemplateType(2), 0, true),
+    //         BasicDaoParam(
+    //             500,
+    //             keccak256("test canvasId for event"), // canvasId
+    //             "canvas for event", // canvasUri
+    //             "mock dao" //dao name
+    //         ),
+    //         ContinuousDaoParam(
+    //             1000,
+    //             false,
+    //             0.01 ether,
+    //             true,
+    //             10_000,
+    //             new bytes32[](0),
+    //             new uint256[](0),
+    //             new uint256[](0),
+    //             1000,
+    //             5000,
+    //             5000,
+    //             true,
+    //             0x0000000000000000000000000000000000000000,
+    //             false,
+    //             false,
+    //             false
+    //         ),
+    //         AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000),
+    //         20
+    //     );
+    // }
 }

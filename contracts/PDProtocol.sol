@@ -566,7 +566,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         ProtocolStorage.layout().uriExists[keccak256(abi.encodePacked(tokenUri))] = true;
 
         // mint
-        // question tokenid
         tokenId = D4AERC721(daoInfo.nft).mintItem(to, tokenUri, tokenId, false);
         {
             CanvasStorage.CanvasInfo storage canvasInfo = CanvasStorage.layout().canvasInfos[canvasId];

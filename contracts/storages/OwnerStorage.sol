@@ -4,11 +4,15 @@ pragma solidity ^0.8.18;
 import { NftIdentifier } from "contracts/interface/D4AStructs.sol";
 
 library OwnerStorage {
+    struct OwnerInfo {
+        NftIdentifier ownerForDaoEditInformation;
+        NftIdentifier ownerForDaoEditParameter;
+        NftIdentifier ownerForDaoEditStrategy;
+        NftIdentifier ownerForDaoReward;
+    }
+
     struct Layout {
-        mapping(bytes32 => NftIdentifier) ownerControlForDaoEditInformation;
-        mapping(bytes32 => NftIdentifier) ownerControlForDaoEditParameter;
-        mapping(bytes32 => NftIdentifier) ownerControlForDaoEditStrategy;
-        mapping(bytes32 => NftIdentifier) ownerControlForDaoReward;
+        mapping(bytes32 daoId => OwnerInfo ownerInfo) ownerInfos;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("SemiosV1.contracts.storage.OwnerStorage");

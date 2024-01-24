@@ -104,6 +104,8 @@ struct ContinuousDaoParam {
     //1.4add--------------------
     bool infiniteMode;
     bool erc20PaymentMode;
+    //1.6add--------------------
+    string ownershipUri;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 

@@ -50,7 +50,12 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) external;
-    function setDaoOwnerControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoEditInformationPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoEditParamPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoEditStrategyPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoRewardPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+
     function setTopUpBalanceOutRatio(
         bytes32 daoId,
         uint256 ethToRedeemPoolRatio,

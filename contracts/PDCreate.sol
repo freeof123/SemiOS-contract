@@ -164,7 +164,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
         vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(daoId);
         vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
-        vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId);
+        vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId); //var.nft here is the erc721 address
         vars.topUpMode = continuousDaoParam.topUpMode;
 
         emit CreateContinuousProjectParamEmitted(
@@ -273,7 +273,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             basicDaoParam.daoName,
             continuousDaoParam.needMintableWork,
             continuousDaoParam.reserveNftNumber,
-            daoMetadataParam.projectUri
+            daoMetadataParam.projectUri,
+            continuousDaoParam.ownershipUri
         );
 
         //common initializaitions
@@ -434,7 +435,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         string memory daoName,
         bool needMintableWork,
         uint256 reserveNftNumber,
-        string memory daoUri
+        string memory daoUri,
+        string memory ownershipUri
     )
         internal
     {
@@ -446,10 +448,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         D4AERC721(daoInfo.nft).setContractUri(daoUri);
         ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
         ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
-        // question tokenid
         // emit checkPointA();
-        // to do token uri?
-        D4AERC721(daoInfo.nft).mintItem(msg.sender, string.concat(daoInfo.daoUri, " Ownership NFT"), 0, true);
+        // to do token uri? question
+        D4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
@@ -506,8 +507,11 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.actionType,
             allRatioParam
         );
-
         bytes32 daoId = vars.daoId;
+
+        // setup ownership control permission
+        IPDProtocolSetter(protocol).setDaoControlPermission(daoId, vars.nft, 0);
+
         ID4ASettingsReadable(protocol).permissionControl().addPermission(daoId, vars.whitelist, vars.blacklist);
 
         SetMintCapAndPermissionParam memory permissionVars;
@@ -570,10 +574,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         // setup template
         ID4AProtocolSetter(protocol).setTemplate(daoId, vars.templateParam);
-
-        // setup ownership control permission
-        // question msg.sender, tx.origin
-        IPDProtocolSetter(protocol).setDaoOwnerControlPermission(daoId, vars.nft, 0);
 
         uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
         uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();
