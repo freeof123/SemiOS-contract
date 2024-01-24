@@ -477,7 +477,5 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         revert NotDaoOwner();
     }
 
-    function _checkTreasuryNFTOwner(bytes32 daoId, address owner) internal view {
-        return;
-    }
+    function _checkTreasuryNFTOwner(bytes32 daoId, address owner) internal view { }
 }

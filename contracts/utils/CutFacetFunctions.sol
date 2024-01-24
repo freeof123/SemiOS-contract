@@ -276,6 +276,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoParams.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoRemainingRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.changeDaoInfiniteMode.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpBalanceOutRatio.selector;
 
     assert(interfaceId == type(IPDProtocolSetter).interfaceId ^ type(ID4AProtocolSetter).interfaceId);
 
