@@ -844,9 +844,17 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20;
 
             //1.6 todo
+            // SafeTransferLib.safeTransfer(
+            //     DaoStorage.layout().daoInfos[vars.daoId].token,
+            //     msg.sender,
+            //     topUpAmountERC20 * ((BASIS_POINT - poolInfo.erc20ToTreasuryRatio) / BASIS_POINT)
+            // );
             SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topUpAmountERC20);
-            // SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender,
-            // topUpAmountERC20);
+            // SafeTransferLib.safeTransfer(
+            //     DaoStorage.layout().daoInfos[vars.daoId].token,
+            //     msg.sender,
+            //     topUpAmountERC20 * poolInfo.erc20ToTreasuryRatio / BASIS_POINT
+            // );
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
@@ -909,7 +917,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETH;
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20ToUse;
 
+            //SafeTransferLib.safeTransferETH(treasury, topUpAmountETH * poolInfo.ethToRedeemPoolRatio / BASIS_POINT);
             SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
+            // SafeTransferLib.safeTransferETH(
+            //     msg.sender, (topUpAmountETH * (BASIS_POINT - poolInfo.ethToRedeemPoolRatio)) / BASIS_POINT
+            // );
             //SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
             //1.6 todo
             emit TopUpAmountUsed(

@@ -45,4 +45,10 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) external;
+    function setTopUpBalanceOutRatio(
+        bytes32 daoId,
+        uint256 ethToRedeemPoolRatio,
+        uint256 erc20ToTreasuryRatio
+    )
+        external;
 }
