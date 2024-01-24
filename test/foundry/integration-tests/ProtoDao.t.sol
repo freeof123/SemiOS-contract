@@ -144,12 +144,14 @@ contract ProtoDaoTest is DeployHelper {
         super._mintNftWithParam(nftParam, daoCreator.addr);
 
         D4AERC721 nft = D4AERC721(protocol.getDaoNft(daoId));
-        assertEq(nft.balanceOf(daoCreator.addr), 2);
+        assertEq(nft.balanceOf(daoCreator.addr), 3);
         assertEq(
             nft.tokenURI(1), string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "1", ".json")
         );
         assertEq(
             nft.tokenURI(2), string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "2", ".json")
         );
+
+        assertEq(nft.tokenURI(0), "test dao uri Ownership NFT");
     }
 }

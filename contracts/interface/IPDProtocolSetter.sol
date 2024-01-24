@@ -38,6 +38,11 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event DaoTopUpBalanceOutRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio, uint256 erc20ToTreasuryRatio);
 
+    event DaoEditInformationNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoEditParameterNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoEditStrategyNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoRewardNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+
     function setDaoParams(SetDaoParam calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatio(bytes32 daoId, AllRatioParam calldata vars) external;
@@ -45,6 +50,7 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) external;
+    function setDaoOwnerControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setTopUpBalanceOutRatio(
         bytes32 daoId,
         uint256 ethToRedeemPoolRatio,

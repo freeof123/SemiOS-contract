@@ -17,23 +17,31 @@ contract PDERC721WithFilter is D4AERC721WithFilter {
     function mintItem(
         address player,
         string memory uri,
-        uint256 tokenId
+        uint256 tokenId,
+        bool zeroTokenId
     )
+        //
         public
         override
         onlyRole(MINTER)
         returns (uint256)
     {
-        if (tokenId == 0) {
-            _tokenIds.increment();
-            uint256 newItemId = _tokenIds.current();
-            _mint(player, newItemId);
-            _setTokenURI(newItemId, uri);
-            return newItemId;
+        if (zeroTokenId) {
+            _mint(player, 0);
+            _setTokenURI(0, uri);
+            return 0;
         } else {
-            _mint(player, tokenId);
-            _setTokenURI(tokenId, uri);
-            return tokenId;
+            if (tokenId == 0) {
+                _tokenIds.increment();
+                uint256 newItemId = _tokenIds.current();
+                _mint(player, newItemId);
+                _setTokenURI(newItemId, uri);
+                return newItemId;
+            } else {
+                _mint(player, tokenId);
+                _setTokenURI(tokenId, uri);
+                return tokenId;
+            }
         }
     }
 }

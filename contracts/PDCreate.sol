@@ -92,6 +92,8 @@ struct CreateContinuousDaoParam {
 }
 
 contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
+    event checkPointA();
+
     address public immutable WETH;
 
     constructor(address _weth) {
@@ -273,6 +275,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.reserveNftNumber,
             daoMetadataParam.projectUri
         );
+
         //common initializaitions
         {
             RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
@@ -443,6 +446,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         D4AERC721(daoInfo.nft).setContractUri(daoUri);
         ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
         ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
+        // question tokenid
+        // emit checkPointA();
+        // to do token uri?
+        D4AERC721(daoInfo.nft).mintItem(msg.sender, string.concat(daoInfo.daoUri, " Ownership NFT"), 0, true);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
@@ -563,6 +570,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         // setup template
         ID4AProtocolSetter(protocol).setTemplate(daoId, vars.templateParam);
+
+        // setup ownership control permission
+        // question msg.sender, tx.origin
+        IPDProtocolSetter(protocol).setDaoOwnerControlPermission(daoId, vars.nft, 0);
 
         uint96 royaltyFeeRatioInBps = ID4AProtocolReadable(protocol).getDaoNftRoyaltyFeeRatioInBps(daoId);
         uint256 protocolRoyaltyFeeRatioInBps = ID4ASettingsReadable(protocol).tradeProtocolFeeRatio();

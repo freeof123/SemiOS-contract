@@ -9,7 +9,8 @@ import {
     SetDaoParam,
     NftMinterCapInfo,
     AllRatioParam,
-    SetChildrenParam
+    SetChildrenParam,
+    NftIdentifier
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType, DaoTag } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -18,6 +19,7 @@ import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
@@ -29,6 +31,8 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "./interface/IPDProtocolSetter.sol";
 import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
+
+import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
 
 import { D4AERC20 } from "./D4AERC20.sol";
 //import "forge-std/Test.sol";
@@ -412,6 +416,28 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         poolInfo.ethToRedeemPoolRatio = ethToRedeemPoolRatio;
         poolInfo.erc20ToTreasuryRatio = erc20ToTreasuryRatio;
         emit DaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
+    }
+
+    event checkPoint(address msg);
+    //question it seem that we don't need this, just check daonft , 1 owner
+    //split it to four function
+
+    function setDaoOwnerControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
+        //check ownership nft
+        if (msg.sender != IERC721(daoNftAddress).ownerOf(tokenId) && msg.sender != address(this)) {
+            // emit checkPoint(msg.sender);
+            // emit checkPoint(address(this));
+            revert NotNftOwner();
+        }
+        OwnerStorage.Layout storage ownerControlInfo = OwnerStorage.layout();
+        ownerControlInfo.ownerControlForDaoEditInformation[daoId] = NftIdentifier(daoNftAddress, tokenId);
+        emit DaoEditInformationNftSet(daoId, daoNftAddress, tokenId);
+        ownerControlInfo.ownerControlForDaoEditParameter[daoId] = NftIdentifier(daoNftAddress, tokenId);
+        emit DaoEditParameterNftSet(daoId, daoNftAddress, tokenId);
+        ownerControlInfo.ownerControlForDaoEditStrategy[daoId] = NftIdentifier(daoNftAddress, tokenId);
+        emit DaoEditStrategyNftSet(daoId, daoNftAddress, tokenId);
+        ownerControlInfo.ownerControlForDaoReward[daoId] = NftIdentifier(daoNftAddress, tokenId);
+        emit DaoRewardNftSet(daoId, daoNftAddress, tokenId);
     }
 
     function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {

@@ -52,7 +52,17 @@ contract D4AERC721 is
         _tokenIds.reset();
     }
 
-    function mintItem(address player, string memory uri, uint256) public virtual onlyRole(MINTER) returns (uint256) {
+    function mintItem(
+        address player,
+        string memory uri,
+        uint256,
+        bool
+    )
+        public
+        virtual
+        onlyRole(MINTER)
+        returns (uint256)
+    {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         _mint(player, newItemId);
