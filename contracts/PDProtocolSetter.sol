@@ -107,7 +107,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     {
         // _checkSetAbility(daoId, false, true);
         if (msg.sender != address(this)) {
-            revert NotCaller(address(this));
+            revert OnlyProtocolCanSet();
         }
         super.setTemplate(daoId, templateParam);
     }
@@ -349,8 +349,9 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         }
         emit DaoInfiniteModeChanged(daoId, !infiniteMode, remainingRound);
     }
+    //topupethto..
 
-    function setTopUpBalanceOutRatio(
+    function setTopUpBalanceSplitRatio(
         bytes32 daoId,
         uint256 ethToRedeemPoolRatio,
         uint256 erc20ToTreasuryRatio
@@ -361,8 +362,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         //_checkTreasuryNFTOwner(daoId, msg.sender);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.ethToRedeemPoolRatio = ethToRedeemPoolRatio;
-        poolInfo.erc20ToTreasuryRatio = erc20ToTreasuryRatio;
+        poolInfo.topupEthToRedeemPoolRatio = ethToRedeemPoolRatio;
+        poolInfo.topupErc20ToTreasuryRatio = erc20ToTreasuryRatio;
         emit DaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
     }
 

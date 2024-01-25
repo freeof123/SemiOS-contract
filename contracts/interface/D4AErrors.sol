@@ -118,3 +118,5 @@ error NotNftOwner();
 error TopUpNftHadLocked();
 
 error TopUpNFTIsLocking();
+
+error OnlyProtocolCanSet();
