@@ -736,7 +736,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(6);
         // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         // assertEq(erc20Reward, 30_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 1");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 30_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 2");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 30_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 3");
@@ -754,7 +754,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(10);
         // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         // assertEq(erc20Reward, 20_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 4");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 20_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 5");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 20_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 6");
@@ -774,7 +774,7 @@ contract PDInfiniteModeTest is DeployHelper {
         assertEq(
             erc20Reward, (100 + 20_000_000 + 30_000_000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_noJack test 7"
         );
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 100 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 8");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 100 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 9");
@@ -817,7 +817,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(6);
         // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         // assertEq(erc20Reward, 50_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 1");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 50_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 2");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 50_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 3");
@@ -836,7 +836,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(10);
         // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         // assertEq(erc20Reward, 1000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 4");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 1000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 5");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 1000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 6");
@@ -855,7 +855,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(13);
         (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         assertEq(erc20Reward, (300 + 50_000_000 + 1000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 7");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 300 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 8");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 300 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 9");

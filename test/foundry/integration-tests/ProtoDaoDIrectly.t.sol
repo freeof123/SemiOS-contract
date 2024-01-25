@@ -200,7 +200,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(IERC20(token).balanceOf(address(protocol)), 200_000 ether);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(subDaoId2);
+        protocol.claimDaoNftOwnerReward(subDaoId2);
         //1000000 * 20% * 70%
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
         protocol.claimCanvasReward(canvasId3);

@@ -53,7 +53,7 @@ contract ProtoDaoThirdParty is DeployHelper {
         assertEq(_testERC20.balanceOf(pool), 10_000);
         vm.roll(2);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
@@ -98,7 +98,7 @@ contract ProtoDaoThirdParty is DeployHelper {
 
         assertEq(_testERC20.balanceOf(pool), 5_900_000);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
@@ -183,7 +183,7 @@ contract ProtoDaoThirdParty is DeployHelper {
         vm.roll(4);
 
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);

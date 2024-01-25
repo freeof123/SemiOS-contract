@@ -253,10 +253,10 @@ contract D4AProtocolTest is DeployHelper {
         }
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimCanvasReward(canvasId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimCanvasReward(canvasId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
     }
@@ -289,7 +289,7 @@ contract D4AProtocolTest is DeployHelper {
         protocol.setDaoRemainingRound(daoId, 41);
 
         vm.roll(3);
-        (, uint256 rewardETHCreator) = protocol.claimDaoCreatorReward(daoId);
+        (, uint256 rewardETHCreator) = protocol.claimDaoNftOwnerReward(daoId);
         assertTrue(rewardETHCreator != 0);
         (, uint256 rewardETH) = protocol.claimCanvasReward(canvasId);
         assertTrue(rewardETH != 0);

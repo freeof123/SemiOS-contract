@@ -67,7 +67,7 @@ contract D4AClaimer {
         }
 
         for (uint256 i = 0; i < projects.length;) {
-            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoCreatorReward(projects[i]);
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(projects[i]);
             erc20AmountTotal += erc20Amount;
             ethAmountTotal += ethAmount;
             (erc20Amount, ethAmount) = protocol.claimNftMinterReward(projects[i], msg.sender);
@@ -99,7 +99,7 @@ contract D4AClaimer {
 
         for (uint256 i = 0; i < projects.length;) {
             uint256 erc20AmountTotal;
-            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoCreatorReward(projects[i]);
+            (uint256 erc20Amount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(projects[i]);
             erc20AmountTotal += erc20Amount;
             ethAmountTotal += ethAmount;
             (erc20Amount, ethAmount) = protocol.claimNftMinterReward(projects[i], msg.sender);

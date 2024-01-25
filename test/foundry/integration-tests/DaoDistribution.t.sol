@@ -326,7 +326,7 @@ contract DaoDistribution is DeployHelper {
         );
 
         vm.roll(3);
-        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoCreatorReward(daoId3);
+        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
         assertEq(ercAmount, 50_000_000 ether * 0.7 * 0.7 / 10, "Check A");
         assertEq(ethAmount, 0, "Check B");
 
@@ -344,7 +344,7 @@ contract DaoDistribution is DeployHelper {
         );
 
         vm.roll(5);
-        (ercAmount, ethAmount) = protocol.claimDaoCreatorReward(daoId3);
+        (ercAmount, ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
         assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 * 0.7 / uint256(9), 10, "Check D");
         //question, daoId3 is not subdao?
         // console2.log(protocol.getDaoToken(daoId3), protocol.getDaoToken(daoId), "A");

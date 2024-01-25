@@ -132,7 +132,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
                     "test_daoResurrection_multiRounds_noJack dead zero canvasCreator reward _", vm.toString(i)
                 )
             );
-            (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+            (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
             assertEq(
                 erc20Reward,
                 10_000_000 * 0.7 ether,
@@ -162,7 +162,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             10_000_000 * 0.2 ether,
             string.concat("test_daoResurrection_multiRounds_noJack dead zero canvasCreator reward _6")
         );
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             erc20Reward,
             10_000_000 * 0.7 ether,
@@ -209,7 +209,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             100 * 0.2 ether,
             string.concat("test_daoResurrection_multiRounds_noJack dead 1 canvasCreator reward end")
         );
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             erc20Reward,
             100 * 0.7 ether,
@@ -245,7 +245,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
                     "test_daoResurrection_multiRounds_noJack dead 2 canvasCreator reward _ ", vm.toString(106 + i)
                 )
             );
-            (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+            (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
             assertEq(
                 erc20Reward,
                 10 * 0.7 ether,
@@ -274,7 +274,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         assertEq(erc20Reward, 10 * 0.08 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 10 * 0.2 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 10 * 0.7 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
         assertEq(IERC20(token).balanceOf(nftMinter.addr), (50_000_000 + 100 + 50) * 0.08 ether);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), (50_000_000 + 100 + 50) * 0.9 ether);
@@ -338,7 +338,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             4_000_000 ether + 1.6 ether,
             "test_daoResurrection_claim_2times_noJack nft minter reward check"
         );
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         // 50000000 * 0.7 + 10 * 0.7 *2
         assertEq(
             IERC20(token).balanceOf(daoCreator.addr),
@@ -385,7 +385,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
                     "test_daoResurrection_multiRounds_noJack dead zero canvasCreator reward _", vm.toString(i)
                 )
             );
-            (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+            (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
             assertEq(
                 erc20Reward,
                 10_000_000 * 0.7 ether,
@@ -415,7 +415,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             10_000_000 * 0.2 ether,
             string.concat("test_daoResurrection_multiRounds_noJack dead zero canvasCreator reward _6")
         );
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             erc20Reward,
             10_000_000 * 0.7 ether,
@@ -462,7 +462,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             100 * 0.2 ether,
             string.concat("test_daoResurrection_multiRounds_noJack dead 1 canvasCreator reward end")
         );
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             erc20Reward,
             100 * 0.7 ether,
@@ -498,7 +498,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
                     "test_daoResurrection_multiRounds_noJack dead 2 canvasCreator reward _ ", vm.toString(106 + i)
                 )
             );
-            (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+            (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
             assertEq(
                 erc20Reward,
                 10 * 0.7 ether,
@@ -527,7 +527,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
         assertEq(erc20Reward, 10 * 0.08 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
         (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
         assertEq(erc20Reward, 10 * 0.2 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
-        (erc20Reward,) = protocol.claimDaoCreatorReward(daoId);
+        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
         assertEq(erc20Reward, 10 * 0.7 ether, "test_daoResurrection_multiRounds_noJack dead 2 nftMinter reward _ 112");
         assertEq(IERC20(token).balanceOf(nftMinter.addr), (50_000_000 + 100 + 50) * 0.08 ether);
         assertEq(IERC20(token).balanceOf(daoCreator.addr), (50_000_000 + 100 + 50) * 0.9 ether);
@@ -596,7 +596,7 @@ contract ProtoDaoResurrectionTest is DeployHelper {
             4_000_000 ether + 1.6 ether,
             "test_daoResurrection_claim_2times_noJack nft minter reward check"
         );
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         // 50000000 * 0.7 + 10 * 0.7 *2
         assertEq(
             IERC20(token).balanceOf(daoCreator.addr),

@@ -53,6 +53,7 @@ import { GrantStorage } from "contracts/storages/GrantStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
 
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
@@ -225,32 +226,33 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         );
     }
 
-    function claimDaoCreatorReward(bytes32 daoId)
+    function claimDaoNftOwnerReward(bytes32 daoId)
         public
         nonReentrant
-        returns (uint256 daoCreatorERC20Reward, uint256 daoCreatorETHReward)
+        returns (uint256 daoNftOwnerERC20Reward, uint256 daoNftOwnerETHReward)
     {
         _checkPauseStatus();
         _checkPauseStatus(daoId);
         _checkDaoExist(daoId);
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        address daoCreator = l.ownerProxy.ownerOf(daoId);
-
+        OwnerStorage.OwnerInfo storage ownerInfo = OwnerStorage.layout().ownerInfos[daoId];
+        address daoNftOwner =
+            IERC721Upgradeable(ownerInfo.ownerForDaoReward.erc721Address).ownerOf(ownerInfo.ownerForDaoReward.tokenId);
         (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
-                IRewardTemplate.claimDaoCreatorReward.selector,
+                IRewardTemplate.claimDaoNftOwnerReward.selector,
                 daoId,
                 l.protocolFeePool,
-                daoCreator,
+                daoNftOwner,
                 IPDRound(address(this)).getDaoCurrentRound(daoId),
                 daoInfo.token
             )
         );
         require(succ);
-        (, daoCreatorERC20Reward,, daoCreatorETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
+        (, daoNftOwnerERC20Reward,, daoNftOwnerETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
 
-        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoCreator, daoCreatorERC20Reward, daoCreatorETHReward);
+        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoNftOwner, daoNftOwnerERC20Reward, daoNftOwnerETHReward);
     }
 
     function claimCanvasReward(bytes32 canvasId)

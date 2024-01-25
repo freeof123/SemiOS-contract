@@ -73,9 +73,9 @@ interface IPDProtocol {
 
     function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
 
-    function claimDaoCreatorReward(bytes32 daoId)
+    function claimDaoNftOwnerReward(bytes32 daoId)
         external
-        returns (uint256 daoCreatorERC20Reward, uint256 daoCreatorETHReward);
+        returns (uint256 daoNftOwnerERC20Reward, uint256 daoNftOwnerETHReward);
 
     function claimCanvasReward(bytes32 canvasId)
         external

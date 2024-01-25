@@ -51,7 +51,7 @@ contract D4AUniversalClaimer {
 
         for (uint256 i = 0; i < params.daoIds.length;) {
             (uint256 erc20Amount, uint256 ethAmount) =
-                IPDProtocol(params.protocol).claimDaoCreatorReward(params.daoIds[i]);
+                IPDProtocol(params.protocol).claimDaoNftOwnerReward(params.daoIds[i]);
             erc20AmountTotal += erc20Amount;
             ethAmountTotal += ethAmount;
             (erc20Amount, ethAmount) = IPDProtocol(params.protocol).claimNftMinterReward(params.daoIds[i], msg.sender);

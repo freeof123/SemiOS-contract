@@ -130,7 +130,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         return token == address(0) ? rewardInfo.selfRoundETHReward[round] : rewardInfo.selfRoundERC20Reward[round];
     }
 
-    function claimDaoCreatorReward(
+    function claimDaoNftOwnerReward(
         bytes32 daoId,
         address protocolFeePool,
         address daoCreator,

@@ -455,7 +455,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
 
         token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
         eth_balance_before = daoCreator.addr.balance;
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             IERC20(token).balanceOf(daoCreator.addr) - token_balance_before,
             token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5,
@@ -543,7 +543,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
 
         token_balance_before = IERC20(token).balanceOf(daoCreator.addr);
         eth_balance_before = daoCreator.addr.balance;
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             (IERC20(token).balanceOf(daoCreator.addr) - token_balance_before) / 10,
             (token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5)

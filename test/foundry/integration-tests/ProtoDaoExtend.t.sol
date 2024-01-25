@@ -98,7 +98,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         vm.roll(2);
 
-        protocol.claimDaoCreatorReward(subDaoId2);
+        protocol.claimDaoNftOwnerReward(subDaoId2);
         //1000000 * 20% * 70%
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
 
@@ -199,7 +199,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         vm.roll(2);
 
         //1000000 * 20% * 70%
-        protocol.claimDaoCreatorReward(subDaoId2);
+        protocol.claimDaoNftOwnerReward(subDaoId2);
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
 
         //add 1000000 * 20% * 20%
@@ -311,7 +311,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         vm.roll(2);
 
         //1000000 * 20% * 70%
-        protocol.claimDaoCreatorReward(subDaoId2);
+        protocol.claimDaoNftOwnerReward(subDaoId2);
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
 
         //add 1000000 * 20% * 20%
@@ -416,7 +416,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         // 10_000_000 ether * (1 DRB/10 DRB) * (param.selfRewardRatioERC20 / BASIS_POINT) *
         // (AllRatioForFundingParam.daoCreatorERC20RewardRatio / BASIS_POINT)
         // 140_000 ether = 10_000_000 ether * (1 DRB/10 DRB) * 0.2 * 0.7
-        protocol.claimDaoCreatorReward(daoId2);
+        protocol.claimDaoNftOwnerReward(daoId2);
         assertEq(IERC20(token).balanceOf(daoCreator3.addr), 140_000 ether);
 
         // canvasId3 is daoCreator3
@@ -543,7 +543,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         // !!! claim reward
         uint256 daoCreator3_eth_balance_before_claim = daoCreator3.addr.balance;
-        protocol.claimDaoCreatorReward(daoId2);
+        protocol.claimDaoNftOwnerReward(daoId2);
         uint256 daoCreator3_eth_balance_after_claim = daoCreator3.addr.balance;
         // 0.035 ether * 0.7
         assertEq(daoCreator3_eth_balance_after_claim - daoCreator3_eth_balance_before_claim, 0.0245 ether);

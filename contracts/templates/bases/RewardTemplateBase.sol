@@ -111,7 +111,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     //         param.daoFeeAmount * param.nftMinterERC20RatioInBps / BASIS_POINT - tokenRebateAmount;
     // }
 
-    // function claimDaoCreatorReward(
+    // function claimDaoNftOwnerReward(
     //     bytes32 daoId,
     //     address protocolFeePool,
     //     address daoCreator,

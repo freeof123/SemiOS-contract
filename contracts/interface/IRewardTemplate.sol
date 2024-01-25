@@ -16,7 +16,7 @@ interface IRewardTemplate {
 
     function updateReward(UpdateRewardParam memory param) external payable;
 
-    function claimDaoCreatorReward(
+    function claimDaoNftOwnerReward(
         bytes32 daoId,
         address protocolFeePool,
         address daoCreator,

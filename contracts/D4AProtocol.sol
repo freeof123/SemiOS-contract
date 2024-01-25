@@ -221,7 +221,7 @@ contract D4AProtocol is ID4AProtocol, Initializable, Multicallable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
-                IRewardTemplate.claimDaoCreatorReward.selector,
+                IRewardTemplate.claimDaoNftOwnerReward.selector,
                 daoId,
                 l.protocolFeePool,
                 l.ownerProxy.ownerOf(daoId),

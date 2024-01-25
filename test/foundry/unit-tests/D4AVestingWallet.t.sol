@@ -70,7 +70,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
         vm.roll(2);
 
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         vestingWallet.release();
 
         assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(), 33_333_333_333_333_333_333_333_333);
@@ -115,7 +115,7 @@ contract D4AVestingWalletTest is DeployHelper {
 
         vm.roll(2);
 
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         vestingWallet.release(address(_testERC20));
 
         assertEq(vestingWallet.getLastUpdatedDaoTokenIssuance(address(_testERC20)), 33_333_333_333_333_333_333_333_333);
@@ -150,7 +150,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
 
         startHoax(randomGuy.addr);
         deal(address(_testERC20), randomGuy.addr, 1e6 ether);
@@ -192,7 +192,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         deal(protocol.getDaoFeePool(daoId), 0);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
@@ -233,7 +233,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         deal(protocol.getDaoFeePool(daoId), 0);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
@@ -278,7 +278,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
@@ -324,7 +324,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
@@ -362,7 +362,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         deal(protocol.getDaoFeePool(daoId), 0);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
@@ -405,7 +405,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 
@@ -474,7 +474,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         deal(protocol.getDaoFeePool(daoId), 0);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
@@ -519,7 +519,7 @@ contract D4AVestingWalletTest is DeployHelper {
         _mintNft(daoId, canvasId, "test token uri 1", 0, canvasCreator.key, nftMinter.addr);
 
         vm.roll(2);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
 
         D4AVestingWallet vestingWallet = D4AVestingWallet(payable(protocol.getVestingWallet(daoId)));
 

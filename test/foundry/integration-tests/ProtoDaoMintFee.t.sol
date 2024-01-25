@@ -88,7 +88,7 @@ contract ProtoDaoMintFee is DeployHelper {
 
         vm.roll(2);
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimCanvasReward(canvasId1);
         assertEq(daoCreator.addr.balance, 0);
@@ -164,7 +164,7 @@ contract ProtoDaoMintFee is DeployHelper {
         vm.roll(2);
 
         deal(daoCreator.addr, 0);
-        protocol.claimDaoCreatorReward(daoId);
+        protocol.claimDaoNftOwnerReward(daoId);
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimCanvasReward(canvasId1);
         // 10/10*0.9
