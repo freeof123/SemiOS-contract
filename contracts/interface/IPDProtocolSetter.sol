@@ -37,6 +37,9 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     event DaoRemainingRoundSet(bytes32 daoId, uint256 remainingRound);
 
     event DaoTopUpBalanceOutRatioSet(bytes32 daoId, uint256 topupEthToRedeemPoolRatio, uint256 erc20ToTreasuryRatio);
+    event DefaultDaoTopUpBalanceOutRatioSet(
+        bytes32 daoId, uint256 topupEthToRedeemPoolRatio, uint256 erc20ToTreasuryRatio
+    );
 
     event DaoEditInformationNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
     event DaoEditParameterNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
@@ -57,6 +60,12 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setDaoRewardPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
 
     function setTopUpBalanceSplitRatio(
+        bytes32 daoId,
+        uint256 topupEthToRedeemPoolRatio,
+        uint256 erc20ToTreasuryRatio
+    )
+        external;
+    function setDefaultTopUpBalanceSplitRatio(
         bytes32 daoId,
         uint256 topupEthToRedeemPoolRatio,
         uint256 erc20ToTreasuryRatio

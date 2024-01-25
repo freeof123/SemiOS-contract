@@ -349,9 +349,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         }
         emit DaoInfiniteModeChanged(daoId, !infiniteMode, remainingRound);
     }
-    //topupethto..
 
-    function setTopUpBalanceSplitRatio(
+    function setDefaultTopUpBalanceSplitRatio(
         bytes32 daoId,
         uint256 ethToRedeemPoolRatio,
         uint256 erc20ToTreasuryRatio
@@ -362,8 +361,26 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         //_checkTreasuryNFTOwner(daoId, msg.sender);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.topupEthToRedeemPoolRatio = ethToRedeemPoolRatio;
-        poolInfo.topupErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+        poolInfo.defaultTopUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
+        poolInfo.defaultTopUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+
+        emit DefaultDaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
+    }
+
+    function setTopUpBalanceSplitRatio(
+        bytes32 daoId,
+        uint256 ethToRedeemPoolRatio,
+        uint256 erc20ToTreasuryRatio
+    )
+        public
+    {
+        //todo, add permission check
+        //_checkTreasuryNFTOwner(daoId, msg.sender);
+
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        basicDaoInfo.topUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
+        basicDaoInfo.topUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+
         emit DaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
     }
 

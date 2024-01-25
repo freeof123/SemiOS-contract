@@ -21,6 +21,9 @@ library BasicDaoStorage {
         //---------1.4 add
         bool infiniteMode;
         bool erc20PaymentMode;
+        //---------1.6 add
+        uint256 topUpEthToRedeemPoolRatio;
+        uint256 topUpErc20ToTreasuryRatio;
     }
 
     struct Layout {

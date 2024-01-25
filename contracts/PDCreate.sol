@@ -42,6 +42,7 @@ import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
@@ -83,6 +84,9 @@ struct CreateAncestorDaoParam {
     uint256 daoIndex;
     string daoName;
     address daoToken;
+    string ownershipUri;
+    uint256 defaultTopUpEthToRedeemPoolRatio;
+    uint256 defaultTopUpErc20ToTreasuryRatio;
 }
 
 struct CreateContinuousDaoParam {
@@ -177,7 +181,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.reserveNftNumber,
             continuousDaoParam.topUpMode,
             continuousDaoParam.infiniteMode,
-            continuousDaoParam.erc20PaymentMode
+            continuousDaoParam.erc20PaymentMode,
+            continuousDaoParam.ownershipUri,
+            continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
+            continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
         );
 
         _config(protocol, vars);
@@ -261,7 +268,15 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
             _createProject(
-                CreateAncestorDaoParam(daoId, daoInfo.daoIndex, basicDaoParam.daoName, continuousDaoParam.daoToken)
+                CreateAncestorDaoParam(
+                    daoId,
+                    daoInfo.daoIndex,
+                    basicDaoParam.daoName,
+                    continuousDaoParam.daoToken,
+                    continuousDaoParam.ownershipUri,
+                    continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
+                    continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
+                )
             );
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
@@ -360,10 +375,15 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].infiniteMode = continuousDaoParam.infiniteMode;
         basicDaoStorage.basicDaoInfos[daoId].erc20PaymentMode = continuousDaoParam.erc20PaymentMode;
 
+        PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoStorage.daoInfos[daoId].daoFeePool];
+        basicDaoStorage.basicDaoInfos[daoId].topUpEthToRedeemPoolRatio = poolInfo.defaultTopUpEthToRedeemPoolRatio;
+        basicDaoStorage.basicDaoInfos[daoId].topUpErc20ToTreasuryRatio = poolInfo.defaultTopUpErc20ToTreasuryRatio;
+
         emit NewPools(
             daoId,
             basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
             daoStorage.daoInfos[daoId].daoFeePool,
+            poolInfo.treasury,
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
         );
     }
@@ -393,6 +413,20 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoFeePool).changeAdmin(settingsStorage.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
+
+            address treasury = settingsStorage.feePoolFactory.createD4AFeePool(
+                string(abi.encodePacked("Treasury for Semios Project ", LibString.toString(vars.daoIndex)))
+            ); //this feepool is treasury
+
+            D4AFeePool(payable(treasury)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
+
+            ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
+
+            PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoFeePool];
+
+            poolInfo.defaultTopUpEthToRedeemPoolRatio = vars.defaultTopUpEthToRedeemPoolRatio;
+            poolInfo.defaultTopUpErc20ToTreasuryRatio = vars.defaultTopUpErc20ToTreasuryRatio;
+            poolInfo.treasury = treasury;
         }
     }
 

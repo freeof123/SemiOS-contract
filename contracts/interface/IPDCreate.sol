@@ -44,14 +44,19 @@ interface IPDCreate is ICreate {
         uint256 reserveNftNumber,
         bool topUpMode,
         bool infiniteMode,
-        bool erc20PaymentMode
+        bool erc20PaymentMode,
+        string ownershipUri,
+        uint256 defaultTopUpEthToRedeemPoolRatio,
+        uint256 defaultTopUpErc20ToTreasuryRatio
     );
 
     event NewProject(
         bytes32 daoId, string daoUri, address token, address nft, uint256 royaltyFeeRatioInBps, bool isAncestorDao
     );
 
-    event NewPools(bytes32 daoId, address daoAssetPool, address daoRedeemPool, bool isThirdPartyToken);
+    event NewPools(
+        bytes32 daoId, address daoAssetPool, address daoRedeemPool, address treasury, bool isThirdPartyToken
+    );
 
     function createDao(
         bytes32 existDaoId,

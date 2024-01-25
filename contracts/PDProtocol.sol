@@ -921,11 +921,15 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
             //SafeTransferLib.safeTransferETH(treasury, topUpAmountETH * poolInfo.topupEthToRedeemPoolRatio /
             // BASIS_POINT);
+            // SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
+            SafeTransferLib.safeTransferETH(
+                msg.sender,
+                (
+                    topUpAmountETH
+                        * (BASIS_POINT - BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio)
+                ) / BASIS_POINT
+            );
             SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
-            // SafeTransferLib.safeTransferETH(
-            //     msg.sender, (topUpAmountETH * (BASIS_POINT - poolInfo.topupEthToRedeemPoolRatio)) / BASIS_POINT
-            // );
-            //SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
             //1.6 todo
             emit TopUpAmountUsed(
                 vars.nft,

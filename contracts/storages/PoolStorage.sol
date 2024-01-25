@@ -12,10 +12,11 @@ library PoolStorage {
         uint256 circulateERC20Amount; //????here??
         mapping(bytes32 nftHash => bytes32[] daoId) nftInvestedTopUpDaos;
         mapping(bytes32 nftHash => uint256 amount) topUpNftETH;
-        uint256 topupEthToRedeemPoolRatio;
+        uint256 defaultTopUpEthToRedeemPoolRatio;
         mapping(bytes32 nftHash => uint256 amount) topUpNftERC20;
-        uint256 topupErc20ToTreasuryRatio;
+        uint256 defaultTopUpErc20ToTreasuryRatio;
         mapping(bytes32 nftHash => LokcedInfo) lockedInfo;
+        address treasury;
     }
 
     struct Layout {

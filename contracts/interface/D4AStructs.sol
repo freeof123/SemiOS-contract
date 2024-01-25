@@ -106,6 +106,8 @@ struct ContinuousDaoParam {
     bool erc20PaymentMode;
     //1.6add--------------------
     string ownershipUri;
+    uint256 defaultTopUpEthToRedeemPoolRatio;
+    uint256 defaultTopUpErc20ToTreasuryRatio;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 
