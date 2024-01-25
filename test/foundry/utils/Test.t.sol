@@ -54,7 +54,33 @@ contract TestTest is Test {
     uint256[] uintarray;
     Foo2 foo2arrayinstruct;
 
+    event LogTopic1(uint256 indexed a1, uint256 indexed a2, uint256 indexed a3);
+    event LogTopic2(uint256 b1, uint256 b2, uint256 b3);
+
     function setUp() public { }
+
+    function test_recordLogs() public {
+        vm.recordLogs();
+        emit LogTopic1(1, 2, 3);
+        emit LogTopic2(4, 5, 6);
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        console2.logBytes32(keccak256("LogTopic1(uint256,uint256,uint256)"));
+        console2.logBytes32(entries[0].topics[0]);
+        console2.log(entries[0].topics.length);
+        console2.logBytes32(entries[0].topics[1]);
+        console2.logBytes32(entries[0].topics[2]);
+        console2.logBytes32(entries[0].topics[3]);
+        console2.logBytes(entries[0].data);
+
+        console2.logBytes32(keccak256("LogTopic2(uint256,uint256,uint256)"));
+        console2.logBytes32(entries[1].topics[0]);
+        console2.log(entries[1].topics.length);
+        console2.logBytes(entries[1].data);
+        (uint256 a, uint256 b, uint256 c) = abi.decode(entries[1].data, (uint256, uint256, uint256));
+        console2.log(a);
+        console2.log(b);
+        console2.log(c);
+    }
 
     function test_struct_array_assignment() public {
         Foo1[] memory foom = new Foo1[](2);

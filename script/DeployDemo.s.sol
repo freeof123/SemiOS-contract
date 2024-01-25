@@ -23,7 +23,8 @@ import {
     getProtocolSetterSelectors,
     getD4ACreateSelectors,
     getPDCreateSelectors,
-    getPDBasicDaoSelectors
+    getPDBasicDaoSelectors,
+    getPDRoundSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import "./utils/D4AAddress.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -40,7 +41,7 @@ contract DeployDemo is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        _deployDrb();
+        // _deployDrb();
 
         // _deployFeePoolFactory();
 
@@ -50,29 +51,32 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
-        _deployProtocolProxy();
+        //_deployProtocolProxy();
         _deployProtocol();
 
         _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.ADD);
+        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.ADD);
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         // _deployD4ACreate();
         // _cutFacetsD4ACreate();
 
         _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.ADD);
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+
+        _deployPDRound();
+        _cutFacetsPDRound(DeployMethod.ADD);
 
         //_deployPDCreateFunding();
-        _cutFacetsPDCreateFunding(DeployMethod.ADD);
+        _cutFacetsPDCreateFunding(DeployMethod.REMOVE);
 
-        _deployPDBasicDao();
-        _cutFacetsPDBasicDao(DeployMethod.ADD);
+        // _deployPDBasicDao();
+        // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        _deploySettings();
-        _cutSettingsFacet(DeployMethod.ADD);
+        // _deploySettings();
+        // _cutSettingsFacet(DeployMethod.ADD);
 
         // _deployClaimer();
         _deployUniversalClaimer();
@@ -80,23 +84,23 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_deployCreateProjectProxy();
         //_deployCreateProjectProxyProxy();
 
-        _deployPermissionControl();
-        _deployPermissionControlProxy();
+        // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
-        _initSettings();
-        _initSettings13();
+        // _initSettings();
+        // _initSettings13();
 
-        _deployLinearPriceVariation();
-        _deployExponentialPriceVariation();
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
         _deployUniformDistributionRewardIssuance();
         //pdProtocol_proxy.initialize();
 
-        PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
-        PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
-            "https://demo-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
-        );
+        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
+        // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
+        //     "https://demo-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+        // );
 
         // _deployUnlocker();
 
@@ -213,7 +217,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xE221d6CD0C5df656049952FfB8e425bC53e0f2D8
+                    0xE17b1cf18269e172Fe5Cc3400780EB8f81608362
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -267,7 +271,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x9F5Ea675025D042c6e0eF156B014c8958c458ef0
+                    0x9363e9B9EDbbcC2b1d1A687b4AA4c2562BAcfA3b
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -344,6 +348,60 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployPDRound() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDRound");
+
+        pdRound = new PDRound();
+        assertTrue(address(pdRound) != address(0));
+
+        vm.toString(address(pdRound)).write(path, ".PDProtocol.PDRound");
+
+        console2.log("PDRound address: ", address(pdRound));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDRound(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDRound facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDRoundSelectors();
+        console2.log("PDRound facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
     function _deployPDCreate() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy PDCreate");
@@ -373,7 +431,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    0x2041C554dA0b9b5B798511d92Cce5957BF22F8b5
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -427,7 +485,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x6027C2Ac203f12cf03e5FdeC098740FC393729BE
+                    0xCb2aF8F8aF3B0A4C4E6a6c90ac34b405F73c8F90
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
