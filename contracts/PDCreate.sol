@@ -448,8 +448,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         D4AERC721(daoInfo.nft).setContractUri(daoUri);
         ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
         ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
-        // emit checkPointA();
-        // to do token uri? question
         D4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
     }
 

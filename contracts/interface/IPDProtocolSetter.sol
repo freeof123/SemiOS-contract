@@ -38,10 +38,10 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event DaoTopUpBalanceOutRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio, uint256 erc20ToTreasuryRatio);
 
-    event DaoEditInformationNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
-    event DaoEditParameterNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
-    event DaoEditStrategyNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
-    event DaoRewardNftSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoEditInformationNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoEditParameterNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoEditStrategyNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event DaoRewardNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
 
     function setDaoParams(SetDaoParam calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;

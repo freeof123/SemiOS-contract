@@ -52,7 +52,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
         // _checkSetAbility(daoId, true, true);
-        // question, set function not split
         _checkEditStrategyAbility(daoId);
 
         super.setMintCapAndPermission(
@@ -107,8 +106,9 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         override(ID4AProtocolSetter, D4AProtocolSetter)
     {
         // _checkSetAbility(daoId, false, true);
-        //Todo: only protocol can set
-        //_checkEditParamAbility(daoId);
+        if (msg.sender != address(this)) {
+            revert NotCaller(address(this));
+        }
         super.setTemplate(daoId, templateParam);
     }
 
@@ -157,7 +157,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         _checkEditParamAbility(vars.daoId);
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
-        // 1.6 todo : treasury permission
+        // 1.6 todo : treasury permission, replace the following content
         if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
             setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
         } //1
@@ -279,15 +279,14 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     }
 
     function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
-        //todo: treasury permission
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) return;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         bytes32 ancestor = treeInfo.ancestor;
         address daoToken = DaoStorage.layout().daoInfos[ancestor].token;
-
-        // if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) revert NotDaoOwner();
-        _checkEditParamAbility(daoId);
+        // todo: treasury permission, replace
+        if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) revert NotDaoOwner();
+        // _checkEditParamAbility(daoId);
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         if (!InheritTreeStorage.layout().inheritTreeInfos[ancestor].isAncestorDao) revert NotAncestorDao();
 
@@ -358,9 +357,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     )
         public
     {
-        //todo
+        //todo, add permission check
         //_checkTreasuryNFTOwner(daoId, msg.sender);
-        _checkEditParamAbility(daoId);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         poolInfo.ethToRedeemPoolRatio = ethToRedeemPoolRatio;
@@ -371,52 +369,46 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     event checkPoint(address msg);
 
     function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
-        //check ownership nft
-        // todo: get from daoId
-        if (msg.sender != IERC721(daoNftAddress).ownerOf(tokenId) && msg.sender != address(this)) {
-            emit checkPoint(msg.sender);
-            emit checkPoint(address(this));
-            revert NotNftOwner();
-        }
-
+        _checkEditDaoCreatorRewardAbility(daoId);
+        _checkEditInformationAbility(daoId);
+        _checkEditParamAbility(daoId);
+        _checkEditStrategyAbility(daoId);
         OwnerStorage.OwnerInfo storage ownerInfo = OwnerStorage.layout().ownerInfos[daoId];
-
         ownerInfo.ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
-        // todo event name nft ->nftOwner
-        emit DaoEditInformationNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditInformationNftOwnerSet(daoId, daoNftAddress, tokenId);
         ownerInfo.ownerForDaoEditParameter = NftIdentifier(daoNftAddress, tokenId);
-        emit DaoEditParameterNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditParameterNftOwnerSet(daoId, daoNftAddress, tokenId);
         ownerInfo.ownerForDaoEditStrategy = NftIdentifier(daoNftAddress, tokenId);
-        emit DaoEditStrategyNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditStrategyNftOwnerSet(daoId, daoNftAddress, tokenId);
         ownerInfo.ownerForDaoReward = NftIdentifier(daoNftAddress, tokenId);
-        emit DaoRewardNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoRewardNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function setDaoEditInformationPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
         _checkEditInformationAbility(daoId);
         OwnerStorage.layout().ownerInfos[daoId].ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
-        emit DaoEditInformationNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditInformationNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function setDaoEditParamPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
         _checkEditParamAbility(daoId);
         OwnerStorage.layout().ownerInfos[daoId].ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
 
-        emit DaoEditParameterNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditParameterNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function setDaoEditStrategyPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
         _checkEditStrategyAbility(daoId);
         OwnerStorage.layout().ownerInfos[daoId].ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
 
-        emit DaoEditStrategyNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoEditStrategyNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function setDaoRewardPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
         _checkEditDaoCreatorRewardAbility(daoId);
         OwnerStorage.layout().ownerInfos[daoId].ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
 
-        emit DaoRewardNftSet(daoId, daoNftAddress, tokenId);
+        emit DaoRewardNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {

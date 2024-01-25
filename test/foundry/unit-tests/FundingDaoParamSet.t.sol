@@ -62,8 +62,9 @@ contract FundingDaoParamSet is DeployHelper {
         assertEq(IERC20(daoToken).balanceOf(protocol.getDaoAssetPool(continuousDaoId)), 0 ether);
 
         // 用MainDAO创建者的地址尝试修改ContinuousDAO的参数，可以成功追加DAO Token
-        hoax(daoCreator.addr);
+        // 1.6 已经更改, 只能daoCreator2 修改自己dao的参数, 相应的也不会获得DaoToken
+        hoax(daoCreator2.addr);
         protocol.setDaoParams(vars);
-        assertEq(IERC20(daoToken).balanceOf(protocol.getDaoAssetPool(continuousDaoId)), 2 ether);
+        assertEq(IERC20(daoToken).balanceOf(protocol.getDaoAssetPool(continuousDaoId)), 0 ether);
     }
 }

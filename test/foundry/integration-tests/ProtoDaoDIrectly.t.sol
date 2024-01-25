@@ -382,7 +382,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
         vm.prank(daoCreator.addr);
         protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
-        vm.prank(daoCreator.addr);
+        vm.prank(daoCreator2.addr);
         protocol.setDaoUnifiedPrice(daoId2, 0.03 ether);
         vm.roll(2);
         address token = protocol.getDaoToken(daoId2);

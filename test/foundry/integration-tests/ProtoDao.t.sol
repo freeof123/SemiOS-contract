@@ -152,6 +152,6 @@ contract ProtoDaoTest is DeployHelper {
             nft.tokenURI(2), string.concat(tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", "2", ".json")
         );
 
-        assertEq(nft.tokenURI(0), "test dao uri Ownership NFT");
+        assertEq(nft.tokenURI(0), "test ownership uri");
     }
 }

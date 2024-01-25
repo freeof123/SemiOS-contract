@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
-import { NotDaoOwner, ExceedMaxMintableRound } from "contracts/interface/D4AErrors.sol";
+import { NotDaoOwner, ExceedMaxMintableRound, NotNftOwner } from "contracts/interface/D4AErrors.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 
@@ -80,9 +80,9 @@ contract D4AProtocolTest is DeployHelper {
         ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
     }
 
-    function test_RevertIf_setDaoNftMaxSupply_NotDaoOwner() public {
+    function test_RevertIf_setDaoNftMaxSupply_NotNftOwner() public {
         uint256 maxSupply = 10;
-        vm.expectRevert(NotDaoOwner.selector);
+        vm.expectRevert(NotNftOwner.selector);
         ID4AProtocolSetter(address(protocol)).setDaoNftMaxSupply(daoId, maxSupply);
     }
 

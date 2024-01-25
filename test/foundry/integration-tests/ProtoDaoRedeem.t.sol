@@ -50,8 +50,11 @@ contract ProtoDaoRedeemTest is DeployHelper {
         vars.selfRewardRatioETH = 5000;
         protocol.setChildren(daoId, vars);
         vars.childrenDaoId[0] = daoId;
+        //question
+        vm.prank(daoCreator.addr);
         protocol.setChildren(daoId2, vars);
         protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        vm.stopPrank();
         super._mintNft(
             daoId,
             canvasId1,
@@ -79,11 +82,11 @@ contract ProtoDaoRedeemTest is DeployHelper {
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         protocol.claimNftMinterReward(daoId2, nftMinter.addr);
         //eth.bal:0.012 ether, circu erc20: 5000000/2+1250000/2 = 3125000 ether
-        console2.log(protocol.getDaoFeePool(daoId).balance);
-        console2.log(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)));
-        console2.log(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)));
-        console2.log(protocol.getDaoCirculateTokenAmount(daoId));
-        console2.log(protocol.getDaoCirculateTokenAmount(daoId2));
+        assertEq(protocol.getDaoFeePool(daoId).balance, 0.012 ether);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 45_625_000 ether);
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), 11_250_000 ether);
+        assertEq(protocol.getDaoCirculateTokenAmount(daoId), 3_125_000 ether);
+        assertEq(protocol.getDaoCirculateTokenAmount(daoId2), 3_125_000 ether);
 
         vm.prank(nftMinter.addr);
         uint256 ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
