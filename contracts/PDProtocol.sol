@@ -250,7 +250,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (, daoCreatorERC20Reward,, daoCreatorETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
 
-        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoCreator, daoCreatorERC20Reward, daoCreatorETHReward);
+        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoCreatorERC20Reward, daoCreatorETHReward);
     }
 
     function claimCanvasReward(bytes32 canvasId)
@@ -281,7 +281,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (canvasERC20Reward, canvasETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasCreator, canvasERC20Reward, canvasETHReward);
+        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasERC20Reward, canvasETHReward);
     }
 
     function claimNftMinterReward(
@@ -311,7 +311,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (minterERC20Reward, minterETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimNftMinterReward(daoId, daoInfo.token, minter, minterERC20Reward, minterETHReward);
+        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
 
         // else {
         //     emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
