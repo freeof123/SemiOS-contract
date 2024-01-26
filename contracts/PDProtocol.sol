@@ -808,10 +808,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _splitFee(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpETHQuota;
-        if (
-            vars.nft.erc721Address != address(0)
-                && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.daoId, vars.nft)
-        ) {
+        if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
             (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
@@ -867,10 +864,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _splitFeeERC20(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpERC20Quota;
-        if (
-            vars.nft.erc721Address != address(0)
-                && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.daoId, vars.nft)
-        ) {
+        if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
             (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
 

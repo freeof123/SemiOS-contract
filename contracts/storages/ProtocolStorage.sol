@@ -2,6 +2,11 @@
 pragma solidity ^0.8.18;
 
 library ProtocolStorage {
+    struct LokcedInfo {
+        uint256 duration;
+        uint256 lockStartBlock;
+    }
+
     struct Layout {
         mapping(bytes32 => bytes32) nftHashToCanvasId;
         mapping(bytes32 => bool) uriExists;
@@ -9,6 +14,7 @@ library ProtocolStorage {
         uint256 d4aDaoIndexBitMap;
         uint256 basicDaoIndexBitMap;
         mapping(uint256 daoIndex => bytes32 daoId)[256] daoIndexToIds;
+        mapping(bytes32 nftHash => LokcedInfo) lockedInfo;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.ProtocolStorage");
