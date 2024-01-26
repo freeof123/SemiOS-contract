@@ -25,6 +25,7 @@ contract PDLock is IPDLock {
     }
 
     function checkTopUpNftLockedStatus(bytes32 daoId, NftIdentifier calldata nft) public view returns (bool locked) {
+        //1.5todo
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         if (

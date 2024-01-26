@@ -855,6 +855,8 @@ contract DeployHelper is Test {
         bool erc20PaymentMode;
         //1.6 add-------------------------------------------
         string ownershipUri;
+        uint256 defaultTopUpEthToRedeemPoolRatio;
+        uint256 defaultTopUpErc20ToTreasuryRatio;
     }
 
     struct MintNftParamTest {
@@ -959,7 +961,9 @@ contract DeployHelper is Test {
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
             erc20PaymentMode: createDaoParam.erc20PaymentMode,
-            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
+            defaultTopUpEthToRedeemPoolRatio: createDaoParam.defaultTopUpEthToRedeemPoolRatio,
+            defaultTopUpErc20ToTreasuryRatio: createDaoParam.defaultTopUpErc20ToTreasuryRatio
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({

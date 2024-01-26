@@ -160,16 +160,18 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         if (continuousDaoParam.erc20PaymentMode && continuousDaoParam.topUpMode) {
             revert PaymentModeAndTopUpModeCannotBeBothOn();
         }
+
         daoId = _createDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam, actionType);
 
-        vars.daoId = daoId;
-
-        // Use the exist DaoFeePool and DaoToken
-        vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(daoId);
-        vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(daoId);
-        vars.token = ID4AProtocolReadable(protocol).getDaoToken(daoId);
-        vars.nft = ID4AProtocolReadable(protocol).getDaoNft(daoId); //var.nft here is the erc721 address
-        vars.topUpMode = continuousDaoParam.topUpMode;
+        {
+            vars.daoId = daoId;
+            // Use the exist DaoFeePool and DaoToken
+            vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(vars.daoId);
+            vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(vars.daoId);
+            vars.token = ID4AProtocolReadable(protocol).getDaoToken(vars.daoId);
+            vars.nft = ID4AProtocolReadable(protocol).getDaoNft(vars.daoId); //var.nft here is the erc721 address
+            vars.topUpMode = continuousDaoParam.topUpMode;
+        }
 
         emit CreateContinuousProjectParamEmitted(
             vars.existDaoId,
@@ -177,21 +179,21 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.dailyMintCap,
             vars.needMintableWork,
             continuousDaoParam.unifiedPriceModeOff,
-            ID4AProtocolReadable(protocol).getDaoUnifiedPrice(daoId),
+            ID4AProtocolReadable(protocol).getDaoUnifiedPrice(vars.daoId),
             continuousDaoParam.reserveNftNumber,
             continuousDaoParam.topUpMode,
             continuousDaoParam.infiniteMode,
-            continuousDaoParam.erc20PaymentMode,
-            continuousDaoParam.ownershipUri,
-            continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
-            continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
+            continuousDaoParam.erc20PaymentMode
         );
+        // continuousDaoParam.ownershipUri
+        // continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
+        // continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
 
         _config(protocol, vars);
 
         //if (!continuousDaoParam.isAncestorDao) {
         IPDProtocolSetter(protocol).setChildren(
-            daoId,
+            vars.daoId,
             SetChildrenParam(
                 continuousDaoParam.childrenDaoId,
                 continuousDaoParam.childrenDaoRatiosERC20,
@@ -202,6 +204,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             )
         );
         //}
+        // return vars.daoId;
     }
 
     function _createDao(

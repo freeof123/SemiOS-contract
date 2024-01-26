@@ -44,10 +44,7 @@ interface IPDCreate is ICreate {
         uint256 reserveNftNumber,
         bool topUpMode,
         bool infiniteMode,
-        bool erc20PaymentMode,
-        string ownershipUri,
-        uint256 defaultTopUpEthToRedeemPoolRatio,
-        uint256 defaultTopUpErc20ToTreasuryRatio
+        bool erc20PaymentMode
     );
 
     event NewProject(
