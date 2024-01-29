@@ -913,18 +913,19 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETH;
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20ToUse;
 
+            //1.6 todo
             //SafeTransferLib.safeTransferETH(treasury, topUpAmountETH * poolInfo.topupEthToRedeemPoolRatio /
             // BASIS_POINT);
             // SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
-            SafeTransferLib.safeTransferETH(
-                msg.sender,
-                (
-                    topUpAmountETH
-                        * (BASIS_POINT - BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio)
-                ) / BASIS_POINT
-            );
+            // SafeTransferLib.safeTransferETH(
+            //     msg.sender,
+            //     (
+            //         topUpAmountETH
+            //             * (BASIS_POINT -
+            // BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio)
+            //     ) / BASIS_POINT
+            // );
             SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
-            //1.6 todo
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,

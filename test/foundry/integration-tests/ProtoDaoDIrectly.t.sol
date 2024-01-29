@@ -594,9 +594,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
         {
             (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 500_000 ether);
-            assertEq(topUpETH, 0.005 ether);
+            assertEq(topUpERC20, 500_000 ether, "Check C");
+            assertEq(topUpETH, 0.005 ether, "Check B");
         }
-        assertEq(nftMinter.addr.balance, 0.005 ether);
+        assertEq(nftMinter.addr.balance, 0.005 ether, "Check A");
     }
 }

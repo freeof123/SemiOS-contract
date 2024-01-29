@@ -47,7 +47,7 @@ contract ProtoDaoEventTest is DeployHelper {
         // vm.expectEmit(false, false, false, true);
         vm.expectEmit(address(protocol));
         emit ChildrenSet(
-            0x5a251b5779b4f13f7556eecbd1ef966f6a36ba250bd5909188d04c18daa14057,
+            0x91b03b86daa2a14752df6cfbe4e3ff5e7dc7283fe7d03e515243f7d200bae2cb,
             new bytes32[](0),
             new uint256[](0),
             new uint256[](0),
@@ -56,7 +56,7 @@ contract ProtoDaoEventTest is DeployHelper {
             0
         );
         emit RatioSet(
-            0x5a251b5779b4f13f7556eecbd1ef966f6a36ba250bd5909188d04c18daa14057,
+            0x91b03b86daa2a14752df6cfbe4e3ff5e7dc7283fe7d03e515243f7d200bae2cb,
             AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0)
         );
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
