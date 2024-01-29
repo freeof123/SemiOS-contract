@@ -137,7 +137,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         address erc721Factory,
         address feePoolFactory,
         address ownerProxy,
-        address createProjectProxy,
         address permissionControl
     )
         public
@@ -150,11 +149,8 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.erc721Factory = ID4AERC721Factory(erc721Factory);
         l.feePoolFactory = ID4AFeePoolFactory(feePoolFactory);
         l.ownerProxy = ID4AOwnerProxy(ownerProxy);
-        l.createProjectProxy = createProjectProxy;
         l.permissionControl = IPermissionControl(permissionControl);
-        emit ChangeAddress(
-            drb, erc20Factory, erc721Factory, feePoolFactory, ownerProxy, createProjectProxy, permissionControl
-        );
+        emit ChangeAddress(drb, erc20Factory, erc721Factory, feePoolFactory, ownerProxy, permissionControl);
     }
 
     function changeAssetPoolOwner(address assetOwner) public onlyRole(PROTOCOL_ROLE) {

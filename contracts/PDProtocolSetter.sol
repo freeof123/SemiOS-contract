@@ -434,30 +434,19 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     }
 
     function _checkSetAbility(bytes32 daoId, bool ownerSet, bool v13set) internal view {
-        BasicDaoStorage.BasicDaoInfo memory basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
 
-        if (basicDaoInfo.version < 12) {
-            if (msg.sender == settingsStorage.createProjectProxy || msg.sender == address(this)) {
-                return;
-            }
-            if (
-                DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.BASIC_DAO
-                    && !BasicDaoStorage.layout().basicDaoInfos[daoId].unlocked
-            ) revert BasicDaoLocked();
-            if (ownerSet && msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)) return;
-        } else {
-            if (!v13set) revert VersionDenied();
-            if (msg.sender == address(this)) return;
-            bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
-            if (
-                ownerSet
-                    && (
-                        msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
-                            || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)
-                    )
-            ) return;
-        }
+        if (!v13set) revert VersionDenied();
+        if (msg.sender == address(this)) return;
+        bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+        if (
+            ownerSet
+                && (
+                    msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
+                        || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)
+                )
+        ) return;
+
         revert NotDaoOwner();
     }
 }

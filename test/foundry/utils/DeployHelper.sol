@@ -88,8 +88,8 @@ contract DeployHelper is Test {
     PDRound public pdRound;
     D4ACreate public d4aCreate;
     PDBasicDao public pdBasicDao;
-    PDCreateProjectProxy public daoProxy;
-    PDCreateProjectProxy public daoProxyImpl;
+    // PDCreateProjectProxy public daoProxy;
+    // PDCreateProjectProxy public daoProxyImpl;
     PermissionControl public permissionControl;
     PermissionControl public permissionControlImpl;
     D4AERC20Factory public erc20Factory;
@@ -161,7 +161,7 @@ contract DeployHelper is Test {
         _deployRoyaltySplitterFactory();
         _deployProtocol();
         _deployNaiveOwner();
-        _deployDaoProxy();
+        //_deployDaoProxy();
         _deployPermissionControl();
         _deployClaimer();
         _deployUniversalClaimer();
@@ -497,50 +497,50 @@ contract DeployHelper is Test {
     //     D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     // }
 
-    function _deployDaoProxy() internal prank(protocolOwner.addr) {
-        daoProxyImpl = new PDCreateProjectProxy(address(weth));
-        daoProxy = PDCreateProjectProxy(
-            payable(
-                new TransparentUpgradeableProxy(
-                    address(daoProxyImpl),
-                    address(proxyAdmin),
-                    abi.encodeWithSelector(
-                        PDCreateProjectProxy.initialize.selector,
-                        address(uniswapV2Factory),
-                        address(protocol),
-                        address(royaltySplitterFactory),
-                        royaltySplitterOwner
-                    )
-                )
-            )
-        );
-        vm.label(address(daoProxy), "DAO Proxy");
-        vm.label(address(daoProxyImpl), "DAO Proxy Impl");
-    }
+    // function _deployDaoProxy() internal prank(protocolOwner.addr) {
+    //     daoProxyImpl = new PDCreateProjectProxy(address(weth));
+    //     daoProxy = PDCreateProjectProxy(
+    //         payable(
+    //             new TransparentUpgradeableProxy(
+    //                 address(daoProxyImpl),
+    //                 address(proxyAdmin),
+    //                 abi.encodeWithSelector(
+    //                     PDCreateProjectProxy.initialize.selector,
+    //                     address(uniswapV2Factory),
+    //                     address(protocol),
+    //                     address(royaltySplitterFactory),
+    //                     royaltySplitterOwner
+    //                 )
+    //             )
+    //         )
+    //     );
+    //     vm.label(address(daoProxy), "DAO Proxy");
+    //     vm.label(address(daoProxyImpl), "DAO Proxy Impl");
+    // }
 
-    function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
-        daoProxyImpl = new PDCreateProjectProxy(address(weth));
-        daoProxy = PDCreateProjectProxy(
-            payable(
-                new TransparentUpgradeableProxy(
-                    address(daoProxyImpl),
-                    address(proxyAdmin),
-                    abi.encodeWithSelector(
-                        PDCreateProjectProxy.initialize.selector,
-                        address(uniswapV2Factory),
-                        address(protocol),
-                        address(royaltySplitterFactory),
-                        royaltySplitterOwner
-                    )
-                )
-            )
-        );
-        vm.label(address(daoProxy), "PD DAO Proxy");
-        vm.label(address(daoProxyImpl), "PD DAO Proxy Impl");
-    }
+    // function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
+    //     daoProxyImpl = new PDCreateProjectProxy(address(weth));
+    //     daoProxy = PDCreateProjectProxy(
+    //         payable(
+    //             new TransparentUpgradeableProxy(
+    //                 address(daoProxyImpl),
+    //                 address(proxyAdmin),
+    //                 abi.encodeWithSelector(
+    //                     PDCreateProjectProxy.initialize.selector,
+    //                     address(uniswapV2Factory),
+    //                     address(protocol),
+    //                     address(royaltySplitterFactory),
+    //                     royaltySplitterOwner
+    //                 )
+    //             )
+    //         )
+    //     );
+    //     vm.label(address(daoProxy), "PD DAO Proxy");
+    //     vm.label(address(daoProxyImpl), "PD DAO Proxy Impl");
+    // }
 
     function _deployPermissionControl() internal prank(protocolOwner.addr) {
-        permissionControlImpl = new PermissionControl(address(protocol), address(daoProxy));
+        permissionControlImpl = new PermissionControl(address(protocol));
         permissionControl = PermissionControl(
             address(
                 new TransparentUpgradeableProxy(
@@ -649,7 +649,6 @@ contract DeployHelper is Test {
             address(erc721Factory),
             address(feePoolFactory),
             address(naiveOwner),
-            address(daoProxy),
             address(permissionControl)
         );
     }
