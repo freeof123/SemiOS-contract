@@ -33,7 +33,6 @@ library SettingsStorage {
         ID4AFeePoolFactory feePoolFactory;
         ID4AOwnerProxy ownerProxy;
         IPermissionControl permissionControl;
-        address createProjectProxy;
         // params
         uint256 tokenMaxSupply;
         uint256 maxMintableRound; //366

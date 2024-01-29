@@ -13,7 +13,7 @@ import {
     NaiveOwner,
     DeployHelper
 } from "test/foundry/utils/DeployHelper.sol";
-import { D4AProtocol, D4AProtocolHarness } from "test/foundry/harness/D4AProtocolHarness.sol";
+import { PDProtocol, D4AProtocolHarness } from "test/foundry/harness/D4AProtocolHarness.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
 import "contracts/interface/D4AErrors.sol";
@@ -441,7 +441,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             data: abi.encodeWithSelector(NaiveOwner.ownerOf.selector),
             count: 1
         });
-        protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
+        protocolHarness.exposed_verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
     }
 
     function test_RevertIf_exposed_verifySignature_InvalidSignature() public {
@@ -475,6 +475,6 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(randomGuy.key, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         vm.expectRevert(InvalidSignature.selector);
-        protocolHarness.exposed_verifySignature(canvasId, tokenUri, flatPrice, signature);
+        protocolHarness.exposed_verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
     }
 }

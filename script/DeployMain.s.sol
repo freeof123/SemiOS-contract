@@ -163,9 +163,6 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         d4aRoyaltySplitterFactory = new D4ARoyaltySplitterFactory(address(WETH), uniswapV2Router, oracleRegistry);
         assertTrue(address(d4aRoyaltySplitterFactory) != address(0));
-        PDCreateProjectProxy(payable(address(pdCreateProjectProxy_proxy))).set(
-            address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
-        );
 
         vm.toString(address(d4aRoyaltySplitterFactory)).write(path, ".factories.D4ARoyaltySplitterFactory");
 
@@ -758,17 +755,17 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployClaimer() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4AClaimer");
+    // function _deployClaimer() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy D4AClaimer");
 
-        d4aClaimer = new D4AClaimer(address(pdProtocol_proxy));
+    //     d4aClaimer = new D4AClaimer(address(pdProtocol_proxy));
 
-        vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
+    //     vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
 
-        console2.log("D4AClaimer address: ", address(d4aClaimer));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("D4AClaimer address: ", address(d4aClaimer));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _deployUniversalClaimer() internal {
         console2.log("\n================================================================================");
@@ -782,65 +779,66 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployCreateProjectProxy() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy PDCreateProjectProxy");
+    // function _deployCreateProjectProxy() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy PDCreateProjectProxy");
 
-        pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
-        assertTrue(address(pdCreateProjectProxy_impl) != address(0));
+    //     pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
+    //     assertTrue(address(pdCreateProjectProxy_impl) != address(0));
 
-        console2.log("Update Create Project Proxy Data:");
-        console2.logBytes(
-            abi.encodeCall(
-                ProxyAdmin.upgrade,
-                (ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl))
-            )
-        );
+    //     console2.log("Update Create Project Proxy Data:");
+    //     console2.logBytes(
+    //         abi.encodeCall(
+    //             ProxyAdmin.upgrade,
+    //             (ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)),
+    // address(pdCreateProjectProxy_impl))
+    //         )
+    //     );
 
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
-        // );
+    //     // proxyAdmin.upgrade(
+    //     //     ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
+    //     // );
 
-        vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
+    //     vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
 
-        console2.log("PDCreateProjectProxy implementation address: ", address(pdCreateProjectProxy_impl));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("PDCreateProjectProxy implementation address: ", address(pdCreateProjectProxy_impl));
+    //     console2.log("================================================================================\n");
+    // }
 
-    function _deployCreateProjectProxyProxy() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy PDCreateProjectProxy proxy");
+    // function _deployCreateProjectProxyProxy() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy PDCreateProjectProxy proxy");
 
-        pdCreateProjectProxy_proxy = PDCreateProjectProxy(
-            payable(
-                address(
-                    new TransparentUpgradeableProxy(
-                        address(pdCreateProjectProxy_impl),
-                        address(proxyAdmin),
-                        abi.encodeWithSignature(
-                            "initialize(address,address,address,address)",
-                            address(uniswapV2Factory),
-                            address(pdProtocol_proxy),
-                            address(d4aRoyaltySplitterFactory), 
-                            address(owner) 
-                        )
-                    )
-                )
-            )
-        );
-        assertTrue(address(pdCreateProjectProxy_proxy) != address(0));
+    //     pdCreateProjectProxy_proxy = PDCreateProjectProxy(
+    //         payable(
+    //             address(
+    //                 new TransparentUpgradeableProxy(
+    //                     address(pdCreateProjectProxy_impl),
+    //                     address(proxyAdmin),
+    //                     abi.encodeWithSignature(
+    //                         "initialize(address,address,address,address)",
+    //                         address(uniswapV2Factory),
+    //                         address(pdProtocol_proxy),
+    //                         address(d4aRoyaltySplitterFactory),
+    //                         address(owner)
+    //                     )
+    //                 )
+    //             )
+    //         )
+    //     );
+    //     assertTrue(address(pdCreateProjectProxy_proxy) != address(0));
 
-        vm.toString(address(pdCreateProjectProxy_proxy)).write(path, ".PDCreateProjectProxy.proxy");
+    //     vm.toString(address(pdCreateProjectProxy_proxy)).write(path, ".PDCreateProjectProxy.proxy");
 
-        console2.log("PDCreateProjectProxy proxy address: ", address(pdCreateProjectProxy_proxy));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("PDCreateProjectProxy proxy address: ", address(pdCreateProjectProxy_proxy));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _deployPermissionControl() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl");
 
-        permissionControl_impl = new PermissionControl(address(pdProtocol_proxy), address(pdCreateProjectProxy_proxy));
+        permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
 
         console2.log("Update Permission Control Data:");
@@ -909,7 +907,6 @@ contract DeployDemo is Script, Test, D4AAddress {
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
                 json.readAddress(".NaiveOwner.proxy"),
-                address(pdCreateProjectProxy_proxy),
                 address(permissionControl_proxy)
             );
         }
@@ -967,7 +964,6 @@ contract DeployDemo is Script, Test, D4AAddress {
         }
         // {
         //     console2.log("Step 8: grant INITIALIZER ROLE");
-        //     NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
         //     naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(pdProtocol_proxy));
         // }
         {
@@ -1064,30 +1060,30 @@ contract DeployDemo is Script, Test, D4AAddress {
     function _checkStatus() internal {
         // proxy admin
         assertEq(proxyAdmin.owner(), multisig);
-        assertEq(
-            proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
-            address(proxyAdmin)
-        );
+        // assertEq(
+        //     proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
+        //     address(proxyAdmin)
+        // );
         assertEq(
             proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(permissionControl_proxy))),
             address(proxyAdmin)
         );
-        assertEq(
-            proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
-            address(pdCreateProjectProxy_impl)
-        );
+        // assertEq(
+        //     proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy))),
+        //     address(pdCreateProjectProxy_impl)
+        // );
         assertEq(
             proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(permissionControl_proxy))),
             address(permissionControl_impl)
         );
 
         // create project proxy
-        assertEq(pdCreateProjectProxy_proxy.WETH(), address(WETH));
-        assertEq(address(pdCreateProjectProxy_proxy.d4aswapFactory()), address(uniswapV2Factory));
-        assertEq(pdCreateProjectProxy_proxy.owner(), multisig);
-        assertEq(address(pdCreateProjectProxy_proxy.protocol()), address(pdProtocol_proxy));
-        assertEq(address(pdCreateProjectProxy_proxy.royaltySplitterFactory()), address(d4aRoyaltySplitterFactory));
-        assertEq(pdCreateProjectProxy_proxy.royaltySplitterOwner(), multisig);
+        // assertEq(pdCreateProjectProxy_proxy.WETH(), address(WETH));
+        // assertEq(address(pdCreateProjectProxy_proxy.d4aswapFactory()), address(uniswapV2Factory));
+        // assertEq(pdCreateProjectProxy_proxy.owner(), multisig);
+        // assertEq(address(pdCreateProjectProxy_proxy.protocol()), address(pdProtocol_proxy));
+        // assertEq(address(pdCreateProjectProxy_proxy.royaltySplitterFactory()), address(d4aRoyaltySplitterFactory));
+        // assertEq(pdCreateProjectProxy_proxy.royaltySplitterOwner(), multisig);
 
         // protocol
         assertEq(D4ADiamond(payable(address(pdProtocol_proxy))).facetAddresses()[0], address(pdProtocol_proxy));
@@ -1139,7 +1135,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         assertEq(D4ASettings(address(pdProtocol_proxy)).tradeProtocolFeeRatio(), 250);
 
         // permission control
-        assertEq(address(permissionControl_proxy.createProjectProxy()), address(pdCreateProjectProxy_proxy));
+        //assertEq(address(permissionControl_proxy.createProjectProxy()), address(pdCreateProjectProxy_proxy));
         (, name, version,,,,) = permissionControl_proxy.eip712Domain();
         assertEq(name, "D4APermissionControl");
         assertEq(version, "2");

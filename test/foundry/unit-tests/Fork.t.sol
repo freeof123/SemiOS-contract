@@ -15,7 +15,6 @@ import { D4AERC721WithFilter } from "contracts/D4AERC721WithFilter.sol";
 import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 
@@ -35,7 +34,6 @@ contract Fork is Test {
     ProxyAdmin public proxyAdmin = ProxyAdmin(vm.envAddress("ProxyAdmin"));
     TransparentUpgradeableProxy public d4aProtocol_proxy =
         TransparentUpgradeableProxy(payable(vm.envAddress("D4AProtocol_proxy")));
-    D4AProtocol public d4aProtocol_impl = D4AProtocol(vm.envAddress("D4AProtocol_impl"));
     TransparentUpgradeableProxy public permissionControl_proxy =
         TransparentUpgradeableProxy(payable(vm.envAddress("PermissionControl_proxy")));
     PermissionControl public permissionControl_impl = PermissionControl(vm.envAddress("PermissionControl_impl"));

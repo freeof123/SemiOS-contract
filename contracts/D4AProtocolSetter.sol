@@ -212,10 +212,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
     function setTemplate(bytes32 daoId, TemplateParam calldata templateParam) public virtual {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        if (
-            msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != l.createProjectProxy
-                && msg.sender != address(this)
-        ) revert NotDaoOwner();
+        if (msg.sender != l.ownerProxy.ownerOf(daoId) && msg.sender != address(this)) revert NotDaoOwner();
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.priceTemplateType = templateParam.priceTemplateType;

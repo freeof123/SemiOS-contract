@@ -30,7 +30,6 @@ interface ID4ASettings {
         address erc721Factory,
         address feePoolFactory,
         address ownerProxy,
-        address createProjectProxy,
         address permissionControl
     );
 
@@ -82,7 +81,6 @@ interface ID4ASettings {
         address erc721Factory,
         address feePoolFactory,
         address ownerProxy,
-        address createProjectProxy,
         address permissionControl
     )
         external;
