@@ -42,7 +42,7 @@ contract D4AAddress is CommonBase {
     string json = vm.readFile(path);
 
     // D4AClaimer
-    D4AClaimer public d4aClaimer = D4AClaimer(json.readAddress(".D4AClaimer"));
+    // D4AClaimer public d4aClaimer = D4AClaimer(json.readAddress(".D4AClaimer"));
 
     // Drb
     D4ADrb public d4aDrb = D4ADrb(json.readAddress(".D4ADrb"));
@@ -87,10 +87,10 @@ contract D4AAddress is CommonBase {
     PermissionControl public permissionControl_impl = PermissionControl(json.readAddress(".PermissionControl.impl"));
 
     // pd create project proxy
-    PDCreateProjectProxy public pdCreateProjectProxy_proxy =
-        PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.proxy")));
-    PDCreateProjectProxy public pdCreateProjectProxy_impl =
-        PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.impl")));
+    // PDCreateProjectProxy public pdCreateProjectProxy_proxy =
+    //     PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.proxy")));
+    // PDCreateProjectProxy public pdCreateProjectProxy_impl =
+    //     PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.impl")));
 
     // Basic Dao Unlocker
     BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));

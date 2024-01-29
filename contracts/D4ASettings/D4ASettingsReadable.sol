@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { BASIS_POINT } from "contracts/D4AProtocol.sol";
+import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { ID4ASettingsReadable } from "./ID4ASettingsReadable.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";

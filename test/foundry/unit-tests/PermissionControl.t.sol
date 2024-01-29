@@ -22,7 +22,7 @@ contract PermissionControlTest is DeployHelper {
     uint256 public counter;
 
     function _deployPermissionControlHarness() internal {
-        PermissionControlHarness harness = new PermissionControlHarness(address(protocol), address(daoProxy));
+        PermissionControlHarness harness = new PermissionControlHarness(address(protocol));
         vm.etch(address(permissionControlImpl), address(harness).code);
     }
 

@@ -23,7 +23,6 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     address public immutable protocol;
-    address public immutable createProjectProxy;
 
     bytes32 internal constant ADDPERMISSION_TYPEHASH = keccak256(
         abi.encodePacked(
@@ -56,9 +55,8 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     );
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address protocol_, address createProjectProxy_) {
+    constructor(address protocol_) {
         protocol = protocol_;
-        createProjectProxy = createProjectProxy_;
         _disableInitializers();
     }
 
@@ -80,10 +78,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     }
 
     function addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist) external {
-        require(
-            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == createProjectProxy || msg.sender == protocol,
-            "PermissionControl: not DAO owner"
-        );
+        require(msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == protocol, "PermissionControl: not DAO owner");
         _addPermission(daoId, whitelist, blacklist);
     }
 

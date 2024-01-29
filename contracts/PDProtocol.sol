@@ -72,7 +72,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     bytes32 internal constant _MINTNFT_TYPEHASH =
         keccak256("MintNFT(bytes32 canvasID,bytes32 tokenURIHash,uint256 flatPrice)");
 
-    function initialize() public reinitializer(4) {
+    function initialize() public reinitializer(2) {
         uint256 reservedDaoAmount = SettingsStorage.layout().reservedDaoAmount;
         ProtocolStorage.Layout storage protocolStorage = ProtocolStorage.layout();
         protocolStorage.lastestDaoIndexes[uint8(DaoTag.D4A_DAO)] = reservedDaoAmount;
@@ -252,7 +252,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (, daoNftOwnerERC20Reward,, daoNftOwnerETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
 
-        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoNftOwner, daoNftOwnerERC20Reward, daoNftOwnerETHReward);
+        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoNftOwnerERC20Reward, daoNftOwnerETHReward);
     }
 
     function claimCanvasReward(bytes32 canvasId)
@@ -283,7 +283,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (canvasERC20Reward, canvasETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasCreator, canvasERC20Reward, canvasETHReward);
+        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasERC20Reward, canvasETHReward);
     }
 
     function claimNftMinterReward(
@@ -313,7 +313,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (minterERC20Reward, minterETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimNftMinterReward(daoId, daoInfo.token, minter, minterERC20Reward, minterETHReward);
+        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
 
         // else {
         //     emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
@@ -810,10 +810,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _splitFee(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpETHQuota;
-        if (
-            vars.nft.erc721Address != address(0)
-                && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.daoId, vars.nft)
-        ) {
+        if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
             (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
@@ -880,10 +877,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
     function _splitFeeERC20(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpERC20Quota;
-        if (
-            vars.nft.erc721Address != address(0)
-                && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.daoId, vars.nft)
-        ) {
+        if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
             (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
 

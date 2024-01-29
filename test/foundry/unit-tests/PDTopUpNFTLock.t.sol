@@ -8,8 +8,8 @@ import { console2 } from "forge-std/console2.sol";
 import "contracts/interface/D4AErrors.sol";
 import { IPDLock } from "contracts/interface/IPDLock.sol";
 
-contract PDTopUpNFTStake is DeployHelper {
-    event TopUpNftLock(bytes32 daoId, NftIdentifier nft, uint256 lockStartBlock, uint256 duration);
+contract PDTopUpNFTLock is DeployHelper {
+    event TopUpNftLock(NftIdentifier nft, uint256 lockStartBlock, uint256 duration);
 
     function setUp() public {
         setUpEnv();
@@ -40,16 +40,16 @@ contract PDTopUpNFTStake is DeployHelper {
         NftIdentifier memory nft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
 
         vm.expectRevert(NotNftOwner.selector);
-        protocol.lockTopUpNFT(daoId, nft1, 1 days);
+        protocol.lockTopUpNFT(nft1, 1 days);
 
         vm.prank(nftMinter.addr);
-        protocol.lockTopUpNFT(daoId, nft1, 10);
+        protocol.lockTopUpNFT(nft1, 10);
 
         vm.roll(8);
-        assertEq(protocol.checkTopUpNftLockedStatus(daoId, nft1), true, "Check A");
+        assertEq(protocol.checkTopUpNftLockedStatus(nft1), true, "Check A");
 
         vm.roll(12);
-        assertEq(protocol.checkTopUpNftLockedStatus(daoId, nft1), false, "Check A");
+        assertEq(protocol.checkTopUpNftLockedStatus(nft1), false, "Check A");
     }
 
     function test_TouUpNFTStake_TopUpBalanceCheck() public {
@@ -89,7 +89,7 @@ contract PDTopUpNFTStake is DeployHelper {
         );
         NftIdentifier memory nft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
         vm.prank(nftMinter.addr);
-        protocol.lockTopUpNFT(daoId, nft1, 10);
+        protocol.lockTopUpNFT(nft1, 10);
 
         vm.roll(2);
         (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
@@ -177,15 +177,15 @@ contract PDTopUpNFTStake is DeployHelper {
         );
         NftIdentifier memory nft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
         vm.expectEmit(true, true, true, true, address(protocol));
-        emit TopUpNftLock(daoId, nft1, block.number, 10);
+        emit TopUpNftLock(nft1, block.number, 10);
 
         vm.prank(nftMinter.addr);
-        protocol.lockTopUpNFT(daoId, nft1, 10);
+        protocol.lockTopUpNFT(nft1, 10);
 
         vm.roll(8);
-        assertEq(protocol.checkTopUpNftLockedStatus(daoId, nft1), true, "Check A");
+        assertEq(protocol.checkTopUpNftLockedStatus(nft1), true, "Check A");
 
         vm.roll(12);
-        assertEq(protocol.checkTopUpNftLockedStatus(daoId, nft1), false, "Check A");
+        assertEq(protocol.checkTopUpNftLockedStatus(nft1), false, "Check A");
     }
 }

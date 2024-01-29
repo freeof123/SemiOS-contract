@@ -2,9 +2,9 @@
 pragma solidity ^0.8.13;
 
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
+import { PDProtocol } from "contracts/PDProtocol.sol";
 
-contract D4AProtocolHarness is D4AProtocol {
+contract D4AProtocolHarness is PDProtocol {
     function exposed_MINTNFT_TYPEHASH() public pure returns (bytes32) {
         return _MINTNFT_TYPEHASH;
     }
@@ -22,7 +22,7 @@ contract D4AProtocolHarness is D4AProtocol {
         public
         view
     {
-        _checkMintEligibility(daoId, account, proof, amount);
+        _checkMintEligibility(daoId, account, proof, 1, amount);
     }
 
     function exposed_ableToMint(
@@ -39,6 +39,7 @@ contract D4AProtocolHarness is D4AProtocol {
     }
 
     function exposed_verifySignature(
+        bytes32 daoId,
         bytes32 canvasId,
         string calldata tokenUri,
         uint256 flatPrice,
@@ -47,6 +48,6 @@ contract D4AProtocolHarness is D4AProtocol {
         public
         view
     {
-        _verifySignature(canvasId, tokenUri, flatPrice, signature);
+        _verifySignature(daoId, canvasId, tokenUri, flatPrice, signature);
     }
 }
