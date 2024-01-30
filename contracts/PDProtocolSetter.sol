@@ -211,10 +211,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     function setDaoParams(SetDaoParam calldata vars) public {
         _checkSetAbility(vars.daoId, true, true);
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
-        if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
-            setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
-        } //1
+        //bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
+        //if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
+        setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
+        //1
         if (!vars.changeInfiniteMode) {
             setDaoRemainingRound(vars.daoId, vars.remainingRound); //2
         } else {
@@ -336,7 +336,10 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         bytes32 ancestor = treeInfo.ancestor;
         address daoToken = DaoStorage.layout().daoInfos[ancestor].token;
 
-        if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) revert NotDaoOwner();
+        if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) {
+            //revert NotDaoOwner();
+            return;
+        }
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
         if (!InheritTreeStorage.layout().inheritTreeInfos[ancestor].isAncestorDao) revert NotAncestorDao();
 
