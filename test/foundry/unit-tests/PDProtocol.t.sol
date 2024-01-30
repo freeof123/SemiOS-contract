@@ -5,7 +5,6 @@ import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
-
 import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import "contracts/interface/D4AStructs.sol";
@@ -131,7 +130,9 @@ contract PDProtocolTest is DeployHelper {
         );
     }
 
-    event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
+    event D4AMintNFT(
+        bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price, NftIdentifier nft
+    );
 
     function test_mintNFT_SpecialTokenUriShouldAbideByTokenId() public {
         CreateDaoParam memory param;
@@ -149,13 +150,17 @@ contract PDProtocolTest is DeployHelper {
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
 
         uint256 daoIndex = protocol.getDaoIndex(daoId);
-        address nft = protocol.getDaoNft(daoId);
+        address nft = address(_testERC721);
+        _testERC721.mint(daoCreator.addr, 0);
+
         string memory tokenUri = string.concat(tokenUriPrefix, vm.toString(daoIndex), "-", "1", ".json");
         address[] memory accounts = new address[](1);
         accounts[0] = daoCreator.addr;
 
         vm.expectEmit(address(protocol));
-        emit D4AMintNFT(daoId, param.canvasId, 1, tokenUri, 0.1 ether);
+        emit D4AMintNFT(
+            daoId, param.canvasId, 1, tokenUri, 0.1 ether, NftIdentifier({ erc721Address: nft, tokenId: 0 })
+        );
 
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId;
@@ -164,8 +169,10 @@ contract PDProtocolTest is DeployHelper {
         nftParam.flatPrice = 0.1 ether;
         nftParam.proof = getMerkleProof(accounts, daoCreator.addr);
         nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier({ erc721Address: nft, tokenId: 0 });
         uint256 tokenId = super._mintNftWithParam(nftParam, daoCreator.addr);
 
+        nft = protocol.getDaoNft(daoId);
         assertEq(D4AERC721(nft).tokenURI(tokenId), tokenUri);
     }
 

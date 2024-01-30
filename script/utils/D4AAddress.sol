@@ -21,6 +21,7 @@ import { PDCreate } from "contracts/PDCreate.sol";
 
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDRound } from "contracts/PDRound.sol";
+import { PDLock } from "contracts/PDLock.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
@@ -70,6 +71,7 @@ contract D4AAddress is CommonBase {
 
     PDBasicDao public pdBasicDao = PDBasicDao(json.readAddress(".PDProtocol.PDBasicDao"));
     PDRound public pdRound = PDRound(json.readAddress(".PDProtocol.PDRound"));
+    PDLock public pdLock = PDLock(json.readAddress(".PDProtocol.PDLock"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".PDProtocol.D4ASettings"));
     LinearPriceVariation public linearPriceVariation =
         LinearPriceVariation(json.readAddress(".PDProtocol.LinearPriceVariation"));

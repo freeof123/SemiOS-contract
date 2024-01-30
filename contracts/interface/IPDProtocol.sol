@@ -4,7 +4,9 @@ pragma solidity ^0.8.18;
 import { MintNftInfo, CreateCanvasAndMintNFTParam, MintNFTParam, NftIdentifier } from "./D4AStructs.sol";
 
 interface IPDProtocol {
-    event D4AMintNFT(bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price);
+    event D4AMintNFT(
+        bytes32 daoId, bytes32 canvasId, uint256 tokenId, string tokenUri, uint256 price, NftIdentifier ownerNft
+    );
 
     // event D4AClaimProjectERC20Reward(bytes32 daoId, address token, uint256 amount);
 
