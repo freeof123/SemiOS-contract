@@ -357,8 +357,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     )
         public
     {
-        //todo, add permission check
-        //_checkTreasuryNFTOwner(daoId, msg.sender);
+        _checkTreasuryNFTOwner(daoId);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         poolInfo.defaultTopUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
@@ -427,6 +426,13 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         OwnerStorage.layout().ownerInfos[daoId].ownerForDaoEditInformation = NftIdentifier(daoNftAddress, tokenId);
 
         emit DaoRewardNftOwnerSet(daoId, daoNftAddress, tokenId);
+    }
+
+    function setDaoTreasuryPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
+        _checkTreasuryNFTOwner(daoId);
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasuryPermissionNft =
+            NftIdentifier(daoNftAddress, tokenId);
+        emit DaoTreasuryNftOwnerSet(daoId, daoNftAddress, tokenId);
     }
 
     function _daoRestart(bytes32 daoId, uint256 newRemainingRound) internal {
@@ -528,5 +534,13 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     //     revert NotDaoOwner();
     // }
 
-    function _checkTreasuryNFTOwner(bytes32 daoId, address owner) internal view { }
+    function _checkTreasuryNFTOwner(bytes32 daoId) internal view {
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        address nftAddress = poolInfo.treasuryPermissionNft.erc721Address;
+        uint256 tokenId = poolInfo.treasuryPermissionNft.tokenId;
+        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
+            revert NotNftOwner();
+        }
+    }
 }

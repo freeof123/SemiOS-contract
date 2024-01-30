@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { NftIdentifier } from "contracts/interface/D4AStructs.sol";
+
 library PoolStorage {
     struct PoolInfo {
         mapping(uint256 round => uint256 totalWeight) roundTotalETH;
@@ -11,6 +13,7 @@ library PoolStorage {
         mapping(bytes32 nftHash => uint256 amount) topUpNftERC20;
         uint256 defaultTopUpErc20ToTreasuryRatio;
         address treasury;
+        NftIdentifier treasuryPermissionNft;
     }
 
     struct Layout {
