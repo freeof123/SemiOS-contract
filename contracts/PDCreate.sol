@@ -4,9 +4,9 @@ pragma solidity ^0.8.18;
 // interfaces
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import { IPDCreate } from "contracts/interface/IPDCreate.sol";
-import { IPDCreate } from "contracts/interface/IPDCreate.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
@@ -51,7 +51,6 @@ import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard
 import { LibString } from "solady/utils/LibString.sol";
 
 import { D4AERC20 } from "./D4AERC20.sol";
-import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
 //import "forge-std/Test.sol";
@@ -185,10 +184,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             continuousDaoParam.infiniteMode,
             continuousDaoParam.erc20PaymentMode
         );
-        // continuousDaoParam.ownershipUri
-        // continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
-        // continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
-
         _config(protocol, vars);
 
         //if (!continuousDaoParam.isAncestorDao) {
@@ -294,6 +289,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoMetadataParam.projectUri,
             continuousDaoParam.ownershipUri
         );
+        // treasury permission set for 1.6
+        if (continuousDaoParam.isAncestorDao) {
+            IPDProtocolSetter(address(this)).setDaoTreasuryPermission(daoId, daoInfo.nft, 0);
+        }
 
         //common initializaitions
         {
@@ -389,6 +388,11 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             poolInfo.treasury,
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
         );
+        emit OwnershipNftParamEmitted(
+            continuousDaoParam.ownershipUri,
+            continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
+            continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
+        );
     }
 
     function _createProject(CreateAncestorDaoParam memory vars) internal {
@@ -420,7 +424,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             address treasury = settingsStorage.feePoolFactory.createD4AFeePool(
                 string(abi.encodePacked("Treasury for Semios Project ", LibString.toString(vars.daoIndex)))
             ); //this feepool is treasury
-            // question
             D4AFeePool(payable(treasury)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
             ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
@@ -480,12 +483,14 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, reserveNftNumber);
-        D4AERC721(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the user??
-        D4AERC721(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
-        D4AERC721(daoInfo.nft).setContractUri(daoUri);
+        IAccessControl(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the
+            // user??
+        IAccessControl(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
+
+        ID4AERC721(daoInfo.nft).setContractUri(daoUri);
         ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
         ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
-        D4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
+        ID4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {

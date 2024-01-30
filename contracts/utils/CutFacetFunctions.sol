@@ -280,6 +280,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoEditParamPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoEditStrategyPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoRewardPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoTreasuryPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpBalanceSplitRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDefaultTopUpBalanceSplitRatio.selector;
 

@@ -59,6 +59,7 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setDaoEditParamPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setDaoEditStrategyPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setDaoRewardPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setDaoTreasuryPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
 
     function setTopUpBalanceSplitRatio(
         bytes32 daoId,

@@ -373,8 +373,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     )
         public
     {
-        //todo, add permission check
-        //_checkTreasuryNFTOwner(daoId, msg.sender);
+        _checkTreasuryNFTOwner(daoId);
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         basicDaoInfo.topUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
