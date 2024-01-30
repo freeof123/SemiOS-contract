@@ -46,6 +46,13 @@ interface IPDProtocol {
 
     event NewCanvasForMint(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
+    event TopUpErc20ToTreasury(
+        address msgSender, bytes32 daoId, address treasuryAddress, uint256 topUpAmountErc20ToTreasury
+    );
+    event TopUpEthToRedeemPool(
+        address msgSender, bytes32 daoId, address treasuryAddress, uint256 topUpAmountEthToRedeemPool
+    );
+
     function initialize() external;
 
     // function createCanvasAndMintNFT(CreateCanvasAndMintNFTParam calldata createCanvasAndMintNFTParam)

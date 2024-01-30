@@ -581,17 +581,6 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
         super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
-        // super._mintNftChangeBal(
-        //     daoId2,
-        //     canvasId2,
-        //     string.concat(
-        //         tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(0)), ".json"
-        //     ),
-        //     500_000 ether,
-        //     daoCreator2.key,
-        //     nftMinter.addr
-        // );
-
         {
             (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
             assertEq(topUpERC20, 500_000 ether, "Check C");

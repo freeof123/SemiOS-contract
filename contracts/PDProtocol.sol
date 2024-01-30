@@ -64,7 +64,7 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 // import { CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
 
-//import "forge-std/Test.sol";
+// import "forge-std/Test.sol";
 
 contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGuard, Multicallable, EIP712 {
     using LibString for string;
@@ -840,19 +840,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             uint256 topUpAmountERC20 = (topUpAmountETHToUse * poolInfo.topUpNftERC20[vars.nftHash]) / topUpETHQuota;
             poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETHToUse;
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20;
-
-            //1.6 todo
-            // SafeTransferLib.safeTransfer(
-            //     DaoStorage.layout().daoInfos[vars.daoId].token,
-            //     msg.sender,
-            //     topUpAmountERC20 * ((BASIS_POINT - poolInfo.erc20ToTreasuryRatio) / BASIS_POINT)
-            // );
-            SafeTransferLib.safeTransfer(DaoStorage.layout().daoInfos[vars.daoId].token, msg.sender, topUpAmountERC20);
-            // SafeTransferLib.safeTransfer(
-            //     DaoStorage.layout().daoInfos[vars.daoId].token,
-            //     msg.sender,
-            //     topUpAmountERC20 * poolInfo.erc20ToTreasuryRatio / BASIS_POINT
-            // );
+            uint256 topUpAmountErc20ToTreasury = topUpAmountERC20
+                * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpErc20ToTreasuryRatio / BASIS_POINT;
+            SafeTransferLib.safeTransfer(
+                DaoStorage.layout().daoInfos[vars.daoId].token,
+                msg.sender,
+                topUpAmountERC20 - topUpAmountErc20ToTreasury
+            );
+            SafeTransferLib.safeTransfer(
+                DaoStorage.layout().daoInfos[vars.daoId].token, poolInfo.treasury, topUpAmountErc20ToTreasury
+            );
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
@@ -860,6 +857,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 topUpAmountERC20,
                 topUpAmountETHToUse
             );
+            emit TopUpErc20ToTreasury(msg.sender, vars.daoId, poolInfo.treasury, topUpAmountErc20ToTreasury);
         }
         emit MintFeeSplitted(
             vars.daoId,
@@ -911,20 +909,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             uint256 topUpAmountETH = (topUpAmountERC20ToUse * poolInfo.topUpNftETH[vars.nftHash]) / topUpERC20Quota;
             poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETH;
             poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20ToUse;
-
-            //1.6 todo
-            //SafeTransferLib.safeTransferETH(treasury, topUpAmountETH * poolInfo.topupEthToRedeemPoolRatio /
-            // BASIS_POINT);
-            // SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
-            // SafeTransferLib.safeTransferETH(
-            //     msg.sender,
-            //     (
-            //         topUpAmountETH
-            //             * (BASIS_POINT -
-            // BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio)
-            //     ) / BASIS_POINT
-            // );
-            SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH);
+            uint256 topUpAmountEthToRedeemPool = topUpAmountETH
+                * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio / BASIS_POINT;
+            SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH - topUpAmountEthToRedeemPool);
+            SafeTransferLib.safeTransferETH(vars.daoRedeemPool, topUpAmountEthToRedeemPool);
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
@@ -932,6 +920,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 topUpAmountERC20ToUse,
                 topUpAmountETH
             );
+            emit TopUpEthToRedeemPool(msg.sender, vars.daoId, vars.daoRedeemPool, topUpAmountEthToRedeemPool);
         }
         emit MintFeeSplitted(
             vars.daoId,
