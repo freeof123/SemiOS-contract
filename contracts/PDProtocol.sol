@@ -588,9 +588,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             _calculateAndSplitFeeAndUpdateReward(
                 daoId, canvasId, price, flatPrice, currentRound, erc20Signature, deadline, nftIdentifier
             );
+            emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price, nftIdentifier);
         }
-
-        emit D4AMintNFT(daoId, canvasId, tokenId, tokenUri, price);
     }
 
     struct SplitFeeLocalVars {
