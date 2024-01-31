@@ -24,6 +24,8 @@
 
 git clone
 
+> 提前需要安装yarn pnpm npm这三个
+
 yarn install
 
 forge b
