@@ -50,6 +50,24 @@ contract PDCreateTest is DeployHelper {
         // assertEq(protocol.getDaoIndex(daoId), 110);
     }
 
+    function test_createDao_checkExceedTokenMaxTotalSupply_1billoin() public {
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.initTokenSupplyRatio = 10_000;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        param.existDaoId = daoId;
+        param.isBasicDao = false;
+        param.initTokenSupplyRatio = 5000;
+        param.daoUri = "continuous dao uri";
+        vm.expectRevert("setInitialTokenSupplyForSubDao failed");
+        _createDaoForFunding(param, daoCreator.addr);
+    }
+
     //     function test_createOwnerBasicDao() public {
     //         DeployHelper.CreateDaoParam memory createDaoParam;
     //         bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));

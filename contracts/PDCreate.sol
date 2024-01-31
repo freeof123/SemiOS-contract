@@ -334,19 +334,29 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         {
             address daoAssetPool = _createDaoAssetPool(daoId, daoInfo.daoIndex);
-            if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) {
-                daoStorage.daoInfos[daoId].tokenMaxSupply =
-                    (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
-                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
-            }
-            if (
-                !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
-                    && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
-            ) {
-                daoStorage.daoInfos[daoId].tokenMaxSupply =
-                    (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
-                D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool, daoStorage.daoInfos[daoId].tokenMaxSupply);
-            }
+            (bool succ,) = address(this).delegatecall(
+                abi.encodeCall(
+                    IPDProtocolSetter.setInitialTokenSupplyForSubDao,
+                    (daoId, SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio / BASIS_POINT)
+                )
+            );
+            require(succ, "setInitialTokenSupplyForSubDao failed");
+            // if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken)
+            // {
+            //     daoStorage.daoInfos[daoId].tokenMaxSupply =
+            //         (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+            //     D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool,
+            // daoStorage.daoInfos[daoId].tokenMaxSupply);
+            // }
+            // if (
+            //     !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
+            //         && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
+            // ) {
+            //     daoStorage.daoInfos[daoId].tokenMaxSupply =
+            //         (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
+            //     D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool,
+            // daoStorage.daoInfos[daoId].tokenMaxSupply);
+            // }
         }
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 

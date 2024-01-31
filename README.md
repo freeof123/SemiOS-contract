@@ -18,3 +18,16 @@
     不将 signature 也改变的话，在 mint NFT 时，会导致 signature 还原出来的 signer 和 canvas creator 不一致，导致交易
     revert，如果调用者将 to 地址和 signature 同时改变，使得 signature 为指定的 to 地址的私钥对正确参数签名后得到的
     signature，则交易可以正常执行，同时修改了 canvas 的 creator。但是这种攻击风险不考虑。
+
+
+---
+
+git clone
+
+> 提前需要安装yarn pnpm npm这三个
+
+yarn install
+
+forge b
+
+forge t

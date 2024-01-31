@@ -103,25 +103,28 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
+        // _deployNaiveOwner();
+        // _deployNaiveOwnerProxy();
+
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.ADD);
 
         // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.ADD);
+        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
 
-        _deployPDLock();
-        _cutFacetsPDLock(DeployMethod.ADD);
+        // _deployPDLock();
+        // _cutFacetsPDLock(DeployMethod.ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
@@ -135,11 +138,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployCreateProjectProxy();
         // _deployCreateProjectProxyProxy();
 
-        // _deployPermissionControl();
-        // _deployPermissionControlProxy();
-
-        // _deployNaiveOwner();
-        // _deployNaiveOwnerProxy();
+        _deployPermissionControl();
+        //_deployPermissionControlProxy();
 
         // _initSettings();
         // _initSettings13();
@@ -148,7 +148,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployExponentialPriceVariation();
         // _deployLinearRewardIssuance();
         // _deployExponentialRewardIssuance();
-        _deployUniformDistributionRewardIssuance();
+        // _deployUniformDistributionRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -966,9 +966,12 @@ contract Deploy is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        // );
+
+        proxyAdmin.upgradeAndCall(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)),
+            address(permissionControl_impl),
+            abi.encodeWithSignature("initialize(address)", address(naiveOwner_proxy))
+        );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
 
@@ -1043,7 +1046,7 @@ contract Deploy is Script, Test, D4AAddress {
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
-                json.readAddress(".NaiveOwner.proxy"),
+                address(naiveOwner_proxy),
                 address(permissionControl_proxy)
             );
         }
