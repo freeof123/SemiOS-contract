@@ -25,35 +25,82 @@ contract PDEditPermission is DeployHelper {
         param.noPermission = true;
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         //daoCreator set
-        assertEq(protocol.getDaoRoundMintCap(daoId), 100, "Check A");
         startHoax(daoCreator.addr);
+        assertEq(protocol.getDaoRoundMintCap(daoId), 100, "Check A");
         protocol.setRoundMintCap(daoId, 10);
         assertEq(protocol.getDaoRoundMintCap(daoId), 10, "Check B");
 
-        console2.log("A", protocol.getDaoNftMaxSupply(daoId));
+        assertEq(protocol.getDaoNftMaxSupply(daoId), 10_000, "Check C");
         protocol.setDaoNftMaxSupply(daoId, 1_000_000);
+        assertEq(protocol.getDaoNftMaxSupply(daoId), 1_000_000, "Check D");
 
-        console2.log(protocol.getDaoFloorPrice(daoId));
-        protocol.setDaoFloorPrice(daoId, 0.1 ether);
+        assertEq(protocol.getDaoFloorPrice(daoId), 0.01 ether, "Check E");
+        protocol.setDaoFloorPrice(daoId, 1 ether);
+        assertEq(protocol.getDaoFloorPrice(daoId), 1 ether, "Check E 2");
 
-        console2.log(protocol.getDaoPriceTemplate(daoId), "C");
-        // protocol.setDaoPriceTemplate(daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 5);
+        assertEq(protocol.getDaoPriceTemplate(daoId), 0x601b9F4f6Be05d5EDc57165dEC27C0F461A0C94a, "Check S");
+        protocol.setDaoPriceTemplate(daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 50_000);
+        assertEq(protocol.getDaoPriceTemplate(daoId), 0x601b9F4f6Be05d5EDc57165dEC27C0F461A0C94a, "Check S1");
 
-        console2.log(protocol.getDaoUnifiedPrice(daoId), "D");
-        protocol.setDaoUnifiedPrice(daoId, 0.1 ether);
+        assertEq(protocol.getDaoUnifiedPrice(daoId), 0.01 ether, "Check F");
+        protocol.setDaoUnifiedPrice(daoId, 1 ether);
+        assertEq(protocol.getDaoUnifiedPrice(daoId), 1 ether, "Check G");
 
-        console2.log(protocol.getDaoRemainingRound(daoId), "E");
+        assertEq(protocol.getDaoRemainingRound(daoId), 60, "Check H");
         protocol.setDaoRemainingRound(daoId, 10);
+        assertEq(protocol.getDaoRemainingRound(daoId), 10, "Check I");
 
-        console2.log(protocol.getDaoInfiniteMode(daoId), "F");
-        protocol.changeDaoInfiniteMode(daoId, 100);
+        assertEq(protocol.getDaoInfiniteMode(daoId), false, "Check J");
+        protocol.changeDaoInfiniteMode(daoId, 1);
+        assertEq(protocol.getDaoInfiniteMode(daoId), true, "Check k");
 
         //transfer nft to randomGuy
         address nft = protocol.getDaoNft(daoId);
         IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
         vm.expectRevert(NotNftOwner.selector);
         protocol.setRoundMintCap(daoId, 10);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoNftMaxSupply(daoId, 1_000_000);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoFloorPrice(daoId, 1 ether);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoPriceTemplate(daoId, PriceTemplateType.EXPONENTIAL_PRICE_VARIATION, 50_000);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoUnifiedPrice(daoId, 1 ether);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoRemainingRound(daoId, 10);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.changeDaoInfiniteMode(daoId, 1);
 
+        startHoax(randomGuy.addr);
+        assertEq(protocol.getDaoRoundMintCap(daoId), 10, "Check A 1");
+        protocol.setRoundMintCap(daoId, 100);
+        assertEq(protocol.getDaoRoundMintCap(daoId), 100, "Check B 1");
+
+        assertEq(protocol.getDaoNftMaxSupply(daoId), 1_000_000, "Check C 1");
+        protocol.setDaoNftMaxSupply(daoId, 10);
+        assertEq(protocol.getDaoNftMaxSupply(daoId), 10, "Check D 1");
+
+        assertEq(protocol.getDaoFloorPrice(daoId), 1 ether, "Check E 3");
+        protocol.setDaoFloorPrice(daoId, 0.01 ether);
+        assertEq(protocol.getDaoFloorPrice(daoId), 0.01 ether, "Check E 2");
+
+        assertEq(protocol.getDaoPriceTemplate(daoId), 0x601b9F4f6Be05d5EDc57165dEC27C0F461A0C94a, "Check S 11");
+        protocol.setDaoPriceTemplate(daoId, PriceTemplateType.LINEAR_PRICE_VARIATION, 10);
+        assertEq(protocol.getDaoPriceTemplate(daoId), 0x6021944288cC29D790Ad86526107ed5A63150aAa, "Check S 21");
+
+        assertEq(protocol.getDaoUnifiedPrice(daoId), 1 ether, "Check F 1");
+        protocol.setDaoUnifiedPrice(daoId, 0.01 ether);
+        assertEq(protocol.getDaoUnifiedPrice(daoId), 0.01 ether, "Check G 1");
+
+        assertEq(protocol.getDaoInfiniteMode(daoId), true, "Check J 1");
+        protocol.changeDaoInfiniteMode(daoId, 10);
+        assertEq(protocol.getDaoInfiniteMode(daoId), false, "Check k 1");
+
+        assertEq(protocol.getDaoRemainingRound(daoId), 10, "Check H 1");
+        protocol.setDaoRemainingRound(daoId, 60);
+        assertEq(protocol.getDaoRemainingRound(daoId), 60, "Check I 1");
         // protocol.setDaoEditParamPermission(daoId, 0x123, 1);
 
         //setDaoParams
