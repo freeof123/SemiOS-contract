@@ -5,6 +5,7 @@ pragma solidity ^0.8.18;
 // import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
+import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 
 import "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -14,8 +15,10 @@ contract PDEditPermission is DeployHelper {
     function setUp() public {
         setUpEnv();
     }
+    //start add test case for 1.6
+    //--------------------------------------------------
 
-    function test_daoParameterSetControl_noOtherNFT() public {
+    function test_daoParameterSetControl_generalParameter_noOtherNFT() public {
         bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
@@ -107,4 +110,184 @@ contract PDEditPermission is DeployHelper {
         //setChildren
         //setRatio
     }
+
+    function test_daoParameterSetControl_setDaoParams_noOtherNFT() public {
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.needMintableWork = true;
+        param.noPermission = true;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+        // daoCreator set
+        // startHoax(daoCreator.addr);
+
+        //setDaoParams
+        //setChildren
+        //setRatio
+        bytes32[] memory zeroBytes32Array = new bytes32[](0);
+        uint256[] memory zeroUintArray = new uint256[](0);
+        SetDaoParam memory vars;
+        vars.daoId = daoId;
+        vars.nftMaxSupplyRank = 0;
+        vars.remainingRound = 1;
+        vars.daoFloorPrice = 0.03 ether;
+        vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
+        vars.nftPriceFactor = 1000;
+        vars.dailyMintCap = 100;
+        vars.initialTokenSupply = 1 ether;
+        vars.unifiedPrice = 1006;
+        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        hoax(daoCreator.addr);
+        protocol.setDaoParams(vars);
+
+        address nft = protocol.getDaoNft(daoId);
+        hoax(daoCreator.addr);
+        IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
+        hoax(daoCreator.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDaoParams(vars);
+
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 700, 2100, 7000);
+        hoax(randomGuy.addr);
+        protocol.setDaoParams(vars);
+    }
+
+    function test_daoParameterSetControl_setChildrenParam_noOtherNFT() public {
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.needMintableWork = true;
+        param.noPermission = true;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+        // daoCreator set
+        // startHoax(daoCreator.addr);
+
+        //setDaoParams
+        //setChildren
+        //setRatio
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        param.daoUri = "test dao2 uri";
+        param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
+        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+        SetChildrenParam memory vars;
+        vars.childrenDaoId = new bytes32[](1);
+        vars.childrenDaoId[0] = daoId2;
+        vars.erc20Ratios = new uint256[](1);
+        vars.erc20Ratios[0] = 5000;
+        vars.ethRatios = new uint256[](1);
+        vars.ethRatios[0] = 5000;
+        vars.selfRewardRatioERC20 = 5000;
+        vars.selfRewardRatioETH = 5000;
+
+        vm.prank(daoCreator.addr);
+        protocol.setChildren(daoId, vars);
+
+        address nft = protocol.getDaoNft(daoId);
+        hoax(daoCreator.addr);
+        IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
+        hoax(daoCreator.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setChildren(daoId, vars);
+
+        vars.erc20Ratios[0] = 6000;
+        vars.selfRewardRatioERC20 = 4000;
+        hoax(randomGuy.addr);
+        protocol.setChildren(daoId, vars);
+    }
+
+    function test_daoParameterSetControl_setRatioParam_noOtherNFT() public {
+        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.needMintableWork = true;
+        param.noPermission = true;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+        // daoCreator set
+        // startHoax(daoCreator.addr);
+        AllRatioParam memory vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
+        hoax(daoCreator.addr);
+        protocol.setRatio(daoId, vars);
+
+        address nft = protocol.getDaoNft(daoId);
+        hoax(daoCreator.addr);
+        IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
+        hoax(daoCreator.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setRatio(daoId, vars);
+
+        vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 1000, 3800);
+        hoax(randomGuy.addr);
+        protocol.setRatio(daoId, vars);
+    }
+
+    function test_daoStrategySetControl_setWhitelistMintCap_noOtherNFT() public {
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+
+        (, Whitelist memory whitelist, Blacklist memory blacklist) = super._generateTrivialPermission();
+
+        UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](2);
+        userMintCapParams[0] = UserMintCapParam(protocolOwner.addr, 100);
+        userMintCapParams[1] = UserMintCapParam(randomGuy.addr, 200);
+
+        hoax(daoCreator.addr);
+        protocol.setMintCapAndPermission(
+            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+        );
+
+        address nft = protocol.getDaoNft(daoId);
+        hoax(daoCreator.addr);
+        IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
+        hoax(daoCreator.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setMintCapAndPermission(
+            daoId, 10, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+        );
+
+        hoax(randomGuy.addr);
+        protocol.setMintCapAndPermission(
+            daoId, 20, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+        );
+    }
+
+    function test_daoStrategySetControl_setMintCapAndPermission_noOtherNFT() public {
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+
+        hoax(daoCreator.addr);
+        protocol.setWhitelistMintCap(daoId, randomGuy.addr, 100);
+
+        address nft = protocol.getDaoNft(daoId);
+        hoax(daoCreator.addr);
+        IERC721(nft).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
+
+        hoax(daoCreator.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setWhitelistMintCap(daoId, randomGuy.addr, 100);
+
+        hoax(randomGuy.addr);
+        protocol.setWhitelistMintCap(daoId, randomGuy.addr, 100);
+    }
+    //--------------------------------------------------
+    //end add test case for 1.6
 }

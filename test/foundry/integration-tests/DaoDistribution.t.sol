@@ -2,7 +2,7 @@
 pragma solidity ^0.8.18;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 
 import { UserMintCapParam } from "contracts/interface/D4AStructs.sol";
@@ -349,4 +349,53 @@ contract DaoDistribution is DeployHelper {
         //question, daoId3 is not subdao?
         // console2.log(protocol.getDaoToken(daoId3), protocol.getDaoToken(daoId), "A");
     }
+
+    //start add test case for 1.6
+    //--------------------------------------------------
+    function test_claimReward_daoNftOwner_test() public {
+        deal(nftMinter.addr, 0.01 ether);
+        // 铸造一个NFT
+        super._mintNftChangeBal(
+            daoId3,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId3)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+
+        vm.roll(3);
+        uint256 balance_before = IERC20(protocol.getDaoToken(daoId3)).balanceOf(daoCreator2.addr);
+        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
+        uint256 balance_after = IERC20(protocol.getDaoToken(daoId3)).balanceOf(daoCreator2.addr);
+        assertEq(ercAmount, balance_after - balance_before, "Check A D");
+
+        vm.roll(5);
+        address nft = protocol.getDaoNft(daoId3);
+        hoax(daoCreator2.addr);
+        IERC721(nft).safeTransferFrom(daoCreator2.addr, randomGuy.addr, 0);
+
+        deal(nftMinter.addr, 0.01 ether);
+        // 铸造一个NFT
+        super._mintNftChangeBal(
+            daoId3,
+            canvasId3,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId3)), "-", vm.toString(uint256(1)), ".json"
+            ),
+            0.01 ether,
+            daoCreator2.key,
+            nftMinter.addr
+        );
+        vm.roll(7);
+        balance_before = IERC20(protocol.getDaoToken(daoId3)).balanceOf(randomGuy.addr);
+        (ercAmount,) = protocol.claimDaoNftOwnerReward(daoId3);
+        balance_after = IERC20(protocol.getDaoToken(daoId3)).balanceOf(randomGuy.addr);
+        assertEq(ercAmount, balance_after - balance_before, "Check A D C");
+    }
+
+    //--------------------------------------------------
+    //end add test case for 1.6
 }
