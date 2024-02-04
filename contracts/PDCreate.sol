@@ -330,31 +330,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         {
             _createDaoAssetPool(daoId, daoInfo.daoIndex);
-
-            // (bool succ,) = address(this).delegatecall(
-            //     abi.encodeCall(
-            //         IPDProtocolSetter.setInitialTokenSupplyForSubDao,
-            //         (daoId, SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio /
-            // BASIS_POINT)
-            //     )
-            // );
-            // require(succ, "setInitialTokenSupplyForSubDao failed");
-            // if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken)
-            // {
-            //     daoStorage.daoInfos[daoId].tokenMaxSupply =
-            //         (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
-            //     D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool,
-            // daoStorage.daoInfos[daoId].tokenMaxSupply);
-            // }
-            // if (
-            //     !continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
-            //         && msg.sender == SettingsStorage.layout().ownerProxy.ownerOf(existDaoId)
-            // ) {
-            //     daoStorage.daoInfos[daoId].tokenMaxSupply =
-            //         (SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio) / BASIS_POINT;
-            //     D4AERC20(daoStorage.daoInfos[daoId].token).mint(daoAssetPool,
-            // daoStorage.daoInfos[daoId].tokenMaxSupply);
-            // }
         }
         daoStorage.daoInfos[daoId].daoTag = DaoTag.BASIC_DAO;
 
@@ -620,25 +595,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         if ((actionType & 0x8) != 0) {
             settingsStorage.d4aswapFactory.createPair(vars.token, WETH);
         }
-
-        //SetRatioParam memory ratioVars;
-        // ratioVars.daoId = daoId;
-        // ratioVars.daoCreatorERC20Ratio = vars.splitRatioParam.daoCreatorERC20Ratio;
-        // ratioVars.canvasCreatorERC20Ratio = vars.splitRatioParam.canvasCreatorERC20Ratio;
-        // ratioVars.nftMinterERC20Ratio = vars.splitRatioParam.nftMinterERC20Ratio;
-        // ratioVars.daoFeePoolETHRatio = vars.splitRatioParam.daoFeePoolETHRatio;
-        // ratioVars.daoFeePoolETHRatioFlatPrice = vars.splitRatioParam.daoFeePoolETHRatioFlatPrice;
-
-        // if ((actionType & 0x10) != 0) {
-        //     ID4AProtocolSetter(protocol).setRatio(
-        //         ratioVars.daoId,
-        //         ratioVars.daoCreatorERC20Ratio,
-        //         ratioVars.canvasCreatorERC20Ratio,
-        //         ratioVars.nftMinterERC20Ratio,
-        //         ratioVars.daoFeePoolETHRatio,
-        //         ratioVars.daoFeePoolETHRatioFlatPrice
-        //     );
-        // }
 
         IPDProtocolSetter(protocol).setRatio(daoId, vars.allRatioParam);
 

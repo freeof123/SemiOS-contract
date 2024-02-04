@@ -45,18 +45,13 @@ import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
-// import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-// import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
+
 import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
-// import { D4AProtocol } from "contracts/D4AProtocol.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import { PDRound } from "contracts/PDRound.sol";
 import { PDLock } from "contracts/PDLock.sol";
-
-import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
@@ -92,7 +87,6 @@ contract DeployHelper is Test {
     PDCreate public pdCreate;
     PDRound public pdRound;
     PDLock public pdLock;
-    D4ACreate public d4aCreate;
     PDBasicDao public pdBasicDao;
     // PDCreateProjectProxy public daoProxy;
     // PDCreateProjectProxy public daoProxyImpl;
@@ -303,7 +297,6 @@ contract DeployHelper is Test {
         protocol = IPDProtocolAggregate(payable(new D4ADiamond()));
         protocolImpl = new PDProtocol();
 
-        _deployD4ACreate();
         _deployPDCreate();
         _deployPDBasicDao();
         _deployProtocolReadable();
@@ -312,9 +305,7 @@ contract DeployHelper is Test {
         _deployGrant();
         _deployPDRound();
         _deployPDLock();
-        //_deployPDCreateFunding();
 
-        _cutFacetsD4ACreate();
         _cutFacetsPDCreate();
         _cutFacetsPDBasicDao();
         _cutFacetsProtocolReadable();
@@ -324,19 +315,12 @@ contract DeployHelper is Test {
         _cutFacetsPDRound();
         _cutFacetsPDLock();
 
-        //_cutFacetsPDCreateFunding();
-
         // set diamond fallback address
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
         protocol.initialize();
 
         vm.label(address(protocol), "Protocol");
         vm.label(address(protocolImpl), "Protocol Impl");
-    }
-
-    function _deployD4ACreate() internal {
-        d4aCreate = new D4ACreate();
-        vm.label(address(d4aCreate), "D4A Create");
     }
 
     function _deployPDCreate() internal {
@@ -377,24 +361,6 @@ contract DeployHelper is Test {
     function _deployPDLock() internal {
         pdLock = new PDLock();
         vm.label(address(pdLock), "Protocol Lock");
-    }
-    // function _deployPDCreateFunding() internal {
-    //     pdCreateFunding = new PDCreateFunding(address(weth));
-    //     vm.label(address(grant), "Proto DAO Create Funding");
-    // }
-
-    function _cutFacetsD4ACreate() internal {
-        //------------------------------------------------------------------------------------------------------
-        // D4ACreate facet cut
-        bytes4[] memory selectors = getD4ACreateSelectors();
-
-        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aCreate),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
-        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
     function _cutFacetsPDCreate() internal {
@@ -659,8 +625,6 @@ contract DeployHelper is Test {
         _changeProtocolFeePool();
         _changeERC20TotalSupply();
         _changeAssetPoolOwner();
-        _changeMintableRounds();
-        _changeFloorPrices();
         _changeMaxNFTAmounts();
         _changeAddressInDaoProxy();
         _changeSettingsRatio();
@@ -687,36 +651,6 @@ contract DeployHelper is Test {
 
     function _changeAssetPoolOwner() internal {
         ID4ASettings(address(protocol)).changeAssetPoolOwner(assetPoolOwner.addr);
-    }
-
-    function _changeMintableRounds() internal {
-        uint256[] memory mintableRounds = new uint256[](7);
-        mintableRounds[0] = 30;
-        mintableRounds[1] = 60;
-        mintableRounds[2] = 90;
-        mintableRounds[3] = 120;
-        mintableRounds[4] = 180;
-        mintableRounds[5] = 270;
-        mintableRounds[6] = 360;
-        ID4ASettings(address(protocol)).setMintableRounds(mintableRounds);
-    }
-
-    function _changeFloorPrices() internal {
-        uint256[] memory floorPrices = new uint256[](13);
-        floorPrices[0] = 0.01 ether;
-        floorPrices[1] = 0.02 ether;
-        floorPrices[2] = 0.03 ether;
-        floorPrices[3] = 0.05 ether;
-        floorPrices[4] = 0.1 ether;
-        floorPrices[5] = 0.2 ether;
-        floorPrices[6] = 0.3 ether;
-        floorPrices[7] = 0.5 ether;
-        floorPrices[8] = 1 ether;
-        floorPrices[9] = 2 ether;
-        floorPrices[10] = 3 ether;
-        floorPrices[11] = 5 ether;
-        floorPrices[12] = 10 ether;
-        ID4ASettings(address(protocol)).changeFloorPrices(floorPrices);
     }
 
     function _changeMaxNFTAmounts() internal {
@@ -804,8 +738,6 @@ contract DeployHelper is Test {
         uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
         uint256 nftMinterERC20RatioInBps;
-        uint256 daoFeePoolETHRatioInBps;
-        uint256 daoFeePoolETHRatioInBpsFlatPrice;
         PriceTemplateType priceTemplateType;
         uint256 priceFactor;
         RewardTemplateType rewardTemplateType;

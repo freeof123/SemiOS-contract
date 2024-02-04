@@ -16,7 +16,6 @@ import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 
 contract Fork is Test {
     uint256 mainnetFork;
@@ -39,8 +38,7 @@ contract Fork is Test {
     PermissionControl public permissionControl_impl = PermissionControl(vm.envAddress("PermissionControl_impl"));
     TransparentUpgradeableProxy public d4aCreateProjectProxy_proxy =
         TransparentUpgradeableProxy(payable(vm.envAddress("D4ACreateProjectProxy_proxy")));
-    PDCreateProjectProxy public d4aCreateProjectProxy_impl =
-        PDCreateProjectProxy(payable(vm.envAddress("D4ACreateProjectProxy_impl")));
+
     address public deployer = vm.addr(deployerPrivateKey);
     address public highRankOwner = 0x064D35db3f037149ed2c35c118a3bd79Fa4fE323;
     address public lowRankOwner = 0x365088B0Fb00CAbaD7DacEB88211494E5D35F081;

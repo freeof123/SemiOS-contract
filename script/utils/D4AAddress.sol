@@ -16,7 +16,6 @@ import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
-import { D4ACreate } from "contracts/D4ACreate.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
@@ -24,7 +23,6 @@ import { PDRound } from "contracts/PDRound.sol";
 import { PDLock } from "contracts/PDLock.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AClaimer } from "contracts/D4AClaimer.sol";
 import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
@@ -65,9 +63,7 @@ contract D4AAddress is CommonBase {
     PDProtocolReadable public pdProtocolReadable =
         PDProtocolReadable(json.readAddress(".PDProtocol.PDProtocolReadable"));
     PDProtocolSetter public pdProtocolSetter = PDProtocolSetter(json.readAddress(".PDProtocol.PDProtocolSetter"));
-    D4ACreate public d4aCreate = D4ACreate(json.readAddress(".PDProtocol.D4ACreate"));
     PDCreate public pdCreate = PDCreate(json.readAddress(".PDProtocol.PDCreate"));
-    //PDCreateFunding public pdCreateFunding = PDCreateFunding(json.readAddress(".PDProtocol.PDCreateFunding"));
 
     PDBasicDao public pdBasicDao = PDBasicDao(json.readAddress(".PDProtocol.PDBasicDao"));
     PDRound public pdRound = PDRound(json.readAddress(".PDProtocol.PDRound"));
@@ -87,12 +83,6 @@ contract D4AAddress is CommonBase {
     // permission control
     PermissionControl public permissionControl_proxy = PermissionControl(json.readAddress(".PermissionControl.proxy"));
     PermissionControl public permissionControl_impl = PermissionControl(json.readAddress(".PermissionControl.impl"));
-
-    // pd create project proxy
-    // PDCreateProjectProxy public pdCreateProjectProxy_proxy =
-    //     PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.proxy")));
-    // PDCreateProjectProxy public pdCreateProjectProxy_impl =
-    //     PDCreateProjectProxy(payable(json.readAddress(".PDCreateProjectProxy.impl")));
 
     // Basic Dao Unlocker
     BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));

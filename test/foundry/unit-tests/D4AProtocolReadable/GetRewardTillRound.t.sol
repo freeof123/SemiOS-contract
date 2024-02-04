@@ -36,7 +36,7 @@ contract GetRewardTillRoundTest is DeployHelper {
         param.uniPriceModeOff = true;
         param.topUpMode = false;
         param.mintableRound = 30;
-        param.rewardTemplateType = RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE;
+        param.rewardTemplateType = RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD;
         param.rewardDecayFactor = 12_600;
         param.isProgressiveJackpot = true;
         param.needMintableWork = true;

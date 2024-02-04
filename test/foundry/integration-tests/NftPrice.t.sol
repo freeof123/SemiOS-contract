@@ -319,8 +319,7 @@ contract NftPriceTest is DeployHelper {
         // daoCreatorERC20RatioInBps = 2800;
         // canvasCreatorERC20RatioInBps = 500;
         // nftMinterERC20RatioInBps = 2000;
-        // daoFeePoolETHRatioInBps = 300;
-        // daoFeePoolETHRatioInBpsFlatPrice = 800;
+
         // hoax(daoCreator.addr);
         // protocol.setDaoParams(vars);
 

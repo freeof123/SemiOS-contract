@@ -15,15 +15,7 @@ interface ID4ASettingsReadable {
 
     function tradeProtocolFeeRatio() external view returns (uint256);
 
-    function mintProjectFeeRatio() external view returns (uint256);
-
-    function mintProjectFeeRatioFlatPrice() external view returns (uint256);
-
     function ratioBase() external view returns (uint256);
-
-    function createProjectFee() external view returns (uint256);
-
-    function createCanvasFee() external view returns (uint256);
 
     function getPriceTemplates() external view returns (address[] memory priceTemplates);
 

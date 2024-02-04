@@ -93,27 +93,17 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.mintProtocolFeeRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.protocolFeePool.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.tradeProtocolFeeRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.mintProjectFeeRatioFlatPrice.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.ratioBase.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.createProjectFee.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.createCanvasFee.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.getPriceTemplates.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettingsReadable.getRewardTemplates.selector;
     assert(interfaceId == type(ID4ASettingsReadable).interfaceId);
     // register D4ASettings
     interfaceId = 0;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeCreateFee.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeProtocolFeePool.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeMintFeeRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeTradeFeeRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeERC20TotalSupply.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeERC20Ratio.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeMaxMintableRounds.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setMintableRounds.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeAddress.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeAssetPoolOwner.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeFloorPrices.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeMaxNFTAmounts.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeD4APause.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setProjectPause.selector;

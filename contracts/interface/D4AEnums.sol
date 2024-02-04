@@ -6,11 +6,7 @@ enum PriceTemplateType {
     LINEAR_PRICE_VARIATION
 }
 
-enum RewardTemplateType {
-    LINEAR_REWARD_ISSUANCE,
-    EXPONENTIAL_REWARD_ISSUANCE,
-    UNIFORM_DISTRIBUTION_REWARD
-}
+enum RewardTemplateType { UNIFORM_DISTRIBUTION_REWARD }
 
 enum TemplateChoice {
     PRICE,

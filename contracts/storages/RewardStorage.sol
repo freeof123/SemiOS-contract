@@ -2,20 +2,7 @@
 pragma solidity ^0.8.18;
 
 library RewardStorage {
-    // struct RewardCheckpoint {
-    //     uint256 startRound;
-    //     uint256 totalRound;
-    //     uint256 totalReward;
-    //     uint256 lastActiveRound; // deprecated
-    //     uint256[] activeRounds;
-    //     // claimable round index
-    //     uint256 daoCreatorClaimableRoundIndex;
-    //     mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
-    //     mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
-    // }
-
     struct RewardInfo {
-        //RewardCheckpoint[] rewardCheckpoints;
         uint256 rewardIssuePendingRound;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;

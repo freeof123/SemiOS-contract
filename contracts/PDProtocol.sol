@@ -201,7 +201,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
     function _mintNFTAndTransfer(MintNFTParam memory vars) internal returns (uint256 tokenId) {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
-        if (DaoStorage.layout().daoInfos[vars.daoId].daoTag == DaoTag.BASIC_DAO && !basicDaoInfo.unifiedPriceModeOff) {
+        if (!basicDaoInfo.unifiedPriceModeOff) {
             if (vars.flatPrice != ID4AProtocolReadable(address(this)).getDaoUnifiedPrice(vars.daoId)) {
                 revert NotBasicDaoNftFlatPrice();
             }
@@ -749,13 +749,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         PriceStorage.MintInfo memory maxPrice = priceStorage.daoMaxPrices[daoId];
         PriceStorage.MintInfo memory mintInfo = priceStorage.canvasLastMintInfos[canvasId];
         //对于D4A的DAO,还是按原来逻辑
-        if (
-            flatPrice == 0
-                && (
-                    BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff
-                        || DaoStorage.layout().daoInfos[daoId].daoTag == DaoTag.D4A_DAO
-                )
-        ) {
+        if (flatPrice == 0 && BasicDaoStorage.layout().basicDaoInfos[daoId].unifiedPriceModeOff) {
             price = IPriceTemplate(
                 SettingsStorage.layout().priceTemplates[uint8(DaoStorage.layout().daoInfos[daoId].priceTemplateType)]
             ).getCanvasNextPrice(startRound, currentRound, priceFactor, daoFloorPrice, maxPrice, mintInfo);

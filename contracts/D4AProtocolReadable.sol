@@ -157,22 +157,6 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         userMintCap = DaoStorage.layout().daoInfos[daoId].daoMintInfo.userMintInfos[account].mintCap;
     }
 
-    // function getDaoFeePoolETHRatio(bytes32 daoId) public view returns (uint256) {
-    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-    //     if (daoInfo.daoFeePoolETHRatioInBps == 0) {
-    //         return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
-    //     }
-    //     return daoInfo.daoFeePoolETHRatioInBps;
-    // }
-
-    // function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) public view returns (uint256) {
-    //     DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-    //     if (daoInfo.daoFeePoolETHRatioInBpsFlatPrice == 0) {
-    //         return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
-    //     }
-    //     return daoInfo.daoFeePoolETHRatioInBpsFlatPrice;
-    // }
-
     function getDaoTag(bytes32 daoId) public view returns (string memory) {
         DaoTag tag = DaoStorage.layout().daoInfos[daoId].daoTag;
         if (tag == DaoTag.D4A_DAO) return "D4A DAO";

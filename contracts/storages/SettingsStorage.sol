@@ -14,17 +14,11 @@ import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswa
 library SettingsStorage {
     struct Layout {
         // fee related //deprecated
-        uint256 createDaoFeeAmount;
-        uint256 createCanvasFeeAmount;
         uint256 protocolMintFeeRatioInBps;
-        uint256 daoFeePoolMintFeeRatioInBps;
-        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice;
         uint256 protocolRoyaltyFeeRatioInBps;
         uint256 minRoyaltyFeeRatioInBps;
         uint256 maxRoyaltyFeeRatioInBps;
         uint256 protocolERC20RatioInBps;
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvasCreatorERC20RatioInBps;
         // contract address
         address protocolFeePool;
         ID4ADrb drb;
@@ -35,9 +29,6 @@ library SettingsStorage {
         IPermissionControl permissionControl;
         // params
         uint256 tokenMaxSupply;
-        uint256 maxMintableRound; //366
-        uint256[] mintableRounds;
-        uint256[] daoFloorPrices;
         uint256[] nftMaxSupplies;
         address assetOwner;
         bool isProtocolPaused;

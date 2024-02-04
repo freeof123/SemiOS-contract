@@ -5,7 +5,6 @@ import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
-import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import "contracts/interface/D4AStructs.sol";
 

@@ -62,8 +62,6 @@ contract Deploy is Script, Test, D4AAddress {
         uint256 daoCreatorERC20RatioInBps;
         uint256 canvasCreatorERC20RatioInBps;
         uint256 nftMinterERC20RatioInBps;
-        uint256 daoFeePoolETHRatioInBps;
-        uint256 daoFeePoolETHRatioInBpsFlatPrice;
         PriceTemplateType priceTemplateType;
         uint256 priceFactor;
         RewardTemplateType rewardTemplateType;
@@ -382,58 +380,6 @@ contract Deploy is Script, Test, D4AAddress {
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
                 target: address(pdProtocolSetter),
-                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
-                selectors: selectors
-            });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-        }
-
-        console2.log("================================================================================\n");
-    }
-
-    function _deployD4ACreate() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4ACreate");
-
-        d4aCreate = new D4ACreate();
-        assertTrue(address(d4aCreate) != address(0));
-
-        vm.toString(address(d4aCreate)).write(path, ".PDProtocol.D4ACreate");
-
-        console2.log("D4ACreate address: ", address(d4aCreate));
-        console2.log("================================================================================\n");
-    }
-
-    function _cutFacetsD4ACreate(DeployMethod deployMethod) internal {
-        console2.log("\n================================================================================");
-        console2.log("Start cut D4ACreate facet");
-
-        //------------------------------------------------------------------------------------------------------
-        // D4AProtoclReadable facet cut
-        bytes4[] memory selectors = getD4ACreateSelectors();
-        console2.log("D4ACreate facet cut selectors number: ", selectors.length);
-
-        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-
-        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
-            facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(d4aCreate),
-                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-                selectors: selectors
-            });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-        }
-        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
-            facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(d4aCreate),
-                action: IDiamondWritableInternal.FacetCutAction.ADD,
-                selectors: selectors
-            });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-        }
-        if (deployMethod == DeployMethod.REPLACE) {
-            facetCuts[0] = IDiamondWritableInternal.FacetCut({
-                target: address(d4aCreate),
                 action: IDiamondWritableInternal.FacetCutAction.REPLACE,
                 selectors: selectors
             });
@@ -1062,36 +1008,36 @@ contract Deploy is Script, Test, D4AAddress {
             console2.log("Step 4: change asset pool owner");
             D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(owner);
         }
-        {
-            console2.log("Step 5: set mintable rounds");
-            uint256[] memory mintableRounds = new uint256[](7);
-            mintableRounds[0] = 30;
-            mintableRounds[1] = 60;
-            mintableRounds[2] = 90;
-            mintableRounds[3] = 120;
-            mintableRounds[4] = 180;
-            mintableRounds[5] = 270;
-            mintableRounds[6] = 360;
-            D4ASettings(address(pdProtocol_proxy)).setMintableRounds(mintableRounds);
-        }
-        {
-            console2.log("Step 6: change floor prices");
-            uint256[] memory floorPrices = new uint256[](13);
-            floorPrices[0] = 0.01 ether;
-            floorPrices[1] = 0.02 ether;
-            floorPrices[2] = 0.03 ether;
-            floorPrices[3] = 0.05 ether;
-            floorPrices[4] = 0.1 ether;
-            floorPrices[5] = 0.2 ether;
-            floorPrices[6] = 0.3 ether;
-            floorPrices[7] = 0.5 ether;
-            floorPrices[8] = 1 ether;
-            floorPrices[9] = 2 ether;
-            floorPrices[10] = 3 ether;
-            floorPrices[11] = 5 ether;
-            floorPrices[12] = 10 ether;
-            D4ASettings(address(pdProtocol_proxy)).changeFloorPrices(floorPrices);
-        }
+        // {
+        //     console2.log("Step 5: set mintable rounds");
+        //     uint256[] memory mintableRounds = new uint256[](7);
+        //     mintableRounds[0] = 30;
+        //     mintableRounds[1] = 60;
+        //     mintableRounds[2] = 90;
+        //     mintableRounds[3] = 120;
+        //     mintableRounds[4] = 180;
+        //     mintableRounds[5] = 270;
+        //     mintableRounds[6] = 360;
+        //     D4ASettings(address(pdProtocol_proxy)).setMintableRounds(mintableRounds);
+        // }
+        // {
+        //     console2.log("Step 6: change floor prices");
+        //     uint256[] memory floorPrices = new uint256[](13);
+        //     floorPrices[0] = 0.01 ether;
+        //     floorPrices[1] = 0.02 ether;
+        //     floorPrices[2] = 0.03 ether;
+        //     floorPrices[3] = 0.05 ether;
+        //     floorPrices[4] = 0.1 ether;
+        //     floorPrices[5] = 0.2 ether;
+        //     floorPrices[6] = 0.3 ether;
+        //     floorPrices[7] = 0.5 ether;
+        //     floorPrices[8] = 1 ether;
+        //     floorPrices[9] = 2 ether;
+        //     floorPrices[10] = 3 ether;
+        //     floorPrices[11] = 5 ether;
+        //     floorPrices[12] = 10 ether;
+        //     D4ASettings(address(pdProtocol_proxy)).changeFloorPrices(floorPrices);
+        // }
         {
             console2.log("Step 7: change max NFT amounts");
             uint256[] memory maxNFTAmounts = new uint256[](5);
@@ -1113,10 +1059,10 @@ contract Deploy is Script, Test, D4AAddress {
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
         }
-        {
-            console2.log("Step 10: change create DOA and Canvas Fee to 0");
-            D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
-        }
+        // {
+        //     console2.log("Step 10: change create DOA and Canvas Fee to 0");
+        //     D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
+        // }
         console2.log("================================================================================\n");
     }
 

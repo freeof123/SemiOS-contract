@@ -10,7 +10,6 @@ import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
 import "contracts/interface/D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-import { PDCreateProjectProxy } from "contracts/proxy/PDCreateProjectProxy.sol";
 
 contract V2Test is Test, D4AAddress {
     MintNftSigUtils public sigUtils;

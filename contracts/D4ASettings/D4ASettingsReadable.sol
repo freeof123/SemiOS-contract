@@ -28,24 +28,8 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
         return SettingsStorage.layout().protocolRoyaltyFeeRatioInBps;
     }
 
-    function mintProjectFeeRatio() public view returns (uint256) {
-        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
-    }
-
-    function mintProjectFeeRatioFlatPrice() public view returns (uint256) {
-        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
-    }
-
     function ratioBase() public pure returns (uint256) {
         return BASIS_POINT;
-    }
-
-    function createProjectFee() public view returns (uint256) {
-        return SettingsStorage.layout().createDaoFeeAmount;
-    }
-
-    function createCanvasFee() public view returns (uint256) {
-        return SettingsStorage.layout().createCanvasFeeAmount;
     }
 
     function getPriceTemplates() public view returns (address[] memory priceTemplates) {

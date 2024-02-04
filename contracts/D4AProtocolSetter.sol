@@ -142,7 +142,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
 
         rewardInfo.rewardDecayFactor = templateParam.rewardDecayFactor;
         rewardInfo.isProgressiveJackpot = templateParam.isProgressiveJackpot;
-        if (uint256(templateParam.rewardTemplateType) < 2) revert InvalidTemplate();
 
         emit DaoTemplateSet(daoId, templateParam);
     }

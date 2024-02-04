@@ -29,7 +29,6 @@ contract GetRoundRewardTest is DeployHelper {
 
     function _createDaoAndCanvasAndOneNFT(
         uint256 mintableRound,
-        RewardTemplateType rewardTemplateType,
         uint256 priceFactor,
         bool isProgressiveJackpot,
         bool uniPriceModeOff,
@@ -40,7 +39,6 @@ contract GetRoundRewardTest is DeployHelper {
     {
         DeployHelper.CreateDaoParam memory createDaoParam;
         createDaoParam.mintableRound = mintableRound;
-        createDaoParam.rewardTemplateType = rewardTemplateType;
         createDaoParam.priceFactor = priceFactor;
         createDaoParam.isProgressiveJackpot = isProgressiveJackpot;
         createDaoParam.noPermission = true;
@@ -136,9 +134,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 mintableRound = 366;
         uint256 flatPrice = 0.01 ether;
         uint256 mintNumberForSingleRound = 6;
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, 20_000, false, false, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, 20_000, false, false, flatPrice);
 
         for (uint256 i = 1; i < 11; i++) {
             assertApproxEqAbs(
@@ -209,9 +205,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 nextCanvasPrice = 0.01 ether;
         uint256 decayFactor = 20_000;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, decayFactor, false, true, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, false, true, flatPrice);
 
         uint256 previousRoundDaoAssetPoolBalance;
         uint256 previousNextCanvasPrice = 0.01 ether;
@@ -289,9 +283,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 nextCanvasPrice = 0.01 ether;
         uint256 decayFactor = 30_000;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, decayFactor, false, true, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, false, true, flatPrice);
 
         uint256 previousRoundDaoAssetPoolBalance;
         uint256 previousNextCanvasPrice = 0.01 ether;
@@ -369,9 +361,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 nextCanvasPrice = 0.01 ether;
         uint256 decayFactor = 15_000;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, decayFactor, false, true, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, false, true, flatPrice);
 
         uint256 previousRoundDaoAssetPoolBalance;
         uint256 previousNextCanvasPrice = 0.01 ether;
@@ -452,9 +442,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 nextCanvasPrice = 0.01 ether;
         uint256 decayFactor = 0;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, decayFactor, true, false, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, true, false, flatPrice);
 
         uint256 previousActiveRound;
         for (uint256 j = 2; j < mintableRound + 1; j++) {
@@ -506,9 +494,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 reward;
         uint256 rewardCalculate;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(
-            mintableRound, RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE, 20_000, true, true, flatPrice
-        );
+        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, 20_000, true, true, flatPrice);
 
         uint256 previousActiveRound;
         uint256 previousNFTMinterNumber = 1;

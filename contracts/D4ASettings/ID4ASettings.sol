@@ -49,31 +49,11 @@ interface ID4ASettings {
 
     event ChangeETHRewardRatio(uint256 protocolETHRewardRatio);
 
-    function changeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount) external;
-
     function changeProtocolFeePool(address protocolFeePool) external;
-
-    function changeMintFeeRatio(
-        uint256 protocolFeeRatioInBps,
-        uint256 daoFeePoolMintFeeRatioInBps,
-        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice
-    )
-        external;
 
     function changeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps) external;
 
     function changeERC20TotalSupply(uint256 tokenMaxSupply) external;
-
-    function changeERC20Ratio(
-        uint256 protocolERC20RatioInBps,
-        uint256 daoCreatorERC20RatioInBps,
-        uint256 canvasCreatorERC20RatioInBps
-    )
-        external;
-
-    function changeMaxMintableRounds(uint256 maxMintableRound) external;
-
-    function setMintableRounds(uint256[] calldata mintableRounds) external;
 
     function changeAddress(
         address drb,
@@ -86,8 +66,6 @@ interface ID4ASettings {
         external;
 
     function changeAssetPoolOwner(address assetOwner) external;
-
-    function changeFloorPrices(uint256[] memory daoFloorPrices) external;
 
     function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) external;
 
