@@ -174,7 +174,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 10_000_000 ether, true, "uri");
         uint256 flatPrice = 0.01 ether;
 
         super._mintNft(
@@ -232,7 +232,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         address token = protocol.getDaoToken(daoId);
 
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 50_000_000 ether, "basic dao fail");
-        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(subDaoId)), 50_000_000 ether, "sub dao fail");
+        assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(subDaoId)), 0 ether, "sub dao fail");
     }
 
     function test_PDCreateFunding_TopUpAccountShouldNotBeUsedWhenMintInSameRound() public {
@@ -381,7 +381,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
         vm.prank(daoCreator2.addr);
         protocol.setDaoUnifiedPrice(daoId2, 0.03 ether);
         vm.roll(2);

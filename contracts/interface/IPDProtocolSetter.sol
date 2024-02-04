@@ -45,13 +45,15 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     event DaoEditParameterNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
     event DaoEditStrategyNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
     event DaoRewardNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
-    event DaoTreasuryNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event TreasuryEditInformationOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event TreasuryTransferAssetOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
+    event TreasurySetTopUpRatioOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
 
     function setDaoParams(SetDaoParam calldata vars) external;
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatio(bytes32 daoId, AllRatioParam calldata vars) external;
 
-    function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
+    //function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) external;
     function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
@@ -59,7 +61,10 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setDaoEditParamPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setDaoEditStrategyPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setDaoRewardPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
-    function setDaoTreasuryPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setTreasuryControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setTreasuryEditInformationPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setTreasuryTransferAssetPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
+    function setTreasurySetTopUpRatioPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
 
     function setTopUpBalanceSplitRatio(
         bytes32 daoId,

@@ -53,8 +53,8 @@ contract ProtoDaoRedeemTest is DeployHelper {
         //question
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId2, vars);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
-        vm.stopPrank();
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
+
         super._mintNft(
             daoId,
             canvasId1,

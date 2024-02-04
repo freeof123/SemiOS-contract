@@ -300,7 +300,7 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(13);
         protocol.changeDaoInfiniteMode(daoId, 20);
-        protocol.setInitialTokenSupplyForSubDao(daoId, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId,
@@ -384,7 +384,8 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(13);
         protocol.changeDaoInfiniteMode(daoId, 20);
 
-        protocol.setInitialTokenSupplyForSubDao(daoId, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
+
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId,
@@ -441,7 +442,7 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         protocol.changeDaoInfiniteMode(daoId, 20);
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
-        protocol.setInitialTokenSupplyForSubDao(daoId, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
 
         vm.roll(5);
         assertEq(protocol.getDaoRemainingRound(daoId), 18);
@@ -486,7 +487,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(4);
         protocol.changeDaoInfiniteMode(daoId, 20);
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
-        protocol.setInitialTokenSupplyForSubDao(daoId, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
 
         vm.roll(5);
         assertEq(protocol.getDaoRemainingRound(daoId), 19);

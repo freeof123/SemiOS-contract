@@ -49,7 +49,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoCirculateTokenAmount(bytes32 daoId) external view returns (uint256);
     function getDaoInfiniteMode(bytes32 daoId) external view returns (bool);
     function getDaoERC20PaymentMode(bytes32 daoId) external view returns (bool);
-
     function getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,
@@ -59,4 +58,25 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
         external
         view
         returns (uint256);
+    //1.6 add ----------------------------------
+    function getDaoTopUpEthToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTreasuryNft(bytes32 daoId) external view returns (address);
+    function getDaoTreasury(bytes32 daoId) external view returns (address);
+    function getDaoEditInformationPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getDaoEditParameterPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getDaoEditStrategyPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getDaoRewardPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getTreasuryTransferAssetPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getTreasurySetTopUpRatioPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getTreasuryEditInformationPermissionNft(bytes32 daoId) external view returns (address, uint256);
+    function getDaoEditInformationPermission(bytes32 daoId, address account) external view returns (bool);
+    function getDaoEditParameterPermission(bytes32 daoId, address account) external view returns (bool);
+    function getDaoEditStrategyPermission(bytes32 daoId, address account) external view returns (bool);
+    function getDaoRewardPermission(bytes32 daoId, address account) external view returns (bool);
+    function getTreasuryTransferAssetPermission(bytes32 daoId, address account) external view returns (bool);
+    function getTreasurySetTopUpRatioPermission(bytes32 daoId, address account) external view returns (bool);
+    function getTreasuryEditInformationPermission(bytes32 daoId, address account) external view returns (bool);
 }

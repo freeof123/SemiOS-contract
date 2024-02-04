@@ -53,7 +53,7 @@ import { LibString } from "solady/utils/LibString.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-//import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
 struct CreateProjectLocalVars {
     bytes32 existDaoId;
@@ -289,10 +289,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoMetadataParam.projectUri,
             continuousDaoParam.ownershipUri
         );
-        // treasury permission set for 1.6
-        if (continuousDaoParam.isAncestorDao) {
-            IPDProtocolSetter(address(this)).setDaoTreasuryPermission(daoId, daoInfo.nft, 0);
-        }
 
         //common initializaitions
         {
@@ -333,14 +329,16 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         DaoStorage.Layout storage daoStorage = DaoStorage.layout();
 
         {
-            address daoAssetPool = _createDaoAssetPool(daoId, daoInfo.daoIndex);
-            (bool succ,) = address(this).delegatecall(
-                abi.encodeCall(
-                    IPDProtocolSetter.setInitialTokenSupplyForSubDao,
-                    (daoId, SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio / BASIS_POINT)
-                )
-            );
-            require(succ, "setInitialTokenSupplyForSubDao failed");
+            _createDaoAssetPool(daoId, daoInfo.daoIndex);
+
+            // (bool succ,) = address(this).delegatecall(
+            //     abi.encodeCall(
+            //         IPDProtocolSetter.setInitialTokenSupplyForSubDao,
+            //         (daoId, SettingsStorage.layout().tokenMaxSupply * basicDaoParam.initTokenSupplyRatio /
+            // BASIS_POINT)
+            //     )
+            // );
+            // require(succ, "setInitialTokenSupplyForSubDao failed");
             // if (continuousDaoParam.isAncestorDao && !BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken)
             // {
             //     daoStorage.daoInfos[daoId].tokenMaxSupply =
@@ -413,8 +411,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         {
             if (vars.daoToken == address(0)) {
                 daoInfo.token = _createERC20Token(vars.daoIndex, vars.daoName);
-                D4AERC20(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
-                D4AERC20(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
+                IAccessControl(daoInfo.token).grantRole(keccak256("MINTER"), address(this));
+                IAccessControl(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
                 ID4AChangeAdmin(daoInfo.token).changeAdmin(settingsStorage.assetOwner);
             } else {
                 daoInfo.token = vars.daoToken;
@@ -434,9 +432,14 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             address treasury = settingsStorage.feePoolFactory.createD4AFeePool(
                 string(abi.encodePacked("Treasury for Semios Project ", LibString.toString(vars.daoIndex)))
             ); //this feepool is treasury
+
             D4AFeePool(payable(treasury)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
             ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
+
+            if (vars.daoToken == address(0)) {
+                D4AERC20(daoInfo.token).mint(treasury, settingsStorage.tokenMaxSupply);
+            }
 
             PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoFeePool];
 
@@ -492,15 +495,27 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        daoInfo.nft = _createERC721Token(daoIndex, daoName, needMintableWork, reserveNftNumber);
+        daoInfo.nft = _createERC721Token(daoIndex, daoName, "SEMI.N", needMintableWork, reserveNftNumber);
         IAccessControl(daoInfo.nft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant to the
             // user??
         IAccessControl(daoInfo.nft).grantRole(keccak256("MINTER"), address(this));
 
-        ID4AERC721(daoInfo.nft).setContractUri(daoUri);
+        ID4AERC721(daoInfo.nft).setContractUri(daoUri); //require by Opensea
         ID4AChangeAdmin(daoInfo.nft).changeAdmin(settingsStorage.assetOwner);
-        ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //before: createprojectproxy,now :user
+        ID4AChangeAdmin(daoInfo.nft).transferOwnership(msg.sender); //required by Opensea, only can change contract uri
         ID4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
+
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        basicDaoInfo.treasuryNft = _createERC721Token(daoIndex, daoName, "SEMI.G", false, 0);
+
+        IAccessControl(basicDaoInfo.treasuryNft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant
+            // to the
+            // user??
+        IAccessControl(basicDaoInfo.treasuryNft).grantRole(keccak256("MINTER"), address(this));
+
+        ID4AERC721(basicDaoInfo.treasuryNft).setContractUri(daoUri);
+        ID4AChangeAdmin(basicDaoInfo.treasuryNft).changeAdmin(settingsStorage.assetOwner);
+        ID4AChangeAdmin(basicDaoInfo.treasuryNft).transferOwnership(msg.sender);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {
@@ -513,6 +528,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     function _createERC721Token(
         uint256 daoIndex,
         string memory daoName,
+        string memory symbol,
         bool needMintableWork,
         uint256 startIndex
     )
@@ -521,7 +537,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         string memory name = daoName;
-        string memory sym = string(abi.encodePacked("SEMI.N", LibString.toString(daoIndex)));
+        string memory sym = string(abi.encodePacked(symbol, LibString.toString(daoIndex)));
         return settingsStorage.erc721Factory.createD4AERC721(name, sym, needMintableWork ? startIndex : 0);
     }
 
@@ -561,6 +577,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         // setup ownership control permission
         IPDProtocolSetter(protocol).setDaoControlPermission(daoId, vars.nft, 0);
+        if (InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao) {
+            // treasury permission set for 1.6
+            IPDProtocolSetter(protocol).setTreasuryControlPermission(daoId, vars.nft, 0);
+        }
 
         ID4ASettingsReadable(protocol).permissionControl().addPermission(daoId, vars.whitelist, vars.blacklist);
 

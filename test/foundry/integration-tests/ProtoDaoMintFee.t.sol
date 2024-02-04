@@ -71,7 +71,7 @@ contract ProtoDaoMintFee is DeployHelper {
         deal(pool, 10 ether);
         deal(pool2, 20 ether);
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 40_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 40_000 ether, true, "uri");
         //step 6
         super._mintNft(
             daoId2,
@@ -149,7 +149,7 @@ contract ProtoDaoMintFee is DeployHelper {
         deal(pool, 10 ether);
         deal(pool2, 20 ether);
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 40_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 40_000 ether, true, "uri");
         //step 6
         super._mintNft(
             daoId,

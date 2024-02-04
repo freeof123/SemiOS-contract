@@ -24,6 +24,7 @@ library BasicDaoStorage {
         //---------1.6 add
         uint256 topUpEthToRedeemPoolRatio;
         uint256 topUpErc20ToTreasuryRatio;
+        address treasuryNft;
     }
 
     struct Layout {

@@ -412,7 +412,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
         vm.prank(daoCreator.addr);
         protocol.setDaoUnifiedPrice(daoId, 0.1 ether);
 
@@ -739,7 +739,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         address nftAddress = protocol.getDaoNft(daoId);
         vm.prank(nftMinter.addr);
         D4AERC721(nftAddress).safeTransferFrom(nftMinter.addr, randomGuy.addr, 1);
-        vm.stopPrank();
+
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
         assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK EE");
         assertEq(topUpETH, 0.01 ether);

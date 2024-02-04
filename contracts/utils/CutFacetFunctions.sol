@@ -241,6 +241,27 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRoundDistributeAmount.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoInfiniteMode.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoERC20PaymentMode.selector;
+    //1.6 related functions
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTopUpEthToRedeemPoolRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTopUpErc20ToTreasuryRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoDefaultTopUpEthToRedeemPoolRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoDefaultTopUpErc20ToTreasuryRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTreasuryNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTreasury.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditInformationPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditParameterPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditStrategyPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRewardPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryTransferAssetPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasurySetTopUpRatioPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryEditInformationPermissionNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditInformationPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditParameterPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditStrategyPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoRewardPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryTransferAssetPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasurySetTopUpRatioPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryEditInformationPermission.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 
@@ -271,7 +292,6 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
 
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setChildren.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setInitialTokenSupplyForSubDao.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoParams.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoRemainingRound.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.changeDaoInfiniteMode.selector;
@@ -280,7 +300,10 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoEditParamPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoEditStrategyPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoRewardPermission.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoTreasuryPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasuryControlPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasuryEditInformationPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasuryTransferAssetPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasurySetTopUpRatioPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpBalanceSplitRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDefaultTopUpBalanceSplitRatio.selector;
 
@@ -307,6 +330,8 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.getVestingWallet.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.getAllowedTokensList.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.isTokenAllowed.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantDaoAssetPool.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantDaoAssetPoolWithPermit.selector;
     assert(interfaceId == type(IPDGrant).interfaceId);
 
     /// @solidity memory-safe-assembly

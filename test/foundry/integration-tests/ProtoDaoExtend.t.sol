@@ -61,7 +61,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 10_000_000 ether, true, "uri");
         uint256 flatPrice = 0.01 ether;
         super._mintNft(
             subDaoId2,
@@ -159,7 +159,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 10_000_000 ether, true, "uri");
         uint256 flatPrice = 0.01 ether;
         super._mintNft(
             subDaoId2,
@@ -259,7 +259,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 10_000_000 ether, true, "uri");
         uint256 flatPrice = 0.01 ether;
         super._mintNft(
             subDaoId2,
@@ -377,7 +377,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         address assetPool3 = protocol.getDaoAssetPool(daoId2);
 
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
 
         uint256 daoCreator3_eth_balance_before = daoCreator3.addr.balance;
         uint256 flatPrice = 0.01 ether;
@@ -397,7 +397,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         // show_address_erc20_balance(token, assetPool1, assetPool2, assetPool3);
 
         assertEq(token, protocol.getDaoToken(daoId));
-        // 10_000_000 ether is setInitialTokenSupplyForSubDao
+        // 10_000_000 ether is grant InitialTokenSupplyForSubDao
         // 900_000 ether = 10_000_000 ether * (1 DRB/10 DRB) * (param.childrenDaoRatiosERC20[0] +
         // param.childrenDaoRatiosERC20[1] + param.selfRewardRatioERC20) / BASIS_POINT
         // 900_000 ether = 10_000_000 ether * (1 DRB/10 DRB) * (4000 + 3000 + 2000) / 10000
@@ -497,7 +497,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         deal(assetPool3, 1 ether);
 
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 10_000_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
 
         assertEq(assetPool1.balance, 0 ether);
         assertEq(assetPool2.balance, 0 ether);
@@ -1043,7 +1043,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
 
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId, 80_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId, 80_000_000 ether, true, "uri");
 
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
@@ -1176,7 +1176,7 @@ contract ProtoDaoExtendTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(assetPool_subdao2), 0);
 
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 20_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 20_000_000 ether, true, "uri");
         assertEq(IERC20(token).balanceOf(assetPool_subdao2), 20_000_000 ether);
 
         vm.roll(4);
@@ -1221,7 +1221,7 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         // !!!! 1.3-58 step 3
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId, 80_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId, 80_000_000 ether, true, "uri");
 
         // !!!! 1.3-58 step 4
         vm.roll(7);
@@ -1285,9 +1285,9 @@ contract ProtoDaoExtendTest is DeployHelper {
         bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
 
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 20_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 20_000_000 ether, true, "uri");
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId, 30_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId, 30_000_000 ether, true, "uri");
 
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
@@ -1445,9 +1445,9 @@ contract ProtoDaoExtendTest is DeployHelper {
         bytes32 subDaoId = super._createDaoForFunding(param, daoCreator3.addr);
 
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId2, 20_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId2, 20_000_000 ether, true, "uri");
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(subDaoId, 30_000_000 ether);
+        protocol.grantDaoAssetPool(subDaoId, 30_000_000 ether, true, "uri");
 
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);

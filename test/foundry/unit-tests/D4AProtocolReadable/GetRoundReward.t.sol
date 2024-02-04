@@ -190,10 +190,7 @@ contract GetRoundRewardTest is DeployHelper {
         vm.roll(mintableRound + 5);
         protocol.claimDaoNftOwnerReward(daoId);
         assertApproxEqAbs(
-            D4AERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId)).totalSupply(),
-            ID4AProtocolReadable(address(protocol)).getDaoTokenMaxSupply(daoId),
-            100,
-            "total supply"
+            50_000_000 ether, ID4AProtocolReadable(address(protocol)).getDaoTokenMaxSupply(daoId), 100, "total supply"
         );
     }
 

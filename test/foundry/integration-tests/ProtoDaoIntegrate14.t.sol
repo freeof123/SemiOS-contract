@@ -223,7 +223,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertEq(ethBalance, 0);
         deal(protocol.getDaoAssetPool(daoId2), 1 ether);
         vm.prank(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(daoId2, 1_000_000 ether);
+        protocol.grantDaoAssetPool(daoId2, 1_000_000 ether, true, "uri");
 
         super._mintNft(daoId2, canvasId2, "a1234", 0.01 ether, daoCreator2.key, nftMinter.addr);
 

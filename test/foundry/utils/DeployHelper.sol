@@ -1025,7 +1025,11 @@ contract DeployHelper is Test {
             vars.allRatioParam,
             20
         );
-
+        if (createDaoParam.isBasicDao && createDaoParam.thirdPartyToken == address(0)) {
+            uint256 ratio = createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio;
+            uint256 initTokenAmount = ratio * 1e5 * 1e18;
+            protocol.grantDaoAssetPool(daoId, initTokenAmount, true, "test first grant nft");
+        }
         vm.stopPrank();
     }
 

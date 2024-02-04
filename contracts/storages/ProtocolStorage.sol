@@ -14,6 +14,7 @@ library ProtocolStorage {
         uint256 d4aDaoIndexBitMap;
         uint256 basicDaoIndexBitMap;
         mapping(uint256 daoIndex => bytes32 daoId)[256] daoIndexToIds;
+        //1.5 add-----------------------------------------
         mapping(bytes32 nftHash => LokcedInfo) lockedInfo;
     }
 

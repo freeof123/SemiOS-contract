@@ -426,14 +426,14 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 emit DaoBlockRewardForSelf(daoId, token, selfRewardAmount, round);
                 if (token != address(0)) {
                     rewardInfo.selfRoundERC20Reward[round] = selfRewardAmount;
-                    PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += selfRewardAmount;
+                    //PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += selfRewardAmount;
                 } else {
                     rewardInfo.selfRoundETHReward[round] = selfRewardAmount;
                 }
             }
         } else {
             rewardInfo.selfRoundERC20Reward[round] = amount;
-            PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += amount;
+            //PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += amount;
             D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), amount);
             emit DaoBlockRewardForSelf(daoId, token, amount, round);
             if (basicDaoInfo.daoAssetPool.balance > 0) {

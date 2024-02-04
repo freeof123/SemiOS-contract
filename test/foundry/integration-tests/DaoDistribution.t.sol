@@ -215,11 +215,11 @@ contract DaoDistribution is DeployHelper {
         vm.roll(3);
 
         // 在铸造前追加1000万Token,
-        assertEq(IERC20(jackpotToken).totalSupply(), 50_000_000 ether); // 追加前总量5000万
+        assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 50_000_000 ether, "e1"); // 追加前总量5000万
         uint256 initialTokenSupply = 10_000_000 ether;
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(jackpotDaoId, initialTokenSupply);
-        assertEq(IERC20(jackpotToken).totalSupply(), 60_000_000 ether); // 追加后总量6000万
+        protocol.grantDaoAssetPool(jackpotDaoId, initialTokenSupply, true, "test");
+        assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 60_000_000 ether, "e2"); // 追加后总量6000万
 
         // 修改MintWindow和之前不一致
         //(, mintableRound,,,,,,) = protocol.getProjectInfo(jackpotDaoId);
@@ -294,10 +294,10 @@ contract DaoDistribution is DeployHelper {
         initialTokenSupply = 1_000_000 ether;
         //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
         hoax(daoCreator.addr);
-        protocol.setInitialTokenSupplyForSubDao(jackpotDaoId, initialTokenSupply);
+        protocol.grantDaoAssetPool(jackpotDaoId, initialTokenSupply, true, "test");
         //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
 
-        assertEq(IERC20(jackpotToken).totalSupply(), 61_000_000 ether); // 追加后总量6100万
+        assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 61_000_000 ether); // 追加后总量6100万
 
         // DaoCreator 以及 NftMinter2的奖励分配
         vm.roll(6);

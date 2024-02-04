@@ -236,9 +236,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         _checkDaoExist(daoId);
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        OwnerStorage.OwnerInfo storage ownerInfo = OwnerStorage.layout().ownerInfos[daoId];
+        OwnerStorage.DaoOwnerInfo storage ownerInfo = OwnerStorage.layout().daoOwnerInfos[daoId];
         address daoNftOwner =
-            IERC721Upgradeable(ownerInfo.ownerForDaoReward.erc721Address).ownerOf(ownerInfo.ownerForDaoReward.tokenId);
+            IERC721Upgradeable(ownerInfo.daoRewardOwner.erc721Address).ownerOf(ownerInfo.daoRewardOwner.tokenId);
         (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
             abi.encodeWithSelector(
                 IRewardTemplate.claimDaoNftOwnerReward.selector,
@@ -339,8 +339,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
         ExchangeERC20ToETHLocalVars memory vars;
 
-        // vars.tokenCirculation = PoolStorage.layout().poolInfos[daoFeePool].circulateERC20Amount + tokenAmount
-        //     - D4AERC20(token).balanceOf(daoFeePool);
         vars.tokenCirculation = IPDProtocolReadable(address(this)).getDaoCirculateTokenAmount(daoId) + tokenAmount
             - D4AERC20(token).balanceOf(daoFeePool);
         if (vars.tokenCirculation == 0) return 0;

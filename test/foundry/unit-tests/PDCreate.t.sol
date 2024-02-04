@@ -30,16 +30,16 @@ contract PDCreateTest is DeployHelper {
         param.floorPrice = 0.1 ether;
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
 
-        assertEq(protocol.getCanvasIdOfSpecialNft(daoId), canvasId);
-        assertEq(naiveOwner.ownerOf(canvasId), daoCreator.addr);
-        assertEq(protocol.getCanvasUri(canvasId), "test dao creator canvas uri");
-        assertEq(IERC20Metadata(protocol.getDaoToken(daoId)).name(), "test dao");
-        assertEq(IERC721Metadata(protocol.getDaoNft(daoId)).name(), "test dao");
-        assertEq(protocol.getDaoTokenMaxSupply(daoId), 5e7 * 1e18);
-        assertEq(protocol.getDaoNftMaxSupply(daoId), 10_000);
-        assertEq(protocol.getDaoNftRoyaltyFeeRatioInBps(daoId), 1250);
-        assertEq(protocol.getDaoMintableRound(daoId), 60);
-        assertEq(protocol.getDaoIsProgressiveJackpot(daoId), true);
+        assertEq(protocol.getCanvasIdOfSpecialNft(daoId), canvasId, "e1");
+        assertEq(naiveOwner.ownerOf(canvasId), daoCreator.addr, "e2");
+        assertEq(protocol.getCanvasUri(canvasId), "test dao creator canvas uri", "e3");
+        assertEq(IERC20Metadata(protocol.getDaoToken(daoId)).name(), "test dao", "e4");
+        assertEq(IERC721Metadata(protocol.getDaoNft(daoId)).name(), "test dao", "e5");
+        assertEq(protocol.getDaoTokenMaxSupply(daoId), 5e7 * 1e18, "e6");
+        assertEq(protocol.getDaoNftMaxSupply(daoId), 10_000, "e7");
+        assertEq(protocol.getDaoNftRoyaltyFeeRatioInBps(daoId), 1250, "e8");
+        assertEq(protocol.getDaoMintableRound(daoId), 60, "e9");
+        assertEq(protocol.getDaoIsProgressiveJackpot(daoId), true, "e10");
         // assertEq(protocol.getDaoCreatorERC20Ratio(daoId), 4800);
         // assertEq(protocol.getCanvasCreatorERC20Ratio(daoId), 2500);
         // assertEq(protocol.getNftMinterERC20Ratio(daoId), 2500);
@@ -50,23 +50,23 @@ contract PDCreateTest is DeployHelper {
         // assertEq(protocol.getDaoIndex(daoId), 110);
     }
 
-    function test_createDao_checkExceedTokenMaxTotalSupply_1billoin() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        CreateDaoParam memory param;
-        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        param.existDaoId = bytes32(0);
-        param.isBasicDao = true;
-        param.initTokenSupplyRatio = 10_000;
-        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+    // function test_createDao_checkExceedTokenMaxTotalSupply_1billoin() public {
+    //     bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+    //     CreateDaoParam memory param;
+    //     param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+    //     param.existDaoId = bytes32(0);
+    //     param.isBasicDao = true;
+    //     param.initTokenSupplyRatio = 10_000;
+    //     bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
 
-        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
-        param.existDaoId = daoId;
-        param.isBasicDao = false;
-        param.initTokenSupplyRatio = 5000;
-        param.daoUri = "continuous dao uri";
-        vm.expectRevert("setInitialTokenSupplyForSubDao failed");
-        _createDaoForFunding(param, daoCreator.addr);
-    }
+    //     param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+    //     param.existDaoId = daoId;
+    //     param.isBasicDao = false;
+    //     param.initTokenSupplyRatio = 5000;
+    //     param.daoUri = "continuous dao uri";
+    //     vm.expectRevert("setInitialTokenSupplyForSubDao failed");
+    //     _createDaoForFunding(param, daoCreator.addr);
+    // }
 
     //     function test_createOwnerBasicDao() public {
     //         DeployHelper.CreateDaoParam memory createDaoParam;

@@ -6,14 +6,14 @@ import { NftIdentifier } from "contracts/interface/D4AStructs.sol";
 library PoolStorage {
     struct PoolInfo {
         mapping(uint256 round => uint256 totalWeight) roundTotalETH;
-        uint256 circulateERC20Amount; //????here??
+        uint256 circulateERC20Amount; //deprecated
         mapping(bytes32 nftHash => bytes32[] daoId) nftInvestedTopUpDaos;
         mapping(bytes32 nftHash => uint256 amount) topUpNftETH;
-        uint256 defaultTopUpEthToRedeemPoolRatio;
         mapping(bytes32 nftHash => uint256 amount) topUpNftERC20;
+        //1.6 add-----------------------------------------
+        uint256 defaultTopUpEthToRedeemPoolRatio;
         uint256 defaultTopUpErc20ToTreasuryRatio;
         address treasury;
-        NftIdentifier treasuryPermissionNft;
     }
 
     struct Layout {

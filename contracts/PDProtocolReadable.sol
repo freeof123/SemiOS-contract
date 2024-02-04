@@ -14,12 +14,16 @@ import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
+import { PoolStorage } from "contracts/storages/PoolStorage.sol";
+import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
 
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 //import "forge-std/Test.sol";
 
 contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
@@ -239,7 +243,8 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
                 ++i;
             }
         }
-        return IERC20(token).totalSupply() - amount;
+
+        return IERC20(token).totalSupply() - amount - IERC20(token).balanceOf(getDaoTreasury(daoId));
     }
 
     function getDaoRoundDistributeAmount(
@@ -263,6 +268,129 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
 
     function getDaoERC20PaymentMode(bytes32 daoId) public view returns (bool) {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].erc20PaymentMode;
+    }
+
+    //1.6 add----------------------------------------------------------
+    function getDaoTopUpEthToRedeemPoolRatio(bytes32 daoId) public view returns (uint256) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].topUpEthToRedeemPoolRatio;
+    }
+
+    function getDaoTopUpErc20ToTreasuryRatio(bytes32 daoId) public view returns (uint256) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].topUpErc20ToTreasuryRatio;
+    }
+
+    function getDaoDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId) public view returns (uint256) {
+        return PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+            .defaultTopUpEthToRedeemPoolRatio;
+    }
+
+    function getDaoDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId) public view returns (uint256) {
+        return PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+            .defaultTopUpErc20ToTreasuryRatio;
+    }
+
+    function getDaoTreasuryNft(bytes32 daoId) public view returns (address) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].treasuryNft;
+    }
+
+    function getDaoTreasury(bytes32 daoId) public view returns (address) {
+        return PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasury;
+    }
+
+    function getDaoEditInformationPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditInformationOwner.erc721Address,
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditInformationOwner.tokenId
+        );
+    }
+
+    function getDaoEditParameterPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditParameterOwner.erc721Address,
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditParameterOwner.tokenId
+        );
+    }
+
+    function getDaoEditStrategyPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditStrategyOwner.erc721Address,
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoEditStrategyOwner.tokenId
+        );
+    }
+
+    function getDaoRewardPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoRewardOwner.erc721Address,
+            OwnerStorage.layout().daoOwnerInfos[daoId].daoRewardOwner.tokenId
+        );
+    }
+
+    function getTreasuryTransferAssetPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasuryTransferAssetOwner
+                .erc721Address,
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasuryTransferAssetOwner
+                .tokenId
+        );
+    }
+
+    function getTreasurySetTopUpRatioPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasurySetTopUpRatioOwner
+                .erc721Address,
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasurySetTopUpRatioOwner
+                .tokenId
+        );
+    }
+
+    function getTreasuryEditInformationPermissionNft(bytes32 daoId) public view returns (address, uint256) {
+        return (
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasuryEditInformationOwner
+                .erc721Address,
+            OwnerStorage.layout().treasuryOwnerInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool]
+                .treasuryEditInformationOwner
+                .tokenId
+        );
+    }
+
+    function getDaoEditInformationPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getDaoEditInformationPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getDaoEditParameterPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getDaoEditParameterPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getDaoEditStrategyPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getDaoEditStrategyPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getDaoRewardPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getDaoRewardPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getTreasuryTransferAssetPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getTreasuryTransferAssetPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getTreasurySetTopUpRatioPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getTreasurySetTopUpRatioPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
+    }
+
+    function getTreasuryEditInformationPermission(bytes32 daoId, address account) public view returns (bool) {
+        (address erc721Address, uint256 tokenId) = getTreasuryEditInformationPermissionNft(daoId);
+        return account != IERC721(erc721Address).ownerOf(tokenId);
     }
 
     function _getDaoRoundDistributeAmount(
