@@ -788,8 +788,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
     // add test case for 1.6
     //-------------------------------------------------------------
-    function test_topUpDefaultRatio_setByTreasuryNFTOwner() public {
-        // dao: daoCreator
+    function test_topUpDefaultTopUpErc20ToTreasuryRatio_setByTreasuryNFTOwner() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -801,9 +800,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
         param.topUpMode = true;
         param.mintableRound = 3;
         param.defaultTopUpErc20ToTreasuryRatio = 5000;
-        param.defaultTopUpEthToRedeemPoolRatio = 5000;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
+        // first step. deposit money to TopUp NFT by topup daoId
         super._mintNft(
             daoId,
             canvasId1,
@@ -829,14 +828,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
         (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
 
-        // address nftAddress = protocol.getDaoNft(daoId);
-        // vm.prank(nftMinter.addr);
-        // D4AERC721(nftAddress).safeTransferFrom(nftMinter.addr, randomGuy.addr, 1);
-
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
         assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK 1.6 t1 EE");
         assertEq(topUpETH, 0.01 ether);
 
+        // second step. spent money with TopUp NFT by non-topup daoId2 as default ratia
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId2;
         nftParam.canvasId = canvasId2;
@@ -852,14 +848,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
             // address redeemPool = protocol.redeemPool();
 
             uint256 erc20_before_treasury = IERC20(token).balanceOf(treasury);
-            uint256 eth_before = nftMinter.addr.balance;
-
-            super._mintNftWithParam(nftParam, nftMinter.addr);
-            uint256 eth_after = nftMinter.addr.balance;
+            assertEq(nftMinter.addr.balance, 0, "nftMinter.addr.balance should be 0, cost topup account");
+            super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
             uint256 erc20_after_treasury = IERC20(token).balanceOf(treasury);
             assertEq(erc20_after_treasury - erc20_before_treasury, topUpERC20 / 2, "ERC20 TopUp  Should not be  0");
             assertEq(IERC20(token).balanceOf(nftMinter.addr), topUpERC20 / 2, "ERC20 TopUp  Should not be  0");
-            // assertEq(eth_after - eth_before, topUpETH / 2, "eth balance should be added");
 
             (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
             assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
@@ -868,19 +861,25 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
         //1.6 set default ratio test
         //---------------------------------------------------------------------
+        //third step. set default ratio and single ratio permission by treasury NFT owner
         {
             address nftAddress = protocol.getDaoNft(daoId);
             vm.prank(daoCreator.addr);
             D4AERC721(nftAddress).safeTransferFrom(daoCreator.addr, randomGuy.addr, 0);
         }
-
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(daoCreator.addr);
         protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+        vm.expectRevert(NotNftOwner.selector);
+        vm.prank(daoCreator.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
 
         vm.prank(randomGuy.addr);
         protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+        vm.prank(randomGuy.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
         //1.6 check new create dao as new default ratio
+        //forth step. deposit money to TopUp NFT by topup daoId
         nftParam.daoId = daoId;
         nftParam.canvasId = canvasId1;
         nftParam.tokenUri = string.concat(
@@ -889,13 +888,20 @@ contract ProtoDaoTopUpTest is DeployHelper {
         nftParam.flatPrice = 0.01 ether;
         nftParam.canvasCreatorKey = daoCreator.key;
         nftParam.nftIdentifier = mainNft1;
-        super._mintNftWithParam(nftParam, nftMinter.addr);
+        deal(nftMinter.addr, 0.01 ether);
+        super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(2)), ".json"
+        );
+        deal(nftMinter.addr, 0.01 ether);
+        super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
         vm.roll(3);
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
         assertApproxEqAbs(topUpERC20, 50_000_000 ether / uint256(3), 10, "CHECK 1.6 t1 EE t2");
-        assertEq(topUpETH, 0.01 ether);
+        assertEq(topUpETH, 0.01 ether * 2, "Top Up balance double 2");
 
+        //fifth step. create new dao as new default ratio
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
         bytes32 canvasId3 = param.canvasId;
         param.existDaoId = daoId;
@@ -913,29 +919,58 @@ contract ProtoDaoTopUpTest is DeployHelper {
         nftParam.flatPrice = 0.01 ether;
         nftParam.canvasCreatorKey = daoCreator2.key;
         nftParam.nftIdentifier = mainNft1;
+        //sixth step. spent money with TopUp NFT by non-topup daoId3 as new default ratia daoId3
         {
             uint256 erc20_before_treasury = IERC20(token).balanceOf(treasury);
             uint256 erc20_before_account = IERC20(token).balanceOf(nftMinter.addr);
-            uint256 eth_before = nftMinter.addr.balance;
-            super._mintNftWithParam(nftParam, nftMinter.addr);
-            uint256 eth_after = nftMinter.addr.balance;
+            assertEq(nftMinter.addr.balance, 0, "nftMinter.addr.balance should be 0, cost topup account");
+            super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
             uint256 erc20_after_treasury = IERC20(token).balanceOf(treasury);
             uint256 erc20_after_account = IERC20(token).balanceOf(nftMinter.addr);
             assertApproxEqAbs(
                 erc20_after_account - erc20_before_account,
-                topUpERC20 * 8 / 10,
+                topUpERC20 / 2 * 8 / 10,
                 10,
-                "ERC20 TopUp  Should not be  0 ERC20 For Account"
+                "ERC20 TopUp  Should not be  0 ERC20 For Account A"
             );
 
             assertEq(
                 erc20_after_treasury - erc20_before_treasury,
-                topUpERC20 * 2 / 10,
-                "ERC20 TopUp  Should not be  0 ERC20 for treasury"
+                topUpERC20 / 2 * 2 / 10,
+                "ERC20 TopUp  Should not be  0 ERC20 for treasury A"
+            );
+        }
+        //seven step. spent money with TopUp NFT by non-topup daoId3 as new  ratia daoId2
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId2)), "-", vm.toString(uint256(1)), ".json"
+        );
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.canvasCreatorKey = daoCreator2.key;
+        nftParam.nftIdentifier = mainNft1;
+        {
+            uint256 erc20_before_treasury = IERC20(token).balanceOf(treasury);
+            uint256 erc20_before_account = IERC20(token).balanceOf(nftMinter.addr);
+            assertEq(nftMinter.addr.balance, 0, "nftMinter.addr.balance should be 0, cost topup account");
+            super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
+            uint256 erc20_after_treasury = IERC20(token).balanceOf(treasury);
+            uint256 erc20_after_account = IERC20(token).balanceOf(nftMinter.addr);
+            assertApproxEqAbs(
+                erc20_after_account - erc20_before_account,
+                topUpERC20 / 2 * 2 / 10,
+                10,
+                "ERC20 TopUp  Should not be  0 ERC20 For Account B"
+            );
+
+            assertApproxEqAbs(
+                erc20_after_treasury - erc20_before_treasury,
+                topUpERC20 / 2 * 8 / 10,
+                10,
+                "ERC20 TopUp  Should not be  0 ERC20 for treasury B"
             );
         }
 
-        // assertEq(eth_after - eth_before, topUpETH * 9 / 10, "eth balance should be added");
         (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId3, mainNft1);
         assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost Check A");
         assertEq(topUpETH, 0, "Topup E Check A");

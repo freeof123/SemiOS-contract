@@ -999,7 +999,11 @@ contract DeployHelper is Test {
         } else {
             value = param.flatPrice == 0 ? protocol.getCanvasNextPrice(param.daoId, param.canvasId) : param.flatPrice;
         }
-
+        //1.6 add, if dao topup == false && nftIdentifier != null, he wants to spent the money in topup,
+        // so there is no need to send value
+        if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
+            value = 0;
+        }
         tokenId = protocol.mintNFT{ value: value }(vars);
         vm.stopPrank();
     }
@@ -1045,6 +1049,11 @@ contract DeployHelper is Test {
             value = param.flatPrice == 0 ? protocol.getCanvasNextPrice(param.daoId, param.canvasId) : param.flatPrice;
         }
 
+        //1.6 add, if dao topup == false && nftIdentifier != null, he wants to spent the money in topup,
+        // so there is no need to send value
+        if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
+            value = 0;
+        }
         tokenId = protocol.mintNFT{ value: value }(vars);
         vm.stopPrank();
     }
