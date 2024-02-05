@@ -172,7 +172,7 @@ contract PDProtocolTest is DeployHelper {
         uint256 tokenId = super._mintNftWithParam(nftParam, daoCreator.addr);
 
         nft = protocol.getDaoNft(daoId);
-        assertEq(D4AERC721(nft).tokenURI(tokenId), tokenUri);
+        assertEq(D4AERC721(nft).tokenURI(tokenId), tokenUri, "CHECK A");
     }
 
     function test_mintNFTAndTransfer() public {

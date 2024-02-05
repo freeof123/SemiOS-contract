@@ -1001,9 +1001,12 @@ contract DeployHelper is Test {
         }
         //1.6 add, if dao topup == false && nftIdentifier != null, he wants to spent the money in topup,
         // so there is no need to send value
-        if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
-            value = 0;
-        }
+        // if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
+        //     (, uint256 ethBalance) = protocol.updateTopUpAccount(param.daoId, param.nftIdentifier);
+        //     if (ethBalance > value) {
+        //         value = 0;
+        //     }
+        // }
         tokenId = protocol.mintNFT{ value: value }(vars);
         vm.stopPrank();
     }
