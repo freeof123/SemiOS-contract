@@ -874,6 +874,25 @@ contract ProtoDaoTopUpTest is DeployHelper {
         protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
         vm.prank(randomGuy.addr);
         protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        //add external nft set to treasury
+        vm.prank(randomGuy.addr);
+        protocol.setTreasurySetTopUpRatioPermission(daoId, address(_testERC721), 5);
+
+        _testERC721.mint(daoCreator3.addr, 5);
+        vm.expectRevert(NotNftOwner.selector);
+        vm.prank(randomGuy.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        vm.prank(daoCreator3.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        vm.prank(randomGuy.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+        vm.prank(daoCreator3.addr);
+        protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+
         //1.6 check new create dao as new default ratio
         //forth step. deposit money to TopUp NFT by topup daoId
         nftParam.daoId = daoId;
@@ -1076,6 +1095,25 @@ contract ProtoDaoTopUpTest is DeployHelper {
         protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
         vm.prank(randomGuy.addr);
         protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        //add external nft set to treasury
+        vm.prank(randomGuy.addr);
+        protocol.setTreasurySetTopUpRatioPermission(daoId, address(_testERC721), 5);
+
+        _testERC721.mint(daoCreator3.addr, 5);
+        vm.expectRevert(NotNftOwner.selector);
+        vm.prank(randomGuy.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        vm.prank(daoCreator3.addr);
+        protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
+
+        vm.prank(randomGuy.addr);
+        vm.expectRevert(NotNftOwner.selector);
+        protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+        vm.prank(daoCreator3.addr);
+        protocol.setDefaultTopUpBalanceSplitRatio(daoId, 1000, 2000);
+
         //1.6 check new create dao as new default ratio
         //forth step. deposit money to TopUp NFT by topup daoId
         nftParam.daoId = daoId;
