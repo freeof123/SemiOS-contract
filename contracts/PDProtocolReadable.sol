@@ -289,8 +289,8 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
             .defaultTopUpErc20ToTreasuryRatio;
     }
 
-    function getDaoTreasuryNft(bytes32 daoId) public view returns (address) {
-        return BasicDaoStorage.layout().basicDaoInfos[daoId].treasuryNft;
+    function getDaoGrantAssetPoolNft(bytes32 daoId) public view returns (address) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].grantAssetPoolNft;
     }
 
     function getDaoTreasury(bytes32 daoId) public view returns (address) {

@@ -63,7 +63,7 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getDaoTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
     function getDaoDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
     function getDaoDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoTreasuryNft(bytes32 daoId) external view returns (address);
+    function getDaoGrantAssetPoolNft(bytes32 daoId) external view returns (address);
     function getDaoTreasury(bytes32 daoId) external view returns (address);
     function getDaoEditInformationPermissionNft(bytes32 daoId) external view returns (address, uint256);
     function getDaoEditParameterPermissionNft(bytes32 daoId) external view returns (address, uint256);

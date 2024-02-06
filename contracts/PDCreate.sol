@@ -402,24 +402,57 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             daoInfo.daoFeePool = daoFeePool;
 
-            address treasury = settingsStorage.feePoolFactory.createD4AFeePool(
-                string(abi.encodePacked("Treasury for Semios Project ", LibString.toString(vars.daoIndex)))
-            ); //this feepool is treasury
-
-            D4AFeePool(payable(treasury)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
-
-            ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
-
-            if (vars.daoToken == address(0)) {
-                D4AERC20(daoInfo.token).mint(treasury, settingsStorage.tokenMaxSupply);
-            }
-
-            PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoFeePool];
-
-            poolInfo.defaultTopUpEthToRedeemPoolRatio = vars.defaultTopUpEthToRedeemPoolRatio;
-            poolInfo.defaultTopUpErc20ToTreasuryRatio = vars.defaultTopUpErc20ToTreasuryRatio;
-            poolInfo.treasury = treasury;
+            _createTreasury(
+                daoId,
+                vars.daoIndex,
+                vars.daoName,
+                vars.daoToken,
+                daoFeePool,
+                vars.defaultTopUpEthToRedeemPoolRatio,
+                vars.defaultTopUpErc20ToTreasuryRatio
+            );
         }
+    }
+
+    function _createTreasury(
+        bytes32 daoId,
+        uint256 daoIndex,
+        string memory daoName,
+        address daoToken,
+        address daoFeePool,
+        uint256 defaultTopUpEthToRedeemPoolRatio,
+        uint256 defaultTopUpErc20ToTreasuryRatio
+    )
+        internal
+    {
+        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
+        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
+
+        address treasury = settingsStorage.feePoolFactory.createD4AFeePool(
+            string(abi.encodePacked("Treasury for Semios Project ", LibString.toString(daoIndex)))
+        ); //this feepool is treasury
+
+        D4AFeePool(payable(treasury)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
+
+        ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
+
+        if (daoToken == address(0)) {
+            D4AERC20(daoInfo.token).mint(treasury, settingsStorage.tokenMaxSupply);
+        }
+
+        PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoFeePool];
+
+        poolInfo.defaultTopUpEthToRedeemPoolRatio = defaultTopUpEthToRedeemPoolRatio;
+        poolInfo.defaultTopUpErc20ToTreasuryRatio = defaultTopUpErc20ToTreasuryRatio;
+        poolInfo.treasury = treasury;
+
+        address grantTreasuryNft = _createERC721Token(daoIndex, daoName, "SEMI.GT", false, 0);
+        IAccessControl(grantTreasuryNft).grantRole(keccak256("ROYALTY"), address(this));
+        IAccessControl(grantTreasuryNft).grantRole(keccak256("MINTER"), address(this));
+        ID4AChangeAdmin(grantTreasuryNft).changeAdmin(settingsStorage.assetOwner);
+        ID4AERC721(grantTreasuryNft).setContractUri(daoInfo.daoUri);
+        ID4AChangeAdmin(grantTreasuryNft).transferOwnership(msg.sender);
+        poolInfo.grantTreasuryNft = grantTreasuryNft;
     }
 
     function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam) internal {
@@ -479,16 +512,17 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ID4AERC721(daoInfo.nft).mintItem(msg.sender, ownershipUri, 0, true);
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        basicDaoInfo.treasuryNft = _createERC721Token(daoIndex, daoName, "SEMI.G", false, 0);
+        basicDaoInfo.grantAssetPoolNft = _createERC721Token(daoIndex, daoName, "SEMI.G", false, 0);
 
-        IAccessControl(basicDaoInfo.treasuryNft).grantRole(keccak256("ROYALTY"), address(this)); //this role never grant
+        IAccessControl(basicDaoInfo.grantAssetPoolNft).grantRole(keccak256("ROYALTY"), address(this)); //this role never
+            // grant
             // to the
             // user??
-        IAccessControl(basicDaoInfo.treasuryNft).grantRole(keccak256("MINTER"), address(this));
+        IAccessControl(basicDaoInfo.grantAssetPoolNft).grantRole(keccak256("MINTER"), address(this));
 
-        ID4AERC721(basicDaoInfo.treasuryNft).setContractUri(daoUri);
-        ID4AChangeAdmin(basicDaoInfo.treasuryNft).changeAdmin(settingsStorage.assetOwner);
-        ID4AChangeAdmin(basicDaoInfo.treasuryNft).transferOwnership(msg.sender);
+        ID4AERC721(basicDaoInfo.grantAssetPoolNft).setContractUri(daoUri);
+        ID4AChangeAdmin(basicDaoInfo.grantAssetPoolNft).changeAdmin(settingsStorage.assetOwner);
+        ID4AChangeAdmin(basicDaoInfo.grantAssetPoolNft).transferOwnership(msg.sender);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {

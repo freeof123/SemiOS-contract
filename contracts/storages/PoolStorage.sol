@@ -14,6 +14,7 @@ library PoolStorage {
         uint256 defaultTopUpEthToRedeemPoolRatio;
         uint256 defaultTopUpErc20ToTreasuryRatio;
         address treasury;
+        address grantTreasuryNft;
     }
 
     struct Layout {

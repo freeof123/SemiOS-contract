@@ -236,7 +236,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTopUpErc20ToTreasuryRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoDefaultTopUpEthToRedeemPoolRatio.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoDefaultTopUpErc20ToTreasuryRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTreasuryNft.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoGrantAssetPoolNft.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoTreasury.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditInformationPermissionNft.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoEditParameterPermissionNft.selector;
@@ -322,6 +322,8 @@ function getGrantSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.isTokenAllowed.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantDaoAssetPool.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantDaoAssetPoolWithPermit.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantTreasury.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDGrant.grantTreasuryWithPermit.selector;
     assert(interfaceId == type(IPDGrant).interfaceId);
 
     /// @solidity memory-safe-assembly

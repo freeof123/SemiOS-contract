@@ -51,6 +51,9 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployERC721WithFilterFactory();
 
+        _deployNaiveOwner();
+        _deployNaiveOwnerProxy();
+
         //_deployProtocolProxy();
         _deployProtocol();
 
@@ -86,9 +89,6 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // _deployPermissionControl();
         // _deployPermissionControlProxy();
-
-        _deployNaiveOwner();
-        _deployNaiveOwnerProxy();
 
         // _initSettings();
         // _initSettings13();

@@ -11,6 +11,7 @@ import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { NotOperationRole } from "contracts/interface/D4AErrors.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
+import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
@@ -128,7 +129,7 @@ contract PDGrant is IPDGrant {
         } else {
             SafeTransferLib.safeTransferFrom(daoToken, msg.sender, daoAssetPool, amount);
         }
-        _mintTreasuryNft(daoId, amount, useTreasury, msg.sender, daoToken, tokenUri);
+        _mintGrantAssetPoolNft(daoId, amount, useTreasury, msg.sender, daoToken, tokenUri);
     }
 
     function grantDaoAssetPoolWithPermit(
@@ -146,10 +147,39 @@ contract PDGrant is IPDGrant {
         address daoToken = DaoStorage.layout().daoInfos[daoId].token;
         IERC20Permit(daoToken).permit(msg.sender, address(this), amount, deadline, v, r, s);
         SafeTransferLib.safeTransferFrom(daoToken, msg.sender, daoAssetPool, amount);
-        _mintTreasuryNft(daoId, amount, false, msg.sender, daoToken, tokenUri);
+        _mintGrantAssetPoolNft(daoId, amount, false, msg.sender, daoToken, tokenUri);
     }
 
-    function _mintTreasuryNft(
+    function grantTreasury(bytes32 daoId, uint256 amount, string calldata tokenUri) external {
+        address treasury = PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasury;
+        address daoToken = DaoStorage.layout().daoInfos[daoId].token;
+
+        SafeTransferLib.safeTransferFrom(daoToken, msg.sender, treasury, amount);
+        bytes32 ancestor = IPDProtocolReadable(address(this)).getDaoAncestor(daoId);
+        _mintGrantTreasuryNft(ancestor, amount, msg.sender, daoToken, tokenUri);
+    }
+
+    function grantTreasuryWithPermit(
+        bytes32 daoId,
+        uint256 amount,
+        string calldata tokenUri,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        external
+    {
+        address treasury = PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasury;
+        address daoToken = DaoStorage.layout().daoInfos[daoId].token;
+        IERC20Permit(daoToken).permit(msg.sender, address(this), amount, deadline, v, r, s);
+        SafeTransferLib.safeTransferFrom(daoToken, msg.sender, treasury, amount);
+        bytes32 ancestor = IPDProtocolReadable(address(this)).getDaoAncestor(daoId);
+
+        _mintGrantTreasuryNft(ancestor, amount, msg.sender, daoToken, tokenUri);
+    }
+
+    function _mintGrantAssetPoolNft(
         bytes32 daoId,
         uint256 amount,
         bool useTreasury,
@@ -159,15 +189,40 @@ contract PDGrant is IPDGrant {
     )
         internal
     {
-        address treasuryNft = BasicDaoStorage.layout().basicDaoInfos[daoId].treasuryNft;
-        uint256 tokenId = D4AERC721(treasuryNft).mintItem(owner, tokenUri, 0, false);
-        emit NewSemiOsGrantNft(treasuryNft, tokenId, daoId, owner, amount, useTreasury, block.number, token);
+        address grantAssetPoolNft = BasicDaoStorage.layout().basicDaoInfos[daoId].grantAssetPoolNft;
+        uint256 tokenId = D4AERC721(grantAssetPoolNft).mintItem(owner, tokenUri, 0, false);
+        emit NewSemiOsGrantAssetPoolNft(
+            grantAssetPoolNft, tokenId, daoId, owner, amount, useTreasury, block.number, token
+        );
         DaoStorage.layout().daoInfos[daoId].tokenMaxSupply += amount;
         GrantStorage.GrantInfo storage grantInfo =
-            GrantStorage.layout().grantInfos[keccak256(abi.encodePacked(treasuryNft, tokenId))];
+            GrantStorage.layout().grantInfos[keccak256(abi.encodePacked(grantAssetPoolNft, tokenId))];
         grantInfo.granter = owner;
         grantInfo.grantAmount = amount;
         grantInfo.isUseTreasury = useTreasury;
+        grantInfo.grantBlock = block.number;
+        grantInfo.receiverDao = daoId;
+        grantInfo.token = token;
+    }
+
+    function _mintGrantTreasuryNft(
+        bytes32 daoId,
+        uint256 amount,
+        address owner,
+        address token,
+        string calldata tokenUri
+    )
+        internal
+    {
+        address grantTreasuryNft =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].grantTreasuryNft;
+        uint256 tokenId = D4AERC721(grantTreasuryNft).mintItem(owner, tokenUri, 0, false);
+        emit NewSemiOsGrantTreasuryNft(grantTreasuryNft, tokenId, daoId, owner, amount, block.number, token);
+        DaoStorage.layout().daoInfos[daoId].tokenMaxSupply += amount;
+        GrantStorage.GrantInfo storage grantInfo =
+            GrantStorage.layout().grantInfos[keccak256(abi.encodePacked(grantTreasuryNft, tokenId))];
+        grantInfo.granter = owner;
+        grantInfo.grantAmount = amount;
         grantInfo.grantBlock = block.number;
         grantInfo.receiverDao = daoId;
         grantInfo.token = token;
