@@ -883,7 +883,6 @@ contract ProtoDaoTopUpTest is DeployHelper {
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(randomGuy.addr);
         protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
-
         vm.prank(daoCreator3.addr);
         protocol.setTopUpBalanceSplitRatio(daoId2, 8000, 8000);
 
@@ -955,7 +954,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
                 "ERC20 TopUp  Should not be  0 ERC20 for treasury A"
             );
         }
-        //seven step. spent money with TopUp NFT by non-topup daoId3 as new  ratia daoId2
+        //seven step. spent money with TopUp NFT by non-topup daoId2 as new  ratia daoId2
         nftParam.daoId = daoId2;
         nftParam.canvasId = canvasId2;
         nftParam.tokenUri = string.concat(

@@ -75,6 +75,7 @@ contract PDEditPermission is DeployHelper {
         protocol.setDaoRemainingRound(daoId, 10);
         vm.expectRevert(NotNftOwner.selector);
         protocol.changeDaoInfiniteMode(daoId, 1);
+        vm.stopPrank();
 
         startHoax(randomGuy.addr);
         assertEq(protocol.getDaoRoundMintCap(daoId), 10, "Check A 1");
@@ -104,6 +105,7 @@ contract PDEditPermission is DeployHelper {
         assertEq(protocol.getDaoRemainingRound(daoId), 10, "Check H 1");
         protocol.setDaoRemainingRound(daoId, 60);
         assertEq(protocol.getDaoRemainingRound(daoId), 60, "Check I 1");
+        vm.stopPrank();
         // protocol.setDaoEditParamPermission(daoId, 0x123, 1);
 
         //setDaoParams

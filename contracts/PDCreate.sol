@@ -95,8 +95,6 @@ struct CreateContinuousDaoParam {
 }
 
 contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
-    event checkPointA();
-
     address public immutable WETH;
 
     constructor(address _weth) {
