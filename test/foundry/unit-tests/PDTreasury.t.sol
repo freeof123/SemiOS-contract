@@ -180,8 +180,6 @@ contract ProtoDaoTreasuryTest is DeployHelper {
             nftMinter.addr
         );
         vm.roll(3);
-        // protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // assertEq(IERC20(erc20Token).balanceOf(nftMinter.addr), 5_000_000 * 0.08 ether, "check d");
         assertEq(protocol.getDaoCirculateTokenAmount(daoId), 5_000_000 ether, "check e");
     }
 }
