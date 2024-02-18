@@ -3,6 +3,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "contracts/interface/D4AErrors.sol";
+import { console2 } from "forge-std/Test.sol";
 
 contract SigUtils {
     bytes32 internal DOMAIN_SEPARATOR;
@@ -62,8 +63,8 @@ contract ProtoDaoTreasuryTest is DeployHelper {
 
         address grant_treasury_nft = protocol.getDaoGrantAssetPoolNft(daoId);
 
-        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 0");
-        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Should be 1b");
+        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "check A");
+        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "check B");
         vm.expectRevert(NotNftOwner.selector);
         protocol.grantDaoAssetPool(daoId, 1000 ether, true, "TEst");
 
@@ -74,14 +75,10 @@ contract ProtoDaoTreasuryTest is DeployHelper {
         );
         protocol.grantDaoAssetPool(daoId, 1000 ether, true, "TEst");
         assertEq(
-            IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)),
-            5000 * 10_000 ether + 1000 ether,
-            "Should be 1000"
+            IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether + 1000 ether, "check D"
         );
         assertEq(
-            IERC20(erc20Token).balanceOf(treasury),
-            1_000_000_000 ether - 5000 * 10_000 ether - 1000 ether,
-            "Should be 1b sub 1000"
+            IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether - 1000 ether, "check C"
         );
     }
 
@@ -95,8 +92,8 @@ contract ProtoDaoTreasuryTest is DeployHelper {
 
         address grant_treasury_nft = protocol.getDaoGrantAssetPoolNft(daoId);
 
-        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 0");
-        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Should be 1b");
+        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "check A");
+        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "check B");
         deal(erc20Token, daoCreator.addr, 10_000 ether);
 
         vm.prank(daoCreator.addr);
@@ -112,10 +109,8 @@ contract ProtoDaoTreasuryTest is DeployHelper {
             5000 * 10_000 ether + 1000 ether,
             "Should be 1000"
         );
-        assertEq(
-            IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Should be 1b sub 1000"
-        );
-        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 10_000 ether - 1000 ether, "Should be 9000");
+        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Check c");
+        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 10_000 ether - 1000 ether, "check D");
     }
 
     function test_grantDaoAssetPoolWithPermit() public {
@@ -148,8 +143,8 @@ contract ProtoDaoTreasuryTest is DeployHelper {
             erc20Token
         );
 
-        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 1");
-        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 10_000 ether, "Should be 2");
+        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "check A");
+        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 10_000 ether, "check B");
         vm.prank(daoCreator.addr);
         protocol.grantDaoAssetPoolWithPermit(daoId, 1000 ether, "TEst", block.timestamp + 1 days, v, r, s);
         assertEq(
@@ -157,6 +152,36 @@ contract ProtoDaoTreasuryTest is DeployHelper {
             5000 * 10_000 ether + 1000 ether,
             "Should be 3"
         );
-        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 9000 ether, "Should be 4");
+        assertEq(IERC20(erc20Token).balanceOf(daoCreator.addr), 9000 ether, "check C");
+    }
+
+    function test_checkErc20circulation_notThirdParty() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.mintableRound = 10;
+        param.selfRewardRatioERC20 = 10_000;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        address erc20Token = protocol.getDaoToken(daoId);
+        address treasury = protocol.getDaoTreasury(daoId);
+        assertEq(IERC20(erc20Token).totalSupply(), 1_000_000_000 ether);
+        assertEq(protocol.getDaoCirculateTokenAmount(daoId), 0);
+        assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "check A");
+        assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "check B");
+        super._mintNft(
+            daoId,
+            param.canvasId,
+            string.concat(
+                tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId)), "-", vm.toString(uint256(0)), ".json"
+            ),
+            0.01 ether,
+            daoCreator.key,
+            nftMinter.addr
+        );
+        vm.roll(3);
+        // protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(IERC20(erc20Token).balanceOf(nftMinter.addr), 5_000_000 * 0.08 ether, "check d");
+        assertEq(protocol.getDaoCirculateTokenAmount(daoId), 5_000_000 ether, "check e");
     }
 }
