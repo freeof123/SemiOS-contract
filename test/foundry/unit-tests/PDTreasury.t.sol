@@ -37,7 +37,7 @@ contract SigUtils {
 
 contract ProtoDaoTreasuryTest is DeployHelper {
     event Transfer(address from, address to, uint256 tokenId);
-    event NewSemiOsGrantNft(
+    event NewSemiOsGrantAssetPoolNft(
         address erc721Address,
         uint256 tokenId,
         bytes32 daoId,
@@ -60,7 +60,7 @@ contract ProtoDaoTreasuryTest is DeployHelper {
         address erc20Token = protocol.getDaoToken(daoId);
         address treasury = protocol.getDaoTreasury(daoId);
 
-        address grant_treasury_nft = protocol.getDaoTreasuryNft(daoId);
+        address grant_treasury_nft = protocol.getDaoGrantAssetPoolNft(daoId);
 
         assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 0");
         assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Should be 1b");
@@ -69,7 +69,7 @@ contract ProtoDaoTreasuryTest is DeployHelper {
 
         vm.prank(daoCreator.addr);
         vm.expectEmit(true, true, true, true, address(protocol));
-        emit NewSemiOsGrantNft(
+        emit NewSemiOsGrantAssetPoolNft(
             grant_treasury_nft, 2, daoId, daoCreator.addr, 1000 ether, true, block.number, erc20Token
         );
         protocol.grantDaoAssetPool(daoId, 1000 ether, true, "TEst");
@@ -93,7 +93,7 @@ contract ProtoDaoTreasuryTest is DeployHelper {
         address erc20Token = protocol.getDaoToken(daoId);
         address treasury = protocol.getDaoTreasury(daoId);
 
-        address grant_treasury_nft = protocol.getDaoTreasuryNft(daoId);
+        address grant_treasury_nft = protocol.getDaoGrantAssetPoolNft(daoId);
 
         assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 0");
         assertEq(IERC20(erc20Token).balanceOf(treasury), 1_000_000_000 ether - 5000 * 10_000 ether, "Should be 1b");
@@ -102,10 +102,10 @@ contract ProtoDaoTreasuryTest is DeployHelper {
         vm.prank(daoCreator.addr);
         IERC20(erc20Token).approve(address(protocol), 1000 ether);
         vm.expectEmit(true, true, true, true, address(protocol));
-        emit NewSemiOsGrantNft(
+        emit NewSemiOsGrantAssetPoolNft(
             grant_treasury_nft, 2, daoId, daoCreator.addr, 1000 ether, false, block.number, erc20Token
         );
-
+        vm.prank(daoCreator.addr);
         protocol.grantDaoAssetPool(daoId, 1000 ether, false, "TEst");
         assertEq(
             IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)),
@@ -137,8 +137,15 @@ contract ProtoDaoTreasuryTest is DeployHelper {
         bytes32 digest = sigUtils.getTypedDataHash(permit);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
-        emit NewSemiOsGrantNft(
-            protocol.getDaoTreasuryNft(daoId), 2, daoId, daoCreator.addr, 1000 ether, false, block.number, erc20Token
+        emit NewSemiOsGrantAssetPoolNft(
+            protocol.getDaoGrantAssetPoolNft(daoId),
+            2,
+            daoId,
+            daoCreator.addr,
+            1000 ether,
+            false,
+            block.number,
+            erc20Token
         );
 
         assertEq(IERC20(erc20Token).balanceOf(protocol.getDaoAssetPool(daoId)), 5000 * 10_000 ether, "Should be 1");
