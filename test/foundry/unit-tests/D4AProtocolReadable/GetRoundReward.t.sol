@@ -17,7 +17,6 @@ import { D4AERC20 } from "contracts/D4AERC20.sol";
 contract GetRoundRewardTest is DeployHelper {
     MintNftSigUtils public sigUtils;
 
-    bytes32 public daoId;
     bytes32 public canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
     uint256 maxDelta = 1;
     uint256 mintFeeRatioToAssetPoolNoFiatPrice = 2000;
@@ -70,6 +69,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 previousoundStartDaoAssetPoolBalance
     )
         internal
+        view
         returns (uint256 rewardCalculate)
     {
         uint256 sumMintFee = 0;
@@ -99,6 +99,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 previouseRoundDistributeAmount
     )
         internal
+        view
         returns (uint256 rewardCalculate)
     {
         uint256 sumMintFee = 0;
@@ -438,8 +439,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 mintNumberForSingleRound = 3;
         uint256 flatPrice = 0.01 ether;
         uint256 reward;
-        uint256 rewardCalculate;
-        uint256 nextCanvasPrice = 0.01 ether;
+        //uint256 nextCanvasPrice = 0.01 ether;
         uint256 decayFactor = 0;
 
         bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, true, false, flatPrice);
@@ -447,7 +447,7 @@ contract GetRoundRewardTest is DeployHelper {
         uint256 previousActiveRound;
         for (uint256 j = 2; j < mintableRound + 1; j++) {
             vm.roll(j);
-            bool newRound = true;
+            //bool newRound = true;
             uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
             previousActiveRound = protocol.getDaoLastActiveRound(daoId);
             reward = protocol.getDaoAssetPool(daoId).balance * (j - previousActiveRound)

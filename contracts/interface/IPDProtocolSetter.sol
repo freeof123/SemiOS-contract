@@ -36,10 +36,10 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event DaoRemainingRoundSet(bytes32 daoId, uint256 remainingRound);
 
-    event DaoTopUpBalanceOutRatioSet(bytes32 daoId, uint256 topupEthToRedeemPoolRatio, uint256 erc20ToTreasuryRatio);
-    event DefaultDaoTopUpBalanceOutRatioSet(
-        bytes32 daoId, uint256 topupEthToRedeemPoolRatio, uint256 erc20ToTreasuryRatio
-    );
+    event DefaultTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);
+    event DefaultTopUpErc20ToTreasuryRatioSet(bytes32 daoId, uint256 erc20ToTreasuryRatio);
+    event DaoTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);
+    event DaoTopUpErc20ToTreasuryRatioSet(bytes32 daoId, uint256 erc20ToTreasuryRatio);
 
     event DaoEditInformationNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
     event DaoEditParameterNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
@@ -53,7 +53,6 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) external;
     function setRatio(bytes32 daoId, AllRatioParam calldata vars) external;
 
-    //function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 tokenMaxSupply) external;
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) external;
     function changeDaoInfiniteMode(bytes32 daoId, uint256 remainingRound) external;
     function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
@@ -66,16 +65,22 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setTreasuryTransferAssetPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setTreasurySetTopUpRatioPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
 
-    function setTopUpBalanceSplitRatio(
+    function setTopUpEthSplitRatio(
         bytes32 daoId,
-        uint256 topupEthToRedeemPoolRatio,
-        uint256 erc20ToTreasuryRatio
+        uint256 defaultEthRatio,
+        bytes32[] calldata subDaoIds,
+        uint256[] calldata ethRatios
     )
         external;
-    function setDefaultTopUpBalanceSplitRatio(
+    function setTopUpErc20SplitRatio(
         bytes32 daoId,
-        uint256 topupEthToRedeemPoolRatio,
-        uint256 erc20ToTreasuryRatio
+        uint256 defaultErc20Ratio,
+        bytes32[] calldata subDaoIds,
+        uint256[] calldata erc20Ratios
     )
         external;
+    function setDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) external;
+    function setDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) external;
+    function setDaoTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) external;
+    function setDaoTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) external;
 }

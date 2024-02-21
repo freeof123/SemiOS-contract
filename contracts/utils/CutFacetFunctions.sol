@@ -294,8 +294,12 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasuryEditInformationPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasuryTransferAssetPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTreasurySetTopUpRatioPermission.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpBalanceSplitRatio.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDefaultTopUpBalanceSplitRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpEthSplitRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setTopUpErc20SplitRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDefaultTopUpEthToRedeemPoolRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDefaultTopUpErc20ToTreasuryRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoTopUpEthToRedeemPoolRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolSetter.setDaoTopUpErc20ToTreasuryRatio.selector;
 
     assert(interfaceId == type(IPDProtocolSetter).interfaceId ^ type(ID4AProtocolSetter).interfaceId);
 
@@ -307,7 +311,7 @@ function getProtocolSetterSelectors() pure returns (bytes4[] memory) {
     return selectors;
 }
 
-function getGrantSelectors() pure returns (bytes4[] memory) {
+function getPDGrantSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
     uint256 selectorIndex;
     // register D4AGrant

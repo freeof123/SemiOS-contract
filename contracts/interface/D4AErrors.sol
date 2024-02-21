@@ -120,3 +120,5 @@ error TopUpNftHadLocked();
 error TopUpNFTIsLocking();
 
 error OnlyProtocolCanSet();
+
+error InvalidLength();

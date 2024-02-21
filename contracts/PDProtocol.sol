@@ -62,7 +62,6 @@ import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
-// import { CreateCanvasAndMintNFTCanvasParam } from "contracts/PDProtocolCanvas.sol";
 
 // import "forge-std/Test.sol";
 
@@ -129,35 +128,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         emit NewCanvasForMint(daoId, canvasId, canvasUri);
         DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
     }
-
-    // function mintNFT(
-    //     bytes32 daoId,
-    //     bytes32 canvasId,
-    //     string calldata tokenUri,
-    //     bytes32[] calldata proof,
-    //     uint256 flatPrice,
-    //     bytes calldata nftSignature,
-    //     bytes calldata erc20Signature,
-    //     uint256 deadline
-    // )
-    //     external
-    //     payable
-    //     nonReentrant
-    //     returns (uint256)
-    // {
-    //     MintNFTAndTransferParam memory vars = MintNFTAndTransferParam({
-    //         daoId: daoId,
-    //         canvasId: canvasId,
-    //         tokenUri: tokenUri,
-    //         proof: proof,
-    //         flatPrice: flatPrice,
-    //         nftSignature: nftSignature,
-    //         to: msg.sender,
-    //         erc20Signature: erc20Signature,
-    //         deadline: deadline
-    //     });
-    //     return _mintNFTAndTransfer(vars);
-    // }
 
     function updateTopUpAccount(bytes32 daoId, NftIdentifier memory nft) external returns (uint256, uint256) {
         return _usingTopUpAccount(daoId, nft);
@@ -252,7 +222,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (, daoNftOwnerERC20Reward,, daoNftOwnerETHReward) = abi.decode(data, (uint256, uint256, uint256, uint256));
 
-        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoNftOwnerERC20Reward, daoNftOwnerETHReward);
+        emit PDClaimDaoCreatorReward(daoId, daoInfo.token, daoNftOwnerERC20Reward, daoNftOwnerETHReward, daoNftOwner);
     }
 
     function claimCanvasReward(bytes32 canvasId)
@@ -283,7 +253,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (canvasERC20Reward, canvasETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasERC20Reward, canvasETHReward);
+        emit PDClaimCanvasReward(daoId, canvasId, daoInfo.token, canvasERC20Reward, canvasETHReward, canvasCreator);
     }
 
     function claimNftMinterReward(
@@ -313,7 +283,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         require(succ);
         (minterERC20Reward, minterETHReward) = abi.decode(data, (uint256, uint256));
 
-        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward);
+        emit PDClaimNftMinterReward(daoId, daoInfo.token, minterERC20Reward, minterETHReward, minter);
 
         // else {
         //     emit PDClaimNftMinterRewardTopUp(daoId, daoInfo.token, minterERC20Reward, minterETHReward);

@@ -30,7 +30,7 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         //some default value here
         l.protocolMintFeeRatioInBps = 250;
         l.protocolRoyaltyFeeRatioInBps = 250;
-        l.minRoyaltyFeeRatioInBps = 500;
+        l.minRoyaltyFeeRatioInBps = 0;
         l.maxRoyaltyFeeRatioInBps = 1000;
 
         l.protocolERC20RatioInBps = 200;

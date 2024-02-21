@@ -60,7 +60,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         _disableInitializers();
     }
 
-    function initialize(ID4AOwnerProxy _ownerProxy) external reinitializer(2) {
+    function initialize(ID4AOwnerProxy _ownerProxy) external initializer {
         ownerProxy = _ownerProxy;
         __EIP712_init("D4APermissionControl", "2");
     }

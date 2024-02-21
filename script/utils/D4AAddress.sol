@@ -21,6 +21,8 @@ import { PDCreate } from "contracts/PDCreate.sol";
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDRound } from "contracts/PDRound.sol";
 import { PDLock } from "contracts/PDLock.sol";
+import { PDRound } from "contracts/PDRound.sol";
+import { PDGrant } from "contracts/PDGrant.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
@@ -68,15 +70,12 @@ contract D4AAddress is CommonBase {
     PDBasicDao public pdBasicDao = PDBasicDao(json.readAddress(".PDProtocol.PDBasicDao"));
     PDRound public pdRound = PDRound(json.readAddress(".PDProtocol.PDRound"));
     PDLock public pdLock = PDLock(json.readAddress(".PDProtocol.PDLock"));
+    PDGrant public pdGrant = PDGrant(json.readAddress(".PDProtocol.PDGrant"));
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".PDProtocol.D4ASettings"));
     LinearPriceVariation public linearPriceVariation =
         LinearPriceVariation(json.readAddress(".PDProtocol.LinearPriceVariation"));
     ExponentialPriceVariation public exponentialPriceVariation =
         ExponentialPriceVariation(json.readAddress(".PDProtocol.ExponentialPriceVariation"));
-    LinearRewardIssuance public linearRewardIssuance =
-        LinearRewardIssuance(json.readAddress(".PDProtocol.LinearRewardIssuance"));
-    ExponentialRewardIssuance public exponentialRewardIssuance =
-        ExponentialRewardIssuance(json.readAddress(".PDProtocol.ExponentialRewardIssuance"));
     UniformDistributionRewardIssuance public uniformDistributionRewardIssuance =
         UniformDistributionRewardIssuance(json.readAddress(".PDProtocol.UniformDistributionRewardIssuance"));
 
@@ -85,7 +84,7 @@ contract D4AAddress is CommonBase {
     PermissionControl public permissionControl_impl = PermissionControl(json.readAddress(".PermissionControl.impl"));
 
     // Basic Dao Unlocker
-    BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));
+    //BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));
 
     // naive owner proxy
     NaiveOwner public naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));

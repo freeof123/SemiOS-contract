@@ -156,10 +156,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         // _checkSetAbility(vars.daoId, true, true);
         _checkEditParamAbility(vars.daoId);
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        //bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[vars.daoId].ancestor;
-        //if (msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)) {
-        //setInitialTokenSupplyForSubDao(vars.daoId, vars.initialTokenSupply);
-        //1
+
         if (!vars.changeInfiniteMode) {
             setDaoRemainingRound(vars.daoId, vars.remainingRound); //2
         } else {
@@ -189,13 +186,9 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         uint256 sumERC20;
         uint256 sumETH;
         InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
-        bytes32 ancestorDao = treeInfo.ancestor;
 
         for (uint256 i = 0; i < vars.childrenDaoId.length;) {
-            //if (!BasicDaoStorage.layout().basicDaoInfos[daoId].exist) revert NotDaoForFunding();
-            if (InheritTreeStorage.layout().inheritTreeInfos[vars.childrenDaoId[i]].ancestor != ancestorDao) {
-                revert InvalidDaoAncestor(vars.childrenDaoId[i]);
-            }
+            _checkDaoMember(treeInfo.ancestor, vars.childrenDaoId[i]);
             sumERC20 += vars.erc20Ratios[i];
             sumETH += vars.ethRatios[i];
             unchecked {
@@ -350,39 +343,90 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         emit DaoInfiniteModeChanged(daoId, !infiniteMode, remainingRound);
     }
 
-    function setDefaultTopUpBalanceSplitRatio(
+    //1.6add-------------------------------------------
+    function setTopUpEthSplitRatio(
         bytes32 daoId,
-        uint256 ethToRedeemPoolRatio,
-        uint256 erc20ToTreasuryRatio
+        uint256 defaultEthRatio,
+        bytes32[] calldata subDaoIds,
+        uint256[] calldata ethRatios
     )
         public
     {
+        _checkTreasurySetTopUpRatioAbility(daoId);
+        if (subDaoIds.length != ethRatios.length) revert InvalidLength();
+
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        poolInfo.defaultTopUpEthToRedeemPoolRatio = defaultEthRatio;
+        for (uint256 i; i < subDaoIds.length;) {
+            _checkDaoMember(daoId, subDaoIds[i]);
+            BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[subDaoIds[i]];
+            basicDaoInfo.topUpEthToRedeemPoolRatio = ethRatios[i];
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function setTopUpErc20SplitRatio(
+        bytes32 daoId,
+        uint256 defaultErc20Ratio,
+        bytes32[] calldata subDaoIds,
+        uint256[] calldata erc20Ratios
+    )
+        public
+    {
+        _checkTreasurySetTopUpRatioAbility(daoId);
+        if (subDaoIds.length != erc20Ratios.length) revert InvalidLength();
+
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        poolInfo.defaultTopUpErc20ToTreasuryRatio = defaultErc20Ratio;
+        for (uint256 i; i < subDaoIds.length;) {
+            _checkDaoMember(daoId, subDaoIds[i]);
+            BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[subDaoIds[i]];
+            basicDaoInfo.topUpErc20ToTreasuryRatio = erc20Ratios[i];
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function setDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         poolInfo.defaultTopUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
-        poolInfo.defaultTopUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
 
-        emit DefaultDaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
+        emit DefaultTopUpEthToRedeemPoolRatioSet(daoId, ethToRedeemPoolRatio);
     }
 
-    function setTopUpBalanceSplitRatio(
-        bytes32 daoId,
-        uint256 ethToRedeemPoolRatio,
-        uint256 erc20ToTreasuryRatio
-    )
-        public
-    {
+    function setDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) public {
+        _checkTreasurySetTopUpRatioAbility(daoId);
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        poolInfo.defaultTopUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+
+        emit DefaultTopUpErc20ToTreasuryRatioSet(daoId, erc20ToTreasuryRatio);
+    }
+
+    function setDaoTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         basicDaoInfo.topUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
-        basicDaoInfo.topUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
 
-        emit DaoTopUpBalanceOutRatioSet(daoId, ethToRedeemPoolRatio, erc20ToTreasuryRatio);
+        emit DaoTopUpEthToRedeemPoolRatioSet(daoId, ethToRedeemPoolRatio);
     }
 
-    event checkPoint(address msg);
+    function setDaoTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) public {
+        _checkTreasurySetTopUpRatioAbility(daoId);
+
+        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        basicDaoInfo.topUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+
+        emit DaoTopUpErc20ToTreasuryRatioSet(daoId, erc20ToTreasuryRatio);
+    }
 
     function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
         setDaoEditInformationPermission(daoId, daoNftAddress, tokenId);
@@ -542,6 +586,12 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         uint256 tokenId = ownerInfo.treasurySetTopUpRatioOwner.tokenId;
         if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
             revert NotNftOwner();
+        }
+    }
+
+    function _checkDaoMember(bytes32 ancestor, bytes32 subDaoId) internal view {
+        if (InheritTreeStorage.layout().inheritTreeInfos[subDaoId].ancestor != ancestor) {
+            revert InvalidDaoAncestor(subDaoId);
         }
     }
 }

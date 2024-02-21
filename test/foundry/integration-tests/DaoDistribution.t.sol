@@ -368,7 +368,7 @@ contract DaoDistribution is DeployHelper {
 
         vm.roll(3);
         uint256 balance_before = IERC20(protocol.getDaoToken(daoId3)).balanceOf(daoCreator2.addr);
-        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
+        (uint256 ercAmount,) = protocol.claimDaoNftOwnerReward(daoId3);
         uint256 balance_after = IERC20(protocol.getDaoToken(daoId3)).balanceOf(daoCreator2.addr);
         assertEq(ercAmount, balance_after - balance_before, "Check A D");
 

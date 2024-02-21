@@ -165,10 +165,10 @@ contract GetRewardTillRoundTest is DeployHelper {
         param.isBasicDao = true;
         param.uniPriceModeOff = true;
         param.topUpMode = false;
-        // param.mintableRound = 1;
-        // param.rewardTemplateType = 2;
-        // param.rewardDecayFactor = 3;
-        // param.isProgressiveJackpot = 4;
+        param.mintableRound = mintableRound;
+        param.rewardTemplateType = rewardTemplateType;
+        param.rewardDecayFactor = rewardDecayFactor;
+        param.isProgressiveJackpot = isProgressiveJackpot;
         param.needMintableWork = true;
         param.noPermission = true;
 

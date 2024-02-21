@@ -109,7 +109,6 @@ contract D4ARoyaltySplitterTest is DeployHelper {
     }
 
     function test_splitETH() public {
-        uint256 balance = protocolFeePool.addr.balance;
         SafeTransferLib.safeTransferETH(address(splitter), 10 ether);
         assertEq(protocolFeePool.addr.balance, 2 ether);
         assertEq(daoFeePool.balance, 8 ether);
@@ -118,7 +117,6 @@ contract D4ARoyaltySplitterTest is DeployHelper {
 
     // assertion failed
     function test_splitETH_viaFallback() public {
-        uint256 balance = protocolFeePool.addr.balance;
         (bool succ,) = address(splitter).call{ value: 10 ether }("test");
         require(succ);
         assertEq(protocolFeePool.addr.balance, 2 ether);

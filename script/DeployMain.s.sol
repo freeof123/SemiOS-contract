@@ -98,11 +98,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployCreateProjectProxyProxy();
 
         //_deployPermissionControl();
-        //todo: need to update the implementation (protocol permission missed, "msg.sender== xx || == xx"), just
-        // uncomment
         // _deployPermissionControlProxy();
 
-        // _initSettings();//todo: same in deploy.s
+        // _initSettings();
         // _initSettings13();
 
         // _deployLinearPriceVariation();
@@ -122,7 +120,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         //_deployUnlocker();
         //_transferOwnership();
         //ProxyAdmin(0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477).transferOwnership(multisig);
-        _changeMultisig();
+        //_changeMultisig();
         //_checkStatus();
         //vm.stopBroadcast();
         //vm.stopPrank();
@@ -808,6 +806,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
 
+        // do not upgrate for first time deploy
         console2.log("Update Permission Control Data:");
         console2.logBytes(
             abi.encodeCall(
@@ -849,18 +848,18 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployUnlocker() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy BasicDaoUnlocker");
+    // function _deployUnlocker() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy BasicDaoUnlocker");
 
-        basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
-        assertTrue(address(basicDaoUnlocker) != address(0));
+    //     basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
+    //     assertTrue(address(basicDaoUnlocker) != address(0));
 
-        vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
+    //     vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
 
-        console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _initSettings() internal {
         console2.log("\n================================================================================");
@@ -946,7 +945,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _initSettings13() internal {
+    function _initSettings13() internal view {
         // _changeAddressInDaoProxy();
         // _changeSettingsRatio();
         // console2.log("change address in dao proxy");
@@ -989,7 +988,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // D4ASettings(address(pdProtocol_proxy)).renounceRole(OPERATION_ROLE);
     }
 
-    function _changeMultisig() internal {
+    function _changeMultisig() internal view {
         console2.log("change address in dao proxy data:");
         console2.logBytes(
             abi.encodeCall(

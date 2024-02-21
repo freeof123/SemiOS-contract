@@ -125,7 +125,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 0);
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
-        bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
         param.daoUri = "sub dao uri";
@@ -197,7 +196,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
     function test_PDCreateFunding_4_21() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.noPermission = true;
@@ -245,7 +243,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         address token = protocol.getDaoToken(daoId);
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
-        bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
         param.daoUri = "sub dao uri";
@@ -322,7 +319,6 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertEq(protocol.getDaoRemainingRound(daoId), 0);
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 1));
-        bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
         param.daoUri = "sub dao uri";

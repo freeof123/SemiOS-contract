@@ -83,9 +83,6 @@ struct CreateAncestorDaoParam {
     uint256 daoIndex;
     string daoName;
     address daoToken;
-    string ownershipUri;
-    uint256 defaultTopUpEthToRedeemPoolRatio;
-    uint256 defaultTopUpErc20ToTreasuryRatio;
 }
 
 struct CreateContinuousDaoParam {
@@ -264,15 +261,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
             _createProject(
-                CreateAncestorDaoParam(
-                    daoId,
-                    daoInfo.daoIndex,
-                    basicDaoParam.daoName,
-                    continuousDaoParam.daoToken,
-                    continuousDaoParam.ownershipUri,
-                    continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
-                    continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
-                )
+                CreateAncestorDaoParam(daoId, daoInfo.daoIndex, basicDaoParam.daoName, continuousDaoParam.daoToken)
             );
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
@@ -303,14 +292,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoInfo.nftMaxSupply = settingsStorage.nftMaxSupplies[daoMetadataParam.maxNftRank];
             daoInfo.daoUri = daoMetadataParam.projectUri;
             {
-                uint256 protocolRoyaltyFeeRatioInBps = settingsStorage.protocolRoyaltyFeeRatioInBps;
                 if (
-                    daoMetadataParam.royaltyFee < settingsStorage.minRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
-                        || daoMetadataParam.royaltyFee
-                            > settingsStorage.maxRoyaltyFeeRatioInBps + protocolRoyaltyFeeRatioInBps
+                    daoMetadataParam.royaltyFee < settingsStorage.minRoyaltyFeeRatioInBps
+                        || daoMetadataParam.royaltyFee > settingsStorage.maxRoyaltyFeeRatioInBps
                 ) revert RoyaltyFeeRatioOutOfRange();
             }
-            daoInfo.royaltyFeeRatioInBps = daoMetadataParam.royaltyFee;
+            daoInfo.royaltyFeeRatioInBps =
+                daoMetadataParam.royaltyFee + uint96(settingsStorage.protocolRoyaltyFeeRatioInBps);
         }
 
         emit NewProject(
@@ -351,7 +339,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].unifiedPriceModeOff = continuousDaoParam.unifiedPriceModeOff;
         basicDaoStorage.basicDaoInfos[daoId].reserveNftNumber = continuousDaoParam.reserveNftNumber;
         basicDaoStorage.basicDaoInfos[daoId].unifiedPrice = continuousDaoParam.unifiedPrice;
-        basicDaoStorage.basicDaoInfos[daoId].version = 14;
+        basicDaoStorage.basicDaoInfos[daoId].version = 16;
         basicDaoStorage.basicDaoInfos[daoId].exist = true;
         basicDaoStorage.basicDaoInfos[daoId].topUpMode = continuousDaoParam.topUpMode;
         basicDaoStorage.basicDaoInfos[daoId].needMintableWork = continuousDaoParam.needMintableWork;
@@ -368,11 +356,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoStorage.daoInfos[daoId].daoFeePool,
             poolInfo.treasury,
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
-        );
-        emit OwnershipNftParamEmitted(
-            continuousDaoParam.ownershipUri,
-            continuousDaoParam.defaultTopUpEthToRedeemPoolRatio,
-            continuousDaoParam.defaultTopUpErc20ToTreasuryRatio
         );
     }
 
@@ -402,15 +385,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             daoInfo.daoFeePool = daoFeePool;
 
-            _createTreasury(
-                daoId,
-                vars.daoIndex,
-                vars.daoName,
-                vars.daoToken,
-                daoFeePool,
-                vars.defaultTopUpEthToRedeemPoolRatio,
-                vars.defaultTopUpErc20ToTreasuryRatio
-            );
+            _createTreasury(daoId, vars.daoIndex, vars.daoName, vars.daoToken, daoFeePool);
         }
     }
 
@@ -419,9 +394,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         uint256 daoIndex,
         string memory daoName,
         address daoToken,
-        address daoFeePool,
-        uint256 defaultTopUpEthToRedeemPoolRatio,
-        uint256 defaultTopUpErc20ToTreasuryRatio
+        address daoFeePool
     )
         internal
     {
@@ -441,9 +414,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         }
 
         PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoFeePool];
-
-        poolInfo.defaultTopUpEthToRedeemPoolRatio = defaultTopUpEthToRedeemPoolRatio;
-        poolInfo.defaultTopUpErc20ToTreasuryRatio = defaultTopUpErc20ToTreasuryRatio;
         poolInfo.treasury = treasury;
 
         address grantTreasuryNft = _createERC721Token(daoIndex, daoName, "SEMI.GT", false, 0);

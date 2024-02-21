@@ -42,11 +42,10 @@ contract PDMainDaoOwnership is DeployHelper {
         );
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
         param.daoUri = "continuous dao uri";
-        bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
+        super._createDaoForFunding(param, daoCreator2.addr);
     }
 
     receive() external payable { }

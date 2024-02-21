@@ -44,7 +44,7 @@ contract ProtoDaoEventTest is DeployHelper {
             duration: createDaoParam.duration == 0 ? 1e18 : createDaoParam.duration,
             floorPrice: (createDaoParam.floorPrice == 0 ? 0.01 ether : createDaoParam.floorPrice),
             maxNftRank: 2,
-            royaltyFee: createDaoParam.royaltyFee == 0 ? 1250 : createDaoParam.royaltyFee,
+            royaltyFee: createDaoParam.royaltyFee == 0 ? 1000 : createDaoParam.royaltyFee,
             projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
             projectIndex: 0
         });
@@ -89,9 +89,7 @@ contract ProtoDaoEventTest is DeployHelper {
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
             erc20PaymentMode: createDaoParam.erc20PaymentMode,
-            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
-            defaultTopUpEthToRedeemPoolRatio: createDaoParam.defaultTopUpEthToRedeemPoolRatio,
-            defaultTopUpErc20ToTreasuryRatio: createDaoParam.defaultTopUpErc20ToTreasuryRatio
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({
@@ -169,7 +167,6 @@ contract ProtoDaoEventTest is DeployHelper {
         // dao: daoCreator
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.selfRewardRatioETH = 10_000;

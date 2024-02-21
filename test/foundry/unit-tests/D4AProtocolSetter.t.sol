@@ -35,7 +35,6 @@ contract D4AProtocolSetterTest is DeployHelper {
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
-        vars.initialTokenSupply = 1 ether;
         vars.unifiedPrice = 1006;
         vars.setChildrenParam = SetChildrenParam(new bytes32[](0), new uint256[](0), new uint256[](0), 0, 0, 0);
         vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);

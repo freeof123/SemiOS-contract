@@ -34,7 +34,6 @@ contract FundingDaoParamSet is DeployHelper {
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
-        vars.initialTokenSupply = 1 ether;
         vars.unifiedPrice = 1006;
         vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
         vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
@@ -55,7 +54,6 @@ contract FundingDaoParamSet is DeployHelper {
 
         // 用ContinuousDAO创建者的地址尝试修改ContinuousDAO的参数,无法成功追加DAO Token
         vars.daoId = continuousDaoId;
-        vars.initialTokenSupply = 2 ether;
         address daoToken = protocol.getDaoToken(daoId);
         hoax(daoCreator2.addr);
         protocol.setDaoParams(vars);

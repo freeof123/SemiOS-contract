@@ -136,14 +136,12 @@ contract ProtoDaoTestDirectly is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_benchmark() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
 
         param.isBasicDao = false;
         param.existDaoId = daoId;

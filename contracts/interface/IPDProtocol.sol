@@ -14,11 +14,17 @@ interface IPDProtocol {
 
     // event D4AClaimNftMinterReward(bytes32 daoId, address token, uint256 amount);
 
-    event PDClaimDaoCreatorReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimDaoCreatorReward(
+        bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+    );
 
-    event PDClaimCanvasReward(bytes32 daoId, bytes32 canvasId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimCanvasReward(
+        bytes32 daoId, bytes32 canvasId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+    );
 
-    event PDClaimNftMinterReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimNftMinterReward(
+        bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+    );
 
     event PDClaimNftTopUpBalance(
         bytes32 daoId, address token, NftIdentifier nft, uint256 erc20Amount, uint256 ethAmount

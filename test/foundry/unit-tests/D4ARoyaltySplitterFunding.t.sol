@@ -28,7 +28,7 @@ contract D4ARoyaltySplitterFundingTest is DeployHelper {
         createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         createDaoParam.thirdPartyToken = address(_daoToken);
         createDaoParam.isBasicDao = true;
-        createDaoParam.royaltyFee = 750;
+        createDaoParam.royaltyFee = 500;
 
         bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
 

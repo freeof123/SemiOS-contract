@@ -923,16 +923,16 @@ contract DeployDemo is Script, Test, D4AAddress {
         D4ASettings(address(pdProtocol_proxy)).changeETHRewardRatio(200);
     }
 
-    function _deployUnlocker() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy BasicDaoUnlocker");
+    // function _deployUnlocker() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy BasicDaoUnlocker");
 
-        basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
-        assertTrue(address(basicDaoUnlocker) != address(0));
+    //     basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
+    //     assertTrue(address(basicDaoUnlocker) != address(0));
 
-        vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
+    //     vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
 
-        console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
+    //     console2.log("================================================================================\n");
+    // }
 }

@@ -125,7 +125,6 @@ contract ProtoDaoThirdParty is DeployHelper {
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
         param.isProgressiveJackpot = false;

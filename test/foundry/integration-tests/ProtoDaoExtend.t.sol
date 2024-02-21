@@ -23,14 +23,12 @@ contract ProtoDaoExtendTest is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_erc20_two_mint_with_same_price() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
 
         param.isBasicDao = false;
         param.existDaoId = daoId;
@@ -121,14 +119,12 @@ contract ProtoDaoExtendTest is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_erc20_two_mint_with_diff_price() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
 
         param.isBasicDao = false;
         param.existDaoId = daoId;
@@ -221,14 +217,12 @@ contract ProtoDaoExtendTest is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_erc20_three_mint_with_diff_price() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
 
         param.isBasicDao = false;
         param.existDaoId = daoId;
@@ -337,14 +331,12 @@ contract ProtoDaoExtendTest is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_eth_with_one_mint() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.isBasicDao = true;
         param.existDaoId = bytes32(0);
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
         param.isBasicDao = false;
         param.existDaoId = daoId;
         bytes32 daoId1 = super._createDaoForFunding(param, daoCreator2.addr);
@@ -454,14 +446,12 @@ contract ProtoDaoExtendTest is DeployHelper {
     function test_PDCreateFunding_createContinuousDAO_eth_with_transfer() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.isBasicDao = true;
         param.existDaoId = bytes32(0);
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
 
         param.daoUri = "continuous dao uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
         param.isBasicDao = false;
         param.existDaoId = daoId;
         bytes32 daoId1 = super._createDaoForFunding(param, daoCreator2.addr);
@@ -1047,8 +1037,6 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
-        address redeemPool = protocol.getDaoFeePool(subDaoId);
-        address protocolPool = protocol.protocolFeePool();
         address assetPool_maindao = protocol.getDaoAssetPool(daoId);
         address assetPool_subdao2 = protocol.getDaoAssetPool(subDaoId2);
         // !!!! 1.3-57 step 1
@@ -1166,8 +1154,6 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         address token = protocol.getDaoToken(subDaoId);
         address assetPool_subdao = protocol.getDaoAssetPool(subDaoId);
-        address redeemPool = protocol.getDaoFeePool(subDaoId);
-        address protocolPool = protocol.protocolFeePool();
         address assetPool_maindao = protocol.getDaoAssetPool(daoId);
         address assetPool_subdao2 = protocol.getDaoAssetPool(subDaoId2);
         // !!!! 1.3-58 step 1
@@ -1242,7 +1228,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         // main dao
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-        bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -1250,7 +1235,6 @@ contract ProtoDaoExtendTest is DeployHelper {
         // subdao2
         param.daoUri = "continuous subdao2 uri";
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
-        bytes32 canvasId2 = param.canvasId;
         param.isBasicDao = false;
         param.existDaoId = daoId;
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator2.addr);
@@ -1538,10 +1522,8 @@ contract ProtoDaoExtendTest is DeployHelper {
 
         {
             vm.prank(nftMinter.addr);
-            uint256 nftMinter_eth_balance_before_claim = nftMinter.addr.balance;
             uint256 daoCreator3_eth_balance_before_claim = daoCreator3.addr.balance;
             universalClaimer.claimMultiReward(claimParam);
-            uint256 nftMinter_eth_balance_after_claim = nftMinter.addr.balance;
             uint256 daoCreator3_eth_balance_after_claim = daoCreator3.addr.balance;
 
             // eth

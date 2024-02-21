@@ -60,8 +60,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-        //question daoid = 0
+        // (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         // ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
         //     bytes32(0), 100, new UserMintCapParam[](0), new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
         // );
@@ -75,8 +74,7 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         vm.prank(address(protocol));
         naiveOwner.initOwnerOf(bytes32(0), address(this));
 
-        (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
-        //question
+        // (, Whitelist memory whitelist, Blacklist memory blacklist) = _generateTrivialPermission();
         // ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
         //     bytes32(0), 100, new UserMintCapParam[](0), new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
         // );

@@ -19,7 +19,6 @@ contract PDEditPermission is DeployHelper {
     //--------------------------------------------------
 
     function test_daoParameterSetControl_generalParameter_noOtherNFT() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -114,7 +113,6 @@ contract PDEditPermission is DeployHelper {
     }
 
     function test_daoParameterSetControl_setDaoParams_noOtherNFT() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -138,7 +136,6 @@ contract PDEditPermission is DeployHelper {
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
-        vars.initialTokenSupply = 1 ether;
         vars.unifiedPrice = 1006;
         vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
         vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
@@ -159,7 +156,6 @@ contract PDEditPermission is DeployHelper {
     }
 
     function test_daoParameterSetControl_setChildrenParam_noOtherNFT() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -206,7 +202,6 @@ contract PDEditPermission is DeployHelper {
     }
 
     function test_daoParameterSetControl_setRatioParam_noOtherNFT() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -292,7 +287,6 @@ contract PDEditPermission is DeployHelper {
     }
 
     function test_daoParameterSetControl_daoStrategySetControl_addOtherNFT() public {
-        bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
@@ -365,7 +359,6 @@ contract PDEditPermission is DeployHelper {
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
-        vars.initialTokenSupply = 1 ether;
         vars.unifiedPrice = 1006;
         vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
         vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);

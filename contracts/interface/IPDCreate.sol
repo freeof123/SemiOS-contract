@@ -58,10 +58,6 @@ interface IPDCreate is ICreate {
         bytes32 daoId, address daoAssetPool, address daoRedeemPool, address treasury, bool isThirdPartyToken
     );
 
-    event OwnershipNftParamEmitted(
-        string ownershipUri, uint256 defaultTopUpEthToRedeemPoolRatio, uint256 defaultTopUpErc20ToTreasuryRatio
-    );
-
     function createDao(
         bytes32 existDaoId,
         DaoMetadataParam calldata daoMetadataParam,

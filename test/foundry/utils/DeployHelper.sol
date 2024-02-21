@@ -27,7 +27,7 @@ import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
     getProtocolSetterSelectors,
-    getGrantSelectors,
+    getPDGrantSelectors,
     getPDRoundSelectors,
     getPDLockSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
@@ -436,7 +436,7 @@ contract DeployHelper is Test {
     }
 
     function _cutFacetsGrant() internal {
-        bytes4[] memory selectors = getGrantSelectors();
+        bytes4[] memory selectors = getPDGrantSelectors();
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -786,8 +786,6 @@ contract DeployHelper is Test {
         bool erc20PaymentMode;
         //1.6 add-------------------------------------------
         string ownershipUri;
-        uint256 defaultTopUpEthToRedeemPoolRatio;
-        uint256 defaultTopUpErc20ToTreasuryRatio;
     }
 
     struct MintNftParamTest {
@@ -847,7 +845,7 @@ contract DeployHelper is Test {
             duration: createDaoParam.duration == 0 ? 1e18 : createDaoParam.duration,
             floorPrice: (createDaoParam.floorPrice == 0 ? 0.01 ether : createDaoParam.floorPrice),
             maxNftRank: 2,
-            royaltyFee: createDaoParam.royaltyFee == 0 ? 1250 : createDaoParam.royaltyFee,
+            royaltyFee: createDaoParam.royaltyFee == 0 ? 1000 : createDaoParam.royaltyFee,
             projectUri: bytes(createDaoParam.daoUri).length == 0 ? "test dao uri" : createDaoParam.daoUri,
             projectIndex: 0
         });
@@ -892,9 +890,7 @@ contract DeployHelper is Test {
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
             erc20PaymentMode: createDaoParam.erc20PaymentMode,
-            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
-            defaultTopUpEthToRedeemPoolRatio: createDaoParam.defaultTopUpEthToRedeemPoolRatio,
-            defaultTopUpErc20ToTreasuryRatio: createDaoParam.defaultTopUpErc20ToTreasuryRatio
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({
