@@ -393,6 +393,10 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return account != IERC721(erc721Address).ownerOf(tokenId);
     }
 
+    function getDaoNeedMintableWork(bytes32 daoId) public view returns (bool) {
+        return BasicDaoStorage.layout().basicDaoInfos[daoId].needMintableWork;
+    }
+
     function _getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,

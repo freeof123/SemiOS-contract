@@ -252,6 +252,7 @@ function getProtocolReadableSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryTransferAssetPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasurySetTopUpRatioPermission.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getTreasuryEditInformationPermission.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDProtocolReadable.getDaoNeedMintableWork.selector;
 
     assert(interfaceId == type(IPDProtocolReadable).interfaceId ^ type(ID4AProtocolReadable).interfaceId);
 

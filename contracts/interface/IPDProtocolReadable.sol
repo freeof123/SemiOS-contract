@@ -79,4 +79,5 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getTreasuryTransferAssetPermission(bytes32 daoId, address account) external view returns (bool);
     function getTreasurySetTopUpRatioPermission(bytes32 daoId, address account) external view returns (bool);
     function getTreasuryEditInformationPermission(bytes32 daoId, address account) external view returns (bool);
+    function getDaoNeedMintableWork(bytes32 daoId) external view returns (bool);
 }
