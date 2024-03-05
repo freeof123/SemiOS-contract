@@ -306,7 +306,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoMetadataParam.projectUri,
             DaoStorage.layout().daoInfos[daoId].token,
             DaoStorage.layout().daoInfos[daoId].nft,
-            daoMetadataParam.royaltyFee,
+            daoInfo.royaltyFeeRatioInBps,
             continuousDaoParam.isAncestorDao
         );
 

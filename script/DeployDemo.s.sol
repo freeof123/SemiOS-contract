@@ -43,65 +43,65 @@ contract DeployDemo is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        _deployFeePoolFactory();
+        // _deployFeePoolFactory();
 
-        _deployRoyaltySplitterFactory();
+        // _deployRoyaltySplitterFactory();
 
-        _deployERC20Factory();
+        // _deployERC20Factory();
 
-        _deployERC721WithFilterFactory();
+        // _deployERC721WithFilterFactory();
 
-        _deployNaiveOwner();
-        _deployNaiveOwnerProxy();
+        // _deployNaiveOwner();
+        // _deployNaiveOwnerProxy();
 
-        _deployProxyAdmin();
+        // _deployProxyAdmin();
 
-        _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocolProxy();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.ADD);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.ADD);
 
         _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.ADD);
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
-        _deployPDRound();
-        _cutFacetsPDRound(DeployMethod.ADD);
+        // _deployPDRound();
+        // _cutFacetsPDRound(DeployMethod.ADD);
 
-        _deployPDLock();
-        _cutFacetsPDLock(DeployMethod.ADD);
+        // _deployPDLock();
+        // _cutFacetsPDLock(DeployMethod.ADD);
 
-        _deployPDGrant();
-        _cutFacetsPDGrant(DeployMethod.ADD);
+        // _deployPDGrant();
+        // _cutFacetsPDGrant(DeployMethod.ADD);
 
-        _deployPDBasicDao();
-        _cutFacetsPDBasicDao(DeployMethod.ADD);
+        // _deployPDBasicDao();
+        // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        _deploySettings();
-        _cutSettingsFacet(DeployMethod.ADD);
+        // _deploySettings();
+        // _cutSettingsFacet(DeployMethod.ADD);
 
-        _deployUniversalClaimer();
+        // _deployUniversalClaimer();
 
-        _deployPermissionControl();
-        _deployPermissionControlProxy();
+        // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
-        _initSettings();
-        _initSettings13();
+        // _initSettings();
+        // _initSettings13();
 
-        _deployLinearPriceVariation();
-        _deployExponentialPriceVariation();
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
 
-        _deployUniformDistributionRewardIssuance();
+        // _deployUniformDistributionRewardIssuance();
 
-        pdProtocol_proxy.initialize();
+        // pdProtocol_proxy.initialize();
 
-        PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
-        PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
-            "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
-        );
+        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
+        // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
+        //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+        // );
 
         vm.stopBroadcast();
     }
