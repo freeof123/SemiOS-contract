@@ -146,7 +146,6 @@ contract EventEmitter {
             nftMinterCapInfo,
             TemplateParam(PriceTemplateType(0), 20_000, RewardTemplateType(0), 0, false),
             BasicDaoParam(
-                500,
                 0xc6b344799718aec19d11a2e79c92e2843d897c56f1cd1cfed5f77dd1d18b5d65,
                 "test dao creator canvas uri",
                 "test dao"

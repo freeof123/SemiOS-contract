@@ -652,7 +652,7 @@ contract Deploy is Script, Test, D4AAddress {
 
     function _deployPDGrant() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy PDRound");
+        console2.log("Start deploy PDGrant");
 
         pdGrant = new PDGrant();
         assertTrue(address(pdGrant) != address(0));
