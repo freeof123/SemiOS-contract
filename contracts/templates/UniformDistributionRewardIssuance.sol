@@ -338,9 +338,9 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         rewardInfo.nftTopUpClaimableRoundIndexes[nftHash] = j;
 
         //同一family享用同一个redeem池子
-        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftETH[nftHash] +=
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftEth[nftHash] +=
             claimableETHReward;
-        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftERC20[nftHash] +=
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftErc20[nftHash] +=
             claimableERC20Reward;
     }
 

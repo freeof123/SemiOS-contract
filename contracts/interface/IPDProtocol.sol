@@ -52,11 +52,19 @@ interface IPDProtocol {
 
     event NewCanvasForMint(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
-    event TopUpErc20ToTreasury(
-        address msgSender, bytes32 daoId, address treasuryAddress, uint256 topUpAmountErc20ToTreasury
+    event TopUpErc20Splitted(
+        bytes32 daoId,
+        address msgSender,
+        address treasuryAddress,
+        uint256 topUpErc20AmountToSender,
+        uint256 topUpErc20AmountToTreasury
     );
-    event TopUpEthToRedeemPool(
-        address msgSender, bytes32 daoId, address treasuryAddress, uint256 topUpAmountEthToRedeemPool
+    event TopUpEthSplitted(
+        bytes32 daoId,
+        address msgSender,
+        address redeemPool,
+        uint256 topUpEthAmountToSender,
+        uint256 topUpEthAmountToRedeemPool
     );
 
     function initialize() external;

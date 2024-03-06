@@ -161,7 +161,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 ++i;
             }
         }
-        return (poolInfo.topUpNftERC20[_nftHash(nft)], poolInfo.topUpNftETH[_nftHash(nft)]);
+        return (poolInfo.topUpNftErc20[_nftHash(nft)], poolInfo.topUpNftEth[_nftHash(nft)]);
     }
 
     //todo
@@ -770,44 +770,44 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
     function _splitFee(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 topUpETHQuota;
+        uint256 topUpEthQuota;
         if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
-            (, topUpETHQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+            (, topUpEthQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
         uint256 dust;
-        if (msg.value + topUpETHQuota < vars.price) revert NotEnoughEther();
+        if (msg.value + topUpEthQuota < vars.price) revert NotEnoughEther();
 
         if (protocolFee > 0) SafeTransferLib.safeTransferETH(vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoRedeemPool, vars.redeemPoolFee);
         //should split after update reward
         //if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
         if (canvasCreatorFee > 0) SafeTransferLib.safeTransferETH(vars.canvasOwner, canvasCreatorFee);
-        uint256 topUpAmountETHToUse;
+        uint256 topUpAmountEthToUse;
 
         //bytes32 _hash = _nftHash(vars.nft);
 
-        if (topUpETHQuota < vars.price) {
-            dust = msg.value + topUpETHQuota - vars.price;
-            topUpAmountETHToUse = topUpETHQuota;
+        if (topUpEthQuota < vars.price) {
+            dust = msg.value + topUpEthQuota - vars.price;
+            topUpAmountEthToUse = topUpEthQuota;
         } else {
             dust = msg.value;
-            topUpAmountETHToUse = vars.price;
+            topUpAmountEthToUse = vars.price;
         }
         if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
-        if (topUpETHQuota > 0) {
+        if (topUpEthQuota > 0) {
             PoolStorage.PoolInfo storage poolInfo =
                 PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
-            uint256 topUpAmountERC20 = (topUpAmountETHToUse * poolInfo.topUpNftERC20[vars.nftHash]) / topUpETHQuota;
-            poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETHToUse;
-            poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20;
-            uint256 topUpAmountErc20ToTreasury = topUpAmountERC20
+            uint256 topUpAmountErc20 = (topUpAmountEthToUse * poolInfo.topUpNftErc20[vars.nftHash]) / topUpEthQuota;
+            poolInfo.topUpNftEth[vars.nftHash] -= topUpAmountEthToUse;
+            poolInfo.topUpNftErc20[vars.nftHash] -= topUpAmountErc20;
+            uint256 topUpAmountErc20ToTreasury = topUpAmountErc20
                 * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpErc20ToTreasuryRatio / BASIS_POINT;
             SafeTransferLib.safeTransfer(
                 DaoStorage.layout().daoInfos[vars.daoId].token,
                 msg.sender,
-                topUpAmountERC20 - topUpAmountErc20ToTreasury
+                topUpAmountErc20 - topUpAmountErc20ToTreasury
             );
             SafeTransferLib.safeTransfer(
                 DaoStorage.layout().daoInfos[vars.daoId].token, poolInfo.treasury, topUpAmountErc20ToTreasury
@@ -816,10 +816,16 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 vars.nft,
                 vars.daoId,
                 DaoStorage.layout().daoInfos[vars.daoId].daoFeePool,
-                topUpAmountERC20,
-                topUpAmountETHToUse
+                topUpAmountErc20,
+                topUpAmountEthToUse
             );
-            emit TopUpErc20ToTreasury(msg.sender, vars.daoId, poolInfo.treasury, topUpAmountErc20ToTreasury);
+            emit TopUpErc20Splitted(
+                vars.daoId,
+                msg.sender,
+                poolInfo.treasury,
+                topUpAmountErc20 - topUpAmountErc20ToTreasury,
+                topUpAmountErc20ToTreasury
+            );
         }
         emit MintFeeSplitted(
             vars.daoId,
@@ -835,29 +841,29 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
     function _splitFeeERC20(SplitFeeLocalVars memory vars) internal returns (uint256) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
-        uint256 topUpERC20Quota;
+        uint256 topUpErc20Quota;
         if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
-            (topUpERC20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+            (topUpErc20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
         }
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
         address token = DaoStorage.layout().daoInfos[vars.daoId].token;
         //if (msg.value + topUpETHQuota < vars.price) revert NotEnoughEther();
-        uint256 topUpAmountERC20ToUse;
+        uint256 topUpAmountErc20ToUse;
 
-        if (topUpERC20Quota < vars.price) {
-            topUpAmountERC20ToUse = topUpERC20Quota;
+        if (topUpErc20Quota < vars.price) {
+            topUpAmountErc20ToUse = topUpErc20Quota;
             //deadline rather than erc20Signature
             if (vars.deadline != 0) {
                 (uint8 v, bytes32 r, bytes32 s) = abi.decode(vars.erc20Signature, (uint8, bytes32, bytes32));
                 IERC20Permit(token).permit(
-                    msg.sender, address(this), vars.price - topUpERC20Quota, vars.deadline, v, r, s
+                    msg.sender, address(this), vars.price - topUpErc20Quota, vars.deadline, v, r, s
                 );
             }
-            SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpERC20Quota);
+            SafeTransferLib.safeTransferFrom(token, msg.sender, address(this), vars.price - topUpErc20Quota);
         } else {
-            topUpAmountERC20ToUse = vars.price;
+            topUpAmountErc20ToUse = vars.price;
         }
         if (protocolFee > 0) SafeTransferLib.safeTransfer(token, vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) SafeTransferLib.safeTransfer(token, vars.daoRedeemPool, vars.redeemPoolFee);
@@ -865,24 +871,30 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         //if (vars.assetPoolFee > 0) SafeTransferLib.safeTransferETH(vars.daoAssetPool, vars.assetPoolFee);
         if (canvasCreatorFee > 0) SafeTransferLib.safeTransfer(token, vars.canvasOwner, canvasCreatorFee);
 
-        if (topUpERC20Quota > 0) {
+        if (topUpErc20Quota > 0) {
             PoolStorage.PoolInfo storage poolInfo =
                 PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[vars.daoId].daoFeePool];
-            uint256 topUpAmountETH = (topUpAmountERC20ToUse * poolInfo.topUpNftETH[vars.nftHash]) / topUpERC20Quota;
-            poolInfo.topUpNftETH[vars.nftHash] -= topUpAmountETH;
-            poolInfo.topUpNftERC20[vars.nftHash] -= topUpAmountERC20ToUse;
-            uint256 topUpAmountEthToRedeemPool = topUpAmountETH
+            uint256 topUpAmountEth = (topUpAmountErc20ToUse * poolInfo.topUpNftEth[vars.nftHash]) / topUpErc20Quota;
+            poolInfo.topUpNftEth[vars.nftHash] -= topUpAmountEth;
+            poolInfo.topUpNftErc20[vars.nftHash] -= topUpAmountErc20ToUse;
+            uint256 topUpAmountEthToRedeemPool = topUpAmountEth
                 * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio / BASIS_POINT;
-            SafeTransferLib.safeTransferETH(msg.sender, topUpAmountETH - topUpAmountEthToRedeemPool);
+            SafeTransferLib.safeTransferETH(msg.sender, topUpAmountEth - topUpAmountEthToRedeemPool);
             SafeTransferLib.safeTransferETH(vars.daoRedeemPool, topUpAmountEthToRedeemPool);
             emit TopUpAmountUsed(
                 vars.nft,
                 vars.daoId,
                 DaoStorage.layout().daoInfos[vars.daoId].daoFeePool,
-                topUpAmountERC20ToUse,
-                topUpAmountETH
+                topUpAmountErc20ToUse,
+                topUpAmountEth
             );
-            emit TopUpEthToRedeemPool(msg.sender, vars.daoId, vars.daoRedeemPool, topUpAmountEthToRedeemPool);
+            emit TopUpEthSplitted(
+                vars.daoId,
+                msg.sender,
+                vars.daoRedeemPool,
+                topUpAmountEth - topUpAmountEthToRedeemPool,
+                topUpAmountEthToRedeemPool
+            );
         }
         emit MintFeeSplitted(
             vars.daoId,

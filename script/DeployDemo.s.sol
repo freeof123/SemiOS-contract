@@ -57,16 +57,16 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -94,7 +94,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
 
-        // _deployUniformDistributionRewardIssuance();
+        _deployUniformDistributionRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
