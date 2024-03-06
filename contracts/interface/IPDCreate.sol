@@ -55,8 +55,17 @@ interface IPDCreate is ICreate {
     );
 
     event NewPools(
-        bytes32 daoId, address daoAssetPool, address daoRedeemPool, address treasury, bool isThirdPartyToken
+        bytes32 daoId,
+        address daoAssetPool,
+        address daoRedeemPool,
+        uint256 daoTopUpEthToRedeemPoolRatio,
+        uint256 daoTopUpErc20ToTreasuryRatio,
+        bool isThirdPartyToken
     );
+
+    event NewSemiTreasury(bytes32 daoId, address treasury, address grantTreasuryNft, uint256 initTokenSupply);
+
+    event NewSemiDaoErc721Address(bytes32 daoId, address daoNft, address grantDaoNft);
 
     function createDao(
         bytes32 existDaoId,

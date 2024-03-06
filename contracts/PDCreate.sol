@@ -53,8 +53,6 @@ import { LibString } from "solady/utils/LibString.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-import "forge-std/Test.sol";
-
 struct CreateProjectLocalVars {
     bytes32 existDaoId;
     bytes32 daoId;
@@ -354,7 +352,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             daoId,
             basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
             daoStorage.daoInfos[daoId].daoFeePool,
-            poolInfo.treasury,
+            poolInfo.defaultTopUpEthToRedeemPoolRatio,
+            poolInfo.defaultTopUpErc20ToTreasuryRatio,
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
         );
     }
@@ -423,6 +422,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ID4AERC721(grantTreasuryNft).setContractUri(daoInfo.daoUri);
         ID4AChangeAdmin(grantTreasuryNft).transferOwnership(msg.sender);
         poolInfo.grantTreasuryNft = grantTreasuryNft;
+        emit NewSemiTreasury(daoId, treasury, grantTreasuryNft, settingsStorage.tokenMaxSupply);
     }
 
     function _createContinuousProject(CreateContinuousDaoParam memory createContinuousDaoParam) internal {
@@ -493,6 +493,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ID4AERC721(basicDaoInfo.grantAssetPoolNft).setContractUri(daoUri);
         ID4AChangeAdmin(basicDaoInfo.grantAssetPoolNft).changeAdmin(settingsStorage.assetOwner);
         ID4AChangeAdmin(basicDaoInfo.grantAssetPoolNft).transferOwnership(msg.sender);
+        emit NewSemiDaoErc721Address(daoId, daoInfo.nft, basicDaoInfo.grantAssetPoolNft);
     }
 
     function _createERC20Token(uint256 daoIndex, string memory daoName) internal returns (address) {

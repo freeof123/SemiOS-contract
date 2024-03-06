@@ -67,7 +67,7 @@ contract ProtoDaoEventTest is DeployHelper {
             isProgressiveJackpot: createDaoParam.isProgressiveJackpot
         });
         vars.basicDaoParam = BasicDaoParam({
-                canvasId: createDaoParam.canvasId,
+            canvasId: createDaoParam.canvasId,
             canvasUri: "test dao creator canvas uri",
             daoName: "test dao"
         });

@@ -36,6 +36,8 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event DaoRemainingRoundSet(bytes32 daoId, uint256 remainingRound);
 
+    event TopUpEthSplitRatioSet(bytes32 daoId, uint256 defaultEthRatio, bytes32[] subDaoIds, uint256[] ethRatios);
+    event TopUpErc20SplitRatioSet(bytes32 daoId, uint256 defaultErc20Ratio, bytes32[] subDaoIds, uint256[] erc20Ratios);
     event DefaultTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);
     event DefaultTopUpErc20ToTreasuryRatioSet(bytes32 daoId, uint256 erc20ToTreasuryRatio);
     event DaoTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);

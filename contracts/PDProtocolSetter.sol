@@ -366,6 +366,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
                 ++i;
             }
         }
+        emit TopUpEthSplitRatioSet(daoId, defaultEthRatio, subDaoIds, ethRatios);
     }
 
     function setTopUpErc20SplitRatio(
@@ -390,6 +391,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
                 ++i;
             }
         }
+        emit TopUpErc20SplitRatioSet(daoId, defaultErc20Ratio, subDaoIds, erc20Ratios);
     }
 
     function setDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) public {

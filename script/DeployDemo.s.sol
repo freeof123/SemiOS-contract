@@ -62,8 +62,8 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.ADD);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
         _deployPDCreate();
         _cutFacetsPDCreate(DeployMethod.REPLACE);

@@ -1,15 +1,14 @@
 # ABI
 forge inspect D4AUniversalClaimer abi >deployed-contracts-info/frontend-abi/D4AUniversalClaimer.json
-forge inspect PDCreateProjectProxy abi >deployed-contracts-info/frontend-abi/PDCreateProjectProxy.json
 forge inspect PDProtocolReadable abi >deployed-contracts-info/frontend-abi/PDProtocolReadable.json
 forge inspect PDProtocolSetter abi >deployed-contracts-info/frontend-abi/PDProtocolSetter.json
 forge inspect PDProtocol abi >deployed-contracts-info/frontend-abi/PDProtocol.json
-forge inspect D4ACreate abi >deployed-contracts-info/frontend-abi/D4ACreate.json
 forge inspect PDCreate abi >deployed-contracts-info/frontend-abi/PDCreate.json
 forge inspect PDBasicDao abi >deployed-contracts-info/frontend-abi/PDBasicDao.json
 forge inspect PermissionControl abi >deployed-contracts-info/frontend-abi/PermissionControl.json
 forge inspect PDRound abi >deployed-contracts-info/frontend-abi/PDRound.json
 forge inspect PDLock abi >deployed-contracts-info/frontend-abi/PDLock.json
+forge inspect PDGrant abi >deployed-contracts-info/frontend-abi/PDGrant.json
 forge inspect D4AERC20 abi >deployed-contracts-info/frontend-abi/D4AERC20.json
 
 
