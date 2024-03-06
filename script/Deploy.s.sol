@@ -106,14 +106,14 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolProxy();
         // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.ADD);
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.ADD);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
