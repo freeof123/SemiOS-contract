@@ -138,8 +138,10 @@ contract EventEmitter {
             Whitelist(
                 0x357d85896d1f85a5facf8f42da91aee7b1cf0b826b71d4cc3213beb0e077af3d,
                 zeroAddressArray,
+                new NftIdentifier[](0),
                 0x0000000000000000000000000000000000000000000000000000000000000000,
-                zeroAddressArray
+                zeroAddressArray,
+                new NftIdentifier[](0)
             ),
             Blacklist(zeroAddressArray, zeroAddressArray),
             DaoMintCapParam(0, userMintCapParam),

@@ -13,7 +13,7 @@ import {
     Blacklist,
     SetDaoParam,
     NftMinterCapInfo,
-    NftMinterCap
+    NftMinterCapIdInfo
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AErrors.sol";
@@ -37,6 +37,7 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
         NftMinterCapInfo[] calldata nftMinterCapInfo,
+        NftMinterCapIdInfo[] calldata nftMinterCapIdInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
@@ -44,30 +45,25 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
         public
         virtual
     {
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
-        daoMintInfo.daoMintCap = daoMintCap;
-        address daoNft = DaoStorage.layout().daoInfos[daoId].nft;
-
         uint256 length = userMintCapParams.length;
-        for (uint256 i; i < length;) {
-            daoMintInfo.userMintInfos[userMintCapParams[i].minter].mintCap = userMintCapParams[i].mintCap;
-            unchecked {
-                ++i;
+        {
+            DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
+            daoMintInfo.daoMintCap = daoMintCap;
+            for (uint256 i; i < length;) {
+                daoMintInfo.userMintInfos[userMintCapParams[i].minter].mintCap = userMintCapParams[i].mintCap;
+                unchecked {
+                    ++i;
+                }
             }
         }
+
+        //DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo = nftMinterCapInfo;
         delete DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo;
 
         require(DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length == 0, "delete failed");
-        // length = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length;
-        // for (uint256 i; i < length;) {
-        //     DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.pop();
-        //     unchecked {
-        //         ++i;
-        //     }
-        // }
 
         length = nftMinterCapInfo.length;
+        address daoNft = DaoStorage.layout().daoInfos[daoId].nft;
         for (uint256 i; i < length;) {
             if (nftMinterCapInfo[i].nftAddress == address(0)) {
                 DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.push(
@@ -81,9 +77,20 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             }
         }
 
-        emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo);
+        delete DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo;
 
-        l.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
+        length = nftMinterCapIdInfo.length;
+        for (uint256 i; i < length;) {
+            DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo.push(nftMinterCapIdInfo[i]);
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, nftMinterCapIdInfo);
+
+        SettingsStorage.Layout storage settingStorage = SettingsStorage.layout();
+        settingStorage.permissionControl.modifyPermission(daoId, whitelist, blacklist, unblacklist);
     }
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) public virtual {

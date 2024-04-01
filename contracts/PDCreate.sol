@@ -14,6 +14,7 @@ import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { ID4AChangeAdmin } from "./interface/ID4AChangeAdmin.sol";
 import { BASIS_POINT, BASIC_DAO_RESERVE_NFT_NUMBER } from "contracts/interface/D4AConstants.sol";
 import {
+    CreateSemiDaoParam,
     DaoMetadataParam,
     Whitelist,
     Blacklist,
@@ -26,7 +27,8 @@ import {
     TemplateParam,
     BasicDaoParam,
     AllRatioParam,
-    SetChildrenParam
+    SetChildrenParam,
+    NftMinterCapIdInfo
 } from "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
 
@@ -43,13 +45,10 @@ import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
-
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
-
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ReentrancyGuard } from "@solidstate/contracts/security/reentrancy_guard/ReentrancyGuard.sol";
 import { LibString } from "solady/utils/LibString.sol";
-
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
@@ -65,6 +64,7 @@ struct CreateProjectLocalVars {
     Blacklist blacklist;
     DaoMintCapParam daoMintCapParam;
     NftMinterCapInfo[] nftMinterCapInfo;
+    NftMinterCapIdInfo[] nftMinterCapIdInfo;
     DaoETHAndERC20SplitRatioParam splitRatioParam;
     TemplateParam templateParam;
     BasicDaoParam basicDaoParam;
@@ -81,12 +81,14 @@ struct CreateAncestorDaoParam {
     uint256 daoIndex;
     string daoName;
     address daoToken;
+    address inputToken;
 }
 
 struct CreateContinuousDaoParam {
     bytes32 daoId;
     address tokenAddress;
     address feePoolAddress;
+    address inputToken;
 }
 
 contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
@@ -96,73 +98,57 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         WETH = _weth;
     }
 
-    /**
-     * @dev create continuous dao
-     * @param existDaoId basic dao id
-     * @param daoMetadataParam metadata param for dao
-     * @param whitelist the whitelist
-     * @param blacklist the blacklist
-     * @param daoMintCapParam the mint cap param for dao
-     * @param templateParam the template param
-     * @param basicDaoParam the param for basic dao
-     * @param continuousDaoParam the param for continuous dao
-     * @param actionType the type of action
-     */
-    function createDao(
-        bytes32 existDaoId,
-        DaoMetadataParam calldata daoMetadataParam,
-        Whitelist calldata whitelist,
-        Blacklist calldata blacklist,
-        DaoMintCapParam calldata daoMintCapParam,
-        NftMinterCapInfo[] calldata nftMinterCapInfo,
-        TemplateParam calldata templateParam,
-        BasicDaoParam calldata basicDaoParam,
-        ContinuousDaoParam calldata continuousDaoParam,
-        AllRatioParam calldata allRatioParam,
-        uint256 actionType
-    )
+    function createDao(CreateSemiDaoParam calldata createDaoParam)
         public
         payable
         override
         nonReentrant
         returns (bytes32 daoId)
     {
-        address protocol = address(this);
-
         CreateProjectLocalVars memory vars;
-        vars.existDaoId = existDaoId;
-        vars.daoMetadataParam = daoMetadataParam;
-        vars.whitelist = whitelist;
-        vars.blacklist = blacklist;
-        vars.daoMintCapParam = daoMintCapParam;
-        vars.nftMinterCapInfo = nftMinterCapInfo;
-        vars.templateParam = templateParam;
-        vars.basicDaoParam = basicDaoParam;
-        vars.actionType = actionType;
-        vars.needMintableWork = continuousDaoParam.needMintableWork;
-        vars.dailyMintCap = continuousDaoParam.dailyMintCap;
-        vars.allRatioParam = allRatioParam;
+        vars.existDaoId = createDaoParam.existDaoId;
+        vars.daoMetadataParam = createDaoParam.daoMetadataParam;
+        vars.whitelist = createDaoParam.whitelist;
+        vars.blacklist = createDaoParam.blacklist;
+        vars.daoMintCapParam = createDaoParam.daoMintCapParam;
+        vars.nftMinterCapInfo = createDaoParam.nftMinterCapInfo;
+        vars.nftMinterCapIdInfo = createDaoParam.nftMinterCapIdInfo;
+        vars.templateParam = createDaoParam.templateParam;
+        vars.basicDaoParam = createDaoParam.basicDaoParam;
+        vars.actionType = createDaoParam.actionType;
+        vars.needMintableWork = createDaoParam.continuousDaoParam.needMintableWork;
+        vars.dailyMintCap = createDaoParam.continuousDaoParam.dailyMintCap;
+        vars.allRatioParam = createDaoParam.allRatioParam;
 
-        if (daoMetadataParam.floorPrice == 0) revert CannotUseZeroFloorPrice();
+        if (createDaoParam.daoMetadataParam.floorPrice == 0) revert CannotUseZeroFloorPrice();
 
-        if (continuousDaoParam.reserveNftNumber == 0 && continuousDaoParam.needMintableWork) {
+        if (
+            createDaoParam.continuousDaoParam.reserveNftNumber == 0
+                && createDaoParam.continuousDaoParam.needMintableWork
+        ) {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
 
-        if (continuousDaoParam.erc20PaymentMode && continuousDaoParam.topUpMode) {
+        if (createDaoParam.continuousDaoParam.erc20PaymentMode && createDaoParam.continuousDaoParam.topUpMode) {
             revert PaymentModeAndTopUpModeCannotBeBothOn();
         }
 
-        daoId = _createDao(existDaoId, daoMetadataParam, basicDaoParam, continuousDaoParam, actionType);
+        daoId = _createDao(
+            createDaoParam.existDaoId,
+            createDaoParam.daoMetadataParam,
+            createDaoParam.basicDaoParam,
+            createDaoParam.continuousDaoParam,
+            createDaoParam.actionType
+        );
 
         {
             vars.daoId = daoId;
             // Use the exist DaoFeePool and DaoToken
-            vars.daoFeePool = ID4AProtocolReadable(protocol).getDaoFeePool(vars.daoId);
-            vars.daoAssetPool = IPDProtocolReadable(protocol).getDaoAssetPool(vars.daoId);
-            vars.token = ID4AProtocolReadable(protocol).getDaoToken(vars.daoId);
-            vars.nft = ID4AProtocolReadable(protocol).getDaoNft(vars.daoId); //var.nft here is the erc721 address
-            vars.topUpMode = continuousDaoParam.topUpMode;
+            vars.daoFeePool = ID4AProtocolReadable(address(this)).getDaoFeePool(vars.daoId);
+            vars.daoAssetPool = IPDProtocolReadable(address(this)).getDaoAssetPool(vars.daoId);
+            vars.token = ID4AProtocolReadable(address(this)).getDaoToken(vars.daoId);
+            vars.nft = ID4AProtocolReadable(address(this)).getDaoNft(vars.daoId); //var.nft here is the erc721 address
+            vars.topUpMode = createDaoParam.continuousDaoParam.topUpMode;
         }
 
         emit CreateContinuousProjectParamEmitted(
@@ -170,25 +156,26 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.daoId,
             vars.dailyMintCap,
             vars.needMintableWork,
-            continuousDaoParam.unifiedPriceModeOff,
-            ID4AProtocolReadable(protocol).getDaoUnifiedPrice(vars.daoId),
-            continuousDaoParam.reserveNftNumber,
-            continuousDaoParam.topUpMode,
-            continuousDaoParam.infiniteMode,
-            continuousDaoParam.erc20PaymentMode
+            createDaoParam.continuousDaoParam.unifiedPriceModeOff,
+            createDaoParam.continuousDaoParam.unifiedPrice,
+            createDaoParam.continuousDaoParam.reserveNftNumber,
+            createDaoParam.continuousDaoParam.topUpMode,
+            createDaoParam.continuousDaoParam.infiniteMode,
+            createDaoParam.continuousDaoParam.erc20PaymentMode,
+            createDaoParam.continuousDaoParam.inputToken
         );
-        _config(protocol, vars);
+        _config(address(this), vars);
 
         //if (!continuousDaoParam.isAncestorDao) {
-        IPDProtocolSetter(protocol).setChildren(
+        IPDProtocolSetter(address(this)).setChildren(
             vars.daoId,
             SetChildrenParam(
-                continuousDaoParam.childrenDaoId,
-                continuousDaoParam.childrenDaoRatiosERC20,
-                continuousDaoParam.childrenDaoRatiosETH,
-                continuousDaoParam.redeemPoolRatioETH,
-                continuousDaoParam.selfRewardRatioERC20,
-                continuousDaoParam.selfRewardRatioETH
+                createDaoParam.continuousDaoParam.childrenDaoId,
+                createDaoParam.continuousDaoParam.childrenDaoRatiosERC20,
+                createDaoParam.continuousDaoParam.childrenDaoRatiosETH,
+                createDaoParam.continuousDaoParam.redeemPoolRatioETH,
+                createDaoParam.continuousDaoParam.selfRewardRatioERC20,
+                createDaoParam.continuousDaoParam.selfRewardRatioETH
             )
         );
         //}
@@ -248,10 +235,10 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         if (!continuousDaoParam.isAncestorDao) {
             if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao(); //Todo
             createContinuousDaoParam.daoId = daoId;
-            address feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
-            address tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
-            createContinuousDaoParam.tokenAddress = tokenAddress;
-            createContinuousDaoParam.feePoolAddress = feePoolAddress;
+
+            createContinuousDaoParam.tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
+            createContinuousDaoParam.feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
+            createContinuousDaoParam.inputToken = DaoStorage.layout().daoInfos[existDaoId].inputToken;
             _createContinuousProject(createContinuousDaoParam);
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = existDaoId;
             InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
@@ -259,7 +246,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
             _createProject(
-                CreateAncestorDaoParam(daoId, daoInfo.daoIndex, basicDaoParam.daoName, continuousDaoParam.daoToken)
+                CreateAncestorDaoParam(
+                    daoId,
+                    daoInfo.daoIndex,
+                    basicDaoParam.daoName,
+                    continuousDaoParam.daoToken,
+                    continuousDaoParam.inputToken
+                )
             );
             InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
             InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
@@ -302,8 +295,8 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         emit NewProject(
             daoId,
             daoMetadataParam.projectUri,
-            DaoStorage.layout().daoInfos[daoId].token,
-            DaoStorage.layout().daoInfos[daoId].nft,
+            daoInfo.token,
+            daoInfo.nft,
             daoInfo.royaltyFeeRatioInBps,
             continuousDaoParam.isAncestorDao
         );
@@ -383,6 +376,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             ID4AChangeAdmin(daoFeePool).changeAdmin(settingsStorage.assetOwner);
 
             daoInfo.daoFeePool = daoFeePool;
+            daoInfo.inputToken = vars.inputToken;
 
             _createTreasury(daoId, vars.daoIndex, vars.daoName, vars.daoToken, daoFeePool);
         }
@@ -430,9 +424,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
 
-        daoInfo.token = createContinuousDaoParam.tokenAddress;
-        address daoFeePool = createContinuousDaoParam.feePoolAddress;
-        daoInfo.daoFeePool = daoFeePool; //all subdaos use the same redeem pool
+        daoInfo.token = createContinuousDaoParam.tokenAddress; //all subdaos use the same token
+        daoInfo.daoFeePool = createContinuousDaoParam.feePoolAddress; //all subdaos use the same redeem pool
+        daoInfo.inputToken = createContinuousDaoParam.inputToken; //all subdaos use the same payment token
     }
 
     function _createCanvas(
@@ -546,6 +540,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.blacklist,
             vars.daoMintCapParam,
             vars.nftMinterCapInfo,
+            vars.nftMinterCapIdInfo,
             vars.templateParam,
             vars.basicDaoParam,
             vars.actionType,
@@ -586,6 +581,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 permissionVars.daoMintCap,
                 permissionVars.userMintCapParams,
                 permissionVars.nftMinterCapInfo,
+                permissionVars.nftMinterCapIdInfo,
                 permissionVars.whitelist,
                 permissionVars.blacklist,
                 permissionVars.unblacklist

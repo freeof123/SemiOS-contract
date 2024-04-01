@@ -142,6 +142,7 @@ contract DeployHelper is Test {
         Blacklist blacklist;
         DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
         NftMinterCapInfo[] nftMinterCapInfo;
+        NftMinterCapIdInfo[] nftMinterCapIdInfo;
         TemplateParam templateParam;
         BasicDaoParam basicDaoParam;
         ContinuousDaoParam continuousDaoParam;
@@ -689,8 +690,12 @@ contract DeployHelper is Test {
             whitelist.canvasCreatorMerkleRoot = keccak256("test");
             whitelist.minterNFTHolderPasses = new address[](1);
             whitelist.minterNFTHolderPasses[0] = address(new TestERC721());
+            whitelist.minterNFTIdHolderPasses = new NftIdentifier[](1);
+            whitelist.minterNFTIdHolderPasses[0] = NftIdentifier(address(new TestERC721()), 1);
             whitelist.canvasCreatorNFTHolderPasses = new address[](1);
             whitelist.canvasCreatorNFTHolderPasses[0] = address(new TestERC721());
+            whitelist.canvasCreatorNFTIdHolderPasses = new NftIdentifier[](1);
+            whitelist.canvasCreatorNFTIdHolderPasses[0] = NftIdentifier(address(new TestERC721()), 1);
         }
         return whitelist;
     }
@@ -728,8 +733,12 @@ contract DeployHelper is Test {
         uint256 projectIndex;
         bytes32 minterMerkleRoot;
         address[] minterNFTHolderPasses;
+        NftIdentifier[] minterNFTIdHolderPasses;
+        NftMinterCapInfo[] nftMinterCapInfo;
+        NftMinterCapIdInfo[] nftMinterCapIdInfo;
         bytes32 canvasCreatorMerkleRoot;
         address[] canvasCreatorNFTHolderPasses;
+        NftIdentifier[] canvasCreatorNFTIdHolderPasses;
         address[] minterAccounts;
         address[] canvasCreatorAccounts;
         uint256 mintCap;
@@ -786,6 +795,8 @@ contract DeployHelper is Test {
         bool erc20PaymentMode;
         //1.6 add-------------------------------------------
         string ownershipUri;
+        //1.7 add-------------------------------------------
+        address inputToken;
     }
 
     struct MintNftParamTest {
@@ -835,8 +846,18 @@ contract DeployHelper is Test {
             minters[0] = daoCreator.addr;
             minterMerkleRoot =
                 createDaoParam.minterMerkleRoot == bytes32(0) ? getMerkleRoot(minters) : createDaoParam.minterMerkleRoot;
-            vars.nftMinterCapInfo = new NftMinterCapInfo[](1);
-            vars.nftMinterCapInfo[0] = NftMinterCapInfo(address(0), 5);
+            length = createDaoParam.nftMinterCapInfo.length;
+            vars.nftMinterCapInfo = new NftMinterCapInfo[](length + 1);
+
+            for (uint256 i; i < length;) {
+                vars.nftMinterCapInfo[i] = createDaoParam.nftMinterCapInfo[i];
+                unchecked {
+                    ++i;
+                }
+            }
+            vars.nftMinterCapInfo[length] = NftMinterCapInfo(address(0), 5);
+
+            vars.nftMinterCapIdInfo = createDaoParam.nftMinterCapIdInfo;
         }
         vars.existDaoId = createDaoParam.existDaoId;
         vars.daoMetadataParam = DaoMetadataParam({
@@ -852,8 +873,10 @@ contract DeployHelper is Test {
         vars.whitelist = Whitelist({
             minterMerkleRoot: minterMerkleRoot,
             minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+            minterNFTIdHolderPasses: createDaoParam.minterNFTIdHolderPasses,
             canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
-            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses,
+            canvasCreatorNFTIdHolderPasses: createDaoParam.canvasCreatorNFTIdHolderPasses
         });
         vars.blacklist = Blacklist({
             minterAccounts: createDaoParam.minterAccounts,
@@ -889,7 +912,8 @@ contract DeployHelper is Test {
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
             erc20PaymentMode: createDaoParam.erc20PaymentMode,
-            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
+            inputToken: createDaoParam.inputToken
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({
@@ -940,17 +964,20 @@ contract DeployHelper is Test {
         }
 
         daoId = protocol.createDao(
-            vars.existDaoId,
-            vars.daoMetadataParam,
-            vars.whitelist,
-            vars.blacklist,
-            daoMintCapParam,
-            vars.nftMinterCapInfo,
-            vars.templateParam,
-            vars.basicDaoParam,
-            vars.continuousDaoParam,
-            vars.allRatioParam,
-            20
+            CreateSemiDaoParam(
+                vars.existDaoId,
+                vars.daoMetadataParam,
+                vars.whitelist,
+                vars.blacklist,
+                daoMintCapParam,
+                vars.nftMinterCapInfo,
+                vars.nftMinterCapIdInfo,
+                vars.templateParam,
+                vars.basicDaoParam,
+                vars.continuousDaoParam,
+                vars.allRatioParam,
+                20
+            )
         );
         if (createDaoParam.isBasicDao && createDaoParam.thirdPartyToken == address(0)) {
             uint256 ratio = createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio;

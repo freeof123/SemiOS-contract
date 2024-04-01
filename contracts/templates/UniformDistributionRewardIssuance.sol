@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { SafeCastLib } from "solady/utils/SafeCastLib.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
-import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
-
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
 import { UpdateRewardParam, NftIdentifier } from "contracts/interface/D4AStructs.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
@@ -42,12 +38,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             if (remainingRound == 0) revert ExceedMaxMintableRound();
             uint256 erc20DistributeAmount =
                 getDaoRoundDistributeAmount(param.daoId, param.token, param.currentRound, remainingRound);
-            _distributeRoundReward(param.daoId, erc20DistributeAmount, param.token, param.currentRound);
+            _distributeRoundReward(param.daoId, erc20DistributeAmount, param.token, param.currentRound, false);
             uint256 ethDistributeAmount;
             if (!param.topUpMode) {
                 ethDistributeAmount =
-                    getDaoRoundDistributeAmount(param.daoId, address(0), param.currentRound, remainingRound);
-                _distributeRoundReward(param.daoId, ethDistributeAmount, address(0), param.currentRound);
+                    getDaoRoundDistributeAmount(param.daoId, param.inputToken, param.currentRound, remainingRound);
+                _distributeRoundReward(param.daoId, ethDistributeAmount, param.inputToken, param.currentRound, true);
             }
             activeRounds.push(param.currentRound);
             emit DaoBlockRewardTotal(
@@ -106,9 +102,6 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         if (rewardInfo.isProgressiveJackpot) {
             uint256 lastActiveRound = _getLastActiveRound(rewardInfo, currentRound); //not include current round
             uint256 progressiveJackpotRound = currentRound - lastActiveRound; // include current round
-            if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14 && lastActiveRound == 0) {
-                progressiveJackpotRound = currentRound - DaoStorage.layout().daoInfos[daoId].startBlock + 1;
-            }
             distributeAmount =
                 distributeAmount * progressiveJackpotRound / (progressiveJackpotRound + remainingRound - 1);
         } else {
@@ -119,7 +112,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
     function getRoundReward(
         bytes32 daoId,
         uint256 round,
-        address token
+        bool isInput
     )
         public
         view
@@ -127,7 +120,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         returns (uint256 rewardAmount)
     {
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-        return token == address(0) ? rewardInfo.selfRoundETHReward[round] : rewardInfo.selfRoundERC20Reward[round];
+        return isInput ? rewardInfo.selfRoundETHReward[round] : rewardInfo.selfRoundERC20Reward[round];
     }
 
     function claimDaoNftOwnerReward(
@@ -135,7 +128,8 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         address protocolFeePool,
         address daoCreator,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         public
         returns (
@@ -166,14 +160,14 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 continue;
             }
             // given a past active round, get round reward
-            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+            uint256 roundReward = getRoundReward(daoId, activeRounds[j], false);
             // update protocol's and creator's claimable reward, use weights caculated by ratios w.r.t. 4 roles
             protocolClaimableERC20Reward +=
                 roundReward * rewardInfo.protocolWeights[activeRounds[j]] / rewardInfo.totalWeights[activeRounds[j]];
             daoCreatorClaimableERC20Reward +=
                 roundReward * rewardInfo.daoCreatorWeights[activeRounds[j]] / rewardInfo.totalWeights[activeRounds[j]];
 
-            roundReward = getRoundReward(daoId, activeRounds[j], address(0));
+            roundReward = getRoundReward(daoId, activeRounds[j], true);
             protocolClaimableETHReward +=
                 roundReward * rewardInfo.protocolWeightsETH[activeRounds[j]] / rewardInfo.totalWeights[activeRounds[j]];
             daoCreatorClaimableETHReward += roundReward * rewardInfo.daoCreatorWeightsETH[activeRounds[j]]
@@ -184,20 +178,23 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         }
         rewardInfo.daoCreatorClaimableRoundIndex = j;
 
-        if (protocolClaimableERC20Reward > 0) D4AERC20(token).transfer(protocolFeePool, protocolClaimableERC20Reward);
-        if (daoCreatorClaimableERC20Reward > 0) D4AERC20(token).transfer(daoCreator, daoCreatorClaimableERC20Reward);
+        if (protocolClaimableERC20Reward > 0) {
+            SafeTransferLib.safeTransfer(token, protocolFeePool, protocolClaimableERC20Reward);
+        }
+        if (daoCreatorClaimableERC20Reward > 0) {
+            SafeTransferLib.safeTransfer(token, daoCreator, daoCreatorClaimableERC20Reward);
+        }
         if (protocolClaimableETHReward > 0) {
-            (bool succ,) = protocolFeePool.call{ value: protocolClaimableETHReward }("");
-            require(succ, "transfer eth failed");
+            _transferInputToken(inputToken, protocolFeePool, protocolClaimableETHReward);
+            // (bool succ,) = protocolFeePool.call{ value: protocolClaimableETHReward }("");
+            // require(succ, "transfer eth failed");
         }
         if (daoCreatorClaimableETHReward > 0) {
-            (bool succ,) = daoCreator.call{ value: daoCreatorClaimableETHReward }("");
-            require(succ, "transfer eth failed");
+            _transferInputToken(inputToken, daoCreator, daoCreatorClaimableETHReward);
+
+            // (bool succ,) = daoCreator.call{ value: daoCreatorClaimableETHReward }("");
+            // require(succ, "transfer eth failed");
         }
-        // (protocolClaimableERC20Reward, daoCreatorClaimableERC20Reward) =
-        //     _claimDaoCreatorReward(daoId, protocolFeePool, daoCreator, currentRound, token);
-        // (protocolClaimableETHReward, daoCreatorClaimableETHReward) =
-        //     _claimDaoCreatorReward(daoId, protocolFeePool, daoCreator, currentRound, address(0));
     }
 
     function claimCanvasCreatorReward(
@@ -205,7 +202,8 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         bytes32 canvasId,
         address canvasCreator,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         public
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward)
@@ -228,12 +226,12 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 continue;
             }
             // given a past active round, get round reward
-            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+            uint256 roundReward = getRoundReward(daoId, activeRounds[j], false);
             // update dao creator's claimable reward
             claimableERC20Reward += roundReward * rewardInfo.canvasCreatorWeights[activeRounds[j]][canvasId]
                 / rewardInfo.totalWeights[activeRounds[j]];
 
-            roundReward = getRoundReward(daoId, activeRounds[j], address(0));
+            roundReward = getRoundReward(daoId, activeRounds[j], true);
 
             claimableETHReward += roundReward * rewardInfo.canvasCreatorWeightsETH[activeRounds[j]][canvasId]
                 / rewardInfo.totalWeights[activeRounds[j]];
@@ -243,21 +241,20 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         }
         rewardInfo.canvasCreatorClaimableRoundIndexes[canvasId] = j;
 
-        if (claimableERC20Reward > 0) D4AERC20(token).transfer(canvasCreator, claimableERC20Reward);
-        if (claimableETHReward > 0) {
-            (bool succ,) = canvasCreator.call{ value: claimableETHReward }("");
-            require(succ, "transfer eth failed");
+        if (claimableERC20Reward > 0) {
+            SafeTransferLib.safeTransfer(token, canvasCreator, claimableERC20Reward);
         }
-
-        // claimableERC20Reward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, token);
-        // claimableETHReward = _claimCanvasCreatorReward(daoId, canvasId, canvasCreator, currentRound, address(0));
+        if (claimableETHReward > 0) {
+            _transferInputToken(inputToken, canvasCreator, claimableETHReward);
+        }
     }
 
     function claimNftMinterReward(
         bytes32 daoId,
         address nftMinter,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         public
         payable
@@ -279,11 +276,11 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 }
                 continue;
             }
-            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+            uint256 roundReward = getRoundReward(daoId, activeRounds[j], false);
             claimableERC20Reward += roundReward * rewardInfo.nftMinterWeights[activeRounds[j]][nftMinter]
                 / rewardInfo.totalWeights[activeRounds[j]];
 
-            roundReward = getRoundReward(daoId, activeRounds[j], address(0));
+            roundReward = getRoundReward(daoId, activeRounds[j], true);
             claimableETHReward += roundReward * rewardInfo.nftMinterWeightsETH[activeRounds[j]][nftMinter]
                 / rewardInfo.totalWeights[activeRounds[j]];
             unchecked {
@@ -291,19 +288,18 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             }
         }
         rewardInfo.nftMinterClaimableRoundIndexes[nftMinter] = j;
-
-        if (claimableERC20Reward > 0) D4AERC20(token).transfer(nftMinter, claimableERC20Reward);
+        if (claimableERC20Reward > 0) {
+            SafeTransferLib.safeTransfer(token, nftMinter, claimableERC20Reward);
+        }
         if (claimableETHReward > 0) {
-            (bool succ,) = nftMinter.call{ value: claimableETHReward }("");
-            require(succ, "transfer eth failed");
+            _transferInputToken(inputToken, nftMinter, claimableETHReward);
         }
     }
 
     function claimNftTopUpBalance(
         bytes32 daoId,
         bytes32 nftHash,
-        uint256 currentRound,
-        address token
+        uint256 currentRound
     )
         external
         payable
@@ -312,8 +308,6 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) return (0, 0);
 
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-
-        //_updateRewardRoundAndIssue(rewardInfo, daoId, token, currentRound);
 
         uint256[] memory activeRounds = rewardInfo.activeRounds;
         // enumerate all active rounds, not including current round
@@ -325,7 +319,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 }
                 continue;
             }
-            uint256 roundReward = getRoundReward(daoId, activeRounds[j], token);
+            uint256 roundReward = getRoundReward(daoId, activeRounds[j], false);
             claimableERC20Reward += roundReward * rewardInfo.nftTopUpInvestorWeights[activeRounds[j]][nftHash]
                 / rewardInfo.totalWeights[activeRounds[j]];
 
@@ -382,14 +376,22 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         return 0;
     }
 
-    function _distributeRoundReward(bytes32 daoId, uint256 amount, address token, uint256 round) internal {
+    function _distributeRoundReward(
+        bytes32 daoId,
+        uint256 amount,
+        address token,
+        uint256 round,
+        bool isInput
+    )
+        internal
+    {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
 
         if (!basicDaoInfo.topUpMode) {
             bytes32[] memory children = IPDProtocolReadable(address(this)).getDaoChildren(daoId);
-            uint256[] memory childrenDaoRatio = token == address(0)
+            uint256[] memory childrenDaoRatio = isInput
                 ? IPDProtocolReadable(address(this)).getDaoChildrenRatiosETH(daoId)
                 : IPDProtocolReadable(address(this)).getDaoChildrenRatiosERC20(daoId);
             //address daoAssetPool = basicDaoInfo.daoAssetPool;
@@ -405,7 +407,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 }
             }
 
-            if (token == address(0)) {
+            if (isInput) {
                 uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatioETH(daoId);
                 if (redeemPoolRatio > 0) {
                     uint256 distributeAmount = amount * redeemPoolRatio / BASIS_POINT;
@@ -417,30 +419,43 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                     );
                 }
             }
-            uint256 selfRewardRatio = token == address(0)
+            uint256 selfRewardRatio = isInput
                 ? IPDProtocolReadable(address(this)).getDaoSelfRewardRatioETH(daoId)
                 : IPDProtocolReadable(address(this)).getDaoSelfRewardRatioERC20(daoId);
             if (selfRewardRatio > 0) {
                 uint256 selfRewardAmount = amount * selfRewardRatio / BASIS_POINT;
                 D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);
                 emit DaoBlockRewardForSelf(daoId, token, selfRewardAmount, round);
-                if (token != address(0)) {
+                if (!isInput) {
                     rewardInfo.selfRoundERC20Reward[round] = selfRewardAmount;
-                    //PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += selfRewardAmount;
                 } else {
                     rewardInfo.selfRoundETHReward[round] = selfRewardAmount;
                 }
             }
         } else {
             rewardInfo.selfRoundERC20Reward[round] = amount;
-            //PoolStorage.layout().poolInfos[daoInfo.daoFeePool].circulateERC20Amount += amount;
             D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), amount);
             emit DaoBlockRewardForSelf(daoId, token, amount, round);
-            if (basicDaoInfo.daoAssetPool.balance > 0) {
+
+            if (daoInfo.inputToken == address(0)) {
+                if (basicDaoInfo.daoAssetPool.balance > 0) {
+                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
+                        address(0), payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
+                    );
+                }
+            } else if (IERC20(daoInfo.inputToken).balanceOf(basicDaoInfo.daoAssetPool) > 0) {
                 D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                    address(0), payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
+                    daoInfo.inputToken, payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
                 );
             }
+        }
+    }
+
+    function _transferInputToken(address token, address to, uint256 amount) internal {
+        if (token == address(0)) {
+            SafeTransferLib.safeTransferETH(to, amount);
+        } else {
+            SafeTransferLib.safeTransfer(token, to, amount);
         }
     }
 }

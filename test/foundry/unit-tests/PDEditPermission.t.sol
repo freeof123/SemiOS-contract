@@ -244,7 +244,14 @@ contract PDEditPermission is DeployHelper {
 
         hoax(daoCreator.addr);
         protocol.setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         address nft = protocol.getDaoNft(daoId);
@@ -254,12 +261,26 @@ contract PDEditPermission is DeployHelper {
         hoax(daoCreator.addr);
         vm.expectRevert(NotNftOwner.selector);
         protocol.setMintCapAndPermission(
-            daoId, 10, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            10,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         hoax(randomGuy.addr);
         protocol.setMintCapAndPermission(
-            daoId, 20, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            20,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
     }
 
@@ -413,18 +434,39 @@ contract PDEditPermission is DeployHelper {
         vm.prank(randomGuy.addr);
         vm.expectRevert(NotNftOwner.selector);
         protocol.setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         hoax(daoCreator.addr);
         protocol.setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         vm.prank(daoCreator2.addr);
         vm.expectRevert(NotNftOwner.selector);
         protocol.setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         _testERC721.mint(daoCreator2.addr, 1000);
@@ -433,7 +475,14 @@ contract PDEditPermission is DeployHelper {
 
         vm.prank(daoCreator2.addr);
         protocol.setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
 
         vm.prank(daoCreator.addr);

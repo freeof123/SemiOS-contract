@@ -397,6 +397,11 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
         return BasicDaoStorage.layout().basicDaoInfos[daoId].needMintableWork;
     }
 
+    //1.7 add----------------------------------------------------------
+    function getDaoInputToken(bytes32 daoId) public view returns (address) {
+        return DaoStorage.layout().daoInfos[daoId].inputToken;
+    }
+
     function _getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,

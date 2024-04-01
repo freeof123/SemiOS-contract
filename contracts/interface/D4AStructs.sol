@@ -3,6 +3,34 @@ pragma solidity ^0.8.13;
 
 import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
 
+// /**
+//  * @dev create continuous dao
+//  * @param existDaoId basic dao id
+//  * @param daoMetadataParam metadata param for dao
+//  * @param whitelist the whitelist
+//  * @param blacklist the blacklist
+//  * @param daoMintCapParam the mint cap param for dao
+//  * @param templateParam the template param
+//  * @param basicDaoParam the param for basic dao
+//  * @param continuousDaoParam the param for continuous dao
+//  * @param actionType the type of action
+//  */
+
+struct CreateSemiDaoParam {
+    bytes32 existDaoId;
+    DaoMetadataParam daoMetadataParam;
+    Whitelist whitelist;
+    Blacklist blacklist;
+    DaoMintCapParam daoMintCapParam;
+    NftMinterCapInfo[] nftMinterCapInfo;
+    NftMinterCapIdInfo[] nftMinterCapIdInfo;
+    TemplateParam templateParam;
+    BasicDaoParam basicDaoParam;
+    ContinuousDaoParam continuousDaoParam;
+    AllRatioParam allRatioParam;
+    uint256 actionType;
+}
+
 struct DaoMetadataParam {
     uint256 startBlock;
     uint256 mintableRounds;
@@ -22,6 +50,12 @@ struct DaoMintInfo {
 
 struct NftMinterCapInfo {
     address nftAddress;
+    uint256 nftMintCap;
+}
+
+struct NftMinterCapIdInfo {
+    address nftAddress;
+    uint256 tokenId;
     uint256 nftMintCap;
 }
 
@@ -74,8 +108,10 @@ struct Blacklist {
 struct Whitelist {
     bytes32 minterMerkleRoot;
     address[] minterNFTHolderPasses;
+    NftIdentifier[] minterNFTIdHolderPasses;
     bytes32 canvasCreatorMerkleRoot;
     address[] canvasCreatorNFTHolderPasses;
+    NftIdentifier[] canvasCreatorNFTIdHolderPasses;
 }
 
 struct BasicDaoParam {
@@ -105,6 +141,8 @@ struct ContinuousDaoParam {
     bool erc20PaymentMode;
     //1.6add--------------------
     string ownershipUri;
+    //1.7add--------------------
+    address inputToken;
 }
 // 修改Dao中参数的结构体，被用于setDaoParams方法
 
@@ -113,6 +151,7 @@ struct SetMintCapAndPermissionParam {
     uint32 daoMintCap;
     UserMintCapParam[] userMintCapParams;
     NftMinterCapInfo[] nftMinterCapInfo;
+    NftMinterCapIdInfo[] nftMinterCapIdInfo;
     Whitelist whitelist;
     Blacklist blacklist;
     Blacklist unblacklist;
@@ -171,6 +210,7 @@ struct UpdateRewardParam {
     bool zeroPrice;
     bool topUpMode;
     bytes32 nftHash;
+    address inputToken;
 }
 
 struct SetDaoParam {

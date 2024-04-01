@@ -32,8 +32,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )
@@ -47,8 +49,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )
@@ -300,6 +304,23 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         return false;
     }
 
+    function inMinterNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+        uint256 length = whitelist.minterNFTIdHolderPasses.length;
+        for (uint256 i = 0; i < length;) {
+            if (
+                IERC721Upgradeable(whitelist.minterNFTIdHolderPasses[i].erc721Address).ownerOf(
+                    whitelist.minterNFTIdHolderPasses[i].tokenId
+                ) == account
+            ) {
+                return true;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        return false;
+    }
+
     /**
      * @dev Throws if _merkleRoot is not correct
      *      If merkleRoot of DAO is set, return `false` if given _merkle proof is not correct
@@ -319,7 +340,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     {
         Whitelist memory whitelist = _whitelists[daoId];
 
-        if (whitelist.canvasCreatorMerkleRoot == bytes32(0) && whitelist.canvasCreatorNFTHolderPasses.length == 0) {
+        if (
+            whitelist.canvasCreatorMerkleRoot == bytes32(0) && whitelist.canvasCreatorNFTHolderPasses.length == 0
+                && whitelist.canvasCreatorNFTIdHolderPasses.length == 0
+        ) {
             return true;
         }
         if (
@@ -332,11 +356,34 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         if (whitelist.canvasCreatorNFTHolderPasses.length != 0 && inCanvasCreatorNFTHolderPasses(whitelist, _account)) {
             return true;
         }
+        if (
+            whitelist.canvasCreatorNFTIdHolderPasses.length != 0
+                && inCanvasCreatorNFTIdHolderPasses(whitelist, _account)
+        ) {
+            return true;
+        }
 
         return false;
     }
 
     function inCanvasCreatorNFTHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+        uint256 length = whitelist.canvasCreatorNFTIdHolderPasses.length;
+        for (uint256 i = 0; i < length;) {
+            if (
+                IERC721Upgradeable(whitelist.canvasCreatorNFTIdHolderPasses[i].erc721Address).ownerOf(
+                    whitelist.canvasCreatorNFTIdHolderPasses[i].tokenId
+                ) == account
+            ) {
+                return true;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        return false;
+    }
+
+    function inCanvasCreatorNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
         uint256 length = whitelist.canvasCreatorNFTHolderPasses.length;
         for (uint256 i = 0; i < length;) {
             if (IERC721Upgradeable(whitelist.canvasCreatorNFTHolderPasses[i]).balanceOf(account) > 0) {

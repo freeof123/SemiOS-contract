@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 import {
+    CreateSemiDaoParam,
     DaoMetadataParam,
     BasicDaoParam,
     ContinuousDaoParam,
@@ -9,6 +10,7 @@ import {
     Blacklist,
     DaoMintCapParam,
     NftMinterCapInfo,
+    NftMinterCapIdInfo,
     DaoETHAndERC20SplitRatioParam,
     TemplateParam,
     AllRatioParam
@@ -28,6 +30,7 @@ interface IPDCreate is ICreate {
         Blacklist blacklist,
         DaoMintCapParam daoMintCapParam,
         NftMinterCapInfo[] nftMinterCapInfo,
+        NftMinterCapIdInfo[] nftMinterCapIdInfo,
         TemplateParam templateParam,
         BasicDaoParam basicDaoParam,
         uint256 actionType,
@@ -44,7 +47,8 @@ interface IPDCreate is ICreate {
         uint256 reserveNftNumber,
         bool topUpMode,
         bool infiniteMode,
-        bool erc20PaymentMode
+        bool erc20PaymentMode,
+        address inputToken
     );
     // string ownershipUri,
     // uint256 defaultTopUpEthToRedeemPoolRatio,
@@ -67,20 +71,5 @@ interface IPDCreate is ICreate {
 
     event NewSemiDaoErc721Address(bytes32 daoId, address daoNft, address grantDaoNft);
 
-    function createDao(
-        bytes32 existDaoId,
-        DaoMetadataParam calldata daoMetadataParam,
-        Whitelist calldata whitelist,
-        Blacklist calldata blacklist,
-        DaoMintCapParam calldata daoMintCapParam,
-        NftMinterCapInfo[] calldata nftMinterCapInfo,
-        TemplateParam calldata templateParam,
-        BasicDaoParam calldata basicDaoParam,
-        ContinuousDaoParam calldata continuousDaoParam,
-        AllRatioParam calldata allRatioParam,
-        uint256 actionType
-    )
-        external
-        payable
-        returns (bytes32 daoId);
+    function createDao(CreateSemiDaoParam calldata createDaoParam) external payable returns (bytes32 daoId);
 }

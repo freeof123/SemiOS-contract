@@ -112,8 +112,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -141,7 +141,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
 
-        _deployUniformDistributionRewardIssuance();
+        //_deployUniformDistributionRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 

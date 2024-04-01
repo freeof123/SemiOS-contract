@@ -49,7 +49,7 @@ interface IPermissionControl {
         returns (bool);
 
     function inMinterNFTHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
-
+    function inMinterNFTIdHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
     function inCanvasCreatorWhitelist(
         bytes32 daoId,
         address _account,
@@ -60,6 +60,13 @@ interface IPermissionControl {
         returns (bool);
 
     function inCanvasCreatorNFTHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
+    function inCanvasCreatorNFTIdHolderPasses(
+        Whitelist memory whitelist,
+        address account
+    )
+        external
+        view
+        returns (bool);
 
     function setOwnerProxy(ID4AOwnerProxy _ownerProxy) external;
 }

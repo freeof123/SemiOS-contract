@@ -22,6 +22,7 @@ import {
     DaoMetadataParam,
     UserMintCapParam,
     NftMinterCapInfo,
+    NftMinterCapIdInfo,
     Whitelist,
     Blacklist,
     MintNftInfo,
@@ -308,7 +309,14 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
             count: 1
         });
         ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
     }
 
@@ -325,7 +333,14 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         hoax(randomGuy.addr);
         vm.expectRevert(NotNftOwner.selector);
         ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, new UserMintCapParam[](0), new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            new UserMintCapParam[](0),
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
     }
 
@@ -350,7 +365,14 @@ contract D4AProtocolWithPermissionTest is DeployHelper {
         // emit MintCapSet(daoId, 100, userMintCapParams);
         hoax(daoCreator.addr);
         ID4AProtocolSetter(address(protocol)).setMintCapAndPermission(
-            daoId, 100, userMintCapParams, new NftMinterCapInfo[](0), whitelist, blacklist, blacklist
+            daoId,
+            100,
+            userMintCapParams,
+            new NftMinterCapInfo[](0),
+            new NftMinterCapIdInfo[](0),
+            whitelist,
+            blacklist,
+            blacklist
         );
     }
 

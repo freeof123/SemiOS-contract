@@ -8,6 +8,7 @@ import {
     Blacklist,
     SetDaoParam,
     NftMinterCapInfo,
+    NftMinterCapIdInfo,
     AllRatioParam,
     SetChildrenParam,
     NftIdentifier
@@ -44,6 +45,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
         NftMinterCapInfo[] calldata nftMinterCapInfo,
+        NftMinterCapIdInfo[] calldata nftMinterCapIdInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist
@@ -55,7 +57,14 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         _checkEditStrategyAbility(daoId);
 
         super.setMintCapAndPermission(
-            daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, whitelist, blacklist, unblacklist
+            daoId,
+            daoMintCap,
+            userMintCapParams,
+            nftMinterCapInfo,
+            nftMinterCapIdInfo,
+            whitelist,
+            blacklist,
+            unblacklist
         );
     }
 

@@ -7,7 +7,8 @@ import {
     Whitelist,
     Blacklist,
     SetDaoParam,
-    NftMinterCapInfo
+    NftMinterCapInfo,
+    NftMinterCapIdInfo
 } from "contracts/interface/D4AStructs.sol";
 import { PriceTemplateType } from "contracts/interface/D4AEnums.sol";
 
@@ -16,7 +17,8 @@ interface ID4AProtocolSetter {
         bytes32 indexed daoId,
         uint32 daoMintCap,
         UserMintCapParam[] userMintCapParams,
-        NftMinterCapInfo[] nftMinterCapInfo
+        NftMinterCapInfo[] nftMinterCapInfo,
+        NftMinterCapIdInfo[] nftMinterCapIdInfo
     );
 
     event DaoPriceTemplateSet(bytes32 indexed daoId, PriceTemplateType priceTemplateType, uint256 nftPriceFactor);
@@ -53,6 +55,7 @@ interface ID4AProtocolSetter {
         uint32 daoMintCap,
         UserMintCapParam[] calldata userMintCapParams,
         NftMinterCapInfo[] calldata nftMinterCapInfo,
+        NftMinterCapIdInfo[] calldata nftMinterCapIdInfo,
         Whitelist memory whitelist,
         Blacklist memory blacklist,
         Blacklist memory unblacklist

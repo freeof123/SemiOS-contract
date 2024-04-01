@@ -21,7 +21,8 @@ interface IRewardTemplate {
         address protocolFeePool,
         address daoCreator,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         external
         returns (
@@ -36,7 +37,8 @@ interface IRewardTemplate {
         bytes32 canvasId,
         address canvasCreator,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         external
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
@@ -45,7 +47,8 @@ interface IRewardTemplate {
         bytes32 daoId,
         address nftMinter,
         uint256 currentRound,
-        address token
+        address token,
+        address inputToken
     )
         external
         payable
@@ -54,13 +57,12 @@ interface IRewardTemplate {
     function claimNftTopUpBalance(
         bytes32 daoId,
         bytes32 nftHash,
-        uint256 currentRound,
-        address token
+        uint256 currentRound
     )
         external
         payable
         returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
-    function getRoundReward(bytes32 daoId, uint256 round, address token) external view returns (uint256 rewardAmount);
+    function getRoundReward(bytes32 daoId, uint256 round, bool isInput) external view returns (uint256 rewardAmount);
     function getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,

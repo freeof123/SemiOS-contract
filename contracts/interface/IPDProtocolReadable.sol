@@ -80,4 +80,6 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getTreasurySetTopUpRatioPermission(bytes32 daoId, address account) external view returns (bool);
     function getTreasuryEditInformationPermission(bytes32 daoId, address account) external view returns (bool);
     function getDaoNeedMintableWork(bytes32 daoId) external view returns (bool);
+    //1.7add ------------------------------------
+    function getDaoInputToken(bytes32 daoId) external view returns (address);
 }

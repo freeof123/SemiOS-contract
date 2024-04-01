@@ -122,3 +122,5 @@ error TopUpNFTIsLocking();
 error OnlyProtocolCanSet();
 
 error InvalidLength();
+
+error NotEnoughInputToken();

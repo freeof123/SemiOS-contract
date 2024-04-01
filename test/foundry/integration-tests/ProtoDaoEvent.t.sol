@@ -51,8 +51,10 @@ contract ProtoDaoEventTest is DeployHelper {
         vars.whitelist = Whitelist({
             minterMerkleRoot: bytes32(0),
             minterNFTHolderPasses: createDaoParam.minterNFTHolderPasses,
+            minterNFTIdHolderPasses: createDaoParam.minterNFTIdHolderPasses,
             canvasCreatorMerkleRoot: createDaoParam.canvasCreatorMerkleRoot,
-            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses
+            canvasCreatorNFTHolderPasses: createDaoParam.canvasCreatorNFTHolderPasses,
+            canvasCreatorNFTIdHolderPasses: createDaoParam.canvasCreatorNFTIdHolderPasses
         });
         vars.blacklist = Blacklist({
             minterAccounts: createDaoParam.minterAccounts,
@@ -88,7 +90,8 @@ contract ProtoDaoEventTest is DeployHelper {
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
             erc20PaymentMode: createDaoParam.erc20PaymentMode,
-            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri
+            ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
+            inputToken: createDaoParam.inputToken
         });
         if (!createDaoParam.noDefaultRatio) {
             vars.allRatioParam = AllRatioParam({
@@ -141,17 +144,20 @@ contract ProtoDaoEventTest is DeployHelper {
         bytes memory datas = abi.encodeCall(
             PDCreate.createDao,
             (
-                vars.existDaoId,
-                vars.daoMetadataParam,
-                vars.whitelist,
-                vars.blacklist,
-                daoMintCapParam,
-                vars.nftMinterCapInfo,
-                vars.templateParam,
-                vars.basicDaoParam,
-                vars.continuousDaoParam,
-                vars.allRatioParam,
-                20
+                CreateSemiDaoParam(
+                    vars.existDaoId,
+                    vars.daoMetadataParam,
+                    vars.whitelist,
+                    vars.blacklist,
+                    daoMintCapParam,
+                    vars.nftMinterCapInfo,
+                    vars.nftMinterCapIdInfo,
+                    vars.templateParam,
+                    vars.basicDaoParam,
+                    vars.continuousDaoParam,
+                    vars.allRatioParam,
+                    20
+                )
             )
         );
         return keccak256(abi.encodePacked(block.number, daoCreator.addr, datas, msg.sender));
