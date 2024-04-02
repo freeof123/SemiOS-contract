@@ -31,6 +31,8 @@ import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
 import { IPDRound } from "./interface/IPDRound.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
+//import "forge-std/Test.sol";
+
 contract D4AProtocolSetter is ID4AProtocolSetter {
     function setMintCapAndPermission(
         bytes32 daoId,
@@ -85,8 +87,8 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             unchecked {
                 ++i;
             }
+            //console2.log("storage length:", DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo.length);
         }
-
         emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, nftMinterCapIdInfo);
 
         SettingsStorage.Layout storage settingStorage = SettingsStorage.layout();

@@ -194,7 +194,7 @@ vars.allRatioForFundingParam = AllRatioForFundingParam({
             redeemPoolMintFeeRatioFiatPrice: 6000,
 
 
-            // l.protocolERC20RatioInBps = 200
+            // l.protocolERC20RewardRatio = 200
             // sum = 9800
             // !!! ratio for param.selfRewardRatioERC20
             minterERC20RewardRatio: 800,

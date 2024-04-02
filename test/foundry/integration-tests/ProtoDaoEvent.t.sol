@@ -106,7 +106,7 @@ contract ProtoDaoEventTest is DeployHelper {
                 canvasCreatorMintFeeRatioFiatPrice: 250,
                 assetPoolMintFeeRatioFiatPrice: 3500,
                 redeemPoolMintFeeRatioFiatPrice: 6000,
-                // l.protocolERC20RatioInBps = 200
+                // l.protocolERC20RewardRatio = 200
                 // sum = 9800
                 minterERC20RewardRatio: 800,
                 canvasCreatorERC20RewardRatio: 2000,
@@ -129,7 +129,7 @@ contract ProtoDaoEventTest is DeployHelper {
                 canvasCreatorMintFeeRatioFiatPrice: createDaoParam.canvasCreatorMintFeeRatioFiatPrice,
                 assetPoolMintFeeRatioFiatPrice: createDaoParam.assetPoolMintFeeRatioFiatPrice,
                 redeemPoolMintFeeRatioFiatPrice: createDaoParam.redeemPoolMintFeeRatioFiatPrice,
-                // l.protocolERC20RatioInBps = 200
+                // l.protocolERC20RewardRatio = 200
                 // sum = 9800
                 minterERC20RewardRatio: createDaoParam.minterERC20RewardRatio,
                 canvasCreatorERC20RewardRatio: createDaoParam.canvasCreatorERC20RewardRatio,
@@ -209,7 +209,7 @@ vars.allRatioForFundingParam = AllRatioForFundingParam({
             redeemPoolMintFeeRatioFiatPrice: 6000,
 
 
-            // l.protocolERC20RatioInBps = 200
+            // l.protocolERC20RewardRatio = 200
             // sum = 9800
             // !!! ratio for param.selfRewardRatioERC20
             minterERC20RewardRatio: 800,

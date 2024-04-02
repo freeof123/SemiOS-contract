@@ -99,7 +99,7 @@ abstract contract RewardTemplateBase is IRewardTemplate {
     //     // protocol and other 3 roles' weights are updated
     //     rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
     //     rewardInfo.protocolWeights[param.currentRound] +=
-    //         param.daoFeeAmount * param.protocolERC20RatioInBps / BASIS_POINT;
+    //         param.daoFeeAmount * param.protocolERC20RewardRatio / BASIS_POINT;
     //     rewardInfo.daoCreatorWeights[param.currentRound] +=
     //         param.daoFeeAmount * param.daoCreatorERC20RatioInBps / BASIS_POINT;
 

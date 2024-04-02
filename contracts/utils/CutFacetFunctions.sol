@@ -112,7 +112,9 @@ function getSettingsSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setTemplateAddress.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setReservedDaoAmount.selector;
     interfaceId ^= selectors[selectorIndex++] = ID4ASettings.setRoyaltySplitterAndSwapFactoryAddress.selector;
-    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeETHRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeProtocolETHRewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeProtocolERC20RewardRatio.selector;
+    interfaceId ^= selectors[selectorIndex++] = ID4ASettings.changeProtocolMintFeeRatio.selector;
     assert(interfaceId == type(ID4ASettings).interfaceId);
 
     /// @solidity memory-safe-assembly

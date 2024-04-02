@@ -962,9 +962,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         );
 
         console2.log("change settings ratio for eth data: ");
-        console2.logBytes(abi.encodeCall(D4ASettings.changeETHRewardRatio, (200)));
+        console2.logBytes(abi.encodeCall(D4ASettings.changeProtocolETHRewardRatio, (200)));
         // console2.log("change settings ratio for eth");
-        // D4ASettings(address(pdProtocol_proxy)).changeETHRewardRatio(200);
+        // D4ASettings(address(pdProtocol_proxy)).changeProtocolETHRewardRatio(200);
     }
 
     function _transferOwnership() internal {

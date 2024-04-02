@@ -50,11 +50,10 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 param.daoId, param.token, erc20DistributeAmount, ethDistributeAmount, param.currentRound
             );
         }
-
         rewardInfo.totalWeights[param.currentRound] += param.daoFeeAmount;
         if (!param.topUpMode) {
             rewardInfo.protocolWeights[param.currentRound] +=
-                param.daoFeeAmount * settingsStorage.protocolERC20RatioInBps / BASIS_POINT;
+                param.daoFeeAmount * settingsStorage.protocolERC20RewardRatio / BASIS_POINT;
 
             rewardInfo.daoCreatorWeights[param.currentRound] += param.daoFeeAmount
                 * IPDProtocolReadable(address(this)).getDaoCreatorERC20RewardRatio(param.daoId) / BASIS_POINT;
@@ -386,20 +385,20 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
         internal
     {
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-        BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
+        //BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
         RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-
-        if (!basicDaoInfo.topUpMode) {
+        address daoAssetPool = BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool;
+        if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
             bytes32[] memory children = IPDProtocolReadable(address(this)).getDaoChildren(daoId);
             uint256[] memory childrenDaoRatio = isInput
                 ? IPDProtocolReadable(address(this)).getDaoChildrenRatiosETH(daoId)
                 : IPDProtocolReadable(address(this)).getDaoChildrenRatiosERC20(daoId);
-            //address daoAssetPool = basicDaoInfo.daoAssetPool;
+
             for (uint256 i = 0; i < children.length;) {
                 address desPool = IPDProtocolReadable(address(this)).getDaoAssetPool(children[i]);
                 uint256 distrbuteAmount = amount * childrenDaoRatio[i] / BASIS_POINT;
                 if (childrenDaoRatio[i] > 0) {
-                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(desPool), distrbuteAmount);
+                    D4AFeePool(payable(daoAssetPool)).transfer(token, payable(desPool), distrbuteAmount);
                     emit DaoBlockRewardDistributedToChildrenDao(daoId, children[i], token, distrbuteAmount, round);
                 }
                 unchecked {
@@ -411,9 +410,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 uint256 redeemPoolRatio = IPDProtocolReadable(address(this)).getDaoRedeemPoolRatioETH(daoId);
                 if (redeemPoolRatio > 0) {
                     uint256 distributeAmount = amount * redeemPoolRatio / BASIS_POINT;
-                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                        token, payable(daoInfo.daoFeePool), distributeAmount
-                    );
+                    D4AFeePool(payable(daoAssetPool)).transfer(token, payable(daoInfo.daoFeePool), distributeAmount);
                     emit DaoBlockRewardDistributedToRedeemPool(
                         daoId, daoInfo.daoFeePool, token, distributeAmount, round
                     );
@@ -424,7 +421,7 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                 : IPDProtocolReadable(address(this)).getDaoSelfRewardRatioERC20(daoId);
             if (selfRewardRatio > 0) {
                 uint256 selfRewardAmount = amount * selfRewardRatio / BASIS_POINT;
-                D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);
+                D4AFeePool(payable(daoAssetPool)).transfer(token, payable(address(this)), selfRewardAmount);
                 emit DaoBlockRewardForSelf(daoId, token, selfRewardAmount, round);
                 if (!isInput) {
                     rewardInfo.selfRoundERC20Reward[round] = selfRewardAmount;
@@ -434,18 +431,18 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             }
         } else {
             rewardInfo.selfRoundERC20Reward[round] = amount;
-            D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(token, payable(address(this)), amount);
+            D4AFeePool(payable(daoAssetPool)).transfer(token, payable(address(this)), amount);
             emit DaoBlockRewardForSelf(daoId, token, amount, round);
 
             if (daoInfo.inputToken == address(0)) {
-                if (basicDaoInfo.daoAssetPool.balance > 0) {
-                    D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                        address(0), payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
+                if (daoAssetPool.balance > 0) {
+                    D4AFeePool(payable(daoAssetPool)).transfer(
+                        address(0), payable(daoInfo.daoFeePool), daoAssetPool.balance
                     );
                 }
-            } else if (IERC20(daoInfo.inputToken).balanceOf(basicDaoInfo.daoAssetPool) > 0) {
-                D4AFeePool(payable(basicDaoInfo.daoAssetPool)).transfer(
-                    daoInfo.inputToken, payable(daoInfo.daoFeePool), basicDaoInfo.daoAssetPool.balance
+            } else if (IERC20(daoInfo.inputToken).balanceOf(daoAssetPool) > 0) {
+                D4AFeePool(payable(daoAssetPool)).transfer(
+                    daoInfo.inputToken, payable(daoInfo.daoFeePool), daoAssetPool.balance
                 );
             }
         }

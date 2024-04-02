@@ -370,54 +370,6 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
             RewardStorage.layout().rewardInfos[daoId].nftMinterWeightsETH[round][nftMinter]
         );
     }
-    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
-
-    // function getDaoCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
-    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-    //     uint256 daoCreatorERC20RatioInBps = RewardStorage.layout().rewardInfos[daoId].daoCreatorERC20RatioInBps;
-    //     if (daoCreatorERC20RatioInBps == 0) {
-    //         return settingsStorage.daoCreatorERC20RatioInBps;
-    //     }
-    //     return (daoCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) / BASIS_POINT;
-    // }
-    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
-
-    // function getCanvasCreatorERC20Ratio(bytes32 daoId) public view returns (uint256) {
-    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-    //     uint256 canvasCreatorERC20RatioInBps =
-    // RewardStorage.layout().rewardInfos[daoId].canvasCreatorERC20RatioInBps;
-    //     if (canvasCreatorERC20RatioInBps == 0) {
-    //         return settingsStorage.canvasCreatorERC20RatioInBps;
-    //     }
-    //     return (canvasCreatorERC20RatioInBps * (BASIS_POINT - settingsStorage.protocolERC20RatioInBps)) /
-    // BASIS_POINT;
-    // }
-
-    //ratio respect to all 4 roles, DaoCreator + CanvasCreator + NftMinter + protocol
-
-    // function getNftMinterERC20Ratio(bytes32 daoId) public view returns (uint256) {
-    //     return BASIS_POINT - SettingsStorage.layout().protocolERC20RatioInBps - getDaoCreatorERC20Ratio(daoId)
-    //         - getCanvasCreatorERC20Ratio(daoId);
-    // }
-
-    // function getRoundReward(bytes32 daoId, uint256 round) public view returns (uint256) {
-    //     return _castGetRoundRewardToView(_getRoundReward)(daoId, round);
-    // }
-
-    // function getRewardTillRound(bytes32 daoId, uint256 round) public view returns (uint256) {
-    //     RewardStorage.RewardInfo storage rewardInfo = RewardStorage.layout().rewardInfos[daoId];
-    //     RewardStorage.RewardCheckpoint[] storage rewardCheckpoints = rewardInfo.rewardCheckpoints;
-
-    //     uint256 totalRoundReward;
-    //     for (uint256 i; i < rewardCheckpoints.length; i++) {
-    //         uint256[] memory activeRounds = rewardCheckpoints[i].activeRounds;
-    //         for (uint256 j; j < activeRounds.length && activeRounds[j] <= round; j++) {
-    //             totalRoundReward += getRoundReward(daoId, activeRounds[j]);
-    //         }
-    //     }
-
-    //     return totalRoundReward;
-    // }
 
     function getDaoRoundMintCap(bytes32 daoId) public view returns (uint256) {
         BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();

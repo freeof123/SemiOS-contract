@@ -97,6 +97,138 @@ contract ProtoDaoPermissionTest is DeployHelper {
         // Blacklist memory blacklist;
         // Blacklist memory unblacklist;
     }
+
+    function test_nftIdHolder_Permission() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId1 = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.redeemPoolRatioETH = 10_000;
+        param.selfRewardRatioERC20 = 10_000;
+        param.noPermission = true;
+        param.mintableRound = 10;
+        param.dailyMintCap = 10_000;
+
+        _testERC721.mint(nftMinter.addr, 1);
+        NftMinterCapIdInfo[] memory nftMinterCapIdInfo = new NftMinterCapIdInfo[](1);
+        nftMinterCapIdInfo[0] = NftMinterCapIdInfo({ nftAddress: address(_testERC721), tokenId: 1, nftMintCap: 2 });
+        // add No.1 token to nft-id whitelist with cap 2
+        param.nftMinterCapIdInfo = nftMinterCapIdInfo;
+
+        address[] memory nftHolders = new address[](1);
+        nftHolders[0] = address(_testERC721);
+        //param.canvasCreatorNFTHolderPasses = nftHolders;
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr); // 创建Dao
+
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "test nft 1";
+        nftParam.flatPrice = 0.01 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+
+        super._mintNftRevert(nftParam, randomGuy.addr, ExceedMinterMaxMintAmount.selector);
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        nftParam.tokenUri = "test nft 2";
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        nftParam.tokenUri = "test nft 3";
+        super._mintNftRevert(nftParam, nftMinter.addr, ExceedMinterMaxMintAmount.selector);
+        NftIdentifier[] memory nfts = new NftIdentifier[](2);
+        // add No.1, No.2 token to minter nft-id whitelist without cap
+        // add No.1, No.2 token to canvas nft-id whitelist
+
+        nfts[0] = NftIdentifier({ erc721Address: address(_testERC721), tokenId: 1 });
+        nfts[1] = NftIdentifier({ erc721Address: address(_testERC721), tokenId: 2 });
+        Whitelist memory whitelist = Whitelist({
+            minterMerkleRoot: bytes32(0),
+            minterNFTHolderPasses: new address[](0),
+            minterNFTIdHolderPasses: nfts,
+            canvasCreatorMerkleRoot: bytes32(0),
+            canvasCreatorNFTHolderPasses: new address[](0),
+            canvasCreatorNFTIdHolderPasses: nfts
+        });
+        vm.prank(daoCreator.addr);
+        protocol.setMintCapAndPermission(
+            daoId,
+            0,
+            new UserMintCapParam[](0),
+            new NftMinterCapInfo[](0),
+            nftMinterCapIdInfo,
+            whitelist,
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) })
+        );
+        nftParam.tokenUri = "test nft 4";
+        super._mintNftRevert(nftParam, nftMinter.addr, ExceedMinterMaxMintAmount.selector);
+        _testERC721.mint(nftMinter2.addr, 2);
+        super._mintNftWithParam(nftParam, nftMinter2.addr);
+        assembly {
+            mstore(nftMinterCapIdInfo, 2)
+        }
+        // add No.3 token to nft-id whitelist with cap 5
+        nftMinterCapIdInfo[1] = NftMinterCapIdInfo({ nftAddress: address(_testERC721), tokenId: 3, nftMintCap: 5 });
+
+        vm.prank(daoCreator.addr);
+        protocol.setMintCapAndPermission(
+            daoId,
+            0,
+            new UserMintCapParam[](0),
+            new NftMinterCapInfo[](0),
+            nftMinterCapIdInfo,
+            whitelist,
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) })
+        );
+        _testERC721.mint(nftMinter.addr, 3);
+        nftParam.tokenUri = "test nft 5";
+        super._mintNftRevert(nftParam, nftMinter.addr, ExceedMinterMaxMintAmount.selector);
+        vm.prank(nftMinter.addr);
+        _testERC721.transferFrom(nftMinter.addr, randomGuy.addr, 1);
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        nftParam.tokenUri = "test nft 6";
+        super._mintNftWithParam(nftParam, randomGuy.addr);
+
+        //test canvas creator
+        nftParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        nftParam.tokenUri = "test nft 7";
+        nftParam.canvasCreator = randomGuy2.addr;
+        super._mintNftRevert(nftParam, randomGuy2.addr, NotInWhitelist.selector);
+        nftParam.canvasCreator = nftMinter.addr;
+        super._mintNftRevert(nftParam, nftMinter.addr, NotInWhitelist.selector);
+        nftParam.canvasCreator = nftMinter2.addr;
+
+        super._mintNftWithParam(nftParam, nftMinter2.addr);
+
+        assembly {
+            mstore(nfts, 3)
+        }
+        nfts[2] = NftIdentifier({ erc721Address: address(_testERC721), tokenId: 3 });
+        whitelist = Whitelist({
+            minterMerkleRoot: bytes32(0),
+            minterNFTHolderPasses: new address[](0),
+            minterNFTIdHolderPasses: nfts,
+            canvasCreatorMerkleRoot: bytes32(0),
+            canvasCreatorNFTHolderPasses: new address[](0),
+            canvasCreatorNFTIdHolderPasses: nfts
+        });
+        vm.prank(daoCreator.addr);
+        protocol.setMintCapAndPermission(
+            daoId,
+            0,
+            new UserMintCapParam[](0),
+            new NftMinterCapInfo[](0),
+            nftMinterCapIdInfo,
+            whitelist,
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) }),
+            Blacklist({ minterAccounts: new address[](0), canvasCreatorAccounts: new address[](0) })
+        );
+        nftParam.tokenUri = "test nft 8";
+        nftParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 2));
+        nftParam.canvasCreator = nftMinter.addr;
+
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+    }
 }
 // 0xb8a4d5863e3efce8a356708ceb1ac95651976e5e53b3ae7e197328af00298a15
 // 0

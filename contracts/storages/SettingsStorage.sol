@@ -18,7 +18,7 @@ library SettingsStorage {
         uint256 protocolRoyaltyFeeRatioInBps;
         uint256 minRoyaltyFeeRatioInBps;
         uint256 maxRoyaltyFeeRatioInBps;
-        uint256 protocolERC20RatioInBps;
+        uint256 protocolERC20RewardRatio;
         // contract address
         address protocolFeePool;
         ID4ADrb drb;

@@ -33,7 +33,8 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.minRoyaltyFeeRatioInBps = 0;
         l.maxRoyaltyFeeRatioInBps = 1000;
 
-        l.protocolERC20RatioInBps = 200;
+        l.protocolERC20RewardRatio = 200;
+        l.protocolETHRewardRatio = 200;
         l.reservedDaoAmount = reservedDaoAmount;
     }
 
@@ -172,13 +173,28 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.royaltySplitterOwner = newRoyaltySplitterOwner;
         l.d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);
     }
-    //Todo need set in 1.3
 
-    function changeETHRewardRatio(uint256 protocolETHRewardRatio) public onlyRole(PROTOCOL_ROLE) {
+    function changeProtocolETHRewardRatio(uint256 protocolETHRewardRatio) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         l.protocolETHRewardRatio = protocolETHRewardRatio;
 
-        emit ChangeETHRewardRatio(protocolETHRewardRatio);
+        emit ChangeProtocolETHRewardRatio(protocolETHRewardRatio);
+    }
+
+    function changeProtocolERC20RewardRatio(uint256 protocolERC20RewardRatio) public onlyRole(PROTOCOL_ROLE) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        l.protocolERC20RewardRatio = protocolERC20RewardRatio;
+
+        emit ChangeProtocolERC20RewardRatio(protocolERC20RewardRatio);
+    }
+
+    function changeProtocolMintFeeRatio(uint256 protocolMintFeeRatio) public onlyRole(PROTOCOL_ROLE) {
+        SettingsStorage.Layout storage l = SettingsStorage.layout();
+
+        l.protocolMintFeeRatioInBps = protocolMintFeeRatio;
+
+        emit ChangeProtocolMintFeeRatio(protocolMintFeeRatio);
     }
 }

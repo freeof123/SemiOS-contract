@@ -124,3 +124,5 @@ error OnlyProtocolCanSet();
 error InvalidLength();
 
 error NotEnoughInputToken();
+
+error SameInputAndOutputToken();

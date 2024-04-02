@@ -16,10 +16,6 @@ interface ID4ASettings {
 
     event ChangeERC20TotalSupply(uint256 tokenMaxSupply);
 
-    event ChangeERC20Ratio(
-        uint256 protocolERC20RatioInBps, uint256 daoCreatorERC20RatioInBps, uint256 canvasCreatorERC20RatioInBps
-    );
-
     event ChangeMaxMintableRounds(uint256 oldMaxMintableRound, uint256 newMaxMintableRound);
 
     event MintableRoundsSet(uint256[] mintableRounds);
@@ -47,7 +43,11 @@ interface ID4ASettings {
 
     event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
 
-    event ChangeETHRewardRatio(uint256 protocolETHRewardRatio);
+    event ChangeProtocolETHRewardRatio(uint256 protocolETHRewardRatio);
+
+    event ChangeProtocolERC20RewardRatio(uint256 protocolERC20RewardRatio);
+
+    event ChangeProtocolMintFeeRatio(uint256 protocolMintFeeRatio);
 
     function changeProtocolFeePool(address protocolFeePool) external;
 
@@ -87,5 +87,9 @@ interface ID4ASettings {
         address newD4AswapFactory
     )
         external;
-    function changeETHRewardRatio(uint256 protocolETHRewardRatio) external;
+    function changeProtocolETHRewardRatio(uint256 protocolETHRewardRatio) external;
+
+    function changeProtocolERC20RewardRatio(uint256 protocolERC20RewardRatio) external;
+
+    function changeProtocolMintFeeRatio(uint256 protocolMintFeeRatio) external;
 }

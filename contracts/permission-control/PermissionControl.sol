@@ -13,6 +13,8 @@ import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
+//import "forge-std/Test.sol";
+
 contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeable {
     mapping(bytes32 => Whitelist) internal _whitelists;
     // 0th bit set to 1 when initialized to save gas
@@ -366,7 +368,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         return false;
     }
 
-    function inCanvasCreatorNFTHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+    function inCanvasCreatorNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
         uint256 length = whitelist.canvasCreatorNFTIdHolderPasses.length;
         for (uint256 i = 0; i < length;) {
             if (
@@ -383,7 +385,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         return false;
     }
 
-    function inCanvasCreatorNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+    function inCanvasCreatorNFTHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
         uint256 length = whitelist.canvasCreatorNFTHolderPasses.length;
         for (uint256 i = 0; i < length;) {
             if (IERC721Upgradeable(whitelist.canvasCreatorNFTHolderPasses[i]).balanceOf(account) > 0) {

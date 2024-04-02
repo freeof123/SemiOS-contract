@@ -180,7 +180,7 @@ struct AllRatioParam {
     uint256 minterERC20RewardRatio;
     uint256 canvasCreatorERC20RewardRatio;
     uint256 daoCreatorERC20RewardRatio;
-    // add l.protocolERC20RatioInBps,
+    // add l.protocolERC20RewardRatio,
 
     //eth reward ratio, add l.protocolETHRewardRatio
     uint256 minterETHRewardRatio;

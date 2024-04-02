@@ -52,6 +52,8 @@ import { LibString } from "solady/utils/LibString.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
+//import "forge-std/Test.sol";
+
 struct CreateProjectLocalVars {
     bytes32 existDaoId;
     bytes32 daoId;
@@ -363,6 +365,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                 IAccessControl(daoInfo.token).grantRole(keccak256("BURNER"), address(this));
                 ID4AChangeAdmin(daoInfo.token).changeAdmin(settingsStorage.assetOwner);
             } else {
+                if (vars.daoToken == vars.inputToken) revert SameInputAndOutputToken();
                 daoInfo.token = vars.daoToken;
                 BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken = true;
             }
@@ -562,6 +565,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         permissionVars.daoMintCap = vars.daoMintCapParam.daoMintCap;
         permissionVars.userMintCapParams = vars.daoMintCapParam.userMintCapParams;
         permissionVars.nftMinterCapInfo = vars.nftMinterCapInfo; //not support yet
+        permissionVars.nftMinterCapIdInfo = vars.nftMinterCapIdInfo;
 
         // * sort
         // if (isBasicDao) {

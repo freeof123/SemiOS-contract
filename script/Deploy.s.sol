@@ -106,14 +106,14 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolProxy();
         _deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet(DeployMethod.ADD);
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
         _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -127,12 +127,12 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        // _deploySettings();
-        // _cutSettingsFacet(DeployMethod.ADD);
+        _deploySettings();
+        _cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployUniversalClaimer();
 
-        // _deployPermissionControl();
+        _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         // _initSettings();
@@ -141,7 +141,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
 
-        //_deployUniformDistributionRewardIssuance();
+        _deployUniformDistributionRewardIssuance();
 
         // pdProtocol_proxy.initialize();
 
@@ -151,6 +151,10 @@ contract Deploy is Script, Test, D4AAddress {
         // );
 
         // _createDao();
+        console2.log("reset ratio");
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolMintFeeRatio(0);
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolETHRewardRatio(0);
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolERC20RewardRatio(0);
 
         vm.stopBroadcast();
     }
@@ -303,7 +307,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x4B65Fb4Fb4aB4E3a7699DD828375290CAd101cdF
+                    0xcA4A0e9344969b36370BaB13fEd1E996c5C5D661
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -357,7 +361,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x641510e61b95596f1cbA8068Ae9eB2e212faAeE8
+                    0xa5AB35cDeb00C40E22899B36Fd9A6743F8FC47dd
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -411,7 +415,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x5f8437F6503B08D7c97AB511219EABDE7d373CDe
+                    0x52F00A3aDc6c8f878fb4dFf3786e51Be516780a7
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -733,7 +737,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x8804090945e3bA1D307f339b660BEb72EaC81fF7
+                    0xaF4E1c23cF4Bd2195943D1012B892dFFAeB3368b
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -744,9 +748,11 @@ contract Deploy is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
-                facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 111)
-            );
+            // D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
+            //     facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector,
+            // 111)
+            // );
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -959,6 +965,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
 
         // do not upgrate for first time deploy
         // proxyAdmin.upgradeAndCall(
@@ -1121,8 +1130,6 @@ contract Deploy is Script, Test, D4AAddress {
         D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
             address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
         );
-        console2.log("change settings ratio for eth");
-        D4ASettings(address(pdProtocol_proxy)).changeETHRewardRatio(200);
     }
 
     // function _deployUnlocker() internal {

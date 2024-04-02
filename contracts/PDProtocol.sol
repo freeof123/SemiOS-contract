@@ -64,7 +64,7 @@ import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
 
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
 
-// import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
 contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGuard, Multicallable, EIP712 {
     using LibString for string;
@@ -306,6 +306,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) return 0;
         address token = daoInfo.token;
         address daoFeePool = daoInfo.daoFeePool;
+        address inputToken = daoInfo.inputToken;
 
         D4AERC20(token).burn(msg.sender, tokenAmount);
         D4AERC20(token).mint(daoFeePool, tokenAmount);
@@ -337,10 +338,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 }
             }
         }
-        uint256 availableETH = daoFeePool.balance;
+        uint256 availableETH = inputToken == address(0) ? daoFeePool.balance : IERC20(inputToken).balanceOf(daoFeePool);
         uint256 ethAmount = (tokenAmount * availableETH) / vars.tokenCirculation;
 
-        if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(address(0x0), payable(to), ethAmount);
+        if (ethAmount != 0) D4AFeePool(payable(daoFeePool)).transfer(inputToken, payable(to), ethAmount);
 
         emit D4AExchangeERC20ToETH(daoId, msg.sender, to, tokenAmount, ethAmount);
 
@@ -396,33 +397,45 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (permissionControl.isMinterBlacklisted(daoId, account)) {
             revert Blacklisted();
         }
-        DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
-        uint32 daoMintCap = daoMintInfo.daoMintCap;
-        UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
 
         Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
-
-        bool isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0
-            && whitelist.minterNFTIdHolderPasses.length == 0
-            && DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo.length == 0;
-
-        uint256 expectedMinted = userMintInfo.minted + amount;
-
-        if (isWhitelistOff) {
-            return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
+        NftMinterCapInfo[] memory nftMinterCapInfo = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo;
+        NftMinterCapIdInfo[] memory nftMinterCapIdInfo = DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo;
+        uint256 expectedMinted;
+        {
+            DaoMintInfo storage daoMintInfo = DaoStorage.layout().daoInfos[daoId].daoMintInfo;
+            UserMintInfo memory userMintInfo = daoMintInfo.userMintInfos[account];
+            expectedMinted = userMintInfo.minted + amount;
+            {
+                bool isWhitelistOff = whitelist.minterMerkleRoot == bytes32(0)
+                    && whitelist.minterNFTHolderPasses.length == 0 && whitelist.minterNFTIdHolderPasses.length == 0
+                    && nftMinterCapInfo.length == 0 && nftMinterCapIdInfo.length == 0;
+                uint32 daoMintCap = daoMintInfo.daoMintCap;
+                if (isWhitelistOff) {
+                    return daoMintCap == 0 ? true : expectedMinted <= daoMintCap;
+                }
+            }
+            if (permissionControl.inMinterWhitelist(daoId, account, proof)) {
+                //revert NotInWhitelist();
+                if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
+                return true;
+            }
         }
-
-        if (permissionControl.inMinterWhitelist(daoId, account, proof)) {
-            //revert NotInWhitelist();
-            if (userMintInfo.mintCap != 0) return expectedMinted <= userMintInfo.mintCap;
-            return true;
-        }
-        return _ableToMintFor721(daoId, expectedMinted, account);
+        return _ableToMintFor721(whitelist, nftMinterCapInfo, nftMinterCapIdInfo, expectedMinted, account);
     }
 
-    function _ableToMintFor721(bytes32 daoId, uint256 expectedMinted, address account) internal view returns (bool) {
+    function _ableToMintFor721(
+        Whitelist memory whitelist,
+        NftMinterCapInfo[] memory nftMinterCapInfo,
+        NftMinterCapIdInfo[] memory nftMinterCapIdInfo,
+        uint256 expectedMinted,
+        address account
+    )
+        internal
+        view
+        returns (bool)
+    {
         IPermissionControl permissionControl = SettingsStorage.layout().permissionControl;
-        NftMinterCapIdInfo[] memory nftMinterCapIdInfo = DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo;
         uint256 length = nftMinterCapIdInfo.length;
         uint256 minMintCap = 1_000_000;
         bool hasMinterCapNft = false;
@@ -442,13 +455,11 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (hasMinterCapNft) {
             return expectedMinted <= minMintCap;
         }
-        Whitelist memory whitelist = permissionControl.getWhitelist(daoId);
         if (permissionControl.inMinterNFTIdHolderPasses(whitelist, account)) return true;
 
-        NftMinterCapInfo[] memory nftMinterCapInfo = DaoStorage.layout().daoInfos[daoId].nftMinterCapInfo;
         minMintCap = 1_000_000;
         hasMinterCapNft = false;
-
+        length = nftMinterCapInfo.length;
         for (uint256 i; i < length;) {
             if (IERC721Upgradeable(nftMinterCapInfo[i].nftAddress).balanceOf(account) > 0) {
                 hasMinterCapNft = true;
@@ -642,10 +653,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
                 uint256 dust = msg.value - price;
                 if (dust > 0) SafeTransferLib.safeTransferETH(msg.sender, dust);
                 //因为topUp模式下daoAssetPool不流入资产，以price作为权重
-                daoFee = price;
             } else {
                 SafeTransferLib.safeTransferFrom(inputToken, msg.sender, address(this), price);
             }
+            daoFee = price;
             emit MintFeePendingToNftTopUpAccount(daoId, nft, price);
         } else {
             if (nft.erc721Address != address(0) && msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
@@ -691,7 +702,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         );
         if (!BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode && daoFee > 0) {
             if (!BasicDaoStorage.layout().basicDaoInfos[daoId].erc20PaymentMode) {
-                SafeTransferLib.safeTransferETH(BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
+                _transferInputToken(inputToken, BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee);
             } else {
                 SafeTransferLib.safeTransfer(
                     daoInfo.token, BasicDaoStorage.layout().basicDaoInfos[daoId].daoAssetPool, daoFee
@@ -812,6 +823,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         if (vars.inputToken == address(0)) {
             uint256 dust;
             if (topUpEthQuota < vars.price) {
+                if (msg.value + topUpEthQuota < vars.price) revert NotEnoughEther();
                 dust = msg.value + topUpEthQuota - vars.price;
                 topUpAmountEthToUse = topUpEthQuota;
             } else {
@@ -836,7 +848,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
         uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
-        if (msg.value + topUpEthQuota < vars.price) revert NotEnoughEther();
 
         if (protocolFee > 0) _transferInputToken(vars.inputToken, vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) _transferInputToken(vars.inputToken, vars.daoRedeemPool, vars.redeemPoolFee);

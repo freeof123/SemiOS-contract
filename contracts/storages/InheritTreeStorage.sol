@@ -28,7 +28,7 @@ library InheritTreeStorage {
         uint256 minterERC20RewardRatio;
         uint256 canvasCreatorERC20RewardRatio;
         uint256 daoCreatorERC20RewardRatio;
-        // also have l.protocolERC20RatioInBps,
+        // also have l.protocolERC20RewardRatio,
 
         //eth reward ratio
         uint256 minterETHRewardRatio;

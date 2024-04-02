@@ -1036,8 +1036,6 @@ contract DeployDemo is Script, Test, D4AAddress {
         D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
             address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
         );
-        console2.log("change settings ratio for eth");
-        D4ASettings(address(pdProtocol_proxy)).changeETHRewardRatio(200);
     }
 
     // function _deployUnlocker() internal {

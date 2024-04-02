@@ -36,7 +36,7 @@ import { IPDRound } from "contracts/interface/IPDRound.sol";
 import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
 
 import { D4AERC20 } from "./D4AERC20.sol";
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
 contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
     // 修改黑白名单方法
@@ -258,7 +258,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
 
         if (
             vars.minterERC20RewardRatio + vars.canvasCreatorERC20RewardRatio + vars.daoCreatorERC20RewardRatio
-                + l.protocolERC20RatioInBps != BASIS_POINT
+                + l.protocolERC20RewardRatio != BASIS_POINT
         ) revert InvalidERC20RewardRatio();
 
         treeInfo.minterERC20RewardRatio = vars.minterERC20RewardRatio;
