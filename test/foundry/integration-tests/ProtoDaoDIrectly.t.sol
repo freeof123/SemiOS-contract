@@ -654,7 +654,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.erc20PaymentMode = true;
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
         param.daoUri = "normal dao uri";
-        param.thirdPartyToken = address(_testERC20);
+        //param.thirdPartyToken = address(_testERC20); //no effect
         param.uniPriceModeOff = true;
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
@@ -690,5 +690,32 @@ contract ProtoDaoTestDirectly is DeployHelper {
         }
         //1 - 0.01 + 0.005
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.995 ether, "Check A");
+
+        param.isBasicDao = false;
+        param.existDaoId = daoId;
+        param.topUpMode = false;
+        param.erc20PaymentMode = false;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
+        param.daoUri = "normal subdao uri";
+        //param.thirdPartyToken = address(_testERC20);
+        param.uniPriceModeOff = true;
+        bytes32 canvasId3 = param.canvasId;
+        bytes32 daoId3 = super._createDaoForFunding(param, daoCreator.addr);
+
+        nftParam.daoId = daoId3;
+        nftParam.canvasId = canvasId3;
+        nftParam.tokenUri = string.concat(
+            tokenUriPrefix, vm.toString(protocol.getDaoIndex(daoId3)), "-", vm.toString(uint256(0)), ".json"
+        );
+        nftParam.flatPrice = 0.16 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = nft1;
+
+        super._mintNftRevert(nftParam, nftMinter.addr, 0x7939f424); //the selector of TransferFromFailed
+        vm.prank(nftMinter.addr);
+        _testERC20.approve(address(protocol), 0.1595 ether);
+        super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
+        //0.995 - 0.16 + 0.005 = 0.84
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0.84 ether, "Check A");
     }
 }

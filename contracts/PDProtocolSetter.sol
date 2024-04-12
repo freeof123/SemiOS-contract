@@ -512,6 +512,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
         daoInfo.mintableRound = newRemainingRound + passedRound;
         RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne = currentRound - 1;
         delete PriceStorage.layout().daoMaxPrices[daoId];
+        //Todo do not push active round for dao restart, use lastRestartRoundMinuesOne instead
         if (rewardInfo.isProgressiveJackpot) {
             if (
                 rewardInfo.activeRounds.length == 0

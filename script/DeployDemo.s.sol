@@ -59,14 +59,14 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployProtocolProxy();
         _deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet(DeployMethod.ADD);
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.REPLACE);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -80,12 +80,12 @@ contract DeployDemo is Script, Test, D4AAddress {
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        // _deploySettings();
-        // _cutSettingsFacet(DeployMethod.ADD);
+        _deploySettings();
+        _cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
 
         // _deployUniversalClaimer();
 
-        // _deployPermissionControl();
+        _deployPermissionControl();
         // _deployPermissionControlProxy();
 
         // _initSettings();
@@ -102,6 +102,11 @@ contract DeployDemo is Script, Test, D4AAddress {
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
         // );
+
+        console2.log("reset ratio");
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolMintFeeRatio(0);
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolETHRewardRatio(0);
+        D4ASettings(address(pdProtocol_proxy)).changeProtocolERC20RewardRatio(0);
 
         vm.stopBroadcast();
     }
@@ -217,7 +222,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xE17b1cf18269e172Fe5Cc3400780EB8f81608362
+                    0x2895E12D07F680f40C49eDd0490C2B78E3bf13D2
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -271,7 +276,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x9363e9B9EDbbcC2b1d1A687b4AA4c2562BAcfA3b
+                    0x79165A86dFAfdd426207DF32265ad32927465737
                     )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -379,7 +384,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x2041C554dA0b9b5B798511d92Cce5957BF22F8b5
+                    0x4B19f26D2621172E4dD1E76b60545a352254faD0
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -647,7 +652,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0x8804090945e3bA1D307f339b660BEb72EaC81fF7
+                    0x7Fe80647D0bDcd7CD41fe342cDBC4C39a40b0e9D
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
@@ -658,9 +663,11 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
-                facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 0)
-            );
+            // D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
+            //     facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector,
+            // 0)
+            // );
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -873,9 +880,9 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        // );
+        proxyAdmin.upgrade(
+            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
+        );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");
 

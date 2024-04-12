@@ -338,4 +338,22 @@ contract NftPriceTest is DeployHelper {
 
         // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.0317 ether);
     }
+
+    function test_fiatPriceLessThanFloorPrice() public {
+        CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.uniPriceModeOff = true;
+        param.topUpMode = false;
+        param.isProgressiveJackpot = false;
+        param.needMintableWork = true;
+        param.noPermission = true;
+        param.priceTemplateType = PriceTemplateType.EXPONENTIAL_PRICE_VARIATION;
+        param.floorPrice = 0.03 ether;
+        bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
+        vm.deal(nftMinter.addr, 1 ether);
+        _mintNftChangeBal(daoId, param.canvasId, "test token uri 1.1", 0.02 ether, daoCreator.key, nftMinter.addr);
+        assertEq(nftMinter.addr.balance, 0.98 ether);
+    }
 }

@@ -38,5 +38,10 @@ forge inspect PDRound events | jq --slurpfile existing deployed-contracts-info/s
 forge inspect PDLock events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 forge inspect UniformDistributionRewardIssuance events | jq --slurpfile existing deployed-contracts-info/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selector.json
 
+# error selector
+echo "{}" >deployed-contracts-info/errors.json
 
+forge inspect PDProtocolSetter errors | jq --slurpfile existing deployed-contracts-info/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/errors.json
+forge inspect PDProtocol errors | jq --slurpfile existing deployed-contracts-info/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/errors.json
+forge inspect PDCreate errors | jq --slurpfile existing deployed-contracts-info/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/errors.json
 
