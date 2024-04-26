@@ -14,6 +14,7 @@ import { IPDProtocolSetter } from "contracts/interface/IPDProtocolSetter.sol";
 import { IPDGrant } from "contracts/interface/IPDGrant.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
 import { IPDLock } from "contracts/interface/IPDLock.sol";
+import { IPDPlan } from "contracts/interface/IPDPlan.sol";
 
 function getD4ACreateSelectors() pure returns (bytes4[] memory) {
     bytes4[] memory selectors = new bytes4[](256);
@@ -373,6 +374,29 @@ function getPDLockSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDLock.getTopUpNftLockedInfo.selector;
 
     assert(interfaceId == type(IPDLock).interfaceId);
+
+    /// @solidity memory-safe-assembly
+    assembly {
+        mstore(selectors, selectorIndex)
+    }
+
+    return selectors;
+}
+
+function getPDPlanSelectors() pure returns (bytes4[] memory) {
+    bytes4[] memory selectors = new bytes4[](256);
+    uint256 selectorIndex;
+    // register D4AGrant
+    bytes4 interfaceId;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.createPlan.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.addTotalReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimMultiPlanReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimDaoPlanReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.deletePlan.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateTopUpAccount.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateMultiTopUpAccount.selector;
+
+    assert(interfaceId == type(IPDPlan).interfaceId);
 
     /// @solidity memory-safe-assembly
     assembly {

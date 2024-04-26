@@ -335,6 +335,11 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
             claimableETHReward;
         PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].topUpNftErc20[nftHash] +=
             claimableERC20Reward;
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].totalStakeEth +=
+            claimableETHReward;
+        PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].totalStakeErc20 +=
+            claimableERC20Reward;
+        emit PDTopUpBalanceUpdated(daoId, nftHash, claimableERC20Reward, claimableETHReward);
     }
 
     /**

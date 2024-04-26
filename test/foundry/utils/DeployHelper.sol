@@ -18,7 +18,9 @@ import { AggregatorV3Mock } from "test/foundry/utils/mocks/AggregatorV3Mock.sol"
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
 
 import "contracts/interface/D4AConstants.sol";
-import { PriceTemplateType, RewardTemplateType, TemplateChoice } from "contracts/interface/D4AEnums.sol";
+import {
+    PriceTemplateType, RewardTemplateType, TemplateChoice, PlanTemplateType
+} from "contracts/interface/D4AEnums.sol";
 import "contracts/interface/D4AStructs.sol";
 import {
     getD4ACreateSelectors,
@@ -29,23 +31,20 @@ import {
     getProtocolSetterSelectors,
     getPDGrantSelectors,
     getPDRoundSelectors,
-    getPDLockSelectors
+    getPDLockSelectors,
+    getPDPlanSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
-
 import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
-
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
-
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
 import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-
 import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
@@ -66,10 +65,10 @@ import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.s
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
-
 import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
+import { DynamicPlan } from "contracts/templates/DynamicPlan.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
-
+import { PDPlan } from "contracts/PDPlan.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract DeployHelper is Test {
@@ -109,8 +108,10 @@ contract DeployHelper is Test {
     LinearRewardIssuance public linearRewardIssuance;
     ExponentialRewardIssuance public exponentialRewardIssuance;
     UniformDistributionRewardIssuance public uniformDistributionRewardIssuance;
+    DynamicPlan public dynamicPlan;
     MintNftSigUtils public mintNftSigUtils;
-    PDGrant public grant;
+    PDGrant public pdGrant;
+    PDPlan public pdPlan;
     //PDCreateFunding public pdCreateFunding;
 
     // actors
@@ -129,8 +130,11 @@ contract DeployHelper is Test {
     Account public canvasCreator = makeAccount("Canvas Creator 1");
     Account public canvasCreator2 = makeAccount("Canvas Creator 2");
     Account public canvasCreator3 = makeAccount("Canvas Creator 3");
-    Account public nftMinter = makeAccount("NFT Minter 1");
+    Account public nftMinter = makeAccount("NFT Minter");
+    Account public nftMinter1 = makeAccount("NFT Minter 1");
     Account public nftMinter2 = makeAccount("NFT Minter 2");
+    Account public nftMinter3 = makeAccount("NFT Minter 3");
+
     Account public randomGuy = makeAccount("Random Guy");
     Account public randomGuy2 = makeAccount("Random Guy2");
 
@@ -176,6 +180,7 @@ contract DeployHelper is Test {
 
         _deployPriceTemplate();
         _deployRewardTemplate();
+        _deployPlanTemplate();
 
         _initSettings();
 
@@ -307,6 +312,7 @@ contract DeployHelper is Test {
         _deployGrant();
         _deployPDRound();
         _deployPDLock();
+        _deployPDPlan();
 
         _cutFacetsPDCreate();
         _cutFacetsPDBasicDao();
@@ -316,6 +322,7 @@ contract DeployHelper is Test {
         _cutFacetsGrant();
         _cutFacetsPDRound();
         _cutFacetsPDLock();
+        _cutFacetsPDPlan();
 
         // set diamond fallback address
         D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolImpl));
@@ -351,8 +358,8 @@ contract DeployHelper is Test {
     }
 
     function _deployGrant() internal {
-        grant = new PDGrant();
-        vm.label(address(grant), "Grant");
+        pdGrant = new PDGrant();
+        vm.label(address(pdGrant), "Grant");
     }
 
     function _deployPDRound() internal {
@@ -363,6 +370,11 @@ contract DeployHelper is Test {
     function _deployPDLock() internal {
         pdLock = new PDLock();
         vm.label(address(pdLock), "Protocol Lock");
+    }
+
+    function _deployPDPlan() internal {
+        pdPlan = new PDPlan();
+        vm.label(address(pdPlan), "Protocol Plan");
     }
 
     function _cutFacetsPDCreate() internal {
@@ -442,7 +454,7 @@ contract DeployHelper is Test {
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
         facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(grant),
+            target: address(pdGrant),
             action: IDiamondWritableInternal.FacetCutAction.ADD,
             selectors: selectors
         });
@@ -477,59 +489,19 @@ contract DeployHelper is Test {
         D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
     }
 
-    // function _cutFacetsPDCreateFunding() internal {
-    //     bytes4[] memory selectors = getPDCreateFundingSelectors();
+    function _cutFacetsPDPlan() internal {
+        //------------------------------------------------------------------------------------------------------
+        // PDCreate facet cut
+        bytes4[] memory selectors = getPDPlanSelectors();
 
-    //     IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-    //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
-    //         target: address(pdCreateFunding),
-    //         action: IDiamondWritableInternal.FacetCutAction.ADD,
-    //         selectors: selectors
-    //     });
-    //     D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
-    // }
-
-    // function _deployDaoProxy() internal prank(protocolOwner.addr) {
-    //     daoProxyImpl = new PDCreateProjectProxy(address(weth));
-    //     daoProxy = PDCreateProjectProxy(
-    //         payable(
-    //             new TransparentUpgradeableProxy(
-    //                 address(daoProxyImpl),
-    //                 address(proxyAdmin),
-    //                 abi.encodeWithSelector(
-    //                     PDCreateProjectProxy.initialize.selector,
-    //                     address(uniswapV2Factory),
-    //                     address(protocol),
-    //                     address(royaltySplitterFactory),
-    //                     royaltySplitterOwner
-    //                 )
-    //             )
-    //         )
-    //     );
-    //     vm.label(address(daoProxy), "DAO Proxy");
-    //     vm.label(address(daoProxyImpl), "DAO Proxy Impl");
-    // }
-
-    // function _deployPDDaoProxy() internal prank(protocolOwner.addr) {
-    //     daoProxyImpl = new PDCreateProjectProxy(address(weth));
-    //     daoProxy = PDCreateProjectProxy(
-    //         payable(
-    //             new TransparentUpgradeableProxy(
-    //                 address(daoProxyImpl),
-    //                 address(proxyAdmin),
-    //                 abi.encodeWithSelector(
-    //                     PDCreateProjectProxy.initialize.selector,
-    //                     address(uniswapV2Factory),
-    //                     address(protocol),
-    //                     address(royaltySplitterFactory),
-    //                     royaltySplitterOwner
-    //                 )
-    //             )
-    //         )
-    //     );
-    //     vm.label(address(daoProxy), "PD DAO Proxy");
-    //     vm.label(address(daoProxyImpl), "PD DAO Proxy Impl");
-    // }
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+        facetCuts[0] = IDiamondWritableInternal.FacetCut({
+            target: address(pdPlan),
+            action: IDiamondWritableInternal.FacetCutAction.ADD,
+            selectors: selectors
+        });
+        D4ADiamond(payable(address(protocol))).diamondCut(facetCuts, address(0), "");
+    }
 
     function _deployPermissionControl() internal prank(protocolOwner.addr) {
         permissionControlImpl = new PermissionControl(address(protocol));
@@ -620,6 +592,14 @@ contract DeployHelper is Test {
             address(uniformDistributionRewardIssuance)
         );
         vm.label(address(uniformDistributionRewardIssuance), "Uniform Distribution Reward Issuance");
+    }
+
+    function _deployPlanTemplate() internal prank(protocolRoleMember.addr) {
+        dynamicPlan = new DynamicPlan();
+        D4ASettings(address(protocol)).setTemplateAddress(
+            TemplateChoice.PLAN, uint8(PlanTemplateType.DYNAMIC_PLAN), address(dynamicPlan)
+        );
+        vm.label(address(dynamicPlan), "Dynamic Plan");
     }
 
     function _initSettings() internal prank(protocolRoleMember.addr) {

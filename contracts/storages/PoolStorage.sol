@@ -15,6 +15,11 @@ library PoolStorage {
         uint256 defaultTopUpErc20ToTreasuryRatio;
         address treasury;
         address grantTreasuryNft;
+        //1.8 add-----------------------------------------
+        bytes32[] allPlans;
+        uint256 totalPlans;
+        uint256 totalStakeEth;
+        uint256 totalStakeErc20;
     }
 
     struct Layout {

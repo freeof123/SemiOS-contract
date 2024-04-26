@@ -14,6 +14,8 @@ interface IRewardTemplate {
 
     event DaoBlockRewardTotal(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, uint256 round);
 
+    event PDTopUpBalanceUpdated(bytes32 daoId, bytes32 nftHash, uint256 erc20Amount, uint256 ethAmount);
+
     function updateReward(UpdateRewardParam memory param) external payable;
 
     function claimDaoNftOwnerReward(

@@ -59,14 +59,14 @@ import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AERC721 } from "./D4AERC721.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
-import { D4AVestingWallet } from "contracts/feepool/D4AVestingWallet.sol";
 import { ProtocolChecker } from "contracts/ProtocolChecker.sol";
-
 import { IRewardTemplate } from "./interface/IRewardTemplate.sol";
+
+import { PlanUpdater } from "contracts/PlanUpdater.sol";
 
 //import "forge-std/Test.sol";
 
-contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGuard, Multicallable, EIP712 {
+contract PDProtocol is IPDProtocol, ProtocolChecker, PlanUpdater, Initializable, ReentrancyGuard, EIP712 {
     using LibString for string;
 
     bytes32 internal constant _MINTNFT_TYPEHASH =
@@ -129,45 +129,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         emit NewCanvasForMint(daoId, canvasId, canvasUri);
         DaoStorage.layout().daoInfos[daoId].canvases.push(canvasId);
     }
-
-    function updateTopUpAccount(bytes32 daoId, NftIdentifier memory nft) external returns (uint256, uint256) {
-        return _usingTopUpAccount(daoId, nft);
-    }
-
-    function _usingTopUpAccount(bytes32 daoId, NftIdentifier memory nft) internal returns (uint256, uint256) {
-        PoolStorage.PoolInfo storage poolInfo =
-            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-
-        bytes32[] memory investedTopUpDaos = poolInfo.nftInvestedTopUpDaos[_nftHash(nft)];
-        SettingsStorage.Layout storage l = SettingsStorage.layout();
-        DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
-
-        for (uint256 i; i < investedTopUpDaos.length;) {
-            (bool succ, bytes memory data) = l.rewardTemplates[uint8(daoInfo.rewardTemplateType)].delegatecall(
-                abi.encodeCall(
-                    IRewardTemplate.claimNftTopUpBalance,
-                    (
-                        investedTopUpDaos[i],
-                        _nftHash(nft),
-                        IPDRound(address(this)).getDaoCurrentRound(investedTopUpDaos[i])
-                    )
-                )
-            );
-            require(succ, "delegate call failed");
-            (uint256 minterERC20Reward, uint256 minterETHReward) = abi.decode(data, (uint256, uint256));
-
-            emit PDClaimNftTopUpBalance(daoId, daoInfo.token, nft, minterERC20Reward, minterETHReward);
-            unchecked {
-                ++i;
-            }
-        }
-        return (poolInfo.topUpNftErc20[_nftHash(nft)], poolInfo.topUpNftEth[_nftHash(nft)]);
-    }
-
-    //todo
-    // function mintNFT(MintNFTParam memory vars) external payable nonReentrant returns (uint256 tokenId) {
-    //     return _mintNFTAndTransfer(vars);
-    // }
 
     function _mintNFTAndTransfer(MintNFTParam memory vars) internal returns (uint256 tokenId) {
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[vars.daoId];
@@ -316,28 +277,28 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         vars.tokenCirculation = IPDProtocolReadable(address(this)).getDaoCirculateTokenAmount(daoId) + tokenAmount
             - D4AERC20(token).balanceOf(daoFeePool);
         if (vars.tokenCirculation == 0) return 0;
-
-        GrantStorage.Layout storage grantStorage = GrantStorage.layout();
-        D4AVestingWallet vestingWallet = D4AVestingWallet(payable(grantStorage.vestingWallets[daoId]));
         vars.tokenAmount = tokenAmount;
-        if (address(vestingWallet) != address(0)) {
-            vestingWallet.release();
-            address[] memory allowedTokenList = grantStorage.allowedTokenList;
-            for (uint256 i; i < allowedTokenList.length;) {
-                vestingWallet.release(allowedTokenList[i]);
-                uint256 grantTokenAmount =
-                    (vars.tokenAmount * IERC20(allowedTokenList[i]).balanceOf(daoFeePool)) / vars.tokenCirculation;
-                if (grantTokenAmount > 0) {
-                    emit D4AExchangeERC20ToERC20(
-                        daoId, msg.sender, to, allowedTokenList[i], vars.tokenAmount, grantTokenAmount
-                    );
-                    D4AFeePool(payable(daoFeePool)).transfer(allowedTokenList[i], payable(to), grantTokenAmount);
-                }
-                unchecked {
-                    ++i;
-                }
-            }
-        }
+
+        //GrantStorage.Layout storage grantStorage = GrantStorage.layout();
+        //D4AVestingWallet vestingWallet = D4AVestingWallet(payable(grantStorage.vestingWallets[daoId]));
+        // if (address(vestingWallet) != address(0)) {
+        //     vestingWallet.release();
+        //     address[] memory allowedTokenList = grantStorage.allowedTokenList;
+        //     for (uint256 i; i < allowedTokenList.length;) {
+        //         vestingWallet.release(allowedTokenList[i]);
+        //         uint256 grantTokenAmount =
+        //             (vars.tokenAmount * IERC20(allowedTokenList[i]).balanceOf(daoFeePool)) / vars.tokenCirculation;
+        //         if (grantTokenAmount > 0) {
+        //             emit D4AExchangeERC20ToERC20(
+        //                 daoId, msg.sender, to, allowedTokenList[i], vars.tokenAmount, grantTokenAmount
+        //             );
+        //             D4AFeePool(payable(daoFeePool)).transfer(allowedTokenList[i], payable(to), grantTokenAmount);
+        //         }
+        //         unchecked {
+        //             ++i;
+        //         }
+        //     }
+        // }
         uint256 availableETH = inputToken == address(0) ? daoFeePool.balance : IERC20(inputToken).balanceOf(daoFeePool);
         uint256 ethAmount = (tokenAmount * availableETH) / vars.tokenCirculation;
 
@@ -632,7 +593,10 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         uint256 daoFee;
         address inputToken = daoInfo.inputToken;
 
+        _updateAllPlans(daoId, _nftHash(nft), hex"");
+
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
+            _updateTopUpAccount(daoId, nft);
             RewardStorage.layout().rewardInfos[daoId].nftTopUpInvestorPendingETH[currentRound][_nftHash(nft)] += price;
             bool exist;
             bytes32[] storage investedDaos =
@@ -738,14 +702,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         }
     }
 
-    struct BatchMintLocalVars {
-        uint256 length;
-        uint256 currentRound;
-        uint256 nftPriceFactor;
-        uint256 daoTotalShare;
-        uint256 totalPrice;
-    }
-
     function _getCanvasNextPrice(
         bytes32 daoId,
         bytes32 canvasId,
@@ -817,7 +773,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpEthQuota;
         if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
-            (, topUpEthQuota) = _usingTopUpAccount(vars.daoId, vars.nft);
+            (, topUpEthQuota) = _updateTopUpAccount(vars.daoId, vars.nft);
         }
         uint256 topUpAmountEthToUse;
         if (vars.inputToken == address(0)) {
@@ -860,6 +816,9 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
             uint256 topUpAmountErc20 = (topUpAmountEthToUse * poolInfo.topUpNftErc20[vars.nftHash]) / topUpEthQuota;
             poolInfo.topUpNftEth[vars.nftHash] -= topUpAmountEthToUse;
             poolInfo.topUpNftErc20[vars.nftHash] -= topUpAmountErc20;
+            poolInfo.totalStakeEth -= topUpAmountEthToUse;
+            poolInfo.totalStakeErc20 -= topUpAmountErc20;
+            //_afterUpdateAll(vars.daoId, vars.nftHash, abi.encode(topUpAmountEthToUse, topUpAmountErc20));
             uint256 topUpAmountErc20ToTreasury = topUpAmountErc20
                 * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpErc20ToTreasuryRatio / BASIS_POINT;
             SafeTransferLib.safeTransfer(
@@ -895,7 +854,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         uint256 topUpErc20Quota;
         if (vars.nft.erc721Address != address(0) && !IPDLock(address(this)).checkTopUpNftLockedStatus(vars.nft)) {
-            (topUpErc20Quota,) = _usingTopUpAccount(vars.daoId, vars.nft);
+            (topUpErc20Quota,) = _updateTopUpAccount(vars.daoId, vars.nft);
         }
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
@@ -960,10 +919,6 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, Initializable, ReentrancyGu
         } else {
             SafeTransferLib.safeTransfer(token, to, amount);
         }
-    }
-
-    function _nftHash(NftIdentifier memory nft) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(nft.erc721Address, nft.tokenId));
     }
 
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {

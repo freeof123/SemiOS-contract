@@ -38,8 +38,6 @@ contract PDRound is IPDRound {
 
     function getDaoCurrentRound(bytes32 daoId) public view returns (uint256) {
         RoundStorage.RoundInfo storage roundInfo = RoundStorage.layout().roundInfos[daoId];
-        SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-        if (roundInfo.roundDuration == 0) return settingsStorage.drb.currentRound();
         if (block.number < roundInfo.blockInLastModify) {
             return 0;
         }

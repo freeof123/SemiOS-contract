@@ -126,3 +126,7 @@ error InvalidLength();
 error NotEnoughInputToken();
 
 error SameInputAndOutputToken();
+
+error NotPlanOwner();
+
+error InvalidRewardTokenForTreasury();

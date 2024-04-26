@@ -10,7 +10,8 @@ enum RewardTemplateType { UNIFORM_DISTRIBUTION_REWARD }
 
 enum TemplateChoice {
     PRICE,
-    REWARD
+    REWARD,
+    PLAN
 }
 
 enum DaoTag {
@@ -25,3 +26,5 @@ enum DeployMethod {
     ADD,
     REMOVE_AND_ADD
 }
+
+enum PlanTemplateType { DYNAMIC_PLAN }

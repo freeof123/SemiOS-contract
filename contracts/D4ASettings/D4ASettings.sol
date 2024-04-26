@@ -150,8 +150,10 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         SettingsStorage.Layout storage l = SettingsStorage.layout();
         if (templateChoice == TemplateChoice.PRICE) {
             l.priceTemplates[index] = template;
-        } else {
+        } else if (templateChoice == TemplateChoice.REWARD) {
             l.rewardTemplates[index] = template;
+        } else {
+            l.planTemplates[index] = template;
         }
     }
 

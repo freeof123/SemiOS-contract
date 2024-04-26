@@ -9,7 +9,9 @@ import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { IPDLock } from "contracts/interface/IPDLock.sol";
 
-contract PDLock is IPDLock {
+import { PlanUpdater } from "contracts/PlanUpdater.sol";
+
+contract PDLock is IPDLock, PlanUpdater {
     function lockTopUpNFT(NftIdentifier calldata nft, uint256 duration) public {
         if (msg.sender != IERC721(nft.erc721Address).ownerOf(nft.tokenId)) {
             revert NotNftOwner();
@@ -42,9 +44,5 @@ contract PDLock is IPDLock {
         ProtocolStorage.Layout storage protocolInfo = ProtocolStorage.layout();
         lockStartTime = protocolInfo.lockedInfo[_nftHash(nft)].lockStartBlock;
         duration = protocolInfo.lockedInfo[_nftHash(nft)].duration;
-    }
-
-    function _nftHash(NftIdentifier memory nft) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(nft.erc721Address, nft.tokenId));
     }
 }

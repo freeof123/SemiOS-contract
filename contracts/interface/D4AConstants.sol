@@ -2,6 +2,7 @@
 pragma solidity ^0.8.18;
 
 uint256 constant BASIS_POINT = 10_000;
+uint256 constant ETHER = 1 ether;
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0;
 bytes32 constant PROTOCOL_ROLE = keccak256("PROTOCOL_ROLE");

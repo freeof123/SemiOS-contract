@@ -42,6 +42,8 @@ library SettingsStorage {
         mapping(bytes32 daoId => address royaltySplitter) royaltySplitters;
         address royaltySplitterOwner;
         uint256 protocolETHRewardRatio;
+        //-------1.8 add
+        address[256] planTemplates;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");

@@ -7,4 +7,8 @@ contract TestERC20 is ERC20Permit {
     constructor() ERC20Permit("TestERC20") ERC20("Test ERC20", "TE") {
         _mint(msg.sender, 10 ** 36);
     }
+
+    function mint(address to, uint256 amount) public {
+        _mint(to, amount);
+    }
 }

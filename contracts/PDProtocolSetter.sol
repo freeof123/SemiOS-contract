@@ -32,13 +32,12 @@ import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "./interface/IPDProtocolSetter.sol";
 import { IPDProtocolReadable } from "./interface/IPDProtocolReadable.sol";
 import { IPDRound } from "contracts/interface/IPDRound.sol";
-
 import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
-
+import { SetterChecker } from "contracts/SetterChecker.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 //import "forge-std/Test.sol";
 
-contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
+contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker {
     // 修改黑白名单方法
     function setMintCapAndPermission(
         bytes32 daoId,
@@ -533,72 +532,6 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter {
             }
         }
         emit DaoRestart(daoId, newRemainingRound, block.number);
-    }
-
-    function _checkEditParamAbility(bytes32 daoId) internal view {
-        OwnerStorage.DaoOwnerInfo storage ownerInfo = OwnerStorage.layout().daoOwnerInfos[daoId];
-        address nftAddress = ownerInfo.daoEditParameterOwner.erc721Address;
-        uint256 tokenId = ownerInfo.daoEditParameterOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkEditStrategyAbility(bytes32 daoId) internal view {
-        OwnerStorage.DaoOwnerInfo storage ownerInfo = OwnerStorage.layout().daoOwnerInfos[daoId];
-        address nftAddress = ownerInfo.daoEditStrategyOwner.erc721Address;
-        uint256 tokenId = ownerInfo.daoEditStrategyOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkEditInformationAbility(bytes32 daoId) internal view {
-        OwnerStorage.DaoOwnerInfo storage ownerInfo = OwnerStorage.layout().daoOwnerInfos[daoId];
-        address nftAddress = ownerInfo.daoEditInformationOwner.erc721Address;
-        uint256 tokenId = ownerInfo.daoEditInformationOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkEditDaoCreatorRewardAbility(bytes32 daoId) internal view {
-        OwnerStorage.DaoOwnerInfo storage ownerInfo = OwnerStorage.layout().daoOwnerInfos[daoId];
-        address nftAddress = ownerInfo.daoRewardOwner.erc721Address;
-        uint256 tokenId = ownerInfo.daoRewardOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkTreasuryEditInformationAbility(bytes32 daoId) internal view {
-        address pool = DaoStorage.layout().daoInfos[daoId].daoFeePool;
-        OwnerStorage.TreasuryOwnerInfo storage ownerInfo = OwnerStorage.layout().treasuryOwnerInfos[pool];
-        address nftAddress = ownerInfo.treasuryEditInformationOwner.erc721Address;
-        uint256 tokenId = ownerInfo.treasuryEditInformationOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkTreasuryTransferAssetAbility(bytes32 daoId) internal view {
-        address pool = DaoStorage.layout().daoInfos[daoId].daoFeePool;
-        OwnerStorage.TreasuryOwnerInfo storage ownerInfo = OwnerStorage.layout().treasuryOwnerInfos[pool];
-        address nftAddress = ownerInfo.treasuryTransferAssetOwner.erc721Address;
-        uint256 tokenId = ownerInfo.treasuryTransferAssetOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
-    }
-
-    function _checkTreasurySetTopUpRatioAbility(bytes32 daoId) internal view {
-        address pool = DaoStorage.layout().daoInfos[daoId].daoFeePool;
-        OwnerStorage.TreasuryOwnerInfo storage ownerInfo = OwnerStorage.layout().treasuryOwnerInfos[pool];
-        address nftAddress = ownerInfo.treasurySetTopUpRatioOwner.erc721Address;
-        uint256 tokenId = ownerInfo.treasurySetTopUpRatioOwner.tokenId;
-        if (msg.sender != address(this) && msg.sender != IERC721(nftAddress).ownerOf(tokenId)) {
-            revert NotNftOwner();
-        }
     }
 
     function _checkDaoMember(bytes32 ancestor, bytes32 subDaoId) internal view {
