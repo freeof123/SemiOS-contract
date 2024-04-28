@@ -154,4 +154,279 @@ contract PDPlanTest is DeployHelper {
         assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000 * 2 + 105_000 * 2, "a73");
         assertEq(_testERC20.balanceOf(nftMinter3.addr), 140_000 + 105_000 * 2, "a74");
     }
+
+    function test_planBasic_autoUpdate() public {
+        //this test achieves auto update by calling claimDaoPlanReward
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        //plan begin in round 2
+        protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        vm.roll(2);
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        //current contribuction: 0,0,0,0
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 0);
+        vm.roll(3);
+        nftParam.tokenUri = "nft 2";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 2);
+        super._mintNftWithParam(nftParam, nftMinter2.addr);
+        //in round 2 claim reward for round 1
+        //current contribuction: 1,0,0,0
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 0);
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 0);
+        vm.roll(4);
+        nftParam.tokenUri = "nft 3";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 3);
+        super._mintNftWithParam(nftParam, nftMinter3.addr);
+        //current contribuction: 1,1,0,0
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000);
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 0);
+        vm.roll(5);
+        //current contribuction: 1,1,1,0
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 3));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000);
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000);
+        assertEq(_testERC20.balanceOf(nftMinter3.addr), 0);
+        vm.roll(6);
+        //current contribuction: 1,1,1,1
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 3));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000 + 105_000);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000 + 105_000);
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000 + 105_000);
+        assertEq(_testERC20.balanceOf(nftMinter3.addr), 105_000);
+        vm.roll(7);
+        //simple quit, for round 6 still 1,1,1,1
+        nftParam.tokenUri = "nft 4";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 3));
+        //current contribuction: 1,1,1,0
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000 + 105_000 * 2);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000 + 105_000 * 2);
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000 + 105_000 * 2, "a63");
+        assertEq(_testERC20.balanceOf(nftMinter3.addr), 105_000 * 2, "a64");
+        vm.roll(8);
+        //using topup balance need not update
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 3));
+        //current contribuction: 1,1,1,0
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000 + 105_000 * 2, "a71");
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000 * 2 + 105_000 * 2, "a72");
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000 * 2 + 105_000 * 2, "a73");
+        assertEq(_testERC20.balanceOf(nftMinter3.addr), 140_000 + 105_000 * 2, "a74");
+    }
+
+    function test_planBasic_claimCulmulately() public {
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        //plan begin in round 2
+        protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        vm.roll(2);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        //current contribuction: 0,0,0,0
+
+        vm.roll(3);
+        protocol.updateMultiTopUpAccount(daoId, nfts);
+        nftParam.tokenUri = "nft 2";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 2);
+        super._mintNftWithParam(nftParam, nftMinter2.addr);
+        //in round 2 claim reward for round 1
+        //current contribuction: 1,0,0,0
+
+        vm.roll(4);
+        nftParam.tokenUri = "nft 3";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 3);
+        super._mintNftWithParam(nftParam, nftMinter3.addr);
+        protocol.updateMultiTopUpAccount(daoId, nfts); //挂账和mint的先后顺序不影响，因为本回合的挂账都不会成功
+        //current contribuction: 1,1,0,0
+
+        vm.roll(5);
+        protocol.updateMultiTopUpAccount(daoId, nfts);
+        //current contribuction: 1,1,1,0
+
+        vm.roll(6);
+        protocol.updateMultiTopUpAccount(daoId, nfts);
+        //current contribuction: 1,1,1,1
+
+        vm.roll(7);
+        //simple quit, for round 6 still 1,1,1,1
+        nftParam.tokenUri = "nft 4";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        //current contribuction: 1,1,1,0
+
+        vm.roll(8);
+        //using topup balance need not update
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 3));
+        //current contribuction: 1,1,1,0
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000 + 105_000 * 2, "a71");
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000 * 2 + 105_000 * 2, "a72");
+        assertEq(_testERC20.balanceOf(nftMinter2.addr), 140_000 * 2 + 105_000 * 2, "a73");
+        assertEq(_testERC20.balanceOf(nftMinter3.addr), 140_000 + 105_000 * 2, "a74");
+    }
+
+    function test_twoPlans() public {
+        bytes32 plan0 =
+            protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        protocol.createPlan(daoId, 3, 1, 10, 42_000_000, address(_testERC20), false, false, PlanTemplateType(0));
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        vm.roll(2);
+        //contribution:
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        vm.roll(3);
+        //contribution: 1,0 || 0,0
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 1));
+        nftParam.tokenUri = "nft 2";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+
+        vm.roll(4);
+        //contribution 1,1 || 1,1
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 1));
+
+        nftParam.tokenUri = "nft 3";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+
+        vm.roll(5);
+        //contribution 1,2 || 1,2
+        bytes32[] memory planIds = new bytes32[](1);
+        planIds[0] = plan0;
+        assertEq(protocol.claimMultiPlanReward(planIds, NftIdentifier(address(_testERC721), 1)), 490_000);
+        assertEq(protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1)), 4_900_000);
+
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 420_000 + 210_000 + 140_000 + 2_100_000 + 1_400_000, "a71");
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 210_000 + 140_000 * 2 + 2_100_000 + 1_400_000 * 2, "a72");
+    }
+
+    function test_pressure_for_plan_number() public {
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        uint256 number = 300;
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        for (uint256 i = 0; i < number; i++) {
+            protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        }
+        vm.roll(2);
+        nftParam.tokenUri = "nft 1";
+        uint256 gasBefore = gasleft();
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+
+        console2.log("limit: ", block.gaslimit);
+        console2.log("gas price: ", tx.gasprice);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        console2.log("gas: ", gasBefore - gasleft());
+
+        nftParam.tokenUri = "nft 2";
+        gasBefore = gasleft();
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 2);
+        super._mintNftWithParam(nftParam, nftMinter2.addr);
+        console2.log("gas: ", gasBefore - gasleft());
+
+        vm.prank(daoCreator.addr);
+        protocol.setDaoUnifiedPrice(daoId, 1 ether);
+
+        nftParam.tokenUri = "nft 3";
+        gasBefore = gasleft();
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 3);
+        nftParam.flatPrice = 1 ether;
+        super._mintNftWithParam(nftParam, nftMinter3.addr);
+        console2.log("gas: ", gasBefore - gasleft());
+
+        vm.roll(3);
+        gasBefore = gasleft();
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        console2.log("gas: ", gasBefore - gasleft());
+        vm.roll(4);
+        gasBefore = gasleft();
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        console2.log("gas: ", gasBefore - gasleft());
+        vm.roll(5);
+        gasBefore = gasleft();
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        console2.log("gas: ", gasBefore - gasleft());
+        vm.roll(6);
+        gasBefore = gasleft();
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        console2.log("gas: ", gasBefore - gasleft());
+        gasBefore = gasleft();
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        console2.log("gas: ", gasBefore - gasleft());
+        gasBefore = gasleft();
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 2));
+        console2.log("gas: ", gasBefore - gasleft());
+    }
 }

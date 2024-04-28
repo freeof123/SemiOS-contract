@@ -14,7 +14,8 @@ interface IPDPlan {
         uint256 totalReward,
         PlanTemplateType planTemplateType,
         bool io,
-        address owner
+        address owner,
+        bool useTreasury
     );
     event PlanTotalRewardAdded(bytes32 planId, uint256 amount, bool useTreasury);
     event PlanRewardClaimed(bytes32 planId, NftIdentifier nft, address owner, uint256 reward, address token);
@@ -31,10 +32,11 @@ interface IPDPlan {
         PlanTemplateType planTemplateType
     )
         external
-        payable;
+        payable
+        returns (bytes32 planId);
     function addTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external;
-    function claimMultiPlanReward(bytes32[] calldata planIds, NftIdentifier calldata nft) external;
-    function claimDaoPlanReward(bytes32 daoId, NftIdentifier calldata nft) external;
+    function claimMultiPlanReward(bytes32[] calldata planIds, NftIdentifier calldata nft) external returns (uint256);
+    function claimDaoPlanReward(bytes32 daoId, NftIdentifier calldata nft) external returns (uint256);
     function deletePlan(bytes32 planId) external;
 
     function updateTopUpAccount(

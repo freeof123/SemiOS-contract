@@ -41,6 +41,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
     )
         external
         payable
+        returns (bytes32 planId)
     {
         if (useTreasury) {
             _checkTreasuryTransferAssetAbility(daoId);
@@ -55,29 +56,30 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             }
             IERC20(rewardToken).transferFrom(msg.sender, address(this), totalReward);
         }
-        PoolStorage.PoolInfo storage poolInfo =
-            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        bytes32[] storage allPlans = poolInfo.allPlans;
-        bytes32 planId = keccak256(abi.encodePacked(daoId, startBlock, duration, totalRounds, poolInfo.totalPlans));
-        allPlans.push(planId);
-        poolInfo.totalPlans++;
-        if (startBlock < block.number) {
-            revert StartBlockAlreadyPassed();
+        {
+            PoolStorage.PoolInfo storage poolInfo =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+            bytes32[] storage allPlans = poolInfo.allPlans;
+            planId = keccak256(abi.encodePacked(daoId, startBlock, duration, totalRounds, poolInfo.totalPlans));
+            allPlans.push(planId);
+            poolInfo.totalPlans++;
+            if (startBlock < block.number) {
+                revert StartBlockAlreadyPassed();
+            }
+            PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
+            planInfo.daoId = daoId;
+            planInfo.startBlock = startBlock;
+            planInfo.duration = duration;
+            planInfo.totalRounds = totalRounds;
+            planInfo.totalReward = totalReward;
+            planInfo.rewardToken = rewardToken;
+            planInfo.planTemplateType = planTemplateType;
+            planInfo.owner = msg.sender;
+            planInfo.io = io;
+            planInfo.planExist = true;
         }
-        PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
-        planInfo.daoId = daoId;
-        planInfo.startBlock = startBlock;
-        planInfo.duration = duration;
-        planInfo.totalRounds = totalRounds;
-        planInfo.totalReward = totalReward;
-        planInfo.rewardToken = rewardToken;
-        planInfo.planTemplateType = planTemplateType;
-        planInfo.owner = msg.sender;
-        planInfo.io = io;
-        planInfo.planExist = true;
-
         emit NewSemiOsPlan(
-            planId, daoId, startBlock, duration, totalRounds, totalReward, planTemplateType, io, msg.sender
+            planId, daoId, startBlock, duration, totalRounds, totalReward, planTemplateType, io, msg.sender, useTreasury
         );
     }
 
@@ -109,8 +111,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         emit PlanTotalRewardAdded(planId, amount, useTreasury);
     }
 
-    function claimDaoPlanReward(bytes32 daoId, NftIdentifier calldata nft) external {
-        _updateTopUpAccount(daoId, nft);
+    function claimDaoPlanReward(bytes32 daoId, NftIdentifier calldata nft) public returns (uint256 amount) {
         address owner = IERC721(nft.erc721Address).ownerOf(nft.tokenId);
         bytes32 nftHash = _nftHash(nft);
         PlanStorage.PlanInfo storage planInfo;
@@ -122,7 +123,6 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             planInfo = PlanStorage.layout().planInfos[allPlans[i]];
             (bool succ, bytes memory data) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)]
                 .delegatecall(abi.encodeCall(IPlanTemplate.claimReward, (allPlans[i], nftHash, owner, hex"")));
-
             if (!succ) {
                 /// @solidity memory-safe-assembly
                 assembly {
@@ -130,6 +130,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                     revert(0, returndatasize())
                 }
             }
+            amount += abi.decode(data, (uint256));
 
             emit PlanRewardClaimed(allPlans[i], nft, owner, abi.decode(data, (uint256)), planInfo.rewardToken);
 
@@ -137,9 +138,32 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
+        _updateTopUpAccount(daoId, nft);
     }
 
-    function claimMultiPlanReward(bytes32[] calldata planIds, NftIdentifier calldata nft) external {
+    function claimDaoPlanRewardForMultiNft(
+        bytes32 daoId,
+        NftIdentifier[] calldata nft
+    )
+        external
+        returns (uint256 amount)
+    {
+        for (uint256 i; i < nft.length;) {
+            amount += claimDaoPlanReward(daoId, nft[i]);
+            unchecked {
+                ++i;
+            }
+        }
+    }
+    /// @dev This function does not auto update topup account
+
+    function claimMultiPlanReward(
+        bytes32[] calldata planIds,
+        NftIdentifier calldata nft
+    )
+        external
+        returns (uint256 amount)
+    {
         //不自动挂账
         address owner = IERC721(nft.erc721Address).ownerOf(nft.tokenId);
         bytes32 nftHash = _nftHash(nft);
@@ -159,6 +183,8 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                     revert(0, returndatasize())
                 }
             }
+            amount += abi.decode(data, (uint256));
+
             emit PlanRewardClaimed(planIds[i], nft, owner, abi.decode(data, (uint256)), planInfo.rewardToken);
             unchecked {
                 ++i;
