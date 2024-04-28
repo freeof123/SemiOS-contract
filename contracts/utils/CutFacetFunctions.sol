@@ -389,7 +389,7 @@ function getPDPlanSelectors() pure returns (bytes4[] memory) {
     // register D4AGrant
     bytes4 interfaceId;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.createPlan.selector;
-    interfaceId ^= selectors[selectorIndex++] = IPDPlan.addTotalReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.addPlanTotalReward.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimMultiPlanReward.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimDaoPlanReward.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.deletePlan.selector;

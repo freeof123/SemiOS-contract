@@ -53,8 +53,9 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         } else {
             if (rewardToken == address(0)) {
                 if (msg.value < totalReward) revert NotEnoughEther();
+            } else {
+                IERC20(rewardToken).transferFrom(msg.sender, address(this), totalReward);
             }
-            IERC20(rewardToken).transferFrom(msg.sender, address(this), totalReward);
         }
         {
             PoolStorage.PoolInfo storage poolInfo =
@@ -83,9 +84,9 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         );
     }
 
-    function addTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external {
+    function addPlanTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external payable {
         PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
-
+        require(planInfo.planExist, "plan not exist");
         (bool succ,) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)].delegatecall(
             abi.encodeCall(IPlanTemplate.updateReward, (planId, bytes32(0), hex""))
         );
@@ -102,11 +103,19 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         if (useTreasury) {
             _checkTreasuryTransferAssetAbility(daoId);
             address treasury = PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasury;
+            if (planInfo.rewardToken != DaoStorage.layout().daoInfos[daoId].token) {
+                revert InvalidRewardTokenForTreasury();
+            }
             D4AFeePool(payable(treasury)).transfer(
                 DaoStorage.layout().daoInfos[daoId].token, payable(address(this)), amount
             );
+        } else {
+            if (planInfo.rewardToken == address(0)) {
+                if (msg.value < amount) revert NotEnoughEther();
+            } else {
+                IERC20(planInfo.rewardToken).transferFrom(msg.sender, address(this), amount);
+            }
         }
-        IERC20(DaoStorage.layout().daoInfos[daoId].token).transferFrom(msg.sender, address(this), amount);
         planInfo.totalReward += amount;
         emit PlanTotalRewardAdded(planId, amount, useTreasury);
     }

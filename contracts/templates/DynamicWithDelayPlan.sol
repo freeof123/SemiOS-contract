@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { IPlanTemplate } from "contracts/interface/IPlanTemplate.sol";
 import { UpdateRewardParam, NftIdentifier } from "contracts/interface/D4AStructs.sol";
-import { BASIS_POINT, ETHER } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, ETHERSQUARE } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { PlanStorage } from "contracts/storages/PlanStorage.sol";

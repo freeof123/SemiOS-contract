@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { IPlanTemplate } from "contracts/interface/IPlanTemplate.sol";
 import { UpdateRewardParam, NftIdentifier } from "contracts/interface/D4AStructs.sol";
-import { BASIS_POINT, ETHER } from "contracts/interface/D4AConstants.sol";
+import { BASIS_POINT, ETHERSQUARE } from "contracts/interface/D4AConstants.sol";
 import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErrors.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { PlanStorage } from "contracts/storages/PlanStorage.sol";
@@ -23,6 +23,7 @@ import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 contract DynamicPlan is IPlanTemplate {
     function updateReward(bytes32 planId, bytes32 nftHash, bytes memory data) public payable {
         PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
+
         uint256 round = _getPlanCurrentRound(planInfo);
         if (round == 0) {
             return;
@@ -65,7 +66,7 @@ contract DynamicPlan is IPlanTemplate {
             if (totalStake != 0) {
                 uint256 incomeReward = (round - planInfo.lastUpdateRound - 1) * rewardPerRound;
                 planInfo.cumulatedReward += incomeReward;
-                planInfo.cumulatedRewardPerToken += incomeReward * ETHER / totalStake;
+                planInfo.cumulatedRewardPerToken += incomeReward * ETHERSQUARE / totalStake;
             }
             planInfo.lastUpdateRound = round - 1;
         }
@@ -81,9 +82,10 @@ contract DynamicPlan is IPlanTemplate {
         uint256 accountBalance = !planInfo.io
             ? PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftEth[nftHash]
             : PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftErc20[nftHash];
+
         if (round > planInfo.accountLastUpdateRound[nftHash] + 1) {
             planInfo.accountCumulatedReward[nftHash] += accountBalance
-                * (planInfo.cumulatedRewardPerToken - planInfo.accountCumulatedRewardPerToken[nftHash]) / ETHER;
+                * (planInfo.cumulatedRewardPerToken - planInfo.accountCumulatedRewardPerToken[nftHash]) / ETHERSQUARE;
             planInfo.accountCumulatedRewardPerToken[nftHash] = planInfo.cumulatedRewardPerToken;
             planInfo.accountLastUpdateRound[nftHash] = round - 1;
         }

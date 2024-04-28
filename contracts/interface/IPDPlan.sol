@@ -34,7 +34,7 @@ interface IPDPlan {
         external
         payable
         returns (bytes32 planId);
-    function addTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external;
+    function addPlanTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external payable;
     function claimMultiPlanReward(bytes32[] calldata planIds, NftIdentifier calldata nft) external returns (uint256);
     function claimDaoPlanReward(bytes32 daoId, NftIdentifier calldata nft) external returns (uint256);
     function deletePlan(bytes32 planId) external;
