@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
+import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
+
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -238,10 +240,53 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         }
     }
 
-    //1.8 add----------------------------------------------------------
+    function getPlanCumulativeReward(bytes32 planId) public returns (uint256) {
+        PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
+        require(planInfo.planExist, "plan not exist");
+        (bool succ,) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)].delegatecall(
+            abi.encodeCall(IPlanTemplate.updateReward, (planId, bytes32(0), hex""))
+        );
+
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+        return planInfo.cumulatedReward;
+    }
+
+    function retriveUnclaimedToken(bytes32 planId) public {
+        PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
+        require(planInfo.planExist, "plan not exist");
+        if (msg.sender != planInfo.owner) revert NotPlanOwner();
+        (bool succ,) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)].delegatecall(
+            abi.encodeCall(IPlanTemplate.updateReward, (planId, bytes32(0), hex""))
+        );
+        if (!succ) {
+            /// @solidity memory-safe-assembly
+            assembly {
+                returndatacopy(0, 0, returndatasize())
+                revert(0, returndatasize())
+            }
+        }
+        if (planInfo.lastUpdateRound == planInfo.totalRounds) {
+            _transferInputToken(planInfo.rewardToken, msg.sender, planInfo.totalReward - planInfo.cumulatedReward);
+        }
+    }
+
     function getTopUpBalance(bytes32 daoId, NftIdentifier memory nft) public view returns (uint256, uint256) {
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
         return (poolInfo.topUpNftEth[_nftHash(nft)], poolInfo.topUpNftErc20[_nftHash(nft)]);
+    }
+
+    function _transferInputToken(address token, address to, uint256 amount) internal {
+        if (token == address(0)) {
+            SafeTransferLib.safeTransferETH(to, amount);
+        } else {
+            SafeTransferLib.safeTransfer(token, to, amount);
+        }
     }
 }

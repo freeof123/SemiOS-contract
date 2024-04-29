@@ -21,6 +21,7 @@ import { PDCreate } from "contracts/PDCreate.sol";
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDRound } from "contracts/PDRound.sol";
 import { PDLock } from "contracts/PDLock.sol";
+import { PDPlan } from "contracts/PDPlan.sol";
 import { PDRound } from "contracts/PDRound.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
@@ -33,7 +34,7 @@ import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceV
 import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
 import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
-
+import { DynamicPlan } from "contracts/templates/DynamicPlan.sol";
 import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract D4AAddress is CommonBase {
@@ -46,7 +47,7 @@ contract D4AAddress is CommonBase {
     // D4AClaimer public d4aClaimer = D4AClaimer(json.readAddress(".D4AClaimer"));
 
     // Drb
-    D4ADrb public d4aDrb = D4ADrb(json.readAddress(".D4ADrb"));
+    //D4ADrb public d4aDrb = D4ADrb(json.readAddress(".D4ADrb"));
 
     // factories
     D4AFeePoolFactory public d4aFeePoolFactory = D4AFeePoolFactory(json.readAddress(".factories.D4AFeePoolFactory"));
@@ -71,6 +72,8 @@ contract D4AAddress is CommonBase {
     PDRound public pdRound = PDRound(json.readAddress(".PDProtocol.PDRound"));
     PDLock public pdLock = PDLock(json.readAddress(".PDProtocol.PDLock"));
     PDGrant public pdGrant = PDGrant(json.readAddress(".PDProtocol.PDGrant"));
+    PDPlan public pdPlan = PDPlan(json.readAddress(".PDProtocol.PDPlan"));
+
     D4ASettings public d4aSettings = D4ASettings(json.readAddress(".PDProtocol.D4ASettings"));
     LinearPriceVariation public linearPriceVariation =
         LinearPriceVariation(json.readAddress(".PDProtocol.LinearPriceVariation"));
@@ -78,6 +81,7 @@ contract D4AAddress is CommonBase {
         ExponentialPriceVariation(json.readAddress(".PDProtocol.ExponentialPriceVariation"));
     UniformDistributionRewardIssuance public uniformDistributionRewardIssuance =
         UniformDistributionRewardIssuance(json.readAddress(".PDProtocol.UniformDistributionRewardIssuance"));
+    DynamicPlan public dynamicPlan = DynamicPlan(json.readAddress(".PDProtocol.DynamicPlan"));
 
     // permission control
     PermissionControl public permissionControl_proxy = PermissionControl(json.readAddress(".PermissionControl.proxy"));

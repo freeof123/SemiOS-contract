@@ -98,7 +98,6 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // pdProtocol_proxy.initialize();
 
-        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
         // );

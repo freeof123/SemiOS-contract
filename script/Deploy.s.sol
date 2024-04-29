@@ -26,7 +26,8 @@ import {
     getPDBasicDaoSelectors,
     getPDRoundSelectors,
     getPDLockSelectors,
-    getPDGrantSelectors
+    getPDGrantSelectors,
+    getPDPlanSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
 import "./utils/D4AAddress.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
@@ -43,67 +44,23 @@ contract Deploy is Script, Test, D4AAddress {
     address public owner = 0xe6046371B729f23206a94DDCace89FEceBBD565c;
     //= vm.addr(deployerPrivateKey);
 
-    struct CreateDaoParam {
-        uint256 startDrb;
-        uint256 mintableRound;
-        uint256 floorPriceRank;
-        uint256 maxNftRank;
-        uint96 royaltyFee;
-        string daoUri;
-        uint256 projectIndex;
-        bytes32 minterMerkleRoot;
-        address[] minterNFTHolderPasses;
-        bytes32 canvasCreatorMerkleRoot;
-        address[] canvasCreatorNFTHolderPasses;
-        address[] minterAccounts;
-        address[] canvasCreatorAccounts;
-        uint256 mintCap;
-        address[] minters;
-        uint256[] userMintCaps;
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvasCreatorERC20RatioInBps;
-        uint256 nftMinterERC20RatioInBps;
-        PriceTemplateType priceTemplateType;
-        uint256 priceFactor;
-        RewardTemplateType rewardTemplateType;
-        uint256 rewardDecayFactor;
-        bool isProgressiveJackpot;
-        bytes32 canvasId;
-        uint256 actionType;
-        bytes32[] childrenDaoId;
-        uint256[] childrenDaoRatios;
-        uint256 redeemPoolRatio;
-    }
-
-    struct CreateContinuousDaoParam {
-        bytes32 existDaoId;
-        DaoMetadataParam daoMetadataParam;
-        Whitelist whitelist;
-        Blacklist blacklist;
-        DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
-        TemplateParam templateParam;
-        BasicDaoParam basicDaoParam;
-        ContinuousDaoParam continuousDaoParam;
-        uint256 dailyMintCap;
-    }
-
     function run() public {
         vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        // _deployFeePoolFactory();
+        _deployFeePoolFactory();
 
-        // _deployRoyaltySplitterFactory();
+        _deployRoyaltySplitterFactory();
 
-        // _deployERC20Factory();
+        _deployERC20Factory();
 
-        // _deployERC721WithFilterFactory();
+        _deployERC721WithFilterFactory();
 
-        // _deployNaiveOwner();
-        // _deployNaiveOwnerProxy();
+        _deployNaiveOwner();
+        _deployNaiveOwnerProxy();
 
-        // _deployProxyAdmin();
+        _deployProxyAdmin();
 
-        // _deployProtocolProxy();
+        _deployProtocolProxy();
         _deployProtocol();
 
         _deployProtocolReadable();
@@ -115,41 +72,36 @@ contract Deploy is Script, Test, D4AAddress {
         _deployPDCreate();
         _cutFacetsPDCreate(DeployMethod.ADD);
 
-        // _deployPDRound();
-        // _cutFacetsPDRound(DeployMethod.ADD);
+        _deployPDRound();
+        _cutFacetsPDRound(DeployMethod.ADD);
 
-        // _deployPDGrant();
-        // _cutFacetsPDGrant(DeployMethod.ADD);
+        _deployPDGrant();
+        _cutFacetsPDGrant(DeployMethod.ADD);
 
-        // _deployPDLock();
-        // _cutFacetsPDLock(DeployMethod.ADD);
+        _deployPDLock();
+        _cutFacetsPDLock(DeployMethod.ADD);
 
-        // _deployPDBasicDao();
-        // _cutFacetsPDBasicDao(DeployMethod.ADD);
+        _deployPDPlan();
+        _cutFacetsPDPlan(DeployMethod.ADD);
+
+        _deployPDBasicDao();
+        _cutFacetsPDBasicDao(DeployMethod.ADD);
 
         _deploySettings();
         _cutSettingsFacet(DeployMethod.ADD);
 
-        // _deployUniversalClaimer();
+        _deployUniversalClaimer();
 
         _deployPermissionControl();
-        // _deployPermissionControlProxy();
+        _deployPermissionControlProxy();
 
-        // _initSettings();
+        _initSettings();
 
-        // _deployLinearPriceVariation();
-        // _deployExponentialPriceVariation();
+        _deployLinearPriceVariation();
+        _deployExponentialPriceVariation();
+        _deployDynamicPlan();
 
         _deployUniformDistributionRewardIssuance();
-
-        // pdProtocol_proxy.initialize();
-
-        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
-        // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
-        //     "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
-        // );
-
-        // _createDao();
 
         vm.stopBroadcast();
     }
@@ -703,6 +655,60 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployPDPlan() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDPlan");
+
+        pdPlan = new PDPlan();
+        assertTrue(address(pdPlan) != address(0));
+
+        vm.toString(address(pdPlan)).write(path, ".PDProtocol.PDPlan");
+
+        console2.log("PDPlan address: ", address(pdPlan));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDPlan(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDPlan facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDPlanSelectors();
+        console2.log("PDPlan facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdPlan),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdPlan),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
     function _deploySettings() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4ASettings");
@@ -822,6 +828,22 @@ contract Deploy is Script, Test, D4AAddress {
         );
 
         console2.log("ExponentialPriceVariation address: ", address(exponentialPriceVariation));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployDynamicPlan() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy DynamicPlan");
+
+        dynamicPlan = new DynamicPlan();
+        assertTrue(address(dynamicPlan) != address(0));
+
+        vm.toString(address(dynamicPlan)).write(path, ".PDProtocol.DynamicPlan");
+
+        D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PLAN, uint8(PlanTemplateType.DYNAMIC_PLAN), address(dynamicPlan)
+        );
+        console2.log("DynamicPlan address: ", address(dynamicPlan));
         console2.log("================================================================================\n");
     }
 
