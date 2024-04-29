@@ -107,13 +107,13 @@ contract Deploy is Script, Test, D4AAddress {
         _deployProtocol();
 
         _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.REMOVE_AND_ADD);
+        _cutProtocolReadableFacet(DeployMethod.ADD);
 
         _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.REMOVE_AND_ADD);
+        _cutFacetsProtocolSetter(DeployMethod.ADD);
 
         _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REMOVE_AND_ADD);
+        _cutFacetsPDCreate(DeployMethod.ADD);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -128,7 +128,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
         _deploySettings();
-        _cutSettingsFacet(DeployMethod.REMOVE_AND_ADD);
+        _cutSettingsFacet(DeployMethod.ADD);
 
         // _deployUniversalClaimer();
 
@@ -136,7 +136,6 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployPermissionControlProxy();
 
         // _initSettings();
-        // _initSettings13();
 
         // _deployLinearPriceVariation();
         // _deployExponentialPriceVariation();
@@ -151,10 +150,6 @@ contract Deploy is Script, Test, D4AAddress {
         // );
 
         // _createDao();
-        console2.log("reset ratio");
-        D4ASettings(address(pdProtocol_proxy)).changeProtocolMintFeeRatio(0);
-        D4ASettings(address(pdProtocol_proxy)).changeProtocolETHRewardRatio(0);
-        D4ASettings(address(pdProtocol_proxy)).changeProtocolERC20RewardRatio(0);
 
         vm.stopBroadcast();
     }
@@ -1045,7 +1040,6 @@ contract Deploy is Script, Test, D4AAddress {
         {
             console2.log("Step 1: change address");
             D4ASettings(address(pdProtocol_proxy)).changeAddress(
-                address(d4aDrb),
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
@@ -1065,38 +1059,14 @@ contract Deploy is Script, Test, D4AAddress {
             console2.log("Step 4: change asset pool owner");
             D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(owner);
         }
-        // {
-        //     console2.log("Step 5: set mintable rounds");
-        //     uint256[] memory mintableRounds = new uint256[](7);
-        //     mintableRounds[0] = 30;
-        //     mintableRounds[1] = 60;
-        //     mintableRounds[2] = 90;
-        //     mintableRounds[3] = 120;
-        //     mintableRounds[4] = 180;
-        //     mintableRounds[5] = 270;
-        //     mintableRounds[6] = 360;
-        //     D4ASettings(address(pdProtocol_proxy)).setMintableRounds(mintableRounds);
-        // }
-        // {
-        //     console2.log("Step 6: change floor prices");
-        //     uint256[] memory floorPrices = new uint256[](13);
-        //     floorPrices[0] = 0.01 ether;
-        //     floorPrices[1] = 0.02 ether;
-        //     floorPrices[2] = 0.03 ether;
-        //     floorPrices[3] = 0.05 ether;
-        //     floorPrices[4] = 0.1 ether;
-        //     floorPrices[5] = 0.2 ether;
-        //     floorPrices[6] = 0.3 ether;
-        //     floorPrices[7] = 0.5 ether;
-        //     floorPrices[8] = 1 ether;
-        //     floorPrices[9] = 2 ether;
-        //     floorPrices[10] = 3 ether;
-        //     floorPrices[11] = 5 ether;
-        //     floorPrices[12] = 10 ether;
-        //     D4ASettings(address(pdProtocol_proxy)).changeFloorPrices(floorPrices);
-        // }
         {
-            console2.log("Step 7: change max NFT amounts");
+            console2.log("Step 5 change address in dao proxy");
+            D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
+                address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
+            );
+        }
+        {
+            console2.log("Step 6: change max NFT amounts");
             uint256[] memory maxNFTAmounts = new uint256[](5);
             maxNFTAmounts[0] = 1000;
             maxNFTAmounts[1] = 5000;
@@ -1106,93 +1076,23 @@ contract Deploy is Script, Test, D4AAddress {
             D4ASettings(address(pdProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
         }
         {
-            console2.log("Step 8: grant INITIALIZER ROLE");
+            console2.log("Step 7: grant INITIALIZER ROLE");
             naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(pdProtocol_proxy));
         }
         {
-            console2.log("Step 9: grant role");
+            console2.log("Step 8: grant role");
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
             IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
         }
-        // {
-        //     console2.log("Step 10: change create DOA and Canvas Fee to 0");
-        //     D4ASettings(address(pdProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
-        // }
+        {
+            pdProtocol_proxy.initialize();
+            console2.log("Step 9: set special uri prefix and basic fiat price");
+            PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
+                "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+            );
+        }
         console2.log("================================================================================\n");
     }
-
-    function _initSettings13() internal {
-        // _changeAddressInDaoProxy();
-        // _changeSettingsRatio();
-        console2.log("change address in dao proxy");
-        D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
-            address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
-        );
-    }
-
-    // function _deployUnlocker() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy BasicDaoUnlocker");
-
-    //     basicDaoUnlocker = new BasicDaoUnlocker(address(pdProtocol_proxy));
-    //     assertTrue(address(basicDaoUnlocker) != address(0));
-
-    //     vm.toString(address(basicDaoUnlocker)).write(path, ".BasicDaoUnlocker");
-
-    //     console2.log("basicDaoUnlocker address: ", address(basicDaoUnlocker));
-    //     console2.log("================================================================================\n");
-    // }
-
-    //----------------------------------for event emit---------------------------------------------------
-    // function _createDao() internal {
-    //     UserMintCapParam[] memory userMintCapParams = new UserMintCapParam[](0);
-    //     NftMinterCapInfo[] memory nftMinterCapInfo = new NftMinterCapInfo[](0);
-
-    //     bytes32 daoId = IPDCreate(address(pdProtocol_proxy)).createDao(
-    //         bytes32(0),
-    //         DaoMetadataParam(
-    //             0,
-    //             60,
-    //             239_055_188_367_481_833_171,
-    //             0.01 ether,
-    //             2,
-    //             750,
-    //             "test dao uri for event", // projectUri
-    //             0
-    //         ),
-    //         Whitelist(bytes32(0), new address[](0), bytes32(0), new address[](0)),
-    //         Blacklist(new address[](0), new address[](0)),
-    //         DaoMintCapParam(0, userMintCapParams),
-    //         nftMinterCapInfo,
-    //         TemplateParam(PriceTemplateType(0), 20_000, RewardTemplateType(2), 0, true),
-    //         BasicDaoParam(
-    //             500,
-    //             keccak256("test canvasId for event"), // canvasId
-    //             "canvas for event", // canvasUri
-    //             "mock dao" //dao name
-    //         ),
-    //         ContinuousDaoParam(
-    //             1000,
-    //             false,
-    //             0.01 ether,
-    //             true,
-    //             10_000,
-    //             new bytes32[](0),
-    //             new uint256[](0),
-    //             new uint256[](0),
-    //             1000,
-    //             5000,
-    //             5000,
-    //             true,
-    //             0x0000000000000000000000000000000000000000,
-    //             false,
-    //             false,
-    //             false
-    //         ),
-    //         AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000),
-    //         20
-    //     );
-    // }
 }

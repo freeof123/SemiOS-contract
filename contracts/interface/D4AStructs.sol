@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { PriceTemplateType, RewardTemplateType } from "./D4AEnums.sol";
+import { PriceTemplateType, RewardTemplateType, PlanTemplateType } from "./D4AEnums.sol";
 
 // /**
 //  * @dev create continuous dao
@@ -254,6 +254,19 @@ struct MintNFTParam {
     bytes erc20Signature;
     uint256 deadline;
     NftIdentifier nftIdentifier;
+}
+
+struct CreatePlanParam {
+    bytes32 daoId;
+    uint256 startBlock;
+    uint256 duration;
+    uint256 totalRounds;
+    uint256 totalReward;
+    address rewardToken;
+    bool useTreasury;
+    bool io;
+    string uri;
+    PlanTemplateType planTemplateType;
 }
 
 struct NftIdentifier {

@@ -21,7 +21,6 @@ interface ID4ASettings {
     event MintableRoundsSet(uint256[] mintableRounds);
 
     event ChangeAddress(
-        address drb,
         address erc20Factory,
         address erc721Factory,
         address feePoolFactory,
@@ -56,7 +55,6 @@ interface ID4ASettings {
     function changeERC20TotalSupply(uint256 tokenMaxSupply) external;
 
     function changeAddress(
-        address drb,
         address erc20Factory,
         address erc721Factory,
         address feePoolFactory,

@@ -17,6 +17,8 @@ import { NftIdentifier } from "contracts/interface/D4AStructs.sol";
 //import "forge-std/Test.sol";
 
 abstract contract PlanUpdater {
+    event TopUpAccountUpdated(bytes32 daoId, NftIdentifier nft);
+
     function _updatePlanReward(bytes32 planId, bytes32 nftHash, bytes memory data) internal {
         PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
         (bool succ,) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)].delegatecall(
@@ -95,6 +97,7 @@ abstract contract PlanUpdater {
                 ++i;
             }
         }
+        emit TopUpAccountUpdated(daoId, nft);
         return (poolInfo.topUpNftErc20[_nftHash(nft)], poolInfo.topUpNftEth[_nftHash(nft)]);
     }
 

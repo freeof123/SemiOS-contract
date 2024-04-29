@@ -184,11 +184,6 @@ contract DeployHelper is Test {
 
         _initSettings();
 
-        vm.startPrank(operationRoleMember.addr);
-        protocol.setSpecialTokenUriPrefix(tokenUriPrefix);
-        protocol.setBasicDaoNftFlatPrice(0.01 ether);
-        vm.stopPrank();
-
         drb.changeRound(1);
     }
 
@@ -610,11 +605,12 @@ contract DeployHelper is Test {
         _changeMaxNFTAmounts();
         _changeAddressInDaoProxy();
         _changeSettingsRatio();
+        changePrank(operationRoleMember.addr);
+        protocol.setSpecialTokenUriPrefix(tokenUriPrefix);
     }
 
     function _changeAddress() internal {
         ID4ASettings(address(protocol)).changeAddress(
-            address(drb),
             address(erc20Factory),
             address(erc721Factory),
             address(feePoolFactory),
@@ -652,7 +648,9 @@ contract DeployHelper is Test {
     }
 
     function _changeSettingsRatio() internal {
+        ID4ASettings(address(protocol)).changeProtocolMintFeeRatio(250);
         ID4ASettings(address(protocol)).changeProtocolETHRewardRatio(200);
+        ID4ASettings(address(protocol)).changeProtocolERC20RewardRatio(200);
     }
 
     function _grantRole() internal prank(protocolOwner.addr) {

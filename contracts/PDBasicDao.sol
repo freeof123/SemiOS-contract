@@ -42,14 +42,4 @@ contract PDBasicDao is IPDBasicDao {
     function getSpecialTokenUriPrefix() public view returns (string memory) {
         return BasicDaoStorage.layout().specialTokenUriPrefix;
     }
-
-    function setBasicDaoNftFlatPrice(uint256 price) public {
-        if (!IAccessControl(address(this)).hasRole(OPERATION_ROLE, msg.sender)) revert NotOperationRole();
-
-        BasicDaoStorage.layout().basicDaoNftFlatPrice = price;
-    }
-
-    function getBasicDaoNftFlatPrice() public view returns (uint256) {
-        return BasicDaoStorage.layout().basicDaoNftFlatPrice;
-    }
 }

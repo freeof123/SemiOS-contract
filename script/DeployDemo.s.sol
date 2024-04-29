@@ -958,7 +958,6 @@ contract DeployDemo is Script, Test, D4AAddress {
         {
             console2.log("Step 1: change address");
             D4ASettings(address(pdProtocol_proxy)).changeAddress(
-                address(d4aDrb),
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),

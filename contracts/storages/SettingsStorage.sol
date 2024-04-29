@@ -2,7 +2,6 @@
 
 pragma solidity >=0.8.10;
 
-import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
 import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
 import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
@@ -21,7 +20,6 @@ library SettingsStorage {
         uint256 protocolERC20RewardRatio;
         // contract address
         address protocolFeePool;
-        ID4ADrb drb;
         ID4AERC20Factory erc20Factory;
         ID4AERC721Factory erc721Factory;
         ID4AFeePoolFactory feePoolFactory;

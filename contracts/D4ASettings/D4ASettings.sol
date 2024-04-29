@@ -28,13 +28,13 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         _setRoleAdmin(DAO_ROLE, OPERATION_ROLE);
         _setRoleAdmin(SIGNER_ROLE, OPERATION_ROLE);
         //some default value here
-        l.protocolMintFeeRatioInBps = 250;
+        l.protocolMintFeeRatioInBps = 0;
         l.protocolRoyaltyFeeRatioInBps = 250;
         l.minRoyaltyFeeRatioInBps = 0;
         l.maxRoyaltyFeeRatioInBps = 1000;
 
-        l.protocolERC20RewardRatio = 200;
-        l.protocolETHRewardRatio = 200;
+        l.protocolERC20RewardRatio = 0;
+        l.protocolETHRewardRatio = 0;
         l.reservedDaoAmount = reservedDaoAmount;
     }
 
@@ -60,7 +60,6 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
     }
 
     function changeAddress(
-        address drb,
         address erc20Factory,
         address erc721Factory,
         address feePoolFactory,
@@ -72,13 +71,12 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
     {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.drb = ID4ADrb(drb);
         l.erc20Factory = ID4AERC20Factory(erc20Factory);
         l.erc721Factory = ID4AERC721Factory(erc721Factory);
         l.feePoolFactory = ID4AFeePoolFactory(feePoolFactory);
         l.ownerProxy = ID4AOwnerProxy(ownerProxy);
         l.permissionControl = IPermissionControl(permissionControl);
-        emit ChangeAddress(drb, erc20Factory, erc721Factory, feePoolFactory, ownerProxy, permissionControl);
+        emit ChangeAddress(erc20Factory, erc721Factory, feePoolFactory, ownerProxy, permissionControl);
     }
 
     function changeAssetPoolOwner(address assetOwner) public onlyRole(PROTOCOL_ROLE) {

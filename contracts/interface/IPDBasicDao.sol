@@ -17,8 +17,4 @@ interface IPDBasicDao {
     function setSpecialTokenUriPrefix(string memory prefix) external;
 
     function getSpecialTokenUriPrefix() external view returns (string memory);
-
-    function setBasicDaoNftFlatPrice(uint256 price) external;
-
-    function getBasicDaoNftFlatPrice() external view returns (uint256);
 }

@@ -6,7 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-import { NftIdentifier } from "contracts/interface/D4AStructs.sol";
+import { NftIdentifier, CreatePlanParam } from "contracts/interface/D4AStructs.sol";
 
 import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { NotPlanOwner, InvalidRewardTokenForTreasury } from "contracts/interface/D4AErrors.sol";
@@ -28,59 +28,60 @@ import { SetterChecker } from "contracts/SetterChecker.sol";
 import { PlanUpdater } from "contracts/PlanUpdater.sol";
 
 contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
-    function createPlan(
-        bytes32 daoId,
-        uint256 startBlock,
-        uint256 duration,
-        uint256 totalRounds,
-        uint256 totalReward,
-        address rewardToken,
-        bool useTreasury,
-        bool io,
-        PlanTemplateType planTemplateType
-    )
-        external
-        payable
-        returns (bytes32 planId)
-    {
-        if (useTreasury) {
-            _checkTreasuryTransferAssetAbility(daoId);
-            if (rewardToken != DaoStorage.layout().daoInfos[daoId].token) revert InvalidRewardTokenForTreasury();
-            address treasury = PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool].treasury;
+    function createPlan(CreatePlanParam calldata param) external payable returns (bytes32 planId) {
+        if (param.useTreasury) {
+            _checkTreasuryTransferAssetAbility(param.daoId);
+            if (param.rewardToken != DaoStorage.layout().daoInfos[param.daoId].token) {
+                revert InvalidRewardTokenForTreasury();
+            }
+            address treasury =
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[param.daoId].daoFeePool].treasury;
             D4AFeePool(payable(treasury)).transfer(
-                DaoStorage.layout().daoInfos[daoId].token, payable(address(this)), totalReward
+                DaoStorage.layout().daoInfos[param.daoId].token, payable(address(this)), param.totalReward
             );
         } else {
-            if (rewardToken == address(0)) {
-                if (msg.value < totalReward) revert NotEnoughEther();
+            if (param.rewardToken == address(0)) {
+                if (msg.value < param.totalReward) revert NotEnoughEther();
             } else {
-                IERC20(rewardToken).transferFrom(msg.sender, address(this), totalReward);
+                IERC20(param.rewardToken).transferFrom(msg.sender, address(this), param.totalReward);
             }
         }
         {
             PoolStorage.PoolInfo storage poolInfo =
-                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+                PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[param.daoId].daoFeePool];
             bytes32[] storage allPlans = poolInfo.allPlans;
-            planId = keccak256(abi.encodePacked(daoId, startBlock, duration, totalRounds, poolInfo.totalPlans));
+            planId = keccak256(
+                abi.encodePacked(param.daoId, param.startBlock, param.duration, param.totalRounds, poolInfo.totalPlans)
+            );
             allPlans.push(planId);
             poolInfo.totalPlans++;
-            if (startBlock < block.number) {
+            if (param.startBlock < block.number) {
                 revert StartBlockAlreadyPassed();
             }
             PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
-            planInfo.daoId = daoId;
-            planInfo.startBlock = startBlock;
-            planInfo.duration = duration;
-            planInfo.totalRounds = totalRounds;
-            planInfo.totalReward = totalReward;
-            planInfo.rewardToken = rewardToken;
-            planInfo.planTemplateType = planTemplateType;
+            planInfo.daoId = param.daoId;
+            planInfo.startBlock = param.startBlock;
+            planInfo.duration = param.duration;
+            planInfo.totalRounds = param.totalRounds;
+            planInfo.totalReward = param.totalReward;
+            planInfo.rewardToken = param.rewardToken;
+            planInfo.planTemplateType = param.planTemplateType;
             planInfo.owner = msg.sender;
-            planInfo.io = io;
+            planInfo.io = param.io;
             planInfo.planExist = true;
         }
         emit NewSemiOsPlan(
-            planId, daoId, startBlock, duration, totalRounds, totalReward, planTemplateType, io, msg.sender, useTreasury
+            planId,
+            param.daoId,
+            param.startBlock,
+            param.duration,
+            param.totalRounds,
+            param.totalReward,
+            param.planTemplateType,
+            param.io,
+            msg.sender,
+            param.useTreasury,
+            param.uri
         );
     }
 
@@ -235,5 +236,12 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
+    }
+
+    //1.8 add----------------------------------------------------------
+    function getTopUpBalance(bytes32 daoId, NftIdentifier memory nft) public view returns (uint256, uint256) {
+        PoolStorage.PoolInfo storage poolInfo =
+            PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
+        return (poolInfo.topUpNftEth[_nftHash(nft)], poolInfo.topUpNftErc20[_nftHash(nft)]);
     }
 }

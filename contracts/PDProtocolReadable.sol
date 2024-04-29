@@ -4,19 +4,14 @@ pragma solidity ^0.8.18;
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-
 import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
-
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
-
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
-
 import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { OwnerStorage } from "contracts/storages/OwnerStorage.sol";
-
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { IPriceTemplate } from "contracts/interface/IPriceTemplate.sol";
 import { IRewardTemplate } from "contracts/interface/IRewardTemplate.sol";
@@ -125,10 +120,6 @@ contract PDProtocolReadable is IPDProtocolReadable, D4AProtocolReadable {
             }
         } else {
             uint256 passedRound = IPDRound(address(this)).getDaoCurrentRound(daoId) - 1;
-            if (BasicDaoStorage.layout().basicDaoInfos[daoId].version < 14) {
-                SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-                passedRound = settingsStorage.drb.currentRound() - DaoStorage.layout().daoInfos[daoId].startBlock;
-            }
             return passedRound;
         }
     }

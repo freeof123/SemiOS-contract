@@ -111,7 +111,6 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         // pdProtocol_proxy.initialize();
 
-        // PDBasicDao(address(pdProtocol_proxy)).setBasicDaoNftFlatPrice(0.01 ether);
         // PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
         //     "https://protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
         // );
@@ -868,7 +867,6 @@ contract DeployDemo is Script, Test, D4AAddress {
         {
             console2.log("Step 1: change address");
             D4ASettings(address(pdProtocol_proxy)).changeAddress(
-                address(d4aDrb),
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),

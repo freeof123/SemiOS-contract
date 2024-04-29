@@ -67,7 +67,9 @@ contract PDPlanTest is DeployHelper {
         super._mintNftWithParam(nftParam, nftMinter.addr);
 
         //plan begin in round 2
-        protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        protocol.createPlan(
+            CreatePlanParam(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
         nftParam.tokenUri = "nft 1";
@@ -168,7 +170,9 @@ contract PDPlanTest is DeployHelper {
         super._mintNftWithParam(nftParam, nftMinter.addr);
 
         //plan begin in round 2
-        protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        protocol.createPlan(
+            CreatePlanParam(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         nftParam.tokenUri = "nft 1";
         nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
@@ -263,7 +267,9 @@ contract PDPlanTest is DeployHelper {
         super._mintNftWithParam(nftParam, nftMinter.addr);
 
         //plan begin in round 2
-        protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+        protocol.createPlan(
+            CreatePlanParam(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
         nftParam.tokenUri = "nft 1";
@@ -318,9 +324,12 @@ contract PDPlanTest is DeployHelper {
     }
 
     function test_twoPlans() public {
-        bytes32 plan0 =
-            protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
-        protocol.createPlan(daoId, 3, 1, 10, 42_000_000, address(_testERC20), false, false, PlanTemplateType(0));
+        bytes32 plan0 = protocol.createPlan(
+            CreatePlanParam(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
+        protocol.createPlan(
+            CreatePlanParam(daoId, 3, 1, 10, 42_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId;
         nftParam.canvasId = canvasId1;
@@ -377,7 +386,9 @@ contract PDPlanTest is DeployHelper {
         //minter0 have balance in round 1
         super._mintNftWithParam(nftParam, nftMinter.addr);
         for (uint256 i = 0; i < number; i++) {
-            protocol.createPlan(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, PlanTemplateType(0));
+            protocol.createPlan(
+                CreatePlanParam(daoId, 2, 1, 10, 4_200_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+            );
         }
         vm.roll(2);
         nftParam.tokenUri = "nft 1";
@@ -440,7 +451,9 @@ contract PDPlanTest is DeployHelper {
         nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
         //minter0 have balance in round 1
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        protocol.createPlan(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, PlanTemplateType(0));
+        protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
         vm.roll(5);
@@ -467,8 +480,9 @@ contract PDPlanTest is DeployHelper {
         nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
         //minter0 have balance in round 1
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        bytes32 planId =
-            protocol.createPlan(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, PlanTemplateType(0));
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
         vm.roll(5);
@@ -497,8 +511,9 @@ contract PDPlanTest is DeployHelper {
         nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
         //minter0 have balance in round 1
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        bytes32 planId =
-            protocol.createPlan(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, PlanTemplateType(0));
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
 
@@ -539,8 +554,9 @@ contract PDPlanTest is DeployHelper {
         nftParam.flatPrice = 0.3 ether;
         super._mintNftWithParam(nftParam, nftMinter1.addr);
 
-        bytes32 planId =
-            protocol.createPlan(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, PlanTemplateType(0));
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateMultiTopUpAccount(daoId, nfts);
 
@@ -569,8 +585,9 @@ contract PDPlanTest is DeployHelper {
         nftParam.flatPrice = 0.3 ether;
         super._mintNftWithParam(nftParam, nftMinter1.addr);
 
-        bytes32 planId =
-            protocol.createPlan(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, PlanTemplateType(0));
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, true, "", PlanTemplateType(0))
+        );
         vm.roll(2);
         protocol.updateMultiTopUpAccount(daoId, nfts);
         vm.roll(7);
