@@ -749,11 +749,11 @@ contract Deploy is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.ADD,
                 selectors: selectors
             });
-            // D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
-            //     facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector,
-            // 111)
-            // );
-            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+            //only for first time
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
+                facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 111)
+            );
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
         if (deployMethod == DeployMethod.REPLACE) {
             facetCuts[0] = IDiamondWritableInternal.FacetCut({
@@ -904,18 +904,6 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    // function _deployClaimer() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy D4AClaimer");
-
-    //     d4aClaimer = new D4AClaimer(address(pdProtocol_proxy));
-
-    //     vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
-
-    //     console2.log("D4AClaimer address: ", address(d4aClaimer));
-    //     console2.log("================================================================================\n");
-    // }
-
     function _deployUniversalClaimer() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AUniversalClaimer");
@@ -928,69 +916,16 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    // function _deployCreateProjectProxy() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy PDCreateProjectProxy");
-
-    //     // 下面这段在部署失败重新部署时需要被注释掉
-    //     pdCreateProjectProxy_impl = new PDCreateProjectProxy(address(WETH));
-    //     assertTrue(address(pdCreateProjectProxy_impl) != address(0));
-    //     //pdCreateProjectProxy_impl = PDCreateProjectProxy(payable(0x23951139124dd1803BE081e781Ba563C554D0542));
-
-    //     proxyAdmin.upgrade(
-    //         ITransparentUpgradeableProxy(address(pdCreateProjectProxy_proxy)), address(pdCreateProjectProxy_impl)
-    //     );
-
-    //     vm.toString(address(pdCreateProjectProxy_impl)).write(path, ".PDCreateProjectProxy.impl");
-
-    //     console2.log("PDCreateProjectProxy implementation address: ", address(pdCreateProjectProxy_impl));
-    //     console2.log("================================================================================\n");
-    // }
-
-    // function _deployCreateProjectProxyProxy() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy PDCreateProjectProxy proxy");
-
-    //     pdCreateProjectProxy_proxy = PDCreateProjectProxy(
-    //         payable(
-    //             address(
-    //                 new TransparentUpgradeableProxy(
-    //                     address(pdCreateProjectProxy_impl),
-    //                     address(proxyAdmin),
-    //                     abi.encodeWithSignature(
-    //                         "initialize(address,address,address,address)",
-    //                         address(uniswapV2Factory),
-    //                         address(pdProtocol_proxy),
-    //                         address(d4aRoyaltySplitterFactory),
-    //                         address(owner)
-    //                     )
-    //                 )
-    //             )
-    //         )
-    //     );
-    //     assertTrue(address(pdCreateProjectProxy_proxy) != address(0));
-
-    //     vm.toString(address(pdCreateProjectProxy_proxy)).write(path, ".PDCreateProjectProxy.proxy");
-
-    //     console2.log("PDCreateProjectProxy proxy address: ", address(pdCreateProjectProxy_proxy));
-    //     console2.log("================================================================================\n");
-    // }
-
     function _deployPermissionControl() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl");
 
         permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
-        proxyAdmin.upgrade(
-            ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
-        );
 
-        // do not upgrate for first time deploy
-        // proxyAdmin.upgradeAndCall(
-        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)),
-        //     address(permissionControl_impl),
-        //     abi.encodeWithSignature("initialize(address)", address(naiveOwner_proxy))
+        // for non-first-time deploy
+        // proxyAdmin.upgrade(
+        //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
         // );
 
         vm.toString(address(permissionControl_impl)).write(path, ".PermissionControl.impl");

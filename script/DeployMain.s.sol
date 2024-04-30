@@ -125,21 +125,21 @@ contract DeployDemo is Script, Test, D4AAddress {
         //vm.stopPrank();
     }
 
-    function _deployDrb() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4ADrb");
+    // function _deployDrb() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy D4ADrb");
 
-        // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
-        // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
-        // +UTC
-        d4aDrb = new D4ADrb({startBlock: 8335355, blocksPerDrbE18: 5737324520819563996120});
-        assertTrue(address(d4aDrb) != address(0));
+    //     // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
+    //     // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
+    //     // +UTC
+    //     d4aDrb = new D4ADrb({startBlock: 8335355, blocksPerDrbE18: 5737324520819563996120});
+    //     assertTrue(address(d4aDrb) != address(0));
 
-        vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
+    //     vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
 
-        console2.log("D4ADrb address: ", address(d4aDrb));
-        console2.log("================================================================================\n");
-    }
+    //     console2.log("D4ADrb address: ", address(d4aDrb));
+    //     console2.log("================================================================================\n");
+    // }
 
     function _deployFeePoolFactory() internal {
         console2.log("\n================================================================================");

@@ -394,6 +394,8 @@ function getPDPlanSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateTopUpAccount.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateMultiTopUpAccount.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.getTopUpBalance.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.getPlanCumulatedReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.retriveUnclaimedToken.selector;
 
     assert(interfaceId == type(IPDPlan).interfaceId);
 

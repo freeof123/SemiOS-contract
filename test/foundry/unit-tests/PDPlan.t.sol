@@ -607,4 +607,134 @@ contract PDPlanTest is DeployHelper {
         assertApproxEqAbs(_testERC20.balanceOf(nftMinter.addr), 250_000 * 5 + 500_000 * 5, 10);
         assertApproxEqAbs(_testERC20.balanceOf(nftMinter1.addr), 750_000 * 5 + 500_000 * 5, 10);
     }
+
+    function test_planRetrive() public {
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
+        vm.roll(2);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        vm.roll(3);
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        vm.roll(4);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 1));
+        vm.roll(7);
+        nftParam.tokenUri = "nft 2";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        nftParam.tokenUri = "nft 3";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+
+        vm.roll(100);
+        uint256 balBefore = _testERC20.balanceOf(address(this));
+        protocol.retriveUnclaimedToken(planId);
+        assertEq(_testERC20.balanceOf(address(this)), balBefore + 5_000_000);
+        assertEq(protocol.getPlanCumulatedReward(planId), 5_000_000);
+    }
+
+    function test_planCumulatedReward() public {
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
+        vm.roll(2);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        assertEq(protocol.getPlanCumulatedReward(planId), 0);
+        vm.roll(3);
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        assertEq(protocol.getPlanCumulatedReward(planId), 1_000_000);
+        vm.roll(4);
+        assertEq(protocol.getPlanCumulatedReward(planId), 2_000_000);
+        vm.roll(5);
+        nftParam.tokenUri = "nft 2";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        nftParam.daoId = daoId2;
+        nftParam.canvasId = canvasId2;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+
+        nftParam.tokenUri = "nft 3";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000);
+        vm.roll(6);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000);
+        vm.roll(8);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000);
+        nftParam.tokenUri = "nft 4";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000);
+        vm.roll(9);
+        protocol.updateMultiTopUpAccount(daoId, nfts);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000);
+        vm.roll(10);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000 + uint256(7_000_000) / 3);
+        vm.roll(11);
+        assertEq(protocol.getPlanCumulatedReward(planId), 3_000_000 + uint256(7_000_000) * 2 / 3);
+        uint256 balBefore = _testERC20.balanceOf(address(this));
+        protocol.retriveUnclaimedToken(planId);
+        assertEq(_testERC20.balanceOf(address(this)), balBefore);
+        vm.roll(12);
+        assertEq(protocol.getPlanCumulatedReward(planId), 10_000_000);
+        balBefore = _testERC20.balanceOf(address(this));
+        protocol.retriveUnclaimedToken(planId);
+        assertEq(_testERC20.balanceOf(address(this)), balBefore);
+    }
+
+    function test_planCumulatedReward_noUser() public {
+        bytes32 planId = protocol.createPlan(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(_testERC20), false, false, "", PlanTemplateType(0))
+        );
+        vm.roll(100);
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        vm.roll(101);
+        protocol.updateMultiTopUpAccount(daoId, nfts);
+        vm.roll(102);
+        assertEq(protocol.getPlanCumulatedReward(planId), 0);
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0);
+        assertEq(_testERC20.balanceOf(nftMinter1.addr), 0);
+
+        uint256 balBefore = _testERC20.balanceOf(address(this));
+        protocol.retriveUnclaimedToken(planId);
+        assertEq(_testERC20.balanceOf(address(this)), balBefore + 10_000_000);
+        assertEq(protocol.getPlanCumulatedReward(planId), 0);
+    }
 }

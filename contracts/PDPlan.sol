@@ -240,7 +240,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         }
     }
 
-    function getPlanCumulativeReward(bytes32 planId) public returns (uint256) {
+    function getPlanCumulatedReward(bytes32 planId) public returns (uint256) {
         PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
         require(planInfo.planExist, "plan not exist");
         (bool succ,) = SettingsStorage.layout().planTemplates[uint8(planInfo.planTemplateType)].delegatecall(
