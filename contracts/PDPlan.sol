@@ -282,6 +282,17 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
         return (poolInfo.topUpNftEth[_nftHash(nft)], poolInfo.topUpNftErc20[_nftHash(nft)]);
     }
 
+    function getPlanCurrentRound(bytes32 planId) public view returns (uint256 round) {
+        PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
+        if (block.number < planInfo.startBlock) {
+            return 0;
+        }
+        round = (block.number - planInfo.startBlock) / planInfo.duration + 1;
+        if (round > planInfo.totalRounds) {
+            round = planInfo.totalRounds + 1;
+        }
+    }
+
     function _transferInputToken(address token, address to, uint256 amount) internal {
         if (token == address(0)) {
             SafeTransferLib.safeTransferETH(to, amount);

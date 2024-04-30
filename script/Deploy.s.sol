@@ -47,61 +47,61 @@ contract Deploy is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        _deployFeePoolFactory();
+        // _deployFeePoolFactory();
 
-        _deployRoyaltySplitterFactory();
+        // _deployRoyaltySplitterFactory();
 
-        _deployERC20Factory();
+        // _deployERC20Factory();
 
-        _deployERC721WithFilterFactory();
+        // _deployERC721WithFilterFactory();
 
-        _deployNaiveOwner();
-        _deployNaiveOwnerProxy();
+        // _deployNaiveOwner();
+        // _deployNaiveOwnerProxy();
 
-        _deployProxyAdmin();
+        // _deployProxyAdmin();
 
-        _deployProtocolProxy();
-        _deployProtocol();
+        // _deployProtocolProxy();
+        // _deployProtocol();
 
-        _deployProtocolReadable();
-        _cutProtocolReadableFacet(DeployMethod.ADD);
+        // _deployProtocolReadable();
+        // _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        _deployProtocolSetter();
-        _cutFacetsProtocolSetter(DeployMethod.ADD);
+        // _deployProtocolSetter();
+        // _cutFacetsProtocolSetter(DeployMethod.ADD);
 
-        _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.ADD);
+        // _deployPDCreate();
+        // _cutFacetsPDCreate(DeployMethod.ADD);
 
-        _deployPDRound();
-        _cutFacetsPDRound(DeployMethod.ADD);
+        // _deployPDRound();
+        // _cutFacetsPDRound(DeployMethod.ADD);
 
-        _deployPDGrant();
-        _cutFacetsPDGrant(DeployMethod.ADD);
+        // _deployPDGrant();
+        // _cutFacetsPDGrant(DeployMethod.ADD);
 
-        _deployPDLock();
-        _cutFacetsPDLock(DeployMethod.ADD);
+        // _deployPDLock();
+        // _cutFacetsPDLock(DeployMethod.ADD);
 
         _deployPDPlan();
-        _cutFacetsPDPlan(DeployMethod.ADD);
+        _cutFacetsPDPlan(DeployMethod.REMOVE_AND_ADD);
 
-        _deployPDBasicDao();
-        _cutFacetsPDBasicDao(DeployMethod.ADD);
+        // _deployPDBasicDao();
+        // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        _deploySettings();
-        _cutSettingsFacet(DeployMethod.ADD);
+        // _deploySettings();
+        // _cutSettingsFacet(DeployMethod.ADD);
 
-        _deployUniversalClaimer();
+        // _deployUniversalClaimer();
 
-        _deployPermissionControl();
-        _deployPermissionControlProxy();
+        // _deployPermissionControl();
+        // _deployPermissionControlProxy();
 
-        _initSettings();
+        // _initSettings();
 
-        _deployLinearPriceVariation();
-        _deployExponentialPriceVariation();
-        _deployDynamicPlan();
+        // _deployLinearPriceVariation();
+        // _deployExponentialPriceVariation();
+        // _deployDynamicPlan();
 
-        _deployUniformDistributionRewardIssuance();
+        // _deployUniformDistributionRewardIssuance();
 
         vm.stopBroadcast();
     }
@@ -684,7 +684,7 @@ contract Deploy is Script, Test, D4AAddress {
                 target: address(0),
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    0x6b7EfAe8d4F2f47d1ec3e09bca330d597338625b
                     ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");

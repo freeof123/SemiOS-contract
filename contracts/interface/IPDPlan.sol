@@ -38,4 +38,5 @@ interface IPDPlan {
     function getTopUpBalance(bytes32 daoId, NftIdentifier memory nft) external view returns (uint256, uint256);
     function getPlanCumulatedReward(bytes32 planId) external returns (uint256);
     function retriveUnclaimedToken(bytes32 planId) external;
+    function getPlanCurrentRound(bytes32 planId) external view returns (uint256);
 }
