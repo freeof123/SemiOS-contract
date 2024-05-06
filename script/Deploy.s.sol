@@ -82,7 +82,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _cutFacetsPDLock(DeployMethod.ADD);
 
         _deployPDPlan();
-        _cutFacetsPDPlan(DeployMethod.REMOVE_AND_ADD);
+        _cutFacetsPDPlan(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);

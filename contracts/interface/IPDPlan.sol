@@ -12,6 +12,7 @@ interface IPDPlan {
         uint256 duration,
         uint256 totalRounds,
         uint256 totalReward,
+        address rewardToken,
         PlanTemplateType planTemplateType,
         bool io,
         address owner,

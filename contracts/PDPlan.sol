@@ -79,6 +79,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             param.duration,
             param.totalRounds,
             param.totalReward,
+            param.rewardToken,
             param.planTemplateType,
             param.io,
             msg.sender,
