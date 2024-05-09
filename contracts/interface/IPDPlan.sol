@@ -21,6 +21,7 @@ interface IPDPlan {
     );
     event PlanTotalRewardAdded(bytes32 planId, uint256 amount, bool useTreasury);
     event PlanRewardClaimed(bytes32 planId, NftIdentifier nft, address owner, uint256 reward, address token);
+    event PlanRewardClaimSignal();
 
     function createPlan(CreatePlanParam calldata param) external payable returns (bytes32 planId);
     function addPlanTotalReward(bytes32 planId, uint256 amount, bool useTreasury) external payable;

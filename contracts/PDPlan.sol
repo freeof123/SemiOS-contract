@@ -151,6 +151,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
+        emit PlanRewardClaimSignal();
         _updateTopUpAccount(daoId, nft);
     }
 
@@ -167,8 +168,10 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
+        emit PlanRewardClaimSignal();
     }
     /// @dev This function does not auto update topup account
+    /// @param planIds 待领取的planId
 
     function claimMultiPlanReward(
         bytes32[] calldata planIds,
@@ -203,6 +206,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
+        emit PlanRewardClaimSignal();
     }
 
     function deletePlan(bytes32 planId) external {
