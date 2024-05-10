@@ -57,12 +57,13 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             );
             allPlans.push(planId);
             poolInfo.totalPlans++;
-            if (param.startBlock < block.number) {
+
+            if (param.startBlock != 0 && param.startBlock < block.number) {
                 revert StartBlockAlreadyPassed();
             }
             PlanStorage.PlanInfo storage planInfo = PlanStorage.layout().planInfos[planId];
             planInfo.daoId = param.daoId;
-            planInfo.startBlock = param.startBlock;
+            planInfo.startBlock = param.startBlock == 0 ? block.number : param.startBlock;
             planInfo.duration = param.duration;
             planInfo.totalRounds = param.totalRounds;
             planInfo.totalReward = param.totalReward;

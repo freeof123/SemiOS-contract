@@ -46,4 +46,6 @@ echo "{}" >deployed-contracts-info/selectors/errors.json
 forge inspect PDProtocolSetter errors | jq --slurpfile existing deployed-contracts-info/selectors/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/errors.json
 forge inspect PDProtocol errors | jq --slurpfile existing deployed-contracts-info/selectors/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/errors.json
 forge inspect PDCreate errors | jq --slurpfile existing deployed-contracts-info/selectors/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/errors.json
+forge inspect PDPlan errors | jq --slurpfile existing deployed-contracts-info/selectors/errors.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/errors.json
+
 
