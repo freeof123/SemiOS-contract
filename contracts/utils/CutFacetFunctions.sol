@@ -390,6 +390,7 @@ function getPDPlanSelectors() pure returns (bytes4[] memory) {
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.addPlanTotalReward.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimMultiPlanReward.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimDaoPlanReward.selector;
+    interfaceId ^= selectors[selectorIndex++] = IPDPlan.claimDaoPlanRewardForMultiNft.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.deletePlan.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateTopUpAccount.selector;
     interfaceId ^= selectors[selectorIndex++] = IPDPlan.updateMultiTopUpAccount.selector;

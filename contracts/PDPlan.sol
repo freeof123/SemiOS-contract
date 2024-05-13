@@ -152,7 +152,6 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
-        emit PlanRewardClaimSignal();
         _updateTopUpAccount(daoId, nft);
     }
 
@@ -207,7 +206,6 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
                 ++i;
             }
         }
-        emit PlanRewardClaimSignal();
     }
 
     function deletePlan(bytes32 planId) external {
@@ -229,6 +227,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             }
         }
         planInfo.planExist = false;
+        emit PlanDeleted(planInfo.daoId, planId);
     }
 
     function updateTopUpAccount(bytes32 daoId, NftIdentifier memory nft) public returns (uint256, uint256) {

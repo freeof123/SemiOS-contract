@@ -7,3 +7,4 @@
 "createDao((bytes32,(uint256,uint256,uint256,uint256,uint256,uint96,string,uint256),(bytes32,address[],(address,uint256)[],bytes32,address[],(address,uint256)[]),(address[],address[]),(uint32,(address,uint32)[]),(address,uint256)[],(address,uint256,uint256)[],(uint8,uint256,uint8,uint256,bool),(bytes32,string,string),(uint256,bool,uint256,bool,uint256,bytes32[],uint256[],uint256[],uint256,uint256,uint256,bool,address,bool,bool,bool,string,address),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),uint256))": "66aa3b74"
 "mintNFT((bytes32,bytes32,string,address,string,bytes,uint256,bytes32[],bytes32[],address,bytes,uint256,(address,uint256)))": "57aa22c3"
 "createPlan((bytes32,uint256,uint256,uint256,uint256,address,bool,bool,string,uint8))": "e2cbed38"
+"claimDaoPlanRewardForMultiNft(bytes32,(address,uint256)[])": "449d9739"

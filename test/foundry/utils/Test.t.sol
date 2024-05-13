@@ -24,8 +24,27 @@ contract Child is Parent {
     }
 }
 
+contract TestCall2 {
+    uint256 i;
+
+    constructor() {
+        i = 1;
+    }
+
+    function test_call2() public {
+        i++;
+        console2.log(i, ": sender in test_call2: ", msg.sender);
+    }
+
+    //function test_main() public { }
+}
+
 contract TestCall is Test {
     uint256 i;
+
+    constructor() {
+        i = 1;
+    }
 
     function test_call() public {
         i++;
@@ -33,15 +52,19 @@ contract TestCall is Test {
     }
 
     function test_main() public {
-        i = 1;
         console2.log("caller: ", msg.sender);
         console2.log("address this: ", address(this));
+        i = 2;
         uint256 g = gasleft();
         test_call();
         console2.log(i, ": gas consume: ", g - gasleft());
         g = gasleft();
         TestCall(address(this)).test_call();
         console2.log(i, ": gas consume: ", g - gasleft());
+        TestCall2 tc = new TestCall2();
+        g = gasleft();
+        tc.test_call2();
+        console2.log(i, ": gas consume call other contract: ", g - gasleft());
     }
 }
 
