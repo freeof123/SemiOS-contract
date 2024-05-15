@@ -146,7 +146,7 @@ contract PDCanvasTest is DeployHelper {
         mintNftTransferParam.erc20Signature = erc20Sig;
         mintNftTransferParam.deadline = block.timestamp + 1 days;
         protocol.mintNFT{ value: value }(mintNftTransferParam);
-
+        erc20SigUtils.incNonce(nftMinter.addr);
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
     }
 
@@ -182,7 +182,6 @@ contract PDCanvasTest is DeployHelper {
         ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
         digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, deadline);
         (v, r, s) = vm.sign(nftMinter.key, digest);
-        //nonce should increase?
         erc20Sig = abi.encode(v, r, s);
         uint256 value = 0;
 
@@ -251,5 +250,68 @@ contract PDCanvasTest is DeployHelper {
         vm.warp(block.timestamp + 2 days);
         vm.expectRevert("ERC20Permit: expired deadline");
         protocol.mintNFT{ value: value }(mintNftTransferParam);
+    }
+
+    function test_erc20Payment_twice_permit() public {
+        DeployHelper.CreateDaoParam memory param;
+        param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
+        bytes32 canvasId = param.canvasId;
+        param.existDaoId = bytes32(0);
+        param.isBasicDao = true;
+        param.noPermission = true;
+        param.daoUri = "topup dao uri";
+        param.mintableRound = 50;
+        param.selfRewardRatioERC20 = 10_000;
+        param.erc20PaymentMode = true;
+        param.thirdPartyToken = address(_testERC20);
+
+        bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
+        vm.prank(protocolOwner.addr);
+        _testERC20.transfer(nftMinter.addr, 1 ether);
+
+        startHoax(nftMinter.addr);
+        bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, "token uri 2", 0.01 ether);
+        bytes memory nftSig;
+        bytes memory erc20Sig;
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(daoCreator.key, digest);
+        nftSig = abi.encodePacked(r, s, v);
+
+        ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
+        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days);
+        (v, r, s) = vm.sign(nftMinter.key, digest);
+        uint256 value = 0;
+        erc20Sig = abi.encode(v, r, s);
+
+        CreateCanvasAndMintNFTParam memory mintNftTransferParam;
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = canvasId;
+        mintNftTransferParam.tokenUri = "token uri 2";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = nftSig;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = erc20Sig;
+        mintNftTransferParam.deadline = block.timestamp + 1 days;
+        protocol.mintNFT{ value: value }(mintNftTransferParam);
+        erc20SigUtils.incNonce(nftMinter.addr);
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
+
+        // mint again using permit
+        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days);
+        (v, r, s) = vm.sign(nftMinter.key, digest);
+        erc20Sig = abi.encode(v, r, s);
+
+        mintNftTransferParam.daoId = daoId;
+        mintNftTransferParam.canvasId = canvasId;
+        mintNftTransferParam.tokenUri = "token uri 3";
+        mintNftTransferParam.proof = new bytes32[](0);
+        mintNftTransferParam.flatPrice = 0.01 ether;
+        mintNftTransferParam.nftSignature = nftSig;
+        mintNftTransferParam.nftOwner = nftMinter.addr;
+        mintNftTransferParam.erc20Signature = erc20Sig;
+        mintNftTransferParam.deadline = block.timestamp + 1 days;
+        protocol.mintNFT{ value: value }(mintNftTransferParam);
+        erc20SigUtils.incNonce(nftMinter.addr);
+        assertEq(_testERC20.balanceOf(nftMinter.addr), 0.98 ether);
     }
 }
