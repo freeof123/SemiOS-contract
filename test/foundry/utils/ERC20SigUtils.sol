@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
+
 contract ERC20SigUtils {
     bytes32 private _HASHED_NAME = keccak256(bytes("TestERC20"));
     bytes32 private _HASHED_VERSION = keccak256(bytes("1"));
@@ -72,6 +74,22 @@ contract ERC20SigUtils {
         return keccak256(abi.encode(_PERMIT_TYPEHASH, owner, spender, value, nonces[owner], deadline));
     }
 
+    function getStructHashV2(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        address erc20Address
+    )
+        internal
+        view
+        returns (bytes32)
+    {
+        return keccak256(
+            abi.encode(_PERMIT_TYPEHASH, owner, spender, value, IERC20Permit(erc20Address).nonces(owner), deadline)
+        );
+    }
+
     function getTypedDataHash(
         address owner,
         address spender,
@@ -83,6 +101,24 @@ contract ERC20SigUtils {
         returns (bytes32)
     {
         return keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, getStructHash(owner, spender, value, deadline)));
+    }
+
+    function getTypedDataHashV2(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        address erc20Address
+    )
+        public
+        view
+        returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                "\x19\x01", DOMAIN_SEPARATOR, getStructHashV2(owner, spender, value, deadline, erc20Address)
+            )
+        );
     }
 
     function incNonce(address owner) public {

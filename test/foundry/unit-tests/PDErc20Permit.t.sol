@@ -277,7 +277,9 @@ contract PDCanvasTest is DeployHelper {
         nftSig = abi.encodePacked(r, s, v);
 
         ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
-        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days);
+        digest = erc20SigUtils.getTypedDataHashV2(
+            nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days, address(_testERC20)
+        );
         (v, r, s) = vm.sign(nftMinter.key, digest);
         uint256 value = 0;
         erc20Sig = abi.encode(v, r, s);
@@ -293,11 +295,13 @@ contract PDCanvasTest is DeployHelper {
         mintNftTransferParam.erc20Signature = erc20Sig;
         mintNftTransferParam.deadline = block.timestamp + 1 days;
         protocol.mintNFT{ value: value }(mintNftTransferParam);
-        erc20SigUtils.incNonce(nftMinter.addr);
+        // erc20SigUtils.incNonce(nftMinter.addr);
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
 
         // mint again using permit
-        digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days);
+        digest = erc20SigUtils.getTypedDataHashV2(
+            nftMinter.addr, address(protocol), 0.01 ether, block.timestamp + 1 days, address(_testERC20)
+        );
         (v, r, s) = vm.sign(nftMinter.key, digest);
         erc20Sig = abi.encode(v, r, s);
 
@@ -311,7 +315,7 @@ contract PDCanvasTest is DeployHelper {
         mintNftTransferParam.erc20Signature = erc20Sig;
         mintNftTransferParam.deadline = block.timestamp + 1 days;
         protocol.mintNFT{ value: value }(mintNftTransferParam);
-        erc20SigUtils.incNonce(nftMinter.addr);
+        // erc20SigUtils.incNonce(nftMinter.addr);
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.98 ether);
     }
 }
