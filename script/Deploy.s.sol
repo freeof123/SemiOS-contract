@@ -61,7 +61,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-        // _deployProtocol();
+         _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.ADD);
@@ -81,8 +81,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployPDLock();
         // _cutFacetsPDLock(DeployMethod.ADD);
 
-        _deployPDPlan();
-        _cutFacetsPDPlan(DeployMethod.REMOVE_AND_ADD);
+        // _deployPDPlan();
+        // _cutFacetsPDPlan(DeployMethod.REMOVE_AND_ADD);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);

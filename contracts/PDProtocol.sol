@@ -887,6 +887,8 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, PlanUpdater, Initializable,
             uint256 topUpAmountEth = (topUpAmountErc20ToUse * poolInfo.topUpNftEth[vars.nftHash]) / topUpErc20Quota;
             poolInfo.topUpNftEth[vars.nftHash] -= topUpAmountEth;
             poolInfo.topUpNftErc20[vars.nftHash] -= topUpAmountErc20ToUse;
+            poolInfo.totalStakeEth -= topUpAmountEth;
+            poolInfo.totalStakeErc20 -= topUpAmountErc20ToUse;
             uint256 topUpAmountEthToRedeemPool = topUpAmountEth
                 * BasicDaoStorage.layout().basicDaoInfos[vars.daoId].topUpEthToRedeemPoolRatio / BASIS_POINT;
             _transferInputToken(vars.inputToken, msg.sender, topUpAmountEth - topUpAmountEthToRedeemPool);

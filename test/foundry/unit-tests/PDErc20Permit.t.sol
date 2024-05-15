@@ -182,6 +182,7 @@ contract PDCanvasTest is DeployHelper {
         ERC20SigUtils erc20SigUtils = new ERC20SigUtils(address(_testERC20));
         digest = erc20SigUtils.getTypedDataHash(nftMinter.addr, address(protocol), 0.01 ether, deadline);
         (v, r, s) = vm.sign(nftMinter.key, digest);
+        //nonce should increase?
         erc20Sig = abi.encode(v, r, s);
         uint256 value = 0;
 
