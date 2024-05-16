@@ -301,10 +301,9 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
     // }
 
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) public {
-        //Todo infinitemode
-        // _checkSetAbility(daoId, true, true);
         _checkEditParamAbility(daoId);
         if (newRemainingRound == 0) return;
+        //for infinite mode, we do not need to set remaining round, because it will be set when turn off infinite mode
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].infiniteMode) return;
         DaoStorage.DaoInfo storage daoInfo = DaoStorage.layout().daoInfos[daoId];
         uint256 remainingRound = IPDProtocolReadable(address(this)).getDaoRemainingRound(daoId);
@@ -512,6 +511,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
         RoundStorage.layout().roundInfos[daoId].lastRestartRoundMinusOne = currentRound - 1;
         delete PriceStorage.layout().daoMaxPrices[daoId];
         //Todo do not push active round for dao restart, use lastRestartRoundMinuesOne instead
+        //we can not do this since we can not handle the round when turn on infinite mode
         if (rewardInfo.isProgressiveJackpot) {
             if (
                 rewardInfo.activeRounds.length == 0

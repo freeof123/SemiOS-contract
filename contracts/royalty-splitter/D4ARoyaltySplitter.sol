@@ -176,7 +176,7 @@ contract D4ARoyaltySplitter is Initializable, OwnableUpgradeable, AutomationComp
         for (uint256 i; i < length;) {
             uint256 balance = IERC20(tokens[i]).balanceOf(address(this));
             paths[0] = tokens[i];
-            IERC20(tokens[i]).approve(address(router), balance);
+            SafeTransferLib.safeApprove(tokens[i], address(router), balance);
             uint256 amountOutMin = balance * getPrice(tokens[i], Denominations.ETH) * 995 / 1000 // 995 for 0.3% fee and
                 // more than 0.1% splippage
                 / 10 ** oracleRegistry.decimals(tokens[i], Denominations.ETH);

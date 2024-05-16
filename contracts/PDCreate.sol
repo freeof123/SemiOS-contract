@@ -52,7 +52,7 @@ import { LibString } from "solady/utils/LibString.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-//import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
 struct CreateProjectLocalVars {
     bytes32 existDaoId;
@@ -235,7 +235,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
-            if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao(); //Todo
+            if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao();
             createContinuousDaoParam.daoId = daoId;
 
             createContinuousDaoParam.tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
@@ -406,6 +406,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
 
         if (daoToken == address(0)) {
+            console2.log("minting token");
             D4AERC20(daoInfo.token).mint(treasury, settingsStorage.tokenMaxSupply);
         }
 
@@ -497,7 +498,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         string memory name = daoName;
         string memory sym = string(abi.encodePacked("SEMI.T", LibString.toString(daoIndex)));
-        return settingsStorage.erc20Factory.createD4AERC20(name, sym, address(this));
+        return settingsStorage.erc20Factory.createD4AERC20(name, sym);
     }
 
     function _createERC721Token(

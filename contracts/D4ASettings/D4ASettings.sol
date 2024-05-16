@@ -89,7 +89,7 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
     function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        delete l.nftMaxSupplies; // TODO: check if this is necessary
+        //delete l.nftMaxSupplies; // check if this is necessary
         l.nftMaxSupplies = nftMaxSupplies;
         emit ChangeMaxNFTAmounts(nftMaxSupplies);
     }

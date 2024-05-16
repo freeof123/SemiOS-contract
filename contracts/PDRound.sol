@@ -2,7 +2,6 @@
 pragma solidity ^0.8.18;
 
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";

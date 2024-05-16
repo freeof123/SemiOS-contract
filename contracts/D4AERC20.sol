@@ -16,12 +16,12 @@ contract D4AERC20 is Initializable, ERC20PermitUpgradeable, AccessControlUpgrade
         _disableInitializers();
     }
 
-    function initialize(string memory name, string memory symbol, address _minter) public initializer {
+    function initialize(string memory name, string memory symbol) public initializer {
         __ERC20Permit_init(name);
         __ERC20_init(name, symbol);
         __AccessControl_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER, _minter); // TODO: remove this
+        //_setupRole(MINTER, _minter); // need not any more, have been done in PDCreate
     }
 
     function mint(address to, uint256 amount) public {
@@ -52,9 +52,9 @@ contract D4AERC20Factory is ID4AERC20Factory {
         impl = new D4AERC20();
     }
 
-    function createD4AERC20(string memory _name, string memory _symbol, address _minter) public returns (address) {
+    function createD4AERC20(string memory _name, string memory _symbol) public returns (address) {
         address t = address(impl).clone();
-        D4AERC20(t).initialize(_name, _symbol, _minter);
+        D4AERC20(t).initialize(_name, _symbol);
         D4AERC20(t).changeAdmin(msg.sender);
         emit NewD4AERC20(t);
         return t;

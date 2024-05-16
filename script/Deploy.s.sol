@@ -49,9 +49,9 @@ contract Deploy is Script, Test, D4AAddress {
 
         // _deployFeePoolFactory();
 
-        // _deployRoyaltySplitterFactory();
+        _deployRoyaltySplitterFactory();
 
-        // _deployERC20Factory();
+        _deployERC20Factory();
 
         // _deployERC721WithFilterFactory();
 
@@ -61,7 +61,7 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProxyAdmin();
 
         // _deployProtocolProxy();
-         _deployProtocol();
+        // _deployProtocol();
 
         // _deployProtocolReadable();
         // _cutProtocolReadableFacet(DeployMethod.ADD);
@@ -69,8 +69,8 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployProtocolSetter();
         // _cutFacetsProtocolSetter(DeployMethod.ADD);
 
-        // _deployPDCreate();
-        // _cutFacetsPDCreate(DeployMethod.ADD);
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.REPLACE);
 
         // _deployPDRound();
         // _cutFacetsPDRound(DeployMethod.ADD);
@@ -81,14 +81,28 @@ contract Deploy is Script, Test, D4AAddress {
         // _deployPDLock();
         // _cutFacetsPDLock(DeployMethod.ADD);
 
-        // _deployPDPlan();
-        // _cutFacetsPDPlan(DeployMethod.REMOVE_AND_ADD);
+        _deployPDPlan();
+        _cutFacetsPDPlan(DeployMethod.REPLACE);
 
         // _deployPDBasicDao();
         // _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        // _deploySettings();
-        // _cutSettingsFacet(DeployMethod.ADD);
+        _deploySettings();
+        _cutSettingsFacet(DeployMethod.REPLACE);
+
+        console2.log("Step 1: change address");
+        D4ASettings(address(pdProtocol_proxy)).changeAddress(
+            address(d4aERC20Factory),
+            address(d4aERC721WithFilterFactory),
+            address(d4aFeePoolFactory),
+            address(naiveOwner_proxy),
+            address(permissionControl_proxy)
+        );
+
+        console2.log("Step 5 change address in dao proxy");
+        D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
+            address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
+        );
 
         // _deployUniversalClaimer();
 

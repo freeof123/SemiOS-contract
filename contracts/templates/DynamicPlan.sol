@@ -11,8 +11,6 @@ import { PlanStorage } from "contracts/storages/PlanStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 
 import { D4AERC20 } from "contracts/D4AERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
 import { IPDProtocolReadable } from "contracts/interface/IPDProtocolReadable.sol";

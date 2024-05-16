@@ -4,7 +4,6 @@ pragma solidity ^0.8.18;
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
@@ -45,7 +44,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             if (param.rewardToken == address(0)) {
                 if (msg.value < param.totalReward) revert NotEnoughEther();
             } else {
-                IERC20(param.rewardToken).transferFrom(msg.sender, address(this), param.totalReward);
+                SafeTransferLib.safeTransferFrom(param.rewardToken, msg.sender, address(this), param.totalReward);
             }
         }
         {
@@ -118,7 +117,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
             if (planInfo.rewardToken == address(0)) {
                 if (msg.value < amount) revert NotEnoughEther();
             } else {
-                IERC20(planInfo.rewardToken).transferFrom(msg.sender, address(this), amount);
+                SafeTransferLib.safeTransferFrom(planInfo.rewardToken, msg.sender, address(this), amount);
             }
         }
         planInfo.totalReward += amount;

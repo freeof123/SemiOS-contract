@@ -5,15 +5,11 @@ import "forge-std/Test.sol";
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { MintNftSigUtils } from "test/foundry/utils/MintNftSigUtils.sol";
-
 import "contracts/interface/D4AStructs.sol";
 import "contracts/interface/D4AErrors.sol";
-import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
-import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 
 contract PDProtocolSetterTest is DeployHelper {
+    bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");
     MintNftSigUtils public sigUtils;
     address originalDaoFeePoolAddress;
     address continuousDaoFeePoolAddress;
@@ -21,29 +17,41 @@ contract PDProtocolSetterTest is DeployHelper {
     address continuousTokenAddress;
     bytes32 cDaoId; // 延续的Dao的Id
 
-    // function setUp() public {
-    //     setUpEnv();
+    function setUp() public {
+        setUpEnv();
+    }
 
-    //     DeployHelper.CreateDaoParam memory createDaoParam;
-    //     bytes32 canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
-    //     createDaoParam.canvasId = canvasId;
-    //     bytes32 daoId = _createBasicDao(createDaoParam);
-
-    //     bytes32 canvasId2 = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
-    //     createDaoParam.canvasId = canvasId2;
-    //     createDaoParam.daoUri = "continuous dao";
-    //     bool needMintableWork = false;
-
-    //     bytes32 continuousDaoId = _createContinuousDao(createDaoParam, daoId, needMintableWork);
-
-    //     originalDaoFeePoolAddress = protocol.getDaoFeePool(daoId);
-    //     continuousDaoFeePoolAddress = protocol.getDaoFeePool(continuousDaoId);
-
-    //     originalTokenAddress = protocol.getDaoToken(daoId);
-    //     continuousTokenAddress = protocol.getDaoToken(continuousDaoId);
-    // }
-
-    // function test_SetDaoMintCapAndPermmision() public {
-    //     assertEq(originalTokenAddress, continuousTokenAddress);
-    // }
+    function test_changeMaxNftAmounts() public {
+        uint256[] memory nftMaxAmounts = new uint256[](6);
+        nftMaxAmounts[0] = 1000;
+        nftMaxAmounts[1] = 5000;
+        nftMaxAmounts[2] = 10_000;
+        nftMaxAmounts[3] = 50_000;
+        nftMaxAmounts[4] = 100_000;
+        nftMaxAmounts[5] = 200_000;
+        vm.prank(protocolRoleMember.addr);
+        protocol.changeMaxNFTAmounts(nftMaxAmounts);
+        assertEq(uint256(vm.load(address(protocol), STORAGE_SLOT)), protocol.mintProtocolFeeRatio());
+        assertEq(
+            uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 1))), protocol.tradeProtocolFeeRatio()
+        );
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 2))), 0);
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 3))), 1000);
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 4))), 200);
+        assertEq(
+            address(uint160(uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 5))))),
+            protocolFeePool.addr
+        );
+        assertEq(
+            uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 11))),
+            1_000_000_000_000_000_000_000_000_000
+        );
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(STORAGE_SLOT) + 12))), 6);
+        //--------------------------------------------------------------------------------
+        bytes32 amountSlot = keccak256(abi.encode(uint256(STORAGE_SLOT) + 12));
+        assertEq(uint256(vm.load(address(protocol), amountSlot)), 1000);
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(amountSlot) + 1))), 5000);
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(amountSlot) + 2))), 10_000);
+        assertEq(uint256(vm.load(address(protocol), bytes32(uint256(amountSlot) + 3))), 50_000);
+    }
 }
