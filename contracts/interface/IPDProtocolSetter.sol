@@ -20,11 +20,11 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     event ChildrenSet(
         bytes32 daoId,
         bytes32[] childrenDaoId,
-        uint256[] erc20Ratios,
-        uint256[] ethRatios,
-        uint256 redeemPoolRatioETH,
-        uint256 selfRewardRatioERC20,
-        uint256 selfRewardRatioETH
+        uint256[] outputRatios,
+        uint256[] inputRatios,
+        uint256 redeemPoolInputRatio,
+        uint256 selfRewardOutputRatio,
+        uint256 selfRewardInputRatio
     );
 
     event RatioSet(bytes32 daoId, AllRatioParam vars);
@@ -36,12 +36,14 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
 
     event DaoRemainingRoundSet(bytes32 daoId, uint256 remainingRound);
 
-    event TopUpEthSplitRatioSet(bytes32 daoId, uint256 defaultEthRatio, bytes32[] subDaoIds, uint256[] ethRatios);
-    event TopUpErc20SplitRatioSet(bytes32 daoId, uint256 defaultErc20Ratio, bytes32[] subDaoIds, uint256[] erc20Ratios);
-    event DefaultTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);
-    event DefaultTopUpErc20ToTreasuryRatioSet(bytes32 daoId, uint256 erc20ToTreasuryRatio);
-    event DaoTopUpEthToRedeemPoolRatioSet(bytes32 daoId, uint256 ethToRedeemPoolRatio);
-    event DaoTopUpErc20ToTreasuryRatioSet(bytes32 daoId, uint256 erc20ToTreasuryRatio);
+    event TopUpInputSplitRatioSet(bytes32 daoId, uint256 defaultInputRatio, bytes32[] subDaoIds, uint256[] inputRatios);
+    event TopUpOutputSplitRatioSet(
+        bytes32 daoId, uint256 defaultOutputRatio, bytes32[] subDaoIds, uint256[] outputRatios
+    );
+    event DefaultTopUpInputToRedeemPoolRatioSet(bytes32 daoId, uint256 InputToRedeemPoolRatio);
+    event DefaultTopUpOutputToTreasuryRatioSet(bytes32 daoId, uint256 outputToTreasuryRatio);
+    event DaoTopUpInputToRedeemPoolRatioSet(bytes32 daoId, uint256 InputToRedeemPoolRatio);
+    event DaoTopUpOutputToTreasuryRatioSet(bytes32 daoId, uint256 outputToTreasuryRatio);
 
     event DaoEditInformationNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
     event DaoEditParameterNftOwnerSet(bytes32 daoId, address nftAddress, uint256 tokenId);
@@ -67,22 +69,22 @@ interface IPDProtocolSetter is ID4AProtocolSetter {
     function setTreasuryTransferAssetPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
     function setTreasurySetTopUpRatioPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) external;
 
-    function setTopUpEthSplitRatio(
+    function setTopUpInputSplitRatio(
         bytes32 daoId,
-        uint256 defaultEthRatio,
+        uint256 defaultInputRatio,
         bytes32[] calldata subDaoIds,
-        uint256[] calldata ethRatios
+        uint256[] calldata inputRatios
     )
         external;
-    function setTopUpErc20SplitRatio(
+    function setTopUpOutputSplitRatio(
         bytes32 daoId,
-        uint256 defaultErc20Ratio,
+        uint256 defaultOutputRatio,
         bytes32[] calldata subDaoIds,
-        uint256[] calldata erc20Ratios
+        uint256[] calldata outputRatios
     )
         external;
-    function setDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) external;
-    function setDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) external;
-    function setDaoTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) external;
-    function setDaoTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) external;
+    function setDefaultTopUpInputToRedeemPoolRatio(bytes32 daoId, uint256 inputToRedeemPoolRatio) external;
+    function setDefaultTopUpOutputToTreasuryRatio(bytes32 daoId, uint256 outputToTreasuryRatio) external;
+    function setDaoTopUpInputToRedeemPoolRatio(bytes32 daoId, uint256 inputToRedeemPoolRatio) external;
+    function setDaoTopUpOutputToTreasuryRatio(bytes32 daoId, uint256 outputToTreasuryRatio) external;
 }

@@ -19,7 +19,6 @@ import { D4ASettingsReadable } from "contracts/D4ASettings/D4ASettingsReadable.s
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract MintNftTest is DeployHelper {
     MintNftSigUtils public sigUtils;

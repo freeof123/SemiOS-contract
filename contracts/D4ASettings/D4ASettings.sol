@@ -9,7 +9,6 @@ import { BASIS_POINT, PROTOCOL_ROLE, OPERATION_ROLE, DAO_ROLE, SIGNER_ROLE } fro
 import { TemplateChoice } from "../interface/D4AEnums.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { ID4ASettings } from "./ID4ASettings.sol";
-import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import { ID4AProtocolReadable } from "../interface/ID4AProtocolReadable.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
 import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
@@ -33,8 +32,8 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.minRoyaltyFeeRatioInBps = 0;
         l.maxRoyaltyFeeRatioInBps = 1000;
 
-        l.protocolERC20RewardRatio = 0;
-        l.protocolETHRewardRatio = 0;
+        l.protocolOutputRewardRatio = 0;
+        l.protocolInputRewardRatio = 0;
         l.reservedDaoAmount = reservedDaoAmount;
     }
 
@@ -52,11 +51,11 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         emit ChangeTradeFeeRatio(protocolRoyaltyFeeRatioInBps);
     }
 
-    function changeERC20TotalSupply(uint256 tokenMaxSupply) public onlyRole(PROTOCOL_ROLE) {
+    function changeOutputTotalSupply(uint256 tokenMaxSupply) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
         l.tokenMaxSupply = tokenMaxSupply;
-        emit ChangeERC20TotalSupply(tokenMaxSupply);
+        emit ChangeOutputTotalSupply(tokenMaxSupply);
     }
 
     function changeAddress(
@@ -174,20 +173,20 @@ contract D4ASettings is ID4ASettings, Initializable, AccessControl, D4ASettingsR
         l.d4aswapFactory = IUniswapV2Factory(newD4AswapFactory);
     }
 
-    function changeProtocolETHRewardRatio(uint256 protocolETHRewardRatio) public onlyRole(PROTOCOL_ROLE) {
+    function changeProtocolInputRewardRatio(uint256 protocolInputRewardRatio) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.protocolETHRewardRatio = protocolETHRewardRatio;
+        l.protocolInputRewardRatio = protocolInputRewardRatio;
 
-        emit ChangeProtocolETHRewardRatio(protocolETHRewardRatio);
+        emit ChangeProtocolInputRewardRatio(protocolInputRewardRatio);
     }
 
-    function changeProtocolERC20RewardRatio(uint256 protocolERC20RewardRatio) public onlyRole(PROTOCOL_ROLE) {
+    function changeProtocolOutputRewardRatio(uint256 protocolOutputRewardRatio) public onlyRole(PROTOCOL_ROLE) {
         SettingsStorage.Layout storage l = SettingsStorage.layout();
 
-        l.protocolERC20RewardRatio = protocolERC20RewardRatio;
+        l.protocolOutputRewardRatio = protocolOutputRewardRatio;
 
-        emit ChangeProtocolERC20RewardRatio(protocolERC20RewardRatio);
+        emit ChangeProtocolOutputRewardRatio(protocolOutputRewardRatio);
     }
 
     function changeProtocolMintFeeRatio(uint256 protocolMintFeeRatio) public onlyRole(PROTOCOL_ROLE) {

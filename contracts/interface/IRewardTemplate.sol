@@ -12,9 +12,9 @@ interface IRewardTemplate {
     );
     event DaoBlockRewardForSelf(bytes32 daoId, address token, uint256 amount, uint256 round);
 
-    event DaoBlockRewardTotal(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, uint256 round);
+    event DaoBlockRewardTotal(bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount, uint256 round);
 
-    event PDTopUpBalanceUpdated(bytes32 daoId, bytes32 nftHash, uint256 erc20Amount, uint256 ethAmount);
+    event PDTopUpBalanceUpdated(bytes32 daoId, bytes32 nftHash, uint256 outputAmount, uint256 inputAmount);
 
     function updateReward(UpdateRewardParam memory param) external payable;
 
@@ -28,10 +28,10 @@ interface IRewardTemplate {
     )
         external
         returns (
-            uint256 protocolClaimableERC20Reward,
-            uint256 daoCreatorClaimableERC20Reward,
-            uint256 protocolClaimableETHReward,
-            uint256 daoCreatorClaimableETHReward
+            uint256 protocolClaimableOutputReward,
+            uint256 daoCreatorClaimableOutputReward,
+            uint256 protocolClaimableInputReward,
+            uint256 daoCreatorClaimableInputReward
         );
 
     function claimCanvasCreatorReward(
@@ -43,7 +43,7 @@ interface IRewardTemplate {
         address inputToken
     )
         external
-        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
+        returns (uint256 claimableOutputReward, uint256 claimableInputReward);
 
     function claimNftMinterReward(
         bytes32 daoId,
@@ -54,7 +54,7 @@ interface IRewardTemplate {
     )
         external
         payable
-        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
+        returns (uint256 claimableOutputReward, uint256 claimableInputReward);
 
     function claimNftTopUpBalance(
         bytes32 daoId,
@@ -63,7 +63,7 @@ interface IRewardTemplate {
     )
         external
         payable
-        returns (uint256 claimableERC20Reward, uint256 claimableETHReward);
+        returns (uint256 claimableOutputReward, uint256 claimableInputReward);
     function getRoundReward(bytes32 daoId, uint256 round, bool isInput) external view returns (uint256 rewardAmount);
     function getDaoRoundDistributeAmount(
         bytes32 daoId,

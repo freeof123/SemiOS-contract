@@ -125,22 +125,6 @@ contract DeployDemo is Script, Test, D4AAddress {
         //vm.stopPrank();
     }
 
-    // function _deployDrb() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy D4ADrb");
-
-    //     // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
-    //     // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
-    //     // +UTC
-    //     d4aDrb = new D4ADrb({startBlock: 8335355, blocksPerDrbE18: 5737324520819563996120});
-    //     assertTrue(address(d4aDrb) != address(0));
-
-    //     vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
-
-    //     console2.log("D4ADrb address: ", address(d4aDrb));
-    //     console2.log("================================================================================\n");
-    // }
-
     function _deployFeePoolFactory() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy D4AFeePoolFactory");
@@ -880,7 +864,7 @@ contract DeployDemo is Script, Test, D4AAddress {
         }
         {
             console2.log("Step 3: change ERC20 total supply");
-            D4ASettings(address(pdProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
+            D4ASettings(address(pdProtocol_proxy)).changeOutputTotalSupply(1e9 ether);
         }
         {
             console2.log("Step 4: change asset pool owner");
@@ -960,9 +944,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         );
 
         console2.log("change settings ratio for eth data: ");
-        console2.logBytes(abi.encodeCall(D4ASettings.changeProtocolETHRewardRatio, (200)));
+        console2.logBytes(abi.encodeCall(D4ASettings.changeProtocolInputRewardRatio, (200)));
         // console2.log("change settings ratio for eth");
-        // D4ASettings(address(pdProtocol_proxy)).changeProtocolETHRewardRatio(200);
+        // D4ASettings(address(pdProtocol_proxy)).changeProtocolInputRewardRatio(200);
     }
 
     function _transferOwnership() internal {

@@ -53,11 +53,11 @@ contract EventEmitter {
     event ChildrenSet(
         bytes32 daoId,
         bytes32[] childrenDaoId,
-        uint256[] erc20Ratios,
-        uint256[] ethRatios,
-        uint256 redeemPoolRatioETH,
-        uint256 selfRewardRatioERC20,
-        uint256 selfRewardRatioETH
+        uint256[] outputRatios,
+        uint256[] inputRatios,
+        uint256 redeemPoolInputRatio,
+        uint256 selfRewardOutputRatio,
+        uint256 selfRewardInputRatio
     );
 
     event RatioForFundingSet(bytes32 daoId, AllRatioParam vars);
@@ -86,7 +86,7 @@ contract EventEmitter {
 
     event DaoBlockRewardForSelf(bytes32 daoId, address token, uint256 amount, uint256 round);
 
-    event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
+    event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 outputAmount, uint256 inputAmount);
 
     event MintFeeSplitted(
         bytes32 daoId,
@@ -98,13 +98,15 @@ contract EventEmitter {
         uint256 assetPoolFee
     );
 
-    event PDClaimDaoCreatorReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimDaoCreatorReward(bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount);
 
-    event PDClaimCanvasReward(bytes32 daoId, bytes32 canvasId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimCanvasReward(
+        bytes32 daoId, bytes32 canvasId, address token, uint256 outputAmount, uint256 inputAmount
+    );
 
-    event PDClaimNftMinterReward(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimNftMinterReward(bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount);
 
-    event PDClaimNftMinterRewardTopUp(bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount);
+    event PDClaimNftMinterRewardTopUp(bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount);
 
     constructor() {
         address[] memory zeroAddressArray = new address[](0);
@@ -153,7 +155,7 @@ contract EventEmitter {
                 "test dao"
             ),
             20,
-            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
+            AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000)
         );
 
         emit NewProjectForFunding(
@@ -191,7 +193,7 @@ contract EventEmitter {
 
         emit RatioForFundingSet(
             0xe9f6527f34fb69a20cfc91e2d1a3f3ad3671c7e6bdf38b3af98f4dd528e96986,
-            AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
+            AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000)
         );
 
         emit InitialTokenSupplyForSubDaoSet(0xe9f6527f34fb69a20cfc91e2d1a3f3ad3671c7e6bdf38b3af98f4dd528e96986, 1e28);

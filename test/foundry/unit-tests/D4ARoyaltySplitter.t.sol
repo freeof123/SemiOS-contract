@@ -26,8 +26,8 @@ contract D4ARoyaltySplitterTest is DeployHelper {
         createDaoParam.mintableRound = 50;
         createDaoParam.isBasicDao = true;
         createDaoParam.noPermission = true;
-        createDaoParam.selfRewardRatioERC20 = 10_000;
-        createDaoParam.selfRewardRatioETH = 10_000;
+        createDaoParam.selfRewardOutputRatio = 10_000;
+        createDaoParam.selfRewardInputRatio = 10_000;
 
         bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);

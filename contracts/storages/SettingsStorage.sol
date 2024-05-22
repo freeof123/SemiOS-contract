@@ -12,12 +12,12 @@ import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswa
 
 library SettingsStorage {
     struct Layout {
-        // fee related //deprecated
+        // protocol fee related
         uint256 protocolMintFeeRatioInBps;
         uint256 protocolRoyaltyFeeRatioInBps;
         uint256 minRoyaltyFeeRatioInBps;
         uint256 maxRoyaltyFeeRatioInBps;
-        uint256 protocolERC20RewardRatio;
+        uint256 protocolOutputRewardRatio;
         // contract address
         address protocolFeePool;
         ID4AERC20Factory erc20Factory;
@@ -39,7 +39,7 @@ library SettingsStorage {
         IUniswapV2Factory d4aswapFactory;
         mapping(bytes32 daoId => address royaltySplitter) royaltySplitters;
         address royaltySplitterOwner;
-        uint256 protocolETHRewardRatio;
+        uint256 protocolInputRewardRatio;
         //-------1.8 add
         address[256] planTemplates;
     }

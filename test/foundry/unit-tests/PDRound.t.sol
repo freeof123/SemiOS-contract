@@ -133,7 +133,7 @@ contract PDRoundTest is DeployHelper {
         param.noPermission = true;
         param.isProgressiveJackpot = true;
         param.initTokenSupplyRatio = 600;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
 
         bytes32 daoId = _createDaoForFunding(param, address(this));
         vm.roll(2);
@@ -248,7 +248,7 @@ contract PDRoundTest is DeployHelper {
         param.isBasicDao = true;
         param.mintableRound = 10;
         param.noPermission = true;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         bytes32 daoId = _createDaoForFunding(param, address(this));
 
         CreateCanvasAndMintNFTParam memory mintNftTransferParam;

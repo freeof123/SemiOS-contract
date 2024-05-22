@@ -157,22 +157,22 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.childrenDaoId = new bytes32[](2);
         param.childrenDaoId[0] = daoId;
         param.childrenDaoId[1] = subDaoId;
-        param.childrenDaoRatiosERC20 = new uint256[](2);
-        param.childrenDaoRatiosERC20[0] = 4000;
-        param.childrenDaoRatiosERC20[1] = 3000;
-        param.childrenDaoRatiosETH = new uint256[](2);
-        param.childrenDaoRatiosETH[0] = 1000;
-        param.childrenDaoRatiosETH[1] = 2000;
-        param.redeemPoolRatioETH = 3000;
-        param.selfRewardRatioERC20 = 2000;
-        param.selfRewardRatioETH = 3500;
+        param.childrenDaoOutputRatios = new uint256[](2);
+        param.childrenDaoOutputRatios[0] = 4000;
+        param.childrenDaoOutputRatios[1] = 3000;
+        param.childrenDaoInputRatios = new uint256[](2);
+        param.childrenDaoInputRatios[0] = 1000;
+        param.childrenDaoInputRatios[1] = 2000;
+        param.redeemPoolInputRatio = 3000;
+        param.selfRewardOutputRatio = 2000;
+        param.selfRewardInputRatio = 3500;
 
         param.noPermission = true;
         param.mintableRound = 10;
 
         bytes32 subDaoId2 = super._createDaoForFunding(param, daoCreator3.addr);
-        hoax(daoCreator.addr);
-        protocol.grantDaoAssetPool(subDaoId2, 10_000_000 ether, true, "uri");
+        _grantPool(subDaoId2, daoCreator.addr, 10_000_000 ether);
+
         uint256 flatPrice = 0.01 ether;
 
         super._mintNft(
@@ -280,7 +280,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(nftMinter.addr.balance, 0.99 ether);
     }
 
-    event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
+    event TopUpAmountUsed(address owner, bytes32 daoId, address redeemPool, uint256 outputAmount, uint256 inputAmount);
 
     function test_PDCreateFunding_TopUpAccountShouldBeUsedWhenMintInFurtherRound() public {
         DeployHelper.CreateDaoParam memory param;
@@ -378,8 +378,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
 
         bytes32 canvasId2 = param.canvasId;
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
-        vm.prank(daoCreator.addr);
-        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
+
+        _grantPool(daoId2, daoCreator.addr, 10_000_000 ether);
+
         vm.prank(daoCreator2.addr);
         protocol.setDaoUnifiedPrice(daoId2, 0.03 ether);
         vm.roll(2);
@@ -414,10 +415,10 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(nftMinter.addr.balance, 0.97 ether);
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 0);
         vm.roll(3);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
         //50000000/10 + 10000000/20
-        assertEq(topUpERC20, 5_500_000 ether);
-        assertEq(topUpETH, 0.04 ether);
+        assertEq(topUpOutput, 5_500_000 ether);
+        assertEq(topUpInput, 0.04 ether);
     }
 
     function test_PDCreateFunding_GetReward() public {
@@ -430,7 +431,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         vm.roll(2);
@@ -477,18 +478,18 @@ contract ProtoDaoTestDirectly is DeployHelper {
             daoCreator.key,
             nftMinter.addr
         );
-        assertEq(protocol.getERC20RewardTillRound(daoId, 1), 0);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 2), 2_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 3), 3_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 4), 3_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 5), 5_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 6), 5_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 7), 5_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 8), 8_000_000 ether);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 9), 8_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 1), 0);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 2), 2_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 3), 3_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 4), 3_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 5), 5_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 6), 5_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 7), 5_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 8), 8_000_000 ether);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 9), 8_000_000 ether);
     }
 
-    function test_erc20Payment_SimpleMint() public {
+    function test_outputPayment_SimpleMint() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -497,8 +498,8 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
-        param.erc20PaymentMode = true;
+        param.selfRewardOutputRatio = 10_000;
+        param.outputPaymentMode = true;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -520,7 +521,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
     }
 
-    function test_erc20Payment_topUpAccountShouldBeUsedWhenMintInFurtherRound() public {
+    function test_outputPayment_topUpAccountShouldBeUsedWhenMintInFurtherRound() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -547,7 +548,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.isBasicDao = false;
         param.existDaoId = daoId;
         param.topUpMode = false;
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
         param.daoUri = "normal dao uri";
         param.thirdPartyToken = address(_testERC20); // no effect
@@ -562,9 +563,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
         // vm.expectEmit(address(protocol));
         // emit TopUpAmountUsed(nftMinter.addr, daoId2, protocol.getDaoFeePool(daoId2), 5_000_000 ether, 0.01 ether);
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 1_000_000 ether);
-            assertEq(topUpETH, 0.01 ether);
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 1_000_000 ether);
+            assertEq(topUpInput, 0.01 ether);
         }
 
         MintNftParamTest memory nftParam;
@@ -580,9 +581,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
         super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 500_000 ether, "Check C");
-            assertEq(topUpETH, 0.005 ether, "Check B");
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 500_000 ether, "Check C");
+            assertEq(topUpInput, 0.005 ether, "Check B");
         }
         assertEq(nftMinter.addr.balance, 0.005 ether, "Check A");
     }
@@ -596,7 +597,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.inputToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -651,7 +652,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.isBasicDao = false;
         param.existDaoId = daoId;
         param.topUpMode = false;
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
         param.daoUri = "normal dao uri";
         //param.thirdPartyToken = address(_testERC20); //no effect
@@ -666,9 +667,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
         // vm.expectEmit(address(protocol));
         // emit TopUpAmountUsed(nftMinter.addr, daoId2, protocol.getDaoFeePool(daoId2), 5_000_000 ether, 0.01 ether);
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 1_000_000 ether, "c1");
-            assertEq(topUpETH, 0.01 ether, "c2");
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 1_000_000 ether, "c1");
+            assertEq(topUpInput, 0.01 ether, "c2");
         }
 
         MintNftParamTest memory nftParam;
@@ -684,9 +685,9 @@ contract ProtoDaoTestDirectly is DeployHelper {
         super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 500_000 ether, "Check C");
-            assertEq(topUpETH, 0.005 ether, "Check B");
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 500_000 ether, "Check C");
+            assertEq(topUpInput, 0.005 ether, "Check B");
         }
         //1 - 0.01 + 0.005
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.995 ether, "Check A");
@@ -694,7 +695,7 @@ contract ProtoDaoTestDirectly is DeployHelper {
         param.isBasicDao = false;
         param.existDaoId = daoId;
         param.topUpMode = false;
-        param.erc20PaymentMode = false;
+        param.outputPaymentMode = false;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
         param.daoUri = "normal subdao uri";
         //param.thirdPartyToken = address(_testERC20);

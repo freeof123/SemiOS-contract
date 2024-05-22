@@ -101,7 +101,7 @@ contract PDCanvasTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(vars);
     }
 
-    function test_erc20Payment_without_approve() public {
+    function test_outputPayment_without_approve() public {
         // PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
         // vm.startPrank(protocolOwner.addr);
         // D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
@@ -114,8 +114,8 @@ contract PDCanvasTest is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
-        param.erc20PaymentMode = true;
+        param.selfRewardOutputRatio = 10_000;
+        param.outputPaymentMode = true;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -150,7 +150,7 @@ contract PDCanvasTest is DeployHelper {
         assertEq(_testERC20.balanceOf(nftMinter.addr), 0.99 ether);
     }
 
-    function test_erc20Payment_without_approve_expectRevert_invalidSignature() public {
+    function test_outputPayment_without_approve_expectRevert_invalidSignature() public {
         // PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
         // vm.startPrank(protocolOwner.addr);
         // D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
@@ -163,8 +163,8 @@ contract PDCanvasTest is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
-        param.erc20PaymentMode = true;
+        param.selfRewardOutputRatio = 10_000;
+        param.outputPaymentMode = true;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -201,7 +201,7 @@ contract PDCanvasTest is DeployHelper {
         protocol.mintNFT{ value: value }(mintNftTransferParam);
     }
 
-    function test_erc20Payment_without_approve_expectRevert_expiredDeadline() public {
+    function test_outputPayment_without_approve_expectRevert_expiredDeadline() public {
         // PDProtocolCanvas protocolCanvasImpl = new PDProtocolCanvas();
         // vm.startPrank(protocolOwner.addr);
         // D4ADiamond(payable(address(protocol))).setFallbackAddress(address(protocolCanvasImpl));
@@ -214,8 +214,8 @@ contract PDCanvasTest is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
-        param.erc20PaymentMode = true;
+        param.selfRewardOutputRatio = 10_000;
+        param.outputPaymentMode = true;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -252,7 +252,7 @@ contract PDCanvasTest is DeployHelper {
         protocol.mintNFT{ value: value }(mintNftTransferParam);
     }
 
-    function test_erc20Payment_twice_permit() public {
+    function test_outputPayment_twice_permit() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId = param.canvasId;
@@ -261,8 +261,8 @@ contract PDCanvasTest is DeployHelper {
         param.noPermission = true;
         param.daoUri = "topup dao uri";
         param.mintableRound = 50;
-        param.selfRewardRatioERC20 = 10_000;
-        param.erc20PaymentMode = true;
+        param.selfRewardOutputRatio = 10_000;
+        param.outputPaymentMode = true;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);

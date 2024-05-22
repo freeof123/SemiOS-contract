@@ -19,11 +19,9 @@ import {
     Whitelist,
     Blacklist,
     DaoMintCapParam,
-    DaoETHAndERC20SplitRatioParam,
     SetMintCapAndPermissionParam,
     ContinuousDaoParam,
     NftMinterCapInfo,
-    SetRatioParam,
     TemplateParam,
     BasicDaoParam,
     AllRatioParam,
@@ -39,7 +37,7 @@ import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { CanvasStorage } from "contracts/storages/CanvasStorage.sol";
 import { ProtocolStorage } from "contracts/storages/ProtocolStorage.sol";
-import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+import { TreeStorage } from "contracts/storages/TreeStorage.sol";
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
 import { PriceStorage } from "contracts/storages/PriceStorage.sol";
@@ -67,7 +65,6 @@ struct CreateProjectLocalVars {
     DaoMintCapParam daoMintCapParam;
     NftMinterCapInfo[] nftMinterCapInfo;
     NftMinterCapIdInfo[] nftMinterCapIdInfo;
-    DaoETHAndERC20SplitRatioParam splitRatioParam;
     TemplateParam templateParam;
     BasicDaoParam basicDaoParam;
     AllRatioParam allRatioParam;
@@ -131,7 +128,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             revert ZeroNftReserveNumber(); //要么不开，开了就不能传0
         }
 
-        if (createDaoParam.continuousDaoParam.erc20PaymentMode && createDaoParam.continuousDaoParam.topUpMode) {
+        if (createDaoParam.continuousDaoParam.outputPaymentMode && createDaoParam.continuousDaoParam.topUpMode) {
             revert PaymentModeAndTopUpModeCannotBeBothOn();
         }
 
@@ -163,7 +160,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             createDaoParam.continuousDaoParam.reserveNftNumber,
             createDaoParam.continuousDaoParam.topUpMode,
             createDaoParam.continuousDaoParam.infiniteMode,
-            createDaoParam.continuousDaoParam.erc20PaymentMode,
+            createDaoParam.continuousDaoParam.outputPaymentMode,
             createDaoParam.continuousDaoParam.inputToken
         );
         _config(address(this), vars);
@@ -173,11 +170,13 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
             vars.daoId,
             SetChildrenParam(
                 createDaoParam.continuousDaoParam.childrenDaoId,
-                createDaoParam.continuousDaoParam.childrenDaoRatiosERC20,
-                createDaoParam.continuousDaoParam.childrenDaoRatiosETH,
-                createDaoParam.continuousDaoParam.redeemPoolRatioETH,
-                createDaoParam.continuousDaoParam.selfRewardRatioERC20,
-                createDaoParam.continuousDaoParam.selfRewardRatioETH
+                createDaoParam.continuousDaoParam.childrenDaoOutputRatios,
+                createDaoParam.continuousDaoParam.childrenDaoInputRatios,
+                createDaoParam.continuousDaoParam.redeemPoolInputRatio,
+                createDaoParam.continuousDaoParam.treasuryOutputRatio,
+                createDaoParam.continuousDaoParam.treasuryInputRatio,
+                createDaoParam.continuousDaoParam.selfRewardOutputRatio,
+                createDaoParam.continuousDaoParam.selfRewardInputRatio
             )
         );
         //}
@@ -235,15 +234,15 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         CreateContinuousDaoParam memory createContinuousDaoParam;
         if (!continuousDaoParam.isAncestorDao) {
-            if (!InheritTreeStorage.layout().inheritTreeInfos[existDaoId].isAncestorDao) revert NotAncestorDao();
+            if (!TreeStorage.layout().treeInfos[existDaoId].isAncestorDao) revert NotAncestorDao();
             createContinuousDaoParam.daoId = daoId;
 
             createContinuousDaoParam.tokenAddress = DaoStorage.layout().daoInfos[existDaoId].token;
             createContinuousDaoParam.feePoolAddress = DaoStorage.layout().daoInfos[existDaoId].daoFeePool;
             createContinuousDaoParam.inputToken = DaoStorage.layout().daoInfos[existDaoId].inputToken;
             _createContinuousProject(createContinuousDaoParam);
-            InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = existDaoId;
-            InheritTreeStorage.layout().inheritTreeInfos[existDaoId].familyDaos.push(daoId);
+            TreeStorage.layout().treeInfos[daoId].ancestor = existDaoId;
+            TreeStorage.layout().treeInfos[existDaoId].familyDaos.push(daoId);
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken =
                 BasicDaoStorage.layout().basicDaoInfos[existDaoId].isThirdPartyToken;
         } else {
@@ -256,9 +255,9 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
                     continuousDaoParam.inputToken
                 )
             );
-            InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao = true;
-            InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor = daoId;
-            InheritTreeStorage.layout().inheritTreeInfos[daoId].familyDaos.push(daoId);
+            TreeStorage.layout().treeInfos[daoId].isAncestorDao = true;
+            TreeStorage.layout().treeInfos[daoId].ancestor = daoId;
+            TreeStorage.layout().treeInfos[daoId].familyDaos.push(daoId);
         }
         _createDaoERC721(
             daoId,
@@ -337,18 +336,18 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         basicDaoStorage.basicDaoInfos[daoId].topUpMode = continuousDaoParam.topUpMode;
         basicDaoStorage.basicDaoInfos[daoId].needMintableWork = continuousDaoParam.needMintableWork;
         basicDaoStorage.basicDaoInfos[daoId].infiniteMode = continuousDaoParam.infiniteMode;
-        basicDaoStorage.basicDaoInfos[daoId].erc20PaymentMode = continuousDaoParam.erc20PaymentMode;
+        basicDaoStorage.basicDaoInfos[daoId].outputPaymentMode = continuousDaoParam.outputPaymentMode;
 
         PoolStorage.PoolInfo storage poolInfo = PoolStorage.layout().poolInfos[daoStorage.daoInfos[daoId].daoFeePool];
-        basicDaoStorage.basicDaoInfos[daoId].topUpEthToRedeemPoolRatio = poolInfo.defaultTopUpEthToRedeemPoolRatio;
-        basicDaoStorage.basicDaoInfos[daoId].topUpErc20ToTreasuryRatio = poolInfo.defaultTopUpErc20ToTreasuryRatio;
+        basicDaoStorage.basicDaoInfos[daoId].topUpInputToRedeemPoolRatio = poolInfo.defaultTopUpInputToRedeemPoolRatio;
+        basicDaoStorage.basicDaoInfos[daoId].topUpOutputToTreasuryRatio = poolInfo.defaultTopUpOutputToTreasuryRatio;
 
         emit NewPools(
             daoId,
             basicDaoStorage.basicDaoInfos[daoId].daoAssetPool,
             daoStorage.daoInfos[daoId].daoFeePool,
-            poolInfo.defaultTopUpEthToRedeemPoolRatio,
-            poolInfo.defaultTopUpErc20ToTreasuryRatio,
+            poolInfo.defaultTopUpInputToRedeemPoolRatio,
+            poolInfo.defaultTopUpOutputToTreasuryRatio,
             BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken
         );
     }
@@ -372,7 +371,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
             address daoFeePool = settingsStorage.feePoolFactory.createD4AFeePool(
                 string(abi.encodePacked("Redeem Pool for Semios Project ", LibString.toString(vars.daoIndex)))
-            ); //this feepool is redeem pool for erc20->eth
+            ); //this feepool is redeem pool for output token->input token
 
             D4AFeePool(payable(daoFeePool)).grantRole(keccak256("AUTO_TRANSFER"), address(this));
 
@@ -533,7 +532,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
     // ========================== optimized code =========================
     function _config(address protocol, CreateProjectLocalVars memory vars) internal {
         AllRatioParam memory allRatioParam =
-            vars.topUpMode ? AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0) : vars.allRatioParam;
+            vars.topUpMode ? AllRatioParam(0, 0, 0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0) : vars.allRatioParam;
         emit CreateProjectParamEmitted(
             vars.daoId,
             vars.daoFeePool,
@@ -554,7 +553,7 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
 
         // setup ownership control permission
         IPDProtocolSetter(protocol).setDaoControlPermission(daoId, vars.nft, 0);
-        if (InheritTreeStorage.layout().inheritTreeInfos[daoId].isAncestorDao) {
+        if (TreeStorage.layout().treeInfos[daoId].isAncestorDao) {
             // treasury permission set for 1.6
             IPDProtocolSetter(protocol).setTreasuryControlPermission(daoId, vars.nft, 0);
         }
@@ -567,15 +566,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         permissionVars.userMintCapParams = vars.daoMintCapParam.userMintCapParams;
         permissionVars.nftMinterCapInfo = vars.nftMinterCapInfo; //not support yet
         permissionVars.nftMinterCapIdInfo = vars.nftMinterCapIdInfo;
-
-        // * sort
-        // if (isBasicDao) {
-        //     NftMinterCapInfo[] memory nftMinterCapInfo;
-        //     nftMinterCapInfo = new NftMinterCapInfo[](1);
-        //     nftMinterCapInfo[0] = NftMinterCapInfo({ nftAddress: vars.nft, nftMintCap: 5 });
-        //     permissionVars.nftMinterCapInfo = nftMinterCapInfo;
-        // }
-
         permissionVars.whitelist = vars.whitelist;
         permissionVars.blacklist = vars.blacklist;
         permissionVars.unblacklist = Blacklist(new address[](0), new address[](0));

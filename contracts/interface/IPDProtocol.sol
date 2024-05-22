@@ -9,24 +9,22 @@ interface IPDProtocol {
     );
 
     event PDClaimDaoCreatorReward(
-        bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+        bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount, address receiver
     );
 
     event PDClaimCanvasReward(
-        bytes32 daoId, bytes32 canvasId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+        bytes32 daoId, bytes32 canvasId, address token, uint256 outputAmount, uint256 inputAmount, address receiver
     );
 
     event PDClaimNftMinterReward(
-        bytes32 daoId, address token, uint256 erc20Amount, uint256 ethAmount, address receiver
+        bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount, address receiver
     );
 
-    // event D4AExchangeERC20ToERC20(
-    //     bytes32 daoId, address owner, address to, address grantToken, uint256 tokenAmount, uint256 grantTokenAmount
-    // );
+    event D4AExchangeOutputToInput(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 inputAmount);
 
-    event D4AExchangeERC20ToETH(bytes32 daoId, address owner, address to, uint256 tokenAmount, uint256 ethAmount);
-
-    event TopUpAmountUsed(NftIdentifier nft, bytes32 daoId, address redeemPool, uint256 erc20Amount, uint256 ethAmount);
+    event TopUpAmountUsed(
+        NftIdentifier nft, bytes32 daoId, address redeemPool, uint256 outputAmount, uint256 inputAmount
+    );
 
     event MintFeeSplitted(
         bytes32 daoId,
@@ -42,38 +40,38 @@ interface IPDProtocol {
 
     event NewCanvasForMint(bytes32 daoId, bytes32 canvasId, string canvasUri);
 
-    event TopUpErc20Splitted(
+    event TopUpOutputSplitted(
         bytes32 daoId,
         address msgSender,
         address treasuryAddress,
-        uint256 topUpErc20AmountToSender,
-        uint256 topUpErc20AmountToTreasury
+        uint256 topUpOutputAmountToSender,
+        uint256 topUpOutputAmountToTreasury
     );
-    event TopUpEthSplitted(
+    event TopUpInputSplitted(
         bytes32 daoId,
         address msgSender,
         address redeemPool,
-        uint256 topUpEthAmountToSender,
-        uint256 topUpEthAmountToRedeemPool
+        uint256 topUpInputAmountToSender,
+        uint256 topUpInputAmountToRedeemPool
     );
 
     function initialize() external;
 
     function mintNFT(CreateCanvasAndMintNFTParam calldata vars) external payable returns (uint256);
 
-    function exchangeERC20ToETH(bytes32 daoId, uint256 amount, address to) external returns (uint256);
+    function exchangeOutputToInput(bytes32 daoId, uint256 amount, address to) external returns (uint256);
 
     function claimDaoNftOwnerReward(bytes32 daoId)
         external
-        returns (uint256 daoNftOwnerERC20Reward, uint256 daoNftOwnerETHReward);
+        returns (uint256 daoNftOwnerOutputReward, uint256 daoNftOwnerInputReward);
 
     function claimCanvasReward(bytes32 canvasId)
         external
-        returns (uint256 canvasCreatorERC20Reward, uint256 canvasCreatorETHReward);
+        returns (uint256 canvasCreatorOutputReward, uint256 canvasCreatorInputReward);
     function claimNftMinterReward(
         bytes32 daoId,
         address minter
     )
         external
-        returns (uint256 nftMinterERC20Reward, uint256 nftMinterETHReward);
+        returns (uint256 nftMinterOutputReward, uint256 nftMinterInputReward);
 }

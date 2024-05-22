@@ -11,13 +11,11 @@ error NotCaller(address caller);
 
 error RoyaltyFeeRatioOutOfRange();
 
-error UnauthorizedToExchangeRoyaltyTokenToETH();
-
 error Blacklisted();
 
 error NotInWhitelist();
 
-error InvalidETHRatio();
+error InvalidInputRatio();
 
 error ExceedMaxMintableRound();
 
@@ -89,9 +87,9 @@ error InvalidChildrenDaoRatio();
 
 error InvalidMintFeeRatio();
 
-error InvalidERC20RewardRatio();
+error InvalidOutputRewardRatio();
 
-error InvalidETHRewardRatio();
+error InvalidInputRewardRatio();
 
 error NotAncestorDao();
 

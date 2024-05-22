@@ -14,8 +14,6 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
-
 import "contracts/interface/D4AEnums.sol";
 import {
     getSettingsSelectors,
@@ -90,20 +88,6 @@ contract Deploy is Script, Test, D4AAddress {
         _deploySettings();
         _cutSettingsFacet(DeployMethod.REPLACE);
 
-        console2.log("Step 1: change address");
-        D4ASettings(address(pdProtocol_proxy)).changeAddress(
-            address(d4aERC20Factory),
-            address(d4aERC721WithFilterFactory),
-            address(d4aFeePoolFactory),
-            address(naiveOwner_proxy),
-            address(permissionControl_proxy)
-        );
-
-        console2.log("Step 5 change address in dao proxy");
-        D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
-            address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
-        );
-
         // _deployUniversalClaimer();
 
         // _deployPermissionControl();
@@ -154,22 +138,6 @@ contract Deploy is Script, Test, D4AAddress {
     //     console2.log("subdao:");
     //     console2.logBytes32(continuousDaoId);
     //     //bytes32 subdao = 0xeee88695213bbf892778cfc35e64f30a8988ca4580d71ddaf4b4e12fea19ad60;
-    // }
-
-    // function _deployDrb() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy D4ADrb");
-
-    //     // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
-    //     // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
-    //     // +UTC
-    //     d4aDrb = new D4ADrb({ startBlock: 8_335_355, blocksPerDrbE18: 5_737_324_520_819_563_996_120 });
-    //     assertTrue(address(d4aDrb) != address(0));
-
-    //     vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
-
-    //     console2.log("D4ADrb address: ", address(d4aDrb));
-    //     console2.log("================================================================================\n");
     // }
 
     function _deployFeePoolFactory() internal {
@@ -400,60 +368,6 @@ contract Deploy is Script, Test, D4AAddress {
 
         console2.log("================================================================================\n");
     }
-
-    // function _deployPDCreateFunding() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy PDCreate");
-
-    //     pdCreateFunding = new PDCreateFunding(address(WETH));
-    //     assertTrue(address(pdCreateFunding) != address(0));
-
-    //     vm.toString(address(pdCreateFunding)).write(path, ".PDProtocol.PDCreateFunding");
-
-    //     console2.log("PDCreate address: ", address(pdCreateFunding));
-    //     console2.log("================================================================================\n");
-    // }
-
-    // function _cutFacetsPDCreateFunding(DeployMethod deployMethod) internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start cut PDCreate facet");
-
-    //     //------------------------------------------------------------------------------------------------------
-    //     // D4AProtoclReadable facet cut
-    //     //_arrayToStringbytes4[] memory selectors = getPDCreateFundingSelectors();
-    //     //console2.log("PDCreateFunding facet cut selectors number: ", selectors.length);
-
-    //     IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-
-    //     if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
-    //         facetCuts[0] = IDiamondWritableInternal.FacetCut({
-    //             target: address(0),
-    //             action: IDiamondWritableInternal.FacetCutAction.REMOVE,
-    //             selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
-    //                 0xCefAb7d0868B0DBEf7b9A2f4cEEFEeC64FbE3361
-    //                 ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
-    //          });
-    //         D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-    //     }
-    //     // if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
-    //     //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
-    //     //         target: address(pdCreateFunding),
-    //     //         action: IDiamondWritableInternal.FacetCutAction.ADD,
-    //     //         selectors: selectors
-    //     //     });
-    //     //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-    //     // }
-    //     // if (deployMethod == DeployMethod.REPLACE) {
-    //     //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
-    //     //         target: address(pdCreateFunding),
-    //     //         action: IDiamondWritableInternal.FacetCutAction.REPLACE,
-    //     //         selectors: selectors
-    //     //     });
-    //     //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
-    //     // }
-
-    //     console2.log("================================================================================\n");
-    // }
 
     function _deployPDBasicDao() internal {
         console2.log("\n================================================================================");
@@ -1023,8 +937,8 @@ contract Deploy is Script, Test, D4AAddress {
             D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(owner);
         }
         {
-            console2.log("Step 3: change ERC20 total supply");
-            D4ASettings(address(pdProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
+            console2.log("Step 3: change output total supply");
+            D4ASettings(address(pdProtocol_proxy)).changeOutputTotalSupply(1e9 ether);
         }
         {
             console2.log("Step 4: change asset pool owner");

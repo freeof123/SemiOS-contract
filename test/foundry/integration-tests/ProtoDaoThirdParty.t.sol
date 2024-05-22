@@ -71,8 +71,8 @@ contract ProtoDaoThirdParty is DeployHelper {
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
         param.noPermission = true;
-        param.selfRewardRatioERC20 = 10_000;
-        param.selfRewardRatioETH = 10_000;
+        param.selfRewardOutputRatio = 10_000;
+        param.selfRewardInputRatio = 10_000;
         param.thirdPartyToken = address(_testERC20);
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -117,8 +117,8 @@ contract ProtoDaoThirdParty is DeployHelper {
         param.isBasicDao = true;
         param.noPermission = true;
         param.isProgressiveJackpot = true;
-        param.selfRewardRatioERC20 = 10_000;
-        param.selfRewardRatioETH = 10_000;
+        param.selfRewardOutputRatio = 10_000;
+        param.selfRewardInputRatio = 10_000;
 
         param.thirdPartyToken = address(_testERC20);
 
@@ -132,27 +132,27 @@ contract ProtoDaoThirdParty is DeployHelper {
 
         // param.childrenDaoId = new bytes32[](1);
         // param.childrenDaoId[0] = daoId;
-        // // erc20 ratio
-        // param.childrenDaoRatiosERC20 = new uint256[](1);
-        // param.childrenDaoRatiosERC20[0] = 8000;
-        // // eth ratio
-        // param.childrenDaoRatiosETH = new uint256[](1);
-        // param.childrenDaoRatiosETH[0] = 8000;
+        // // output ratio
+        // param.childrenDaoOutputRatios = new uint256[](1);
+        // param.childrenDaoOutputRatios[0] = 8000;
+        // // input ratio
+        // param.childrenDaoInputRatios = new uint256[](1);
+        // param.childrenDaoInputRatios[0] = 8000;
 
-        // param.selfRewardRatioETH = 0;
-        // param.selfRewardRatioERC20 = 0;
+        // param.selfRewardInputRatio = 0;
+        // param.selfRewardOutputRatio = 0;
 
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
         SetChildrenParam memory vars;
 
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 5000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 5000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 5000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 5000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);
 
@@ -191,38 +191,3 @@ contract ProtoDaoThirdParty is DeployHelper {
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 150_000 * 800 / 10_000);
     }
 }
-
-/*
-vars.allRatioForFundingParam = AllRatioForFundingParam({
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = true
-            canvasCreatorMintFeeRatio: 750,
-            assetPoolMintFeeRatio: 2000,
-            redeemPoolMintFeeRatio: 7000,
-
-
-            // * 1.3 add
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = false, default is false
-            canvasCreatorMintFeeRatioFiatPrice: 250,
-            assetPoolMintFeeRatioFiatPrice: 3500,
-            redeemPoolMintFeeRatioFiatPrice: 6000,
-
-
-            // l.protocolERC20RewardRatio = 200
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioERC20
-            minterERC20RewardRatio: 800,
-            canvasCreatorERC20RewardRatio: 2000,
-            daoCreatorERC20RewardRatio: 7000,
-
-
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioETH
-            minterETHRewardRatio: 800,
-            canvasCreatorETHRewardRatio: 2000,
-            daoCreatorETHRewardRatio: 7000
-        });
-*/

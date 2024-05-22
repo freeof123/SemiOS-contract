@@ -9,7 +9,6 @@ import { ExceedMaxMintableRound, InvalidRound } from "contracts/interface/D4AErr
 import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { PlanStorage } from "contracts/storages/PlanStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
-
 import { D4AERC20 } from "contracts/D4AERC20.sol";
 import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
 
@@ -56,8 +55,8 @@ contract DynamicPlan is IPlanTemplate {
 
     function _updateRewardPerTokenCumulated(PlanStorage.PlanInfo storage planInfo, uint256 round) internal {
         uint256 totalStake = !planInfo.io
-            ? PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].totalStakeEth
-            : PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].totalStakeErc20;
+            ? PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].totalInputStake
+            : PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].totalOutputStake;
         if (round > planInfo.lastUpdateRound + 1) {
             uint256 rewardPerRound =
                 (planInfo.totalReward - planInfo.cumulatedReward) / (planInfo.totalRounds - planInfo.lastUpdateRound);
@@ -78,8 +77,8 @@ contract DynamicPlan is IPlanTemplate {
         internal
     {
         uint256 accountBalance = !planInfo.io
-            ? PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftEth[nftHash]
-            : PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftErc20[nftHash];
+            ? PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftInput[nftHash]
+            : PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[planInfo.daoId].daoFeePool].topUpNftOutput[nftHash];
 
         if (round > planInfo.accountLastUpdateRound[nftHash] + 1) {
             planInfo.accountCumulatedReward[nftHash] += accountBalance

@@ -3,7 +3,6 @@ pragma solidity ^0.8.18;
 
 import { DeployHelper } from "test/foundry/utils/DeployHelper.sol";
 import { PDProtocolHarness } from "test/foundry/harness/PDProtocolHarness.sol";
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
 import "contracts/interface/D4AStructs.sol";
@@ -500,6 +499,41 @@ contract PDPlanTest is DeployHelper {
         assertEq(_testERC20.balanceOf(nftMinter1.addr), 3_000_000 + 5_000_000 * 6);
     }
 
+    function test_addPlanTotalReward_ethReward() public {
+        //minter 0 has balance in round 1;
+        MintNftParamTest memory nftParam;
+        nftParam.daoId = daoId;
+        nftParam.canvasId = canvasId1;
+        nftParam.tokenUri = "nft 0";
+        nftParam.flatPrice = 0.1 ether;
+        nftParam.canvasCreatorKey = daoCreator.key;
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 0);
+        //minter0 have balance in round 1
+        super._mintNftWithParam(nftParam, nftMinter.addr);
+        vm.deal(address(this), 1 ether);
+        bytes32 planId = protocol.createPlan{ value: 10_000_000 }(
+            CreatePlanParam(daoId, 1, 1, 11, 10_000_000, address(0), false, false, "", PlanTemplateType(0))
+        );
+        vm.roll(2);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 0));
+        vm.roll(5);
+        nftParam.tokenUri = "nft 1";
+        nftParam.nftIdentifier = NftIdentifier(address(_testERC721), 1);
+        super._mintNftWithParam(nftParam, nftMinter1.addr);
+        vm.expectRevert(NotEnoughEther.selector);
+        protocol.addPlanTotalReward(planId, 70_000_000, false);
+        protocol.addPlanTotalReward{ value: 70_000_000 }(planId, 70_000_000, false);
+        vm.roll(6);
+        protocol.updateTopUpAccount(daoId, NftIdentifier(address(_testERC721), 1));
+        vm.roll(100);
+        vm.deal(nftMinter.addr, 0);
+        vm.deal(nftMinter1.addr, 0);
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 0));
+        protocol.claimDaoPlanReward(daoId, NftIdentifier(address(_testERC721), 1));
+        assertEq(nftMinter.addr.balance, 7_000_000 + 10_000_000 + 5_000_000 * 6);
+        assertEq(nftMinter1.addr.balance, 3_000_000 + 5_000_000 * 6);
+    }
+
     function test_plan_incentivizeOutputToken_noCompete() public {
         //minter 0 has balance in round 1;
         MintNftParamTest memory nftParam;
@@ -818,7 +852,7 @@ contract PDPlanTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.daoUri = "erc20 payment dao";
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         bytes32 daoId3 = _createDaoForFunding(param, daoCreator.addr);
         vm.prank(daoCreator.addr);
         protocol.setDaoUnifiedPrice(daoId3, uint256(20_000_000 ether) / 60);

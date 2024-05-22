@@ -316,27 +316,6 @@ contract NftPriceTest is DeployHelper {
         vars.daoFloorPrice = 0.03 ether;
         vars.priceTemplateType = PriceTemplateType.LINEAR_PRICE_VARIATION;
         vars.nftPriceFactor = 0.0017 ether;
-        // daoCreatorERC20RatioInBps = 2800;
-        // canvasCreatorERC20RatioInBps = 500;
-        // nftMinterERC20RatioInBps = 2000;
-
-        // hoax(daoCreator.addr);
-        // protocol.setDaoParams(vars);
-
-        // _mintNft(daoId, canvasId1, "test token uri 1.2", 0, canvasCreator.key, nftMinter.addr);
-
-        // (round, price) = protocol.getDaoMaxPriceInfo(daoId);
-        // assertEq(round, 1);
-        // assertEq(price, 0.03 ether);
-        // (round, price) = protocol.getCanvasLastPrice(canvasId1);
-        // assertEq(round, 6);
-        // assertEq(price, 0.015 ether);
-
-        // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.03 ether);
-
-        // _mintNft(daoId, canvasId1, "test token uri 1.3", 0, canvasCreator.key, nftMinter.addr);
-
-        // assertEq(protocol.getCanvasNextPrice(canvasId1), 0.0317 ether);
     }
 
     function test_fiatPriceLessThanFloorPrice() public {

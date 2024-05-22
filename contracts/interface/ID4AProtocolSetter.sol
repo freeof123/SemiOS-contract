@@ -35,11 +35,11 @@ interface ID4AProtocolSetter {
 
     event DaoRatioSet(
         bytes32 daoId,
-        uint256 daoCreatorERC20Ratio,
-        uint256 canvasCreatorERC20Ratio,
-        uint256 nftMinterERC20Ratio,
-        uint256 daoFeePoolETHRatio,
-        uint256 daoFeePoolETHRatioFlatPrice
+        uint256 daoCreatorOutputRatio,
+        uint256 canvasCreatorOutputRatio,
+        uint256 nftMinterOutputRatio,
+        uint256 daoFeePoolInputRatio,
+        uint256 daoFeePoolInputRatioFlatPrice
     );
 
     event DailyMintCapSet(bytes32 indexed daoId, uint256 dailyMintCap);
@@ -62,13 +62,9 @@ interface ID4AProtocolSetter {
     )
         external;
 
-    //function setDaoParams(SetDaoParam memory vars) external;
-
     function setDaoPriceTemplate(bytes32 daoId, PriceTemplateType priceTemplateType, uint256 priceFactor) external;
 
     function setDaoNftMaxSupply(bytes32 daoId, uint256 newMaxSupply) external;
-
-    //function setDaoMintableRound(bytes32 daoId, uint256 newMintableRound) external;
 
     function setDaoFloorPrice(bytes32 daoId, uint256 newFloorPrice) external;
 
@@ -76,19 +72,7 @@ interface ID4AProtocolSetter {
 
     function setRoundMintCap(bytes32 daoId, uint256 roundMintCap) external;
 
-    //function setDaoTokenSupply(bytes32 daoId, uint256 addedDaoToken) external;
-
     function setWhitelistMintCap(bytes32 daoId, address whitelistUser, uint32 whitelistUserMintCap) external;
-
-    // function setRatio(
-    //     bytes32 daoId,
-    //     uint256 daoCreatorERC20Ratio,
-    //     uint256 canvasCreatorERC20Ratio,
-    //     uint256 nftMinterERC20Ratio,
-    //     uint256 daoFeePoolETHRatio,
-    //     uint256 daoFeePoolETHRatioFlatPrice
-    // )
-    //     external;
 
     function setCanvasRebateRatioInBps(bytes32 canvasId, uint256 newCanvasRebateRatioInBps) external payable;
 

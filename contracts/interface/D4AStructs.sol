@@ -79,14 +79,6 @@ struct UserMintCapParam {
     uint32 mintCap;
 }
 
-struct DaoETHAndERC20SplitRatioParam {
-    uint256 daoCreatorERC20Ratio;
-    uint256 canvasCreatorERC20Ratio;
-    uint256 nftMinterERC20Ratio;
-    uint256 daoFeePoolETHRatio;
-    uint256 daoFeePoolETHRatioFlatPrice;
-}
-
 struct TemplateParam {
     PriceTemplateType priceTemplateType;
     uint256 priceFactor;
@@ -126,19 +118,21 @@ struct ContinuousDaoParam {
     uint256 unifiedPrice;
     bool needMintableWork;
     uint256 dailyMintCap;
-    //1.3add-------------------
+    //1.3add-------------------//block reward distribution ratios
     bytes32[] childrenDaoId;
-    uint256[] childrenDaoRatiosERC20;
-    uint256[] childrenDaoRatiosETH;
-    uint256 redeemPoolRatioETH;
-    uint256 selfRewardRatioERC20;
-    uint256 selfRewardRatioETH;
+    uint256[] childrenDaoOutputRatios;
+    uint256[] childrenDaoInputRatios;
+    uint256 redeemPoolInputRatio;
+    uint256 treasuryOutputRatio;
+    uint256 treasuryInputRatio;
+    uint256 selfRewardOutputRatio;
+    uint256 selfRewardInputRatio;
     bool isAncestorDao;
     address daoToken;
     bool topUpMode;
     //1.4add--------------------
     bool infiniteMode;
-    bool erc20PaymentMode;
+    bool outputPaymentMode;
     //1.6add--------------------
     string ownershipUri;
     //1.7add--------------------
@@ -157,45 +151,41 @@ struct SetMintCapAndPermissionParam {
     Blacklist unblacklist;
 }
 
-struct SetRatioParam {
-    bytes32 daoId;
-    uint256 daoCreatorERC20Ratio;
-    uint256 canvasCreatorERC20Ratio;
-    uint256 nftMinterERC20Ratio;
-    uint256 daoFeePoolETHRatio;
-    uint256 daoFeePoolETHRatioFlatPrice;
-}
-
 struct AllRatioParam {
+    //mint fee ratios
     uint256 canvasCreatorMintFeeRatio;
     uint256 assetPoolMintFeeRatio;
     uint256 redeemPoolMintFeeRatio;
+    uint256 treasuryMintFeeRatio;
     // add l.protocolMintFeeRatioInBps should be 10000
     uint256 canvasCreatorMintFeeRatioFiatPrice;
     uint256 assetPoolMintFeeRatioFiatPrice;
     uint256 redeemPoolMintFeeRatioFiatPrice;
+    uint256 treasuryMintFeeRatioFiatPrice;
     // add l.protocolMintFeeRatioInBpsFiatPrice
 
-    //erc20 reward ratio
-    uint256 minterERC20RewardRatio;
-    uint256 canvasCreatorERC20RewardRatio;
-    uint256 daoCreatorERC20RewardRatio;
-    // add l.protocolERC20RewardRatio,
+    //output reward ratio
+    uint256 minterOutputRewardRatio;
+    uint256 canvasCreatorOutputRewardRatio;
+    uint256 daoCreatorOutputRewardRatio;
+    // add l.protocolOutputRewardRatio,
 
-    //eth reward ratio, add l.protocolETHRewardRatio
-    uint256 minterETHRewardRatio;
-    uint256 canvasCreatorETHRewardRatio;
-    uint256 daoCreatorETHRewardRatio;
+    //input reward ratio, add l.protocolInputRewardRatio
+    uint256 minterInputRewardRatio;
+    uint256 canvasCreatorInputRewardRatio;
+    uint256 daoCreatorInputRewardRatio;
 }
 //1.3 add -------------------------
 
 struct SetChildrenParam {
     bytes32[] childrenDaoId;
-    uint256[] erc20Ratios;
-    uint256[] ethRatios;
-    uint256 redeemPoolRatioETH;
-    uint256 selfRewardRatioERC20;
-    uint256 selfRewardRatioETH;
+    uint256[] outputRatios;
+    uint256[] inputRatios;
+    uint256 redeemPoolInputRatio;
+    uint256 treasuryInputRatio;
+    uint256 treasuryOutputRatio;
+    uint256 selfRewardOutputRatio;
+    uint256 selfRewardInputRatio;
 }
 
 struct UpdateRewardParam {

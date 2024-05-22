@@ -16,7 +16,7 @@ interface ID4AProtocolReadable {
             uint96 royaltyFeeRatioInBps,
             uint256 index,
             string memory daoUri,
-            uint256 erc20TotalSupply
+            uint256 outputTotalSupply
         );
 
     function getProjectFloorPrice(bytes32 daoId) external view returns (uint256);
@@ -207,14 +207,4 @@ interface ID4AProtocolReadable {
         external
         view
         returns (uint256 minterWeight, uint256 minterWeightETH);
-
-    // function getDaoCreatorERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    // function getCanvasCreatorERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    // function getNftMinterERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    // function getRoundReward(bytes32 daoId, uint256 round) external view returns (uint256);
-
-    // function getRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
 }

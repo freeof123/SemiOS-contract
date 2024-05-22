@@ -322,8 +322,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         returns (uint256 protocolWeight, uint256 protocolWeightETH)
     {
         return (
-            RewardStorage.layout().rewardInfos[daoId].protocolWeights[round],
-            RewardStorage.layout().rewardInfos[daoId].protocolWeightsETH[round]
+            RewardStorage.layout().rewardInfos[daoId].protocolOutputWeight[round],
+            RewardStorage.layout().rewardInfos[daoId].protocolInputWeight[round]
         );
     }
 
@@ -336,8 +336,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         returns (uint256 creatorWeight, uint256 creatorWeightETH)
     {
         return (
-            RewardStorage.layout().rewardInfos[daoId].daoCreatorWeights[round],
-            RewardStorage.layout().rewardInfos[daoId].daoCreatorWeightsETH[round]
+            RewardStorage.layout().rewardInfos[daoId].daoCreatorOutputWeights[round],
+            RewardStorage.layout().rewardInfos[daoId].daoCreatorInputWeights[round]
         );
     }
 
@@ -351,8 +351,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         returns (uint256 creatorWeight, uint256 creatorWeightETH)
     {
         return (
-            RewardStorage.layout().rewardInfos[daoId].canvasCreatorWeights[round][canvasId],
-            RewardStorage.layout().rewardInfos[daoId].canvasCreatorWeightsETH[round][canvasId]
+            RewardStorage.layout().rewardInfos[daoId].canvasCreatorOutputWeights[round][canvasId],
+            RewardStorage.layout().rewardInfos[daoId].canvasCreatorInputWeights[round][canvasId]
         );
     }
 
@@ -366,8 +366,8 @@ contract D4AProtocolReadable is ID4AProtocolReadable {
         returns (uint256 minterWeight, uint256 minterWeightETH)
     {
         return (
-            RewardStorage.layout().rewardInfos[daoId].nftMinterWeights[round][nftMinter],
-            RewardStorage.layout().rewardInfos[daoId].nftMinterWeightsETH[round][nftMinter]
+            RewardStorage.layout().rewardInfos[daoId].nftMinterOutputWeights[round][nftMinter],
+            RewardStorage.layout().rewardInfos[daoId].nftMinterInputWeights[round][nftMinter]
         );
     }
 

@@ -6,8 +6,6 @@ import { stdJson } from "forge-std/StdJson.sol";
 
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
-
-import { D4ADrb } from "contracts/D4ADrb.sol";
 import { D4AFeePool, D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
 import { D4ARoyaltySplitter, D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
 import { D4AERC20, D4AERC20Factory } from "contracts/D4AERC20.sol";
@@ -17,7 +15,6 @@ import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { PDProtocolReadable } from "contracts/PDProtocolReadable.sol";
 import { PDProtocolSetter } from "contracts/PDProtocolSetter.sol";
 import { PDCreate } from "contracts/PDCreate.sol";
-
 import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { PDRound } from "contracts/PDRound.sol";
 import { PDLock } from "contracts/PDLock.sol";
@@ -27,27 +24,17 @@ import { PDGrant } from "contracts/PDGrant.sol";
 import { PDProtocol } from "contracts/PDProtocol.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
-import { D4AClaimer } from "contracts/D4AClaimer.sol";
 import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
-import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
-import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
 import { DynamicPlan } from "contracts/templates/DynamicPlan.sol";
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract D4AAddress is CommonBase {
     using stdJson for string;
 
     string path = string.concat(vm.projectRoot(), "/deployed-contracts-info/", vm.envString("ENV"), "-d4a.json");
     string json = vm.readFile(path);
-
-    // D4AClaimer
-    // D4AClaimer public d4aClaimer = D4AClaimer(json.readAddress(".D4AClaimer"));
-
-    // Drb
-    //D4ADrb public d4aDrb = D4ADrb(json.readAddress(".D4ADrb"));
 
     // factories
     D4AFeePoolFactory public d4aFeePoolFactory = D4AFeePoolFactory(json.readAddress(".factories.D4AFeePoolFactory"));
@@ -86,9 +73,6 @@ contract D4AAddress is CommonBase {
     // permission control
     PermissionControl public permissionControl_proxy = PermissionControl(json.readAddress(".PermissionControl.proxy"));
     PermissionControl public permissionControl_impl = PermissionControl(json.readAddress(".PermissionControl.impl"));
-
-    // Basic Dao Unlocker
-    //BasicDaoUnlocker public basicDaoUnlocker = BasicDaoUnlocker(json.readAddress(".BasicDaoUnlocker"));
 
     // naive owner proxy
     NaiveOwner public naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));

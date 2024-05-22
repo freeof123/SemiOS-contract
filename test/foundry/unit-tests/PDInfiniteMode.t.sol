@@ -36,12 +36,12 @@ contract PDInfiniteModeTest is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 5000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 5000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 5000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 5000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
         protocol.setChildren(daoId, vars);
         assertEq(
             protocol.getDaoRoundDistributeAmount(
@@ -100,7 +100,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
         CreateCanvasAndMintNFTParam memory mintNftTransferParam;
@@ -148,7 +148,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -194,7 +194,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -243,7 +243,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = false;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -300,7 +300,7 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.roll(13);
         protocol.changeDaoInfiniteMode(daoId, 20);
-        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId));
         assertEq(
             protocol.getDaoRoundDistributeAmount(
                 daoId,
@@ -327,7 +327,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -384,7 +384,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(13);
         protocol.changeDaoInfiniteMode(daoId, 20);
 
-        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId));
 
         assertEq(
             protocol.getDaoRoundDistributeAmount(
@@ -424,7 +424,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 10;
         param.infiniteMode = true;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -442,7 +442,7 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         protocol.changeDaoInfiniteMode(daoId, 20);
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
-        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId));
 
         vm.roll(5);
         assertEq(protocol.getDaoRemainingRound(daoId), 18);
@@ -468,7 +468,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 10;
         param.infiniteMode = true;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -487,7 +487,7 @@ contract PDInfiniteModeTest is DeployHelper {
         vm.roll(4);
         protocol.changeDaoInfiniteMode(daoId, 20);
         assertEq(protocol.getDaoRemainingRound(daoId), 20);
-        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId));
 
         vm.roll(5);
         assertEq(protocol.getDaoRemainingRound(daoId), 19);
@@ -510,7 +510,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.mintableRound = 1;
         param.duration = 3 ether;
         param.infiniteMode = false;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
 
@@ -560,7 +560,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.mintableRound = 10;
         param.duration = 3 ether;
         param.infiniteMode = false;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -599,7 +599,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 10;
         param.infiniteMode = false;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.uniPriceModeOff = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         super._mintNft(
@@ -656,7 +656,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.noPermission = true;
         param.mintableRound = 1;
         param.infiniteMode = false;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.uniPriceModeOff = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         super._mintNft(
@@ -701,7 +701,7 @@ contract PDInfiniteModeTest is DeployHelper {
     }
 
     function test_daoInfiniteMode_transfer_noJack() public {
-        uint256 erc20Reward;
+        uint256 outputReward;
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -709,7 +709,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 5;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
         address token = protocol.getDaoToken(daoId);
@@ -734,12 +734,12 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
         vm.roll(6);
-        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // assertEq(erc20Reward, 30_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 1");
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 30_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 2");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 30_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 3");
+        // (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(outputReward, 30_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 1");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 30_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 2");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 30_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 3");
 
         //from normal to inifiteMode
         protocol.changeDaoInfiniteMode(daoId, 0);
@@ -752,12 +752,12 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
         vm.roll(10);
-        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // assertEq(erc20Reward, 20_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 4");
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 20_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 5");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 20_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 6");
+        // (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(outputReward, 20_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_noJack test 4");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 20_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 5");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 20_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 6");
 
         //from inifiteMode to normal
         protocol.changeDaoInfiniteMode(daoId, 3);
@@ -770,18 +770,18 @@ contract PDInfiniteModeTest is DeployHelper {
         mintNftTransferParam.tokenUri = "nft7";
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
-        (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
         assertEq(
-            erc20Reward, (100 + 20_000_000 + 30_000_000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_noJack test 7"
+            outputReward, (100 + 20_000_000 + 30_000_000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_noJack test 7"
         );
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 100 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 8");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 100 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 9");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 100 ether * 0.7, "test_daoInfiniteMode_transfer_noJack test 8");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 100 ether * 0.2, "test_daoInfiniteMode_transfer_noJack test 9");
     }
 
     function test_daoInfiniteMode_transfer_Jackpot() public {
-        uint256 erc20Reward;
+        uint256 outputReward;
         CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -789,7 +789,7 @@ contract PDInfiniteModeTest is DeployHelper {
         param.topUpMode = false;
         param.noPermission = true;
         param.mintableRound = 5;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.isProgressiveJackpot = true;
 
         bytes32 daoId = super._createDaoForFunding(param, address(this));
@@ -815,12 +815,12 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
         vm.roll(6);
-        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // assertEq(erc20Reward, 50_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 1");
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 50_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 2");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 50_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 3");
+        // (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(outputReward, 50_000_000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 1");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 50_000_000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 2");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 50_000_000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 3");
 
         //from normal to inifiteMode
         protocol.changeDaoInfiniteMode(daoId, 0);
@@ -834,12 +834,12 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
         vm.roll(10);
-        // (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        // assertEq(erc20Reward, 1000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 4");
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 1000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 5");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 1000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 6");
+        // (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        // assertEq(outputReward, 1000 ether * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 4");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 1000 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 5");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 1000 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 6");
 
         //from inifiteMode to normal
         protocol.changeDaoInfiniteMode(daoId, 3);
@@ -853,12 +853,12 @@ contract PDInfiniteModeTest is DeployHelper {
         protocol.mintNFT{ value: 0.01 ether }(mintNftTransferParam);
         vm.stopPrank();
         vm.roll(13);
-        (erc20Reward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
-        assertEq(erc20Reward, (300 + 50_000_000 + 1000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 7");
-        (erc20Reward,) = protocol.claimDaoNftOwnerReward(daoId);
-        assertEq(erc20Reward, 300 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 8");
-        (erc20Reward,) = protocol.claimCanvasReward(param.canvasId);
-        assertEq(erc20Reward, 300 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 9");
+        (outputReward,) = protocol.claimNftMinterReward(daoId, nftMinter.addr);
+        assertEq(outputReward, (300 + 50_000_000 + 1000) * 1e18 * 0.08, "test_daoInfiniteMode_transfer_Jackpot test 7");
+        (outputReward,) = protocol.claimDaoNftOwnerReward(daoId);
+        assertEq(outputReward, 300 ether * 0.7, "test_daoInfiniteMode_transfer_Jackpot test 8");
+        (outputReward,) = protocol.claimCanvasReward(param.canvasId);
+        assertEq(outputReward, 300 ether * 0.2, "test_daoInfiniteMode_transfer_Jackpot test 9");
     }
 
     receive() external payable { }

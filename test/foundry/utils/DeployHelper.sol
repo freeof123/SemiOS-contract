@@ -37,7 +37,6 @@ import {
 import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
 import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
 import { ID4AERC721 } from "contracts/interface/ID4AERC721.sol";
-import { ID4AProtocol } from "contracts/interface/ID4AProtocol.sol";
 import { IPDProtocolAggregate } from "contracts/interface/IPDProtocolAggregate.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { DaoTag } from "contracts/interface/D4AEnums.sol";
@@ -55,7 +54,6 @@ import { PDBasicDao } from "contracts/PDBasicDao.sol";
 import { DummyPRB } from "contracts/test/DummyPRB.sol";
 import { TestERC20 } from "contracts/test/TestERC20.sol";
 import { TestERC721 } from "contracts/test/TestERC721.sol";
-import { D4AClaimer } from "contracts/D4AClaimer.sol";
 import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
 import { D4AERC20Factory } from "contracts/D4AERC20.sol";
@@ -63,13 +61,10 @@ import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilterFactory
 import { NaiveOwner } from "contracts/NaiveOwner.sol";
 import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
 import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
-import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
-import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 import { UniformDistributionRewardIssuance } from "contracts/templates/UniformDistributionRewardIssuance.sol";
 import { DynamicPlan } from "contracts/templates/DynamicPlan.sol";
 import { PDGrant } from "contracts/PDGrant.sol";
 import { PDPlan } from "contracts/PDPlan.sol";
-import { BasicDaoUnlocker } from "contracts/BasicDaoUnlocker.sol";
 
 contract DeployHelper is Test {
     using LibString for string;
@@ -98,15 +93,12 @@ contract DeployHelper is Test {
     address public weth;
     TestERC20 internal _testERC20;
     TestERC721 internal _testERC721;
-    D4AClaimer public claimer;
     D4AUniversalClaimer public universalClaimer;
     IUniswapV2Factory public uniswapV2Factory;
     IUniswapV2Router public uniswapV2Router;
     FeedRegistryMock public feedRegistry;
     LinearPriceVariation public linearPriceVariation;
     ExponentialPriceVariation public exponentialPriceVariation;
-    LinearRewardIssuance public linearRewardIssuance;
-    ExponentialRewardIssuance public exponentialRewardIssuance;
     UniformDistributionRewardIssuance public uniformDistributionRewardIssuance;
     DynamicPlan public dynamicPlan;
     MintNftSigUtils public mintNftSigUtils;
@@ -145,7 +137,6 @@ contract DeployHelper is Test {
         DaoMetadataParam daoMetadataParam;
         Whitelist whitelist;
         Blacklist blacklist;
-        DaoETHAndERC20SplitRatioParam daoETHAndERC20SplitRatioParam;
         NftMinterCapInfo[] nftMinterCapInfo;
         NftMinterCapIdInfo[] nftMinterCapIdInfo;
         TemplateParam templateParam;
@@ -169,7 +160,6 @@ contract DeployHelper is Test {
         _deployNaiveOwner();
         //_deployDaoProxy();
         _deployPermissionControl();
-        _deployClaimer();
         _deployUniversalClaimer();
         _deployTestERC20();
         _deployAggregator();
@@ -513,11 +503,6 @@ contract DeployHelper is Test {
         vm.label(address(permissionControlImpl), "Permission Control Impl");
     }
 
-    function _deployClaimer() internal prank(protocolOwner.addr) {
-        claimer = new D4AClaimer(address(protocol));
-        vm.label(address(claimer), "Claimer");
-    }
-
     function _deployUniversalClaimer() internal prank(protocolOwner.addr) {
         universalClaimer = new D4AUniversalClaimer();
         vm.label(address(universalClaimer), "Universal Claimer");
@@ -600,7 +585,7 @@ contract DeployHelper is Test {
     function _initSettings() internal prank(protocolRoleMember.addr) {
         _changeAddress();
         _changeProtocolFeePool();
-        _changeERC20TotalSupply();
+        _changeOutputTotalSupply();
         _changeAssetPoolOwner();
         _changeMaxNFTAmounts();
         _changeAddressInDaoProxy();
@@ -623,8 +608,8 @@ contract DeployHelper is Test {
         ID4ASettings(address(protocol)).changeProtocolFeePool(protocolFeePool.addr);
     }
 
-    function _changeERC20TotalSupply() internal {
-        ID4ASettings(address(protocol)).changeERC20TotalSupply(1_000_000_000 ether);
+    function _changeOutputTotalSupply() internal {
+        ID4ASettings(address(protocol)).changeOutputTotalSupply(1_000_000_000 ether);
     }
 
     function _changeAssetPoolOwner() internal {
@@ -649,8 +634,8 @@ contract DeployHelper is Test {
 
     function _changeSettingsRatio() internal {
         ID4ASettings(address(protocol)).changeProtocolMintFeeRatio(250);
-        ID4ASettings(address(protocol)).changeProtocolETHRewardRatio(200);
-        ID4ASettings(address(protocol)).changeProtocolERC20RewardRatio(200);
+        ID4ASettings(address(protocol)).changeProtocolInputRewardRatio(200);
+        ID4ASettings(address(protocol)).changeProtocolOutputRewardRatio(200);
     }
 
     function _grantRole() internal prank(protocolOwner.addr) {
@@ -723,9 +708,6 @@ contract DeployHelper is Test {
         uint256 mintCap;
         address[] minters;
         uint256[] userMintCaps;
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvasCreatorERC20RatioInBps;
-        uint256 nftMinterERC20RatioInBps;
         PriceTemplateType priceTemplateType;
         uint256 priceFactor;
         RewardTemplateType rewardTemplateType;
@@ -744,34 +726,38 @@ contract DeployHelper is Test {
         bool topUpMode;
         uint256 dailyMintCap;
         bytes32[] childrenDaoId;
-        uint256[] childrenDaoRatiosERC20;
-        uint256[] childrenDaoRatiosETH;
-        uint256 redeemPoolRatioETH;
-        uint256 selfRewardRatioERC20;
-        uint256 selfRewardRatioETH;
+        uint256[] childrenDaoOutputRatios;
+        uint256[] childrenDaoInputRatios;
+        uint256 redeemPoolInputRatio;
+        uint256 treasuryOutputRatio;
+        uint256 treasuryInputRatio;
+        uint256 selfRewardOutputRatio;
+        uint256 selfRewardInputRatio;
         bool noPermission;
         bool noDefaultRatio;
         address thirdPartyToken;
         uint256 canvasCreatorMintFeeRatio;
         uint256 assetPoolMintFeeRatio;
         uint256 redeemPoolMintFeeRatio;
+        uint256 treasuryMintFeeRatio;
         // * 1.3 add
         // l.protocolMintFeeRatioInBps = 250
         // sum = 9750
         uint256 canvasCreatorMintFeeRatioFiatPrice;
         uint256 assetPoolMintFeeRatioFiatPrice;
         uint256 redeemPoolMintFeeRatioFiatPrice;
-        // l.protocolERC20RewardRatio = 200
+        uint256 treasuryMintFeeRatioFiatPrice;
+        // l.protocolOutputRewardRatio = 200
         // sum = 9800
-        uint256 minterERC20RewardRatio;
-        uint256 canvasCreatorERC20RewardRatio;
-        uint256 daoCreatorERC20RewardRatio;
+        uint256 minterOutputRewardRatio;
+        uint256 canvasCreatorOutputRewardRatio;
+        uint256 daoCreatorOutputRewardRatio;
         // sum = 9800
-        uint256 minterETHRewardRatio;
-        uint256 canvasCreatorETHRewardRatio;
-        uint256 daoCreatorETHRewardRatio;
+        uint256 minterInputRewardRatio;
+        uint256 canvasCreatorInputRewardRatio;
+        uint256 daoCreatorInputRewardRatio;
         bool infiniteMode;
-        bool erc20PaymentMode;
+        bool outputPaymentMode;
         //1.6 add-------------------------------------------
         string ownershipUri;
         //1.7 add-------------------------------------------
@@ -882,16 +868,18 @@ contract DeployHelper is Test {
             needMintableWork: createDaoParam.needMintableWork,
             dailyMintCap: createDaoParam.dailyMintCap == 0 ? 100 : createDaoParam.dailyMintCap,
             childrenDaoId: createDaoParam.childrenDaoId,
-            childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
-            childrenDaoRatiosETH: createDaoParam.childrenDaoRatiosETH,
-            redeemPoolRatioETH: createDaoParam.redeemPoolRatioETH,
-            selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
-            selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
+            childrenDaoOutputRatios: createDaoParam.childrenDaoOutputRatios,
+            childrenDaoInputRatios: createDaoParam.childrenDaoInputRatios,
+            redeemPoolInputRatio: createDaoParam.redeemPoolInputRatio,
+            treasuryOutputRatio: createDaoParam.treasuryOutputRatio,
+            treasuryInputRatio: createDaoParam.treasuryInputRatio,
+            selfRewardOutputRatio: createDaoParam.selfRewardOutputRatio,
+            selfRewardInputRatio: createDaoParam.selfRewardInputRatio,
             isAncestorDao: createDaoParam.isBasicDao ? true : false,
             daoToken: createDaoParam.thirdPartyToken,
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
-            erc20PaymentMode: createDaoParam.erc20PaymentMode,
+            outputPaymentMode: createDaoParam.outputPaymentMode,
             ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
             inputToken: createDaoParam.inputToken
         });
@@ -902,21 +890,23 @@ contract DeployHelper is Test {
                 canvasCreatorMintFeeRatio: 750,
                 assetPoolMintFeeRatio: 2000,
                 redeemPoolMintFeeRatio: 7000,
+                treasuryMintFeeRatio: 0,
                 // * 1.3 add
                 // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatioFiatPrice: 250,
                 assetPoolMintFeeRatioFiatPrice: 3500,
                 redeemPoolMintFeeRatioFiatPrice: 6000,
-                // l.protocolERC20RewardRatio = 200
+                treasuryMintFeeRatioFiatPrice: 0,
+                // l.protocolOutputRewardRatio = 200
                 // sum = 9800
-                minterERC20RewardRatio: 800,
-                canvasCreatorERC20RewardRatio: 2000,
-                daoCreatorERC20RewardRatio: 7000,
+                minterOutputRewardRatio: 800,
+                canvasCreatorOutputRewardRatio: 2000,
+                daoCreatorOutputRewardRatio: 7000,
                 // sum = 9800
-                minterETHRewardRatio: 800,
-                canvasCreatorETHRewardRatio: 2000,
-                daoCreatorETHRewardRatio: 7000
+                minterInputRewardRatio: 800,
+                canvasCreatorInputRewardRatio: 2000,
+                daoCreatorInputRewardRatio: 7000
             });
         } else {
             vars.allRatioParam = AllRatioParam({
@@ -925,21 +915,23 @@ contract DeployHelper is Test {
                 canvasCreatorMintFeeRatio: createDaoParam.canvasCreatorMintFeeRatio,
                 assetPoolMintFeeRatio: createDaoParam.assetPoolMintFeeRatio,
                 redeemPoolMintFeeRatio: createDaoParam.redeemPoolMintFeeRatio,
+                treasuryMintFeeRatio: createDaoParam.treasuryMintFeeRatio,
                 // * 1.3 add
                 // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatioFiatPrice: createDaoParam.canvasCreatorMintFeeRatioFiatPrice,
                 assetPoolMintFeeRatioFiatPrice: createDaoParam.assetPoolMintFeeRatioFiatPrice,
                 redeemPoolMintFeeRatioFiatPrice: createDaoParam.redeemPoolMintFeeRatioFiatPrice,
-                // l.protocolERC20RewardRatio = 200
+                treasuryMintFeeRatioFiatPrice: createDaoParam.treasuryMintFeeRatioFiatPrice,
+                // l.protocolOutputRewardRatio = 200
                 // sum = 9800
-                minterERC20RewardRatio: createDaoParam.minterERC20RewardRatio,
-                canvasCreatorERC20RewardRatio: createDaoParam.canvasCreatorERC20RewardRatio,
-                daoCreatorERC20RewardRatio: createDaoParam.daoCreatorERC20RewardRatio,
+                minterOutputRewardRatio: createDaoParam.minterOutputRewardRatio,
+                canvasCreatorOutputRewardRatio: createDaoParam.canvasCreatorOutputRewardRatio,
+                daoCreatorOutputRewardRatio: createDaoParam.daoCreatorOutputRewardRatio,
                 // sum = 9800
-                minterETHRewardRatio: createDaoParam.minterETHRewardRatio,
-                canvasCreatorETHRewardRatio: createDaoParam.canvasCreatorETHRewardRatio,
-                daoCreatorETHRewardRatio: createDaoParam.daoCreatorETHRewardRatio
+                minterInputRewardRatio: createDaoParam.minterInputRewardRatio,
+                canvasCreatorInputRewardRatio: createDaoParam.canvasCreatorInputRewardRatio,
+                daoCreatorInputRewardRatio: createDaoParam.daoCreatorInputRewardRatio
             });
         }
         daoId = protocol.createDao(
@@ -961,7 +953,9 @@ contract DeployHelper is Test {
         if (createDaoParam.isBasicDao && createDaoParam.thirdPartyToken == address(0)) {
             uint256 ratio = createDaoParam.initTokenSupplyRatio == 0 ? 500 : createDaoParam.initTokenSupplyRatio;
             uint256 initTokenAmount = ratio * 1e5 * 1e18;
-            protocol.grantDaoAssetPool(daoId, initTokenAmount, true, "test first grant nft");
+            protocol.grantDaoAssetPool(
+                daoId, initTokenAmount, true, "test first grant nft", protocol.getDaoToken(daoId)
+            );
         }
         vm.stopPrank();
     }
@@ -990,7 +984,7 @@ contract DeployHelper is Test {
         }
         vars.nftSignature = sig;
         uint256 value;
-        if (protocol.getDaoERC20PaymentMode(param.daoId)) {
+        if (protocol.getDaoOutputPaymentMode(param.daoId)) {
             value = 0;
         } else if (
             param.flatPrice == 0 && LibString.eq(protocol.getDaoTag(param.daoId), "BASIC DAO")
@@ -1000,14 +994,7 @@ contract DeployHelper is Test {
         } else {
             value = param.flatPrice == 0 ? protocol.getCanvasNextPrice(param.daoId, param.canvasId) : param.flatPrice;
         }
-        //1.6 add, if dao topup == false && nftIdentifier != null, he wants to spent the money in topup,
-        // so there is no need to send value
-        // if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
-        //     (, uint256 ethBalance) = protocol.updateTopUpAccount(param.daoId, param.nftIdentifier);
-        //     if (ethBalance > value) {
-        //         value = 0;
-        //     }
-        // }
+
         tokenId = protocol.mintNFT{ value: value }(vars);
         vm.stopPrank();
     }
@@ -1042,7 +1029,7 @@ contract DeployHelper is Test {
         }
         vars.nftSignature = sig;
         uint256 value;
-        if (protocol.getDaoERC20PaymentMode(param.daoId)) {
+        if (protocol.getDaoOutputPaymentMode(param.daoId)) {
             value = 0;
         } else if (
             param.flatPrice == 0 && LibString.eq(protocol.getDaoTag(param.daoId), "BASIC DAO")
@@ -1093,7 +1080,7 @@ contract DeployHelper is Test {
         }
         vars.nftSignature = sig;
         uint256 value;
-        if (protocol.getDaoERC20PaymentMode(param.daoId)) {
+        if (protocol.getDaoOutputPaymentMode(param.daoId)) {
             value = 0;
         } else if (
             param.flatPrice == 0 && LibString.eq(protocol.getDaoTag(param.daoId), "BASIC DAO")
@@ -1103,14 +1090,7 @@ contract DeployHelper is Test {
         } else {
             value = param.flatPrice == 0 ? protocol.getCanvasNextPrice(param.daoId, param.canvasId) : param.flatPrice;
         }
-        //1.6 add, if dao topup == false && nftIdentifier != null, he wants to spent the money in topup,
-        // so there is no need to send value
-        // if (protocol.getDaoTopUpMode(param.daoId) == false && param.nftIdentifier.erc721Address != address(0)) {
-        //     (, uint256 ethBalance) = protocol.updateTopUpAccount(param.daoId, param.nftIdentifier);
-        //     if (ethBalance > value) {
-        //         value = 0;
-        //     }
-        // }
+
         vm.expectRevert(selector);
         tokenId = protocol.mintNFT{ value: value }(vars);
         vm.stopPrank();
@@ -1169,7 +1149,7 @@ contract DeployHelper is Test {
             sig = abi.encodePacked(r, s, v);
         }
         uint256 value;
-        if (protocol.getDaoERC20PaymentMode(daoId) || (protocol.getDaoInputToken(daoId) != address(0))) {
+        if (protocol.getDaoOutputPaymentMode(daoId) || (protocol.getDaoInputToken(daoId) != address(0))) {
             value = 0;
         } else if (
             flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
@@ -1219,7 +1199,7 @@ contract DeployHelper is Test {
         vars.canvasProof = new bytes32[](0);
         vars.nftOwner = hoaxer;
         uint256 value;
-        if (protocol.getDaoERC20PaymentMode(daoId)) {
+        if (protocol.getDaoOutputPaymentMode(daoId)) {
             value = 0;
         } else if (
             flatPrice == 0 && LibString.eq(protocol.getDaoTag(daoId), "BASIC DAO")
@@ -1235,6 +1215,12 @@ contract DeployHelper is Test {
         vm.stopPrank();
     }
 
+    function _grantPool(bytes32 daoId, address granter, uint256 amount) internal {
+        address token = protocol.getDaoToken(daoId);
+        vm.prank(granter);
+        protocol.grantDaoAssetPool(daoId, amount, true, "test", token);
+    }
+
     struct MintNftWithProofLocalVars {
         bytes32 daoId;
         bytes32 canvasId;
@@ -1243,48 +1229,5 @@ contract DeployHelper is Test {
         uint256 canvasCreatorKey;
         address hoaxer;
         bytes32[] proof;
-    }
-
-    // function _mintNftWithProof(
-    //     bytes32 daoId,
-    //     bytes32 canvasId,
-    //     string memory tokenUri,
-    //     uint256 flatPrice,
-    //     uint256 canvasCreatorKey,
-    //     address hoaxer,
-    //     bytes32[] memory proof
-    // )
-    //     internal
-    //     returns (uint256 tokenId)
-    // {
-    //     uint256 bal = hoaxer.balance;
-    //     startHoax(hoaxer);
-
-    //     MintNftWithProofLocalVars memory vars =
-    //         MintNftWithProofLocalVars(daoId, canvasId, tokenUri, flatPrice, canvasCreatorKey, hoaxer, proof);
-
-    //     bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId, tokenUri, flatPrice);
-    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(canvasCreatorKey, digest);
-    //     tokenId = protocol.mintNFT{
-    //         value: vars.flatPrice == 0 ? protocol.getCanvasNextPrice(vars.daoId, vars.canvasId) : vars.flatPrice
-    //     }(vars.daoId, vars.canvasId, vars.tokenUri, vars.proof, vars.flatPrice, abi.encodePacked(r, s, v), "", 0);
-
-    //     vm.stopPrank();
-    //     deal(hoaxer, bal);
-    // }
-
-    function _unlocker(bytes32 basicDaoId, uint256 amount) internal {
-        address basicDaoFeePoolAddress = protocol.getDaoFeePool(basicDaoId);
-        (bool success,) = basicDaoFeePoolAddress.call{ value: amount }("");
-        require(success, "Failed to increase turnover");
-        // should unlock basic dao first
-        BasicDaoUnlocker basicDaoUnlocker = new BasicDaoUnlocker(address(protocol));
-        assertTrue(protocol.ableToUnlock(basicDaoId));
-        (bool upkeepNeeded, bytes memory performData) = basicDaoUnlocker.checkUpkeep("");
-        assertTrue(upkeepNeeded);
-        assertTrue(!protocol.isUnlocked(basicDaoId));
-        if (upkeepNeeded) {
-            basicDaoUnlocker.performUpkeep(performData);
-        }
     }
 }

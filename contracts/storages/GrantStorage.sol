@@ -14,9 +14,6 @@ library GrantStorage {
     }
 
     struct Layout {
-        mapping(bytes32 daoId => address vestingWallet) vestingWallets;
-        mapping(address token => bool isTokenAllowed) tokensAllowed;
-        address[] allowedTokenList;
         mapping(bytes32 nftHash => GrantInfo) grantInfos;
     }
 

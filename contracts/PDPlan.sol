@@ -6,12 +6,9 @@ import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
 import { IERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
-
 import { NftIdentifier, CreatePlanParam } from "contracts/interface/D4AStructs.sol";
-
 import { OPERATION_ROLE } from "contracts/interface/D4AConstants.sol";
 import { NotPlanOwner, InvalidRewardTokenForTreasury } from "contracts/interface/D4AErrors.sol";
-
 import { NotOperationRole, StartBlockAlreadyPassed, NotEnoughEther } from "contracts/interface/D4AErrors.sol";
 import { IPDPlan } from "contracts/interface/IPDPlan.sol";
 import { IPlanTemplate } from "contracts/interface/IPlanTemplate.sol";
@@ -19,11 +16,10 @@ import { DaoStorage } from "contracts/storages/DaoStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
-import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+import { TreeStorage } from "contracts/storages/TreeStorage.sol";
 import { PoolStorage } from "contracts/storages/PoolStorage.sol";
 import { PlanStorage } from "contracts/storages/PlanStorage.sol";
 import { D4AFeePool } from "contracts/feepool/D4AFeePool.sol";
-
 import { PlanTemplateType } from "contracts/interface/D4AEnums.sol";
 import { SetterChecker } from "contracts/SetterChecker.sol";
 import { PlanUpdater } from "contracts/PlanUpdater.sol";
@@ -283,7 +279,7 @@ contract PDPlan is IPDPlan, SetterChecker, PlanUpdater {
     function getTopUpBalance(bytes32 daoId, NftIdentifier memory nft) public view returns (uint256, uint256) {
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        return (poolInfo.topUpNftEth[_nftHash(nft)], poolInfo.topUpNftErc20[_nftHash(nft)]);
+        return (poolInfo.topUpNftInput[_nftHash(nft)], poolInfo.topUpNftOutput[_nftHash(nft)]);
     }
 
     function getPlanCurrentRound(bytes32 planId) public view returns (uint256 round) {

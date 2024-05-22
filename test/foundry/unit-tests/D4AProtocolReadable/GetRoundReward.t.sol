@@ -42,8 +42,8 @@ contract GetRoundRewardTest is DeployHelper {
         createDaoParam.isProgressiveJackpot = isProgressiveJackpot;
         createDaoParam.noPermission = true;
         createDaoParam.isBasicDao = true;
-        createDaoParam.selfRewardRatioERC20 = 10_000;
-        createDaoParam.selfRewardRatioETH = 10_000;
+        createDaoParam.selfRewardOutputRatio = 10_000;
+        createDaoParam.selfRewardInputRatio = 10_000;
         createDaoParam.uniPriceModeOff = uniPriceModeOff;
         daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
         vm.roll(1);
@@ -139,7 +139,7 @@ contract GetRoundRewardTest is DeployHelper {
 
         for (uint256 i = 1; i < 11; i++) {
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, i),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, i),
                 0,
                 1,
                 string.concat("round ", vm.toString(i))
@@ -168,7 +168,7 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat("round ", vm.toString(j))
@@ -176,7 +176,7 @@ contract GetRoundRewardTest is DeployHelper {
 
             for (uint256 i = j + 1; i < j + 11; i++) {
                 assertApproxEqAbs(
-                    IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, i),
+                    IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, i),
                     0,
                     1,
                     string.concat("Extra round check reward", vm.toString(i))
@@ -252,11 +252,11 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_ETHReward_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputReward_ERROR_",
                     vm.toString(j)
                 )
             );
@@ -265,7 +265,7 @@ contract GetRoundRewardTest is DeployHelper {
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_ETHReward_ERROR_RewardCal",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputReward_ERROR_RewardCal",
                     vm.toString(j)
                 )
             );
@@ -330,11 +330,11 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_3xDecay_ETHReward_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_3xDecay_inputReward_ERROR_",
                     vm.toString(j)
                 )
             );
@@ -343,7 +343,7 @@ contract GetRoundRewardTest is DeployHelper {
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_3xDecay_ETHReward_ERROR_RewardCal",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_3xDecay_inputReward_ERROR_RewardCal",
                     vm.toString(j)
                 )
             );
@@ -408,11 +408,11 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_1dot5xDecay_ETHReward_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_1dot5xDecay_inputReward_ERROR_",
                     vm.toString(j)
                 )
             );
@@ -421,7 +421,7 @@ contract GetRoundRewardTest is DeployHelper {
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_1dot5xDecay_ETHReward_ERROR_RewardCal",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_notProgressiveJackpot_max_mintableRounds_canvasPrice_1dot5xDecay_inputReward_ERROR_RewardCal",
                     vm.toString(j)
                 )
             );
@@ -471,11 +471,11 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange_ETHReward_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange_inputReward_ERROR_",
                     vm.toString(j)
                 )
             );
@@ -527,7 +527,7 @@ contract GetRoundRewardTest is DeployHelper {
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_ETHRewardCal_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputRewardCal_ERROR_",
                     vm.toString(j)
                 )
             );
@@ -556,11 +556,11 @@ contract GetRoundRewardTest is DeployHelper {
             }
 
             assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundETHReward(daoId, j),
+                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
                 reward,
                 maxDelta,
                 string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_ETHReward_ERROR_",
+                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputReward_ERROR_",
                     vm.toString(j)
                 )
             );

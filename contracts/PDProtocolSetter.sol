@@ -26,7 +26,7 @@ import { RewardStorage } from "contracts/storages/RewardStorage.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
 import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+import { TreeStorage } from "contracts/storages/TreeStorage.sol";
 import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
 import { IPDProtocolSetter } from "./interface/IPDProtocolSetter.sol";
@@ -180,8 +180,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
     }
 
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) public {
-        require(vars.childrenDaoId.length == vars.erc20Ratios.length, "invalid length");
-        require(vars.childrenDaoId.length == vars.ethRatios.length, "invalid length");
+        require(vars.childrenDaoId.length == vars.outputRatios.length, "invalid length");
+        require(vars.childrenDaoId.length == vars.inputRatios.length, "invalid length");
 
         // _checkSetAbility(daoId, true, true);
         _checkEditParamAbility(daoId);
@@ -191,40 +191,42 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
             return;
         }
 
-        uint256 sumERC20;
-        uint256 sumETH;
-        InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        uint256 sumOutput;
+        uint256 sumInput;
+        TreeStorage.TreeInfo storage treeInfo = TreeStorage.layout().treeInfos[daoId];
 
         for (uint256 i = 0; i < vars.childrenDaoId.length;) {
             _checkDaoMember(treeInfo.ancestor, vars.childrenDaoId[i]);
-            sumERC20 += vars.erc20Ratios[i];
-            sumETH += vars.ethRatios[i];
+            sumOutput += vars.outputRatios[i];
+            sumInput += vars.inputRatios[i];
             unchecked {
                 ++i;
             }
         }
-        sumERC20 += vars.selfRewardRatioERC20;
-        sumETH += vars.redeemPoolRatioETH;
-        sumETH += vars.selfRewardRatioETH;
-        if (sumERC20 > BASIS_POINT) revert InvalidChildrenDaoRatio();
-        if (sumETH > BASIS_POINT) revert InvalidChildrenDaoRatio();
+        sumOutput += vars.selfRewardOutputRatio + vars.treasuryOutputRatio;
+        sumInput += vars.redeemPoolInputRatio + vars.treasuryInputRatio + vars.selfRewardInputRatio;
+
+        if (sumOutput > BASIS_POINT) revert InvalidChildrenDaoRatio();
+        if (sumInput > BASIS_POINT) revert InvalidChildrenDaoRatio();
 
         treeInfo.children = vars.childrenDaoId;
-        treeInfo.childrenDaoRatiosERC20 = vars.erc20Ratios;
-        treeInfo.childrenDaoRatiosETH = vars.ethRatios;
+        treeInfo.childrenDaoOutputRatios = vars.outputRatios;
+        treeInfo.childrenDaoInputRatios = vars.inputRatios;
 
-        treeInfo.redeemPoolRatioETH = vars.redeemPoolRatioETH;
-        treeInfo.selfRewardRatioERC20 = vars.selfRewardRatioERC20;
-        treeInfo.selfRewardRatioETH = vars.selfRewardRatioETH;
+        treeInfo.redeemPoolInputRatio = vars.redeemPoolInputRatio;
+        treeInfo.selfRewardOutputRatio = vars.selfRewardOutputRatio;
+        treeInfo.selfRewardInputRatio = vars.selfRewardInputRatio;
+        treeInfo.treasuryInputRatio = vars.treasuryInputRatio;
+        treeInfo.treasuryOutputRatio = vars.treasuryOutputRatio;
 
         emit ChildrenSet(
             daoId,
             vars.childrenDaoId,
-            vars.erc20Ratios,
-            vars.ethRatios,
-            vars.redeemPoolRatioETH,
-            vars.selfRewardRatioERC20,
-            vars.selfRewardRatioETH
+            vars.outputRatios,
+            vars.inputRatios,
+            vars.redeemPoolInputRatio,
+            vars.selfRewardOutputRatio,
+            vars.selfRewardInputRatio
         );
     }
 
@@ -235,70 +237,46 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
         // _checkSetAbility(daoId, true, true);
         _checkEditParamAbility(daoId);
         if (BasicDaoStorage.layout().basicDaoInfos[daoId].topUpMode) {
-            emit RatioSet(daoId, AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0));
+            emit RatioSet(daoId, AllRatioParam(0, 0, 0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0));
             return;
         }
-        InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
+        TreeStorage.TreeInfo storage treeInfo = TreeStorage.layout().treeInfos[daoId];
         if (
             vars.canvasCreatorMintFeeRatio + vars.assetPoolMintFeeRatio + vars.redeemPoolMintFeeRatio
-                + l.protocolMintFeeRatioInBps != BASIS_POINT
+                + vars.treasuryMintFeeRatio + l.protocolMintFeeRatioInBps != BASIS_POINT
         ) revert InvalidMintFeeRatio();
         treeInfo.canvasCreatorMintFeeRatio = vars.canvasCreatorMintFeeRatio;
         treeInfo.assetPoolMintFeeRatio = vars.assetPoolMintFeeRatio;
         treeInfo.redeemPoolMintFeeRatio = vars.redeemPoolMintFeeRatio;
-
+        treeInfo.treasuryMintFeeRatio = vars.treasuryMintFeeRatio;
         if (
             vars.canvasCreatorMintFeeRatioFiatPrice + vars.assetPoolMintFeeRatioFiatPrice
-                + vars.redeemPoolMintFeeRatioFiatPrice + l.protocolMintFeeRatioInBps != BASIS_POINT
+                + vars.redeemPoolMintFeeRatioFiatPrice + vars.treasuryMintFeeRatioFiatPrice + l.protocolMintFeeRatioInBps
+                != BASIS_POINT
         ) revert InvalidMintFeeRatio();
         treeInfo.canvasCreatorMintFeeRatioFiatPrice = vars.canvasCreatorMintFeeRatioFiatPrice;
         treeInfo.assetPoolMintFeeRatioFiatPrice = vars.assetPoolMintFeeRatioFiatPrice;
         treeInfo.redeemPoolMintFeeRatioFiatPrice = vars.redeemPoolMintFeeRatioFiatPrice;
-
+        treeInfo.treasuryMintFeeRatioFiatPrice = vars.treasuryMintFeeRatioFiatPrice;
         if (
-            vars.minterERC20RewardRatio + vars.canvasCreatorERC20RewardRatio + vars.daoCreatorERC20RewardRatio
-                + l.protocolERC20RewardRatio != BASIS_POINT
-        ) revert InvalidERC20RewardRatio();
+            vars.minterOutputRewardRatio + vars.canvasCreatorOutputRewardRatio + vars.daoCreatorOutputRewardRatio
+                + l.protocolOutputRewardRatio != BASIS_POINT
+        ) revert InvalidOutputRewardRatio();
 
-        treeInfo.minterERC20RewardRatio = vars.minterERC20RewardRatio;
-        treeInfo.canvasCreatorERC20RewardRatio = vars.canvasCreatorERC20RewardRatio;
-        treeInfo.daoCreatorERC20RewardRatio = vars.daoCreatorERC20RewardRatio;
-
+        treeInfo.minterOutputRewardRatio = vars.minterOutputRewardRatio;
+        treeInfo.canvasCreatorOutputRewardRatio = vars.canvasCreatorOutputRewardRatio;
+        treeInfo.daoCreatorOutputRewardRatio = vars.daoCreatorOutputRewardRatio;
         if (
-            vars.minterETHRewardRatio + vars.canvasCreatorETHRewardRatio + vars.daoCreatorETHRewardRatio
-                + l.protocolETHRewardRatio != BASIS_POINT
+            vars.minterInputRewardRatio + vars.canvasCreatorInputRewardRatio + vars.daoCreatorInputRewardRatio
+                + l.protocolInputRewardRatio != BASIS_POINT
         ) {
-            revert InvalidETHRewardRatio();
+            revert InvalidInputRewardRatio();
         }
-        treeInfo.minterETHRewardRatio = vars.minterETHRewardRatio;
-        treeInfo.canvasCreatorETHRewardRatio = vars.canvasCreatorETHRewardRatio;
-        treeInfo.daoCreatorETHRewardRatio = vars.daoCreatorETHRewardRatio;
-
+        treeInfo.minterInputRewardRatio = vars.minterInputRewardRatio;
+        treeInfo.canvasCreatorInputRewardRatio = vars.canvasCreatorInputRewardRatio;
+        treeInfo.daoCreatorInputRewardRatio = vars.daoCreatorInputRewardRatio;
         emit RatioSet(daoId, vars);
     }
-
-    // function setInitialTokenSupplyForSubDao(bytes32 daoId, uint256 initialTokenSupply) public {
-    //     if (BasicDaoStorage.layout().basicDaoInfos[daoId].isThirdPartyToken) return;
-    //     InheritTreeStorage.InheritTreeInfo storage treeInfo = InheritTreeStorage.layout().inheritTreeInfos[daoId];
-    //     SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
-    //     bytes32 ancestor = treeInfo.ancestor;
-    //     address daoToken = DaoStorage.layout().daoInfos[ancestor].token;
-
-    //     if (msg.sender != settingsStorage.ownerProxy.ownerOf(ancestor)) {
-    //         //revert NotDaoOwner();
-    //         return;
-    //     }
-    //     BasicDaoStorage.Layout storage basicDaoStorage = BasicDaoStorage.layout();
-    //     if (!InheritTreeStorage.layout().inheritTreeInfos[ancestor].isAncestorDao) revert NotAncestorDao();
-
-    //     address daoAssetPool = basicDaoStorage.basicDaoInfos[daoId].daoAssetPool;
-    //     D4AERC20(daoToken).mint(daoAssetPool, initialTokenSupply);
-    //     DaoStorage.layout().daoInfos[daoId].tokenMaxSupply += initialTokenSupply;
-
-    //     if (D4AERC20(daoToken).totalSupply() > settingsStorage.tokenMaxSupply) revert SupplyOutOfRange();
-
-    //     emit InitialTokenSupplyForSubDaoSet(daoId, initialTokenSupply);
-    // }
 
     function setDaoRemainingRound(bytes32 daoId, uint256 newRemainingRound) public {
         _checkEditParamAbility(daoId);
@@ -351,90 +329,90 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
     }
 
     //1.6add-------------------------------------------
-    function setTopUpEthSplitRatio(
+    function setTopUpInputSplitRatio(
         bytes32 daoId,
-        uint256 defaultEthRatio,
+        uint256 defaultInputRatio,
         bytes32[] calldata subDaoIds,
-        uint256[] calldata ethRatios
+        uint256[] calldata inputRatios
     )
         public
     {
         _checkTreasurySetTopUpRatioAbility(daoId);
-        if (subDaoIds.length != ethRatios.length) revert InvalidLength();
+        if (subDaoIds.length != inputRatios.length) revert InvalidLength();
 
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.defaultTopUpEthToRedeemPoolRatio = defaultEthRatio;
+        poolInfo.defaultTopUpInputToRedeemPoolRatio = defaultInputRatio;
         for (uint256 i; i < subDaoIds.length;) {
             _checkDaoMember(daoId, subDaoIds[i]);
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[subDaoIds[i]];
-            basicDaoInfo.topUpEthToRedeemPoolRatio = ethRatios[i];
+            basicDaoInfo.topUpInputToRedeemPoolRatio = inputRatios[i];
             unchecked {
                 ++i;
             }
         }
-        emit TopUpEthSplitRatioSet(daoId, defaultEthRatio, subDaoIds, ethRatios);
+        emit TopUpInputSplitRatioSet(daoId, defaultInputRatio, subDaoIds, inputRatios);
     }
 
-    function setTopUpErc20SplitRatio(
+    function setTopUpOutputSplitRatio(
         bytes32 daoId,
-        uint256 defaultErc20Ratio,
+        uint256 defaultOutputRatio,
         bytes32[] calldata subDaoIds,
-        uint256[] calldata erc20Ratios
+        uint256[] calldata outputRatios
     )
         public
     {
         _checkTreasurySetTopUpRatioAbility(daoId);
-        if (subDaoIds.length != erc20Ratios.length) revert InvalidLength();
+        if (subDaoIds.length != outputRatios.length) revert InvalidLength();
 
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.defaultTopUpErc20ToTreasuryRatio = defaultErc20Ratio;
+        poolInfo.defaultTopUpOutputToTreasuryRatio = defaultOutputRatio;
         for (uint256 i; i < subDaoIds.length;) {
             _checkDaoMember(daoId, subDaoIds[i]);
             BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[subDaoIds[i]];
-            basicDaoInfo.topUpErc20ToTreasuryRatio = erc20Ratios[i];
+            basicDaoInfo.topUpOutputToTreasuryRatio = outputRatios[i];
             unchecked {
                 ++i;
             }
         }
-        emit TopUpErc20SplitRatioSet(daoId, defaultErc20Ratio, subDaoIds, erc20Ratios);
+        emit TopUpOutputSplitRatioSet(daoId, defaultOutputRatio, subDaoIds, outputRatios);
     }
 
-    function setDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) public {
+    function setDefaultTopUpInputToRedeemPoolRatio(bytes32 daoId, uint256 inputToRedeemPoolRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.defaultTopUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
+        poolInfo.defaultTopUpInputToRedeemPoolRatio = inputToRedeemPoolRatio;
 
-        emit DefaultTopUpEthToRedeemPoolRatioSet(daoId, ethToRedeemPoolRatio);
+        emit DefaultTopUpInputToRedeemPoolRatioSet(daoId, inputToRedeemPoolRatio);
     }
 
-    function setDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) public {
+    function setDefaultTopUpOutputToTreasuryRatio(bytes32 daoId, uint256 outputToTreasuryRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
         PoolStorage.PoolInfo storage poolInfo =
             PoolStorage.layout().poolInfos[DaoStorage.layout().daoInfos[daoId].daoFeePool];
-        poolInfo.defaultTopUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+        poolInfo.defaultTopUpOutputToTreasuryRatio = outputToTreasuryRatio;
 
-        emit DefaultTopUpErc20ToTreasuryRatioSet(daoId, erc20ToTreasuryRatio);
+        emit DefaultTopUpOutputToTreasuryRatioSet(daoId, outputToTreasuryRatio);
     }
 
-    function setDaoTopUpEthToRedeemPoolRatio(bytes32 daoId, uint256 ethToRedeemPoolRatio) public {
+    function setDaoTopUpInputToRedeemPoolRatio(bytes32 daoId, uint256 inputToRedeemPoolRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        basicDaoInfo.topUpEthToRedeemPoolRatio = ethToRedeemPoolRatio;
+        basicDaoInfo.topUpInputToRedeemPoolRatio = inputToRedeemPoolRatio;
 
-        emit DaoTopUpEthToRedeemPoolRatioSet(daoId, ethToRedeemPoolRatio);
+        emit DaoTopUpInputToRedeemPoolRatioSet(daoId, inputToRedeemPoolRatio);
     }
 
-    function setDaoTopUpErc20ToTreasuryRatio(bytes32 daoId, uint256 erc20ToTreasuryRatio) public {
+    function setDaoTopUpOutputToTreasuryRatio(bytes32 daoId, uint256 outputToTreasuryRatio) public {
         _checkTreasurySetTopUpRatioAbility(daoId);
 
         BasicDaoStorage.BasicDaoInfo storage basicDaoInfo = BasicDaoStorage.layout().basicDaoInfos[daoId];
-        basicDaoInfo.topUpErc20ToTreasuryRatio = erc20ToTreasuryRatio;
+        basicDaoInfo.topUpOutputToTreasuryRatio = outputToTreasuryRatio;
 
-        emit DaoTopUpErc20ToTreasuryRatioSet(daoId, erc20ToTreasuryRatio);
+        emit DaoTopUpOutputToTreasuryRatioSet(daoId, outputToTreasuryRatio);
     }
 
     function setDaoControlPermission(bytes32 daoId, address daoNftAddress, uint256 tokenId) public {
@@ -535,7 +513,7 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
     }
 
     function _checkDaoMember(bytes32 ancestor, bytes32 subDaoId) internal view {
-        if (InheritTreeStorage.layout().inheritTreeInfos[subDaoId].ancestor != ancestor) {
+        if (TreeStorage.layout().treeInfos[subDaoId].ancestor != ancestor) {
             revert InvalidDaoAncestor(subDaoId);
         }
     }

@@ -12,7 +12,7 @@ import { IPDRound } from "contracts/interface/IPDRound.sol";
 import { RoundStorage } from "contracts/storages/RoundStorage.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { BasicDaoStorage } from "contracts/storages/BasicDaoStorage.sol";
-import { InheritTreeStorage } from "contracts/storages/InheritTreeStorage.sol";
+import { TreeStorage } from "contracts/storages/TreeStorage.sol";
 
 contract PDRound is IPDRound {
     function setDaoDuation(bytes32 daoId, uint256 duration) public {
@@ -27,7 +27,7 @@ contract PDRound is IPDRound {
     function _checkSetAbility(bytes32 daoId) internal view {
         SettingsStorage.Layout storage settingsStorage = SettingsStorage.layout();
         if (msg.sender == address(this)) return;
-        bytes32 ancestor = InheritTreeStorage.layout().inheritTreeInfos[daoId].ancestor;
+        bytes32 ancestor = TreeStorage.layout().treeInfos[daoId].ancestor;
         if (
             msg.sender == settingsStorage.ownerProxy.ownerOf(daoId)
                 || msg.sender == settingsStorage.ownerProxy.ownerOf(ancestor)

@@ -35,8 +35,8 @@ contract FundingDaoParamSet is DeployHelper {
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
         vars.unifiedPrice = 1006;
-        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
-        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000);
 
         // 修改MainDAO的参数
         hoax(daoCreator.addr);

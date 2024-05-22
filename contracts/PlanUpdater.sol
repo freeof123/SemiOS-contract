@@ -98,7 +98,7 @@ abstract contract PlanUpdater {
             }
         }
         emit TopUpAccountUpdated(daoId, nft);
-        return (poolInfo.topUpNftErc20[_nftHash(nft)], poolInfo.topUpNftEth[_nftHash(nft)]);
+        return (poolInfo.topUpNftOutput[_nftHash(nft)], poolInfo.topUpNftInput[_nftHash(nft)]);
     }
 
     function _nftHash(NftIdentifier memory nft) internal pure returns (bytes32) {

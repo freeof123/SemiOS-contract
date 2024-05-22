@@ -28,7 +28,7 @@ contract D4AProtocolTest is DeployHelper {
         createDaoParam.mintableRound = 50;
         createDaoParam.isBasicDao = true;
         createDaoParam.noPermission = true;
-        createDaoParam.selfRewardRatioETH = 5000;
+        createDaoParam.selfRewardInputRatio = 5000;
         daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
         token = IERC20(ID4AProtocolReadable(address(protocol)).getDaoToken(daoId));
         daoFeePool = ID4AProtocolReadable(address(protocol)).getDaoFeePool(daoId);

@@ -11,7 +11,6 @@ import {
     DaoMintCapParam,
     NftMinterCapInfo,
     NftMinterCapIdInfo,
-    DaoETHAndERC20SplitRatioParam,
     TemplateParam,
     AllRatioParam
 } from "contracts/interface/D4AStructs.sol";
@@ -47,12 +46,9 @@ interface IPDCreate is ICreate {
         uint256 reserveNftNumber,
         bool topUpMode,
         bool infiniteMode,
-        bool erc20PaymentMode,
+        bool outputPaymentMode,
         address inputToken
     );
-    // string ownershipUri,
-    // uint256 defaultTopUpEthToRedeemPoolRatio,
-    // uint256 defaultTopUpErc20ToTreasuryRatio
 
     event NewProject(
         bytes32 daoId, string daoUri, address token, address nft, uint256 royaltyFeeRatioInBps, bool isAncestorDao
@@ -62,8 +58,8 @@ interface IPDCreate is ICreate {
         bytes32 daoId,
         address daoAssetPool,
         address daoRedeemPool,
-        uint256 daoTopUpEthToRedeemPoolRatio,
-        uint256 daoTopUpErc20ToTreasuryRatio,
+        uint256 daoTopUpInputToRedeemPoolRatio,
+        uint256 daoTopUpOutputToTreasuryRatio,
         bool isThirdPartyToken
     );
 

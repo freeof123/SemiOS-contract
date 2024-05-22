@@ -57,7 +57,7 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.isBasicDao = false;
         param.existDaoId = daoId;
         param.topUpMode = false;
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp));
         param.daoUri = "normal dao uri";
         param.uniPriceModeOff = true;
@@ -68,9 +68,9 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         address token = protocol.getDaoToken(daoId2);
         deal(token, nftMinter.addr, 100_000_000 ether);
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 1_000_000 ether);
-            assertEq(topUpETH, 0.01 ether);
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 1_000_000 ether);
+            assertEq(topUpInput, 0.01 ether);
         }
 
         bytes32 digest = mintNftSigUtils.getTypedDataHash(canvasId2, "a1234", 2_000_000 ether);
@@ -102,9 +102,9 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.mintNFT(mintNftTransferParam);
 
         {
-            (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId2, nft1);
-            assertEq(topUpERC20, 0);
-            assertEq(topUpETH, 0);
+            (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId2, nft1);
+            assertEq(topUpOutput, 0);
+            assertEq(topUpInput, 0);
         }
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 100_000_000 ether - 1_000_000 ether);
     }
@@ -133,13 +133,13 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 3000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 3000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
-        vars.redeemPoolRatioETH = 1000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 3000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 3000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
+        vars.redeemPoolInputRatio = 1000;
 
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);
@@ -161,8 +161,8 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), 50_000_000 ether * 0.3);
         assertEq(protocol.getDaoAssetPool(daoId2).balance, 3 ether);
 
-        assertEq(protocol.getRoundERC20Reward(daoId, 3), 5_000_000 ether * 5);
-        assertEq(protocol.getRoundETHReward(daoId, 3), 5 ether);
+        assertEq(protocol.getRoundOutputReward(daoId, 3), 5_000_000 ether * 5);
+        assertEq(protocol.getRoundInputReward(daoId, 3), 5 ether);
         assertEq(protocol.getDaoFeePool(daoId).balance, 1 ether + 0.006 ether);
         assertEq(protocol.getDaoAssetPool(daoId).balance, 1 ether + 0.0035 ether);
         assertEq(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 5_000_000 ether * 2);
@@ -183,8 +183,8 @@ contract ProtoDaoIntergrate14 is DeployHelper {
             50_000_000 ether * 0.3 + 5_000_000 ether * 2 * 0.3
         );
         assertEq(protocol.getDaoAssetPool(daoId2).balance, 3 ether + (1 ether + 0.0035 ether) * 0.3);
-        assertEq(protocol.getRoundERC20Reward(daoId, 6), 5_000_000 ether * 2 * 0.5);
-        assertEq(protocol.getRoundETHReward(daoId, 6), (1 ether + 0.0035 ether) * 0.5);
+        assertEq(protocol.getRoundOutputReward(daoId, 6), 5_000_000 ether * 2 * 0.5);
+        assertEq(protocol.getRoundInputReward(daoId, 6), (1 ether + 0.0035 ether) * 0.5);
         assertEq(
             protocol.getDaoFeePool(daoId).balance,
             (1 ether + 0.006 ether) + ((1 ether + 0.0035 ether) * 0.1 + 0.01 ether * 0.6)
@@ -215,13 +215,13 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.daoUri = "sub dao uri";
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
-        uint256 erc20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2));
-        uint256 ethBalance = protocol.getDaoAssetPool(daoId2).balance;
-        assertEq(erc20Balance, 0);
-        assertEq(ethBalance, 0);
+        uint256 outputBalance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2));
+        uint256 inputBalance = protocol.getDaoAssetPool(daoId2).balance;
+        assertEq(outputBalance, 0);
+        assertEq(inputBalance, 0);
         deal(protocol.getDaoAssetPool(daoId2), 1 ether);
-        vm.prank(daoCreator.addr);
-        protocol.grantDaoAssetPool(daoId2, 1_000_000 ether, true, "uri");
+
+        _grantPool(daoId2, daoCreator.addr, 1_000_000 ether);
 
         super._mintNft(daoId2, canvasId2, "a1234", 0.01 ether, daoCreator2.key, nftMinter.addr);
 
@@ -251,14 +251,14 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
 
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 3000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 3000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 3000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 3000;
 
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
-        vars.redeemPoolRatioETH = 1000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
+        vars.redeemPoolInputRatio = 1000;
 
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);
@@ -267,8 +267,8 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         assertGe(protocol.getDaoAssetPool(daoId).balance, 1);
         assertGe(IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)), 1);
 
-        uint256 mainERC20Balance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId));
-        uint256 mainETHBalance = protocol.getDaoAssetPool(daoId).balance;
+        uint256 mainOutputBalance = IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId));
+        uint256 mainInputBalance = protocol.getDaoAssetPool(daoId).balance;
 
         super._mintNft(
             daoId,
@@ -282,25 +282,26 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         );
 
         assertEq(
-            IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainERC20Balance * vars.erc20Ratios[0] / 10_000
+            IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainOutputBalance * vars.outputRatios[0] / 10_000
         );
-        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainETHBalance * vars.ethRatios[0] / 10_000);
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainInputBalance * vars.inputRatios[0] / 10_000);
 
-        assertEq(protocol.getRoundERC20Reward(daoId, 1), mainERC20Balance * vars.selfRewardRatioERC20 / 10_000);
-        assertEq(protocol.getRoundETHReward(daoId, 1), mainETHBalance * vars.selfRewardRatioETH / 10_000);
+        assertEq(protocol.getRoundOutputReward(daoId, 1), mainOutputBalance * vars.selfRewardOutputRatio / 10_000);
+        assertEq(protocol.getRoundInputReward(daoId, 1), mainInputBalance * vars.selfRewardInputRatio / 10_000);
         //redeemPoolMintFeeRatioFiatPrice = 60% in DeployHelper.sol --> 0.01 ether * 0.6
         assertEq(
-            protocol.getDaoFeePool(daoId).balance, mainETHBalance * vars.redeemPoolRatioETH / 10_000 + 0.01 ether * 0.6
+            protocol.getDaoFeePool(daoId).balance,
+            mainInputBalance * vars.redeemPoolInputRatio / 10_000 + 0.01 ether * 0.6
         );
 
         assertEq(
             protocol.getDaoAssetPool(daoId).balance,
-            mainETHBalance * (10_000 - vars.ethRatios[0] - vars.selfRewardRatioETH - vars.redeemPoolRatioETH) / 10_000
-                + 0.01 ether * 0.35
+            mainInputBalance * (10_000 - vars.inputRatios[0] - vars.selfRewardInputRatio - vars.redeemPoolInputRatio)
+                / 10_000 + 0.01 ether * 0.35
         );
         assertEq(
             IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)),
-            mainERC20Balance * (10_000 - vars.erc20Ratios[0] - vars.selfRewardRatioERC20) / 10_000
+            mainOutputBalance * (10_000 - vars.outputRatios[0] - vars.selfRewardOutputRatio) / 10_000
         );
     }
 
@@ -327,10 +328,10 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 10_000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 10_000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 10_000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 10_000;
 
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);
@@ -381,8 +382,8 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         param.uniPriceModeOff = false;
 
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 7000;
-        param.selfRewardRatioETH = 7000;
+        param.selfRewardOutputRatio = 7000;
+        param.selfRewardInputRatio = 7000;
         param.daoUri = "test 1.4-xx dao uri";
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         address token = protocol.getDaoToken(daoId);
@@ -426,12 +427,12 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         assertEq(
             IERC20(token).balanceOf(nftMinter.addr) - token_balance_before,
-            token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 800 / 10_000 * 3,
+            token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 3,
             "ERC20 balance nftMinter error in Round1"
         );
         assertEq(
             nftMinter.addr.balance - eth_balance_before,
-            ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 800 / 10_000 * 3,
+            ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 3,
             "ETH balance nftMinter error in Round1"
         );
 
@@ -440,12 +441,12 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimNftMinterReward(daoId, nftMinter2.addr);
         assertEq(
             IERC20(token).balanceOf(nftMinter2.addr) - token_balance_before,
-            token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 800 / 10_000 * 2,
+            token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 2,
             "ERC20 balance nftMinter2 error in Round1"
         );
         assertEq(
             nftMinter2.addr.balance - eth_balance_before,
-            ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 800 / 10_000 * 2,
+            ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 2,
             "ETH balance nftMinter2 Error in Round1"
         );
 
@@ -454,12 +455,12 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             IERC20(token).balanceOf(daoCreator.addr) - token_balance_before,
-            token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5,
+            token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5,
             "ERC20 balance daoCreator error in Round1"
         );
         assertEq(
             daoCreator.addr.balance - eth_balance_before,
-            ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5,
+            ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5,
             "ETH balance daocreator Error in Round1"
         );
 
@@ -468,12 +469,12 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimCanvasReward(canvasId1);
         assertEq(
             IERC20(token).balanceOf(daoCreator.addr) - token_balance_before,
-            token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5,
+            token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5,
             "ERC20 Canvas Creator Error in Round1"
         );
         assertEq(
             daoCreator.addr.balance - eth_balance_before,
-            ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5,
+            ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5,
             "ETH Canvas Creator Error in Round1"
         );
 
@@ -514,12 +515,13 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimNftMinterReward(daoId, nftMinter.addr);
         assertEq(
             (IERC20(token).balanceOf(nftMinter.addr) - token_balance_before) / 10,
-            (token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 800 / 10_000 * 2) / 10,
+            (token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 2)
+                / 10,
             "ERC20 balance nftMinter error in Round2"
         );
         assertEq(
             (nftMinter.addr.balance - eth_balance_before) / 10,
-            (ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 800 / 10_000 * 2) / 10,
+            (ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 2) / 10,
             "ETH balance nftMinter error in Round2"
         );
 
@@ -528,12 +530,13 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimNftMinterReward(daoId, nftMinter2.addr);
         assertEq(
             (IERC20(token).balanceOf(nftMinter2.addr) - token_balance_before) / 10,
-            (token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 800 / 10_000 * 3) / 10,
+            (token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 3)
+                / 10,
             "ERC20 balance nftMinter2 error in Round2"
         );
         assertEq(
             (nftMinter2.addr.balance - eth_balance_before) / 10,
-            (ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 800 / 10_000 * 3) / 10,
+            (ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 800 / 10_000 * 3) / 10,
             "ETH balance nftMinter2 Error in Round2"
         );
 
@@ -542,13 +545,14 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimDaoNftOwnerReward(daoId);
         assertEq(
             (IERC20(token).balanceOf(daoCreator.addr) - token_balance_before) / 10,
-            (token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5)
+            (token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5)
                 / 10,
             "ERC20 balance daoCreator error in Round2"
         );
         assertEq(
             (daoCreator.addr.balance - eth_balance_before) / 10,
-            (ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5) / 10,
+            (ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 7000 / 10_000 * 5)
+                / 10,
             "ETH balance daocreator Error in Round2"
         );
 
@@ -557,13 +561,14 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         protocol.claimCanvasReward(canvasId1);
         assertEq(
             (IERC20(token).balanceOf(daoCreator.addr) - token_balance_before) / 10,
-            (token_dao_asset_balance * param.selfRewardRatioERC20 / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5)
+            (token_dao_asset_balance * param.selfRewardOutputRatio / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5)
                 / 10,
             "ERC20 balance canvas creator Error in Round2"
         );
         assertEq(
             (daoCreator.addr.balance - eth_balance_before) / 10,
-            (ether_dao_asset_balance * param.selfRewardRatioETH / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5) / 10,
+            (ether_dao_asset_balance * param.selfRewardInputRatio / 10_000 / remainingRound / 5 * 2000 / 10_000 * 5)
+                / 10,
             "ETH balance  canvas creator Error in Round2"
         );
 

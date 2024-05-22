@@ -13,17 +13,16 @@ library BasicDaoStorage {
         //---------1.3 add
         bool exist;
         address daoAssetPool;
-        address daoFundingPool; //deprecated
         bool isThirdPartyToken;
         bool topUpMode;
         bool needMintableWork;
         uint8 version;
         //---------1.4 add
         bool infiniteMode;
-        bool erc20PaymentMode;
+        bool outputPaymentMode;
         //---------1.6 add
-        uint256 topUpEthToRedeemPoolRatio;
-        uint256 topUpErc20ToTreasuryRatio;
+        uint256 topUpInputToRedeemPoolRatio;
+        uint256 topUpOutputToTreasuryRatio;
         address grantAssetPoolNft;
     }
 

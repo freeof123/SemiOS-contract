@@ -36,7 +36,7 @@ interface IPDPlan {
         NftIdentifier memory nft
     )
         external
-        returns (uint256 topUPERC20Quota, uint256 topUpETHQuota);
+        returns (uint256 topUpOutputQuota, uint256 topUpInputQuota);
 
     function updateMultiTopUpAccount(bytes32 daoId, NftIdentifier[] calldata nfts) external;
     function getTopUpBalance(bytes32 daoId, NftIdentifier memory nft) external view returns (uint256, uint256);

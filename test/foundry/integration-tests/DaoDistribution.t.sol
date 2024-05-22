@@ -36,8 +36,8 @@ contract DaoDistribution is DeployHelper {
         canvasId1 = param.canvasId;
         param.noPermission = true;
         param.mintableRound = 10;
-        param.selfRewardRatioERC20 = 7000;
-        param.selfRewardRatioETH = 7000;
+        param.selfRewardOutputRatio = 7000;
+        param.selfRewardInputRatio = 7000;
 
         daoId = super._createDaoForFunding(param, daoCreator.addr);
         token = protocol.getDaoToken(daoId);
@@ -54,8 +54,8 @@ contract DaoDistribution is DeployHelper {
         param.canvasId = keccak256(abi.encode(daoCreator2.addr, block.timestamp + 2));
         param.daoUri = "dao uri3";
         param.existDaoId = daoId;
-        // param.selfRewardRatioERC20 = 10_000;
-        // param.selfRewardRatioETH = 10_000;
+        // param.selfRewardOutputRatio = 10_000;
+        // param.selfRewardInputRatio = 10_000;
 
         daoId3 = super._createDaoForFunding(param, daoCreator2.addr);
         canvasId3 = param.canvasId;
@@ -72,13 +72,13 @@ contract DaoDistribution is DeployHelper {
         bytes32 subDaoId = super._createDaoForFunding(param, daoCreator.addr);
 
         bytes32[] memory childrenDaoId = new bytes32[](1);
-        uint256[] memory erc20Ratios = new uint256[](1);
-        uint256[] memory ethRatios = new uint256[](1);
+        uint256[] memory outputRatios = new uint256[](1);
+        uint256[] memory inputRatios = new uint256[](1);
         childrenDaoId[0] = subDaoId;
-        erc20Ratios[0] = 5000;
-        ethRatios[0] = 5000;
+        outputRatios[0] = 5000;
+        inputRatios[0] = 5000;
         SetChildrenParam memory setChildrenParam =
-            SetChildrenParam(childrenDaoId, erc20Ratios, ethRatios, 2500, 5000, 2500);
+            SetChildrenParam(childrenDaoId, outputRatios, inputRatios, 2500, 0, 0, 5000, 2500);
 
         hoax(daoCreator.addr);
         protocol.setChildren(daoId, setChildrenParam);
@@ -114,7 +114,7 @@ contract DaoDistribution is DeployHelper {
         daoIds[1] = subDaoId;
         claimParam.canvasIds = cavansIds;
         claimParam.daoIds = daoIds;
-        // console2.log(protocol.getRoundERC20Reward(daoId, 1));
+        // console2.log(protocol.getRoundOutputReward(daoId, 1));
         vm.prank(daoCreator.addr);
         universalClaimer.claimMultiReward(claimParam);
         //assert
@@ -141,7 +141,8 @@ contract DaoDistribution is DeployHelper {
         );
         // 原参数：allRatioForFundingParam: (750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000)
         // 修改ERC20分配比例（Minter: 50%, Builder: 20%, Starter: 28%, PDAO: 2%）
-        AllRatioParam memory vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
+        AllRatioParam memory vars =
+            AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 5000, 2000, 2800, 5000, 2000, 2800);
         hoax(daoCreator.addr);
         protocol.setRatio(daoId, vars);
 
@@ -168,7 +169,8 @@ contract DaoDistribution is DeployHelper {
 
     // 1.3-91 修改上面6个
     function test_DistributParamInsideDaoEffective() public {
-        AllRatioParam memory vars = AllRatioParam(5750, 1000, 3000, 7000, 500, 2250, 800, 2000, 7000, 800, 2000, 7000);
+        AllRatioParam memory vars =
+            AllRatioParam(5750, 1000, 3000, 0, 7000, 500, 2250, 0, 800, 2000, 7000, 800, 2000, 7000);
         hoax(daoCreator.addr);
 
         protocol.setRatio(daoId2, vars);
@@ -217,8 +219,8 @@ contract DaoDistribution is DeployHelper {
         // 在铸造前追加1000万Token,
         assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 50_000_000 ether, "e1"); // 追加前总量5000万
         uint256 initialTokenSupply = 10_000_000 ether;
-        hoax(daoCreator.addr);
-        protocol.grantDaoAssetPool(jackpotDaoId, initialTokenSupply, true, "test");
+        _grantPool(jackpotDaoId, daoCreator.addr, initialTokenSupply);
+
         assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 60_000_000 ether, "e2"); // 追加后总量6000万
 
         // 修改MintWindow和之前不一致
@@ -293,8 +295,7 @@ contract DaoDistribution is DeployHelper {
 
         initialTokenSupply = 1_000_000 ether;
         //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
-        hoax(daoCreator.addr);
-        protocol.grantDaoAssetPool(jackpotDaoId, initialTokenSupply, true, "test");
+        _grantPool(jackpotDaoId, daoCreator.addr, initialTokenSupply);
         //console2.log("asset pool bal:", IERC20(jackpotToken).balanceOf(jackpotPool));
 
         assertEq(protocol.getDaoTokenMaxSupply(jackpotDaoId), 61_000_000 ether); // 追加后总量6100万
@@ -326,9 +327,9 @@ contract DaoDistribution is DeployHelper {
         );
 
         vm.roll(3);
-        (uint256 ercAmount, uint256 ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
+        (uint256 ercAmount, uint256 inputAmount) = protocol.claimDaoNftOwnerReward(daoId3);
         assertEq(ercAmount, 50_000_000 ether * 0.7 * 0.7 / 10, "Check A");
-        assertEq(ethAmount, 0, "Check B");
+        assertEq(inputAmount, 0, "Check B");
 
         deal(nftMinter.addr, 0.01 ether);
         // 铸造一个NFT
@@ -344,8 +345,8 @@ contract DaoDistribution is DeployHelper {
         );
 
         vm.roll(5);
-        (ercAmount, ethAmount) = protocol.claimDaoNftOwnerReward(daoId3);
-        assertApproxEqAbs(ethAmount, 0.01 ether * 0.35 * 0.7 * 0.7 / uint256(9), 10, "Check D");
+        (ercAmount, inputAmount) = protocol.claimDaoNftOwnerReward(daoId3);
+        assertApproxEqAbs(inputAmount, 0.01 ether * 0.35 * 0.7 * 0.7 / uint256(9), 10, "Check D");
         //question, daoId3 is not subdao?
         // console2.log(protocol.getDaoToken(daoId3), protocol.getDaoToken(daoId), "A");
     }

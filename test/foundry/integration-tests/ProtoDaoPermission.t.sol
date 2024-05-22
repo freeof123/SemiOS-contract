@@ -27,8 +27,8 @@ contract ProtoDaoPermissionTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.redeemPoolRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.redeemPoolInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.mintableRound = 10;
         param.dailyMintCap = 10_000;
@@ -104,8 +104,8 @@ contract ProtoDaoPermissionTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.redeemPoolRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.redeemPoolInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.mintableRound = 10;
         param.dailyMintCap = 10_000;

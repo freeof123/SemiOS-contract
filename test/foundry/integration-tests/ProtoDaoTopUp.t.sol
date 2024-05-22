@@ -24,8 +24,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.duration = 2 ether;
         param.noPermission = true;
         param.topUpMode = true;
@@ -35,8 +35,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.duration = 2 ether;
         param.noPermission = true;
         param.topUpMode = true;
@@ -78,11 +78,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     nftMinter.addr
         // );
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        (uint256 topUpERC20_2, uint256 topUpETH_2) = protocol.updateTopUpAccount(daoId2, nft1);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        (uint256 topUpOutput_2, uint256 topUpInput_2) = protocol.updateTopUpAccount(daoId2, nft1);
 
-        assertEq(topUpERC20_2, topUpERC20);
-        assertEq(topUpETH_2, topUpETH);
+        assertEq(topUpOutput_2, topUpOutput);
+        assertEq(topUpInput_2, topUpInput);
 
         vm.roll(3);
 
@@ -127,11 +127,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     nftMinter.addr
         // );
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        (topUpERC20_2, topUpETH_2) = protocol.updateTopUpAccount(daoId2, nft1);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        (topUpOutput_2, topUpInput_2) = protocol.updateTopUpAccount(daoId2, nft1);
 
-        assertEq(topUpERC20_2, topUpERC20);
-        assertEq(topUpETH_2, topUpETH);
+        assertEq(topUpOutput_2, topUpOutput);
+        assertEq(topUpInput_2, topUpInput);
 
         vm.roll(4);
 
@@ -175,11 +175,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     daoCreator2.key,
         //     nftMinter.addr
         // );
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        (topUpERC20_2, topUpETH_2) = protocol.updateTopUpAccount(daoId2, nft1);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        (topUpOutput_2, topUpInput_2) = protocol.updateTopUpAccount(daoId2, nft1);
 
-        assertEq(topUpERC20_2, topUpERC20);
-        assertEq(topUpETH_2, topUpETH);
+        assertEq(topUpOutput_2, topUpOutput);
+        assertEq(topUpInput_2, topUpInput);
 
         vm.roll(5);
 
@@ -223,11 +223,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     daoCreator2.key,
         //     nftMinter.addr
         // );
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        (topUpERC20_2, topUpETH_2) = protocol.updateTopUpAccount(daoId2, nft1);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        (topUpOutput_2, topUpInput_2) = protocol.updateTopUpAccount(daoId2, nft1);
 
-        assertEq(topUpERC20_2, topUpERC20);
-        assertEq(topUpETH_2, topUpETH);
+        assertEq(topUpOutput_2, topUpOutput);
+        assertEq(topUpInput_2, topUpInput);
     }
 
     // testcase 1.3-15
@@ -238,8 +238,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
 
@@ -249,8 +249,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 8000;
-        param.selfRewardRatioERC20 = 8000;
+        param.selfRewardInputRatio = 8000;
+        param.selfRewardOutputRatio = 8000;
         param.noPermission = true;
         param.topUpMode = false;
         param.isProgressiveJackpot = true;
@@ -272,9 +272,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
         NftIdentifier memory nft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
 
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        assertEq(topUpERC20, 0);
-        assertEq(topUpETH, 0);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        assertEq(topUpOutput, 0);
+        assertEq(topUpInput, 0);
 
         vm.roll(2);
         //step 4
@@ -299,9 +299,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     daoCreator.key,
         //     nftMinter.addr
         // );
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60), "s1: top up erc20");
-        assertEq(topUpETH, 0.01 ether, "s1: top up eth");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(60), "s1: top up erc20");
+        assertEq(topUpInput, 0.01 ether, "s1: top up eth");
 
         deal(nftMinter.addr, 1 ether);
         uint256 balBefore = nftMinter.addr.balance;
@@ -327,9 +327,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
         //     nftMinter.addr
         // );
         assertEq(nftMinter.addr.balance, balBefore);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2);
-        assertEq(topUpETH, 0.005 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2);
+        assertEq(topUpInput, 0.005 ether);
 
         //step 11
         nftParam.daoId = daoId;
@@ -366,13 +366,13 @@ contract ProtoDaoTopUpTest is DeployHelper {
         NftIdentifier memory nft2 = NftIdentifier(protocol.getDaoNft(daoId), 4);
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
         uint256 a = (50_000_000 ether - 50_000_000 ether / uint256(60)) / 59;
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2 + a * 2 / 3);
-        assertEq(topUpETH, 0.005 ether + 0.02 ether);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft2);
-        assertEq(topUpERC20, a / 3);
-        assertEq(topUpETH, 0.01 ether);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(60) - 50_000_000 ether / uint256(60) / 2 + a * 2 / 3);
+        assertEq(topUpInput, 0.005 ether + 0.02 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft2);
+        assertEq(topUpOutput, a / 3);
+        assertEq(topUpInput, 0.01 ether);
     }
 
     function test_PDCreateFunding_1_3_62() public {
@@ -392,8 +392,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 0;
-        param.selfRewardRatioERC20 = 0;
+        param.selfRewardInputRatio = 0;
+        param.selfRewardOutputRatio = 0;
         param.noPermission = true;
         param.topUpMode = false;
         param.isProgressiveJackpot = true;
@@ -402,17 +402,16 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
         param.childrenDaoId = new bytes32[](1);
         param.childrenDaoId[0] = daoId;
-        // erc20 ratio
-        param.childrenDaoRatiosERC20 = new uint256[](1);
-        param.childrenDaoRatiosERC20[0] = 7000;
-        // eth ratio
-        param.childrenDaoRatiosETH = new uint256[](1);
-        param.childrenDaoRatiosETH[0] = 7000;
+        // output ratio
+        param.childrenDaoOutputRatios = new uint256[](1);
+        param.childrenDaoOutputRatios[0] = 7000;
+        // input ratio
+        param.childrenDaoInputRatios = new uint256[](1);
+        param.childrenDaoInputRatios[0] = 7000;
 
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
-        vm.prank(daoCreator.addr);
-        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
+        _grantPool(daoId2, daoCreator.addr, 10_000_000 ether);
         vm.prank(daoCreator.addr);
         protocol.setDaoUnifiedPrice(daoId, 0.1 ether);
 
@@ -457,13 +456,13 @@ contract ProtoDaoTopUpTest is DeployHelper {
         NftIdentifier memory nft2 = NftIdentifier(protocol.getDaoNft(daoId), 2);
 
         vm.roll(2);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, nft1);
-        assertEq(topUpERC20, (50_000_000 ether + 700_000 ether) / 10 / 2);
-        assertEq(topUpETH, 0.1 ether);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, nft1);
+        assertEq(topUpOutput, (50_000_000 ether + 700_000 ether) / 10 / 2);
+        assertEq(topUpInput, 0.1 ether);
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, nft2);
-        assertEq(topUpERC20, (50_000_000 ether + 700_000 ether) / 10 / 2);
-        assertEq(topUpETH, 0.1 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, nft2);
+        assertEq(topUpOutput, (50_000_000 ether + 700_000 ether) / 10 / 2);
+        assertEq(topUpInput, 0.1 ether);
     }
 
     function test_PDCreate_MainDaoTouUpNotProgressive_SubDaoProgresive() public {
@@ -473,8 +472,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
@@ -484,8 +483,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 8000;
-        param.selfRewardRatioERC20 = 8000;
+        param.selfRewardInputRatio = 8000;
+        param.selfRewardOutputRatio = 8000;
         param.noPermission = true;
         param.topUpMode = false;
         param.isProgressiveJackpot = true;
@@ -505,14 +504,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 0);
-        assertEq(topUpETH, 0);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 0);
+        assertEq(topUpInput, 0);
 
         vm.roll(2);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60));
-        assertEq(topUpETH, 0.01 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(60));
+        assertEq(topUpInput, 0.01 ether);
 
         super._mintNft(
             daoId,
@@ -526,14 +525,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(60), "Topup C");
-        assertEq(topUpETH, 0.01 ether, "Topup D");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(60), "Topup C");
+        assertEq(topUpInput, 0.01 ether, "Topup D");
 
         NftIdentifier memory mainNft2 = NftIdentifier(protocol.getDaoNft(daoId), 2);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
-        assertEq(topUpERC20, (50_000_000 ether - 50_000_000 ether / uint256(60)) / uint256(59), "TopUP A");
-        assertEq(topUpETH, 0.01 ether, "Topup B");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft2);
+        assertEq(topUpOutput, (50_000_000 ether - 50_000_000 ether / uint256(60)) / uint256(59), "TopUP A");
+        assertEq(topUpInput, 0.01 ether, "Topup B");
 
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId2;
@@ -548,20 +547,20 @@ contract ProtoDaoTopUpTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 0, "ERC20 NFTMinter Should Be 0");
 
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
-        assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
-        assertEq(topUpETH, 0, "Topup E");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId2, mainNft1);
+        assertEq(topUpOutput, 0, "mainNFT1 TopUp Balance Should be cost");
+        assertEq(topUpInput, 0, "Topup E");
         assertEq(
             IERC20(token).balanceOf(nftMinter.addr), 50_000_000 ether / uint256(60), "ERC20 TopUp  Should not be  0"
         );
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft2);
         assertEq(
-            topUpERC20,
+            topUpOutput,
             (50_000_000 ether - 50_000_000 ether / uint256(60)) / uint256(59),
             "mainNFT Topup account not change"
         );
-        assertEq(topUpETH, 0.01 ether, "Topup B");
+        assertEq(topUpInput, 0.01 ether, "Topup B");
     }
 
     function test_PDCreate_MainDaoTouUpEnd_SubDaoNotEnd() public {
@@ -571,8 +570,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
         param.mintableRound = 3;
@@ -583,8 +582,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 8000;
-        param.selfRewardRatioERC20 = 8000;
+        param.selfRewardInputRatio = 8000;
+        param.selfRewardOutputRatio = 8000;
         param.noPermission = true;
         param.topUpMode = false;
         param.daoUri = "continuous dao uri";
@@ -602,14 +601,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 0);
-        assertEq(topUpETH, 0);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 0);
+        assertEq(topUpInput, 0);
 
         vm.roll(2);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK EE");
-        assertEq(topUpETH, 0.01 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "CHECK EE");
+        assertEq(topUpInput, 0.01 ether);
 
         super._mintNft(
             daoId,
@@ -623,14 +622,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "Topup C");
-        assertEq(topUpETH, 0.01 ether, "Topup D");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "Topup C");
+        assertEq(topUpInput, 0.01 ether, "Topup D");
 
         NftIdentifier memory mainNft2 = NftIdentifier(protocol.getDaoNft(daoId), 2);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
-        assertEq(topUpERC20, (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2), "TopUP A");
-        assertEq(topUpETH, 0.01 ether, "Topup B");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft2);
+        assertEq(topUpOutput, (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2), "TopUP A");
+        assertEq(topUpInput, 0.01 ether, "Topup B");
 
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId2;
@@ -645,20 +644,20 @@ contract ProtoDaoTopUpTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 0, "ERC20 NFTMinter Should Be 0");
 
         super._mintNftWithParam(nftParam, nftMinter.addr);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
-        assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
-        assertEq(topUpETH, 0, "Topup E");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId2, mainNft1);
+        assertEq(topUpOutput, 0, "mainNFT1 TopUp Balance Should be cost");
+        assertEq(topUpInput, 0, "Topup E");
         assertEq(
             IERC20(token).balanceOf(nftMinter.addr), 50_000_000 ether / uint256(3), "ERC20 TopUp  Should not be  0"
         );
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft2);
         assertEq(
-            topUpERC20,
+            topUpOutput,
             (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2),
             "mainNFT Topup account not change"
         );
-        assertEq(topUpETH, 0.01 ether, "Topup B");
+        assertEq(topUpInput, 0.01 ether, "Topup B");
 
         vm.roll(4);
         nftParam.daoId = daoId;
@@ -700,8 +699,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
         param.mintableRound = 3;
@@ -712,8 +711,8 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 canvasId2 = param.canvasId;
         param.existDaoId = daoId;
         param.isBasicDao = false;
-        param.selfRewardRatioETH = 8000;
-        param.selfRewardRatioERC20 = 8000;
+        param.selfRewardInputRatio = 8000;
+        param.selfRewardOutputRatio = 8000;
         param.noPermission = true;
         param.topUpMode = false;
         param.daoUri = "continuous dao uri";
@@ -731,18 +730,18 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 0);
-        assertEq(topUpETH, 0);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 0);
+        assertEq(topUpInput, 0);
 
         vm.roll(2);
         address nftAddress = protocol.getDaoNft(daoId);
         vm.prank(nftMinter.addr);
         D4AERC721(nftAddress).safeTransferFrom(nftMinter.addr, randomGuy.addr, 1);
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK EE");
-        assertEq(topUpETH, 0.01 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "CHECK EE");
+        assertEq(topUpInput, 0.01 ether);
 
         super._mintNft(
             daoId,
@@ -756,14 +755,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
         );
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "Topup C");
-        assertEq(topUpETH, 0.01 ether, "Topup D");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "Topup C");
+        assertEq(topUpInput, 0.01 ether, "Topup D");
 
         NftIdentifier memory mainNft2 = NftIdentifier(protocol.getDaoNft(daoId), 2);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft2);
-        assertEq(topUpERC20, (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2), "TopUP A");
-        assertEq(topUpETH, 0.01 ether, "Topup B");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft2);
+        assertEq(topUpOutput, (50_000_000 ether - 50_000_000 ether / uint256(3)) / uint256(2), "TopUP A");
+        assertEq(topUpInput, 0.01 ether, "Topup B");
 
         MintNftParamTest memory nftParam;
         nftParam.daoId = daoId2;
@@ -778,9 +777,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(nftMinter.addr), 0, "ERC20 NFTMinter Should Be 0");
 
         super._mintNftWithParam(nftParam, randomGuy.addr);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
-        assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
-        assertEq(topUpETH, 0, "Topup E");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId2, mainNft1);
+        assertEq(topUpOutput, 0, "mainNFT1 TopUp Balance Should be cost");
+        assertEq(topUpInput, 0, "Topup E");
         assertEq(
             IERC20(token).balanceOf(randomGuy.addr), 50_000_000 ether / uint256(3), "ERC20 TopUp  Should not be  0"
         );
@@ -788,7 +787,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
 
     // add test case for 1.6
     //-------------------------------------------------------------
-    function test_topUpDefaultTopUpErc20ToTreasuryRatio_setByTreasuryNFTOwner() public {
+    function test_topUpDefaulttopUpOutputToTreasuryRatio_setByTreasuryNFTOwner() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
@@ -799,7 +798,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         param.mintableRound = 3;
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         vm.prank(daoCreator.addr);
-        protocol.setDefaultTopUpErc20ToTreasuryRatio(daoId, 5000);
+        protocol.setDefaultTopUpOutputToTreasuryRatio(daoId, 5000);
         address token = protocol.getDaoToken(daoId);
         // first step. deposit money to TopUp NFT by topup daoId
         super._mintNft(
@@ -823,11 +822,11 @@ contract ProtoDaoTopUpTest is DeployHelper {
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK 1.6 t1 EE");
-        assertEq(topUpETH, 0.01 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "CHECK 1.6 t1 EE");
+        assertEq(topUpInput, 0.01 ether);
 
         // second step. spent money with TopUp NFT by non-topup daoId2 as default ratia
         MintNftParamTest memory nftParam;
@@ -848,12 +847,12 @@ contract ProtoDaoTopUpTest is DeployHelper {
             assertEq(nftMinter.addr.balance, 0, "nftMinter.addr.balance should be 0, cost topup account");
             super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
             uint256 erc20_after_treasury = IERC20(token).balanceOf(treasury);
-            assertEq(erc20_after_treasury - erc20_before_treasury, topUpERC20 / 2, "ERC20 TopUp  Should not be  0");
-            assertEq(IERC20(token).balanceOf(nftMinter.addr), topUpERC20 / 2, "ERC20 TopUp  Should not be  0");
+            assertEq(erc20_after_treasury - erc20_before_treasury, topUpOutput / 2, "ERC20 TopUp  Should not be  0");
+            assertEq(IERC20(token).balanceOf(nftMinter.addr), topUpOutput / 2, "ERC20 TopUp  Should not be  0");
 
-            (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
-            assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost");
-            assertEq(topUpETH, 0, "Topup E");
+            (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId2, mainNft1);
+            assertEq(topUpOutput, 0, "mainNFT1 TopUp Balance Should be cost");
+            assertEq(topUpInput, 0, "Topup E");
         }
 
         //1.6 set default ratio test
@@ -866,17 +865,17 @@ contract ProtoDaoTopUpTest is DeployHelper {
         }
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(daoCreator.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
 
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(daoCreator.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
 
         vm.startPrank(randomGuy.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
-        protocol.setDefaultTopUpErc20ToTreasuryRatio(daoId, 2000);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
-        protocol.setDaoTopUpErc20ToTreasuryRatio(daoId2, 8000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpOutputToTreasuryRatio(daoId, 2000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpOutputToTreasuryRatio(daoId2, 8000);
         //add external nft set to treasury
         protocol.setTreasurySetTopUpRatioPermission(daoId, address(_testERC721), 5);
         vm.stopPrank();
@@ -884,21 +883,21 @@ contract ProtoDaoTopUpTest is DeployHelper {
         _testERC721.mint(daoCreator3.addr, 5);
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(randomGuy.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
 
         vm.prank(daoCreator3.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
         vm.prank(daoCreator3.addr);
-        protocol.setDaoTopUpErc20ToTreasuryRatio(daoId2, 8000);
+        protocol.setDaoTopUpOutputToTreasuryRatio(daoId2, 8000);
 
         vm.prank(randomGuy.addr);
         vm.expectRevert(NotNftOwner.selector);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
 
         vm.prank(daoCreator3.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
         vm.prank(daoCreator3.addr);
-        protocol.setDefaultTopUpErc20ToTreasuryRatio(daoId, 2000);
+        protocol.setDefaultTopUpOutputToTreasuryRatio(daoId, 2000);
 
         //1.6 check new create dao as new default ratio
         //forth step. deposit money to TopUp NFT by topup daoId
@@ -919,9 +918,9 @@ contract ProtoDaoTopUpTest is DeployHelper {
         super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertApproxEqAbs(topUpERC20, 50_000_000 ether / uint256(3), 10, "CHECK 1.6 t1 EE t2");
-        assertEq(topUpETH, 0.01 ether * 2, "Top Up balance double 2");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertApproxEqAbs(topUpOutput, 50_000_000 ether / uint256(3), 10, "CHECK 1.6 t1 EE t2");
+        assertEq(topUpInput, 0.01 ether * 2, "Top Up balance double 2");
 
         //fifth step. create new dao as new default ratio
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp + 1));
@@ -951,14 +950,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
             uint256 erc20_after_account = IERC20(token).balanceOf(nftMinter.addr);
             assertApproxEqAbs(
                 erc20_after_account - erc20_before_account,
-                topUpERC20 / 2 * 8 / 10,
+                topUpOutput / 2 * 8 / 10,
                 10,
                 "ERC20 TopUp  Should not be  0 ERC20 For Account A"
             );
 
             assertEq(
                 erc20_after_treasury - erc20_before_treasury,
-                topUpERC20 / 2 * 2 / 10,
+                topUpOutput / 2 * 2 / 10,
                 "ERC20 TopUp  Should not be  0 ERC20 for treasury A"
             );
         }
@@ -980,39 +979,39 @@ contract ProtoDaoTopUpTest is DeployHelper {
             uint256 erc20_after_account = IERC20(token).balanceOf(nftMinter.addr);
             assertApproxEqAbs(
                 erc20_after_account - erc20_before_account,
-                topUpERC20 / 2 * 2 / 10,
+                topUpOutput / 2 * 2 / 10,
                 10,
                 "ERC20 TopUp  Should not be  0 ERC20 For Account B"
             );
 
             assertApproxEqAbs(
                 erc20_after_treasury - erc20_before_treasury,
-                topUpERC20 / 2 * 8 / 10,
+                topUpOutput / 2 * 8 / 10,
                 10,
                 "ERC20 TopUp  Should not be  0 ERC20 for treasury B"
             );
         }
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId3, mainNft1);
-        assertEq(topUpERC20, 0, "mainNFT1 TopUp Balance Should be cost Check A");
-        assertEq(topUpETH, 0, "Topup E Check A");
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId3, mainNft1);
+        assertEq(topUpOutput, 0, "mainNFT1 TopUp Balance Should be cost Check A");
+        assertEq(topUpInput, 0, "Topup E Check A");
     }
 
-    function test_topUpDefaultTopUpEthToRedeemPoolRatio_setByTreasuryNFTOwner() public {
+    function test_topUpDefaulttopUpInputToRedeemPoolRatio_setByTreasuryNFTOwner() public {
         DeployHelper.CreateDaoParam memory param;
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
         param.mintableRound = 3;
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         vm.prank(daoCreator.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 5000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 5000);
         address token = protocol.getDaoToken(daoId);
         // first step. deposit money to TopUp NFT by topup daoId
         super._mintNft(
@@ -1033,17 +1032,17 @@ contract ProtoDaoTopUpTest is DeployHelper {
         param.isBasicDao = false;
         param.noPermission = true;
         param.topUpMode = false;
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         param.unifiedPrice = 100 ether;
         param.daoUri = "continuous dao uri";
         bytes32 daoId2 = super._createDaoForFunding(param, daoCreator2.addr);
 
         NftIdentifier memory mainNft1 = NftIdentifier(protocol.getDaoNft(daoId), 1);
-        (uint256 topUpERC20, uint256 topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        (uint256 topUpOutput, uint256 topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
 
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
-        assertEq(topUpERC20, 50_000_000 ether / uint256(3), "CHECK 1.6 t1 EE");
-        assertEq(topUpETH, 0.01 ether);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
+        assertEq(topUpOutput, 50_000_000 ether / uint256(3), "CHECK 1.6 t1 EE");
+        assertEq(topUpInput, 0.01 ether);
 
         // second step. spent money with TopUp NFT by non-topup daoId2 as default ratia
         MintNftParamTest memory nftParam;
@@ -1078,10 +1077,10 @@ contract ProtoDaoTopUpTest is DeployHelper {
                 "ERC20 TopUp  Should not be  0 Account"
             );
 
-            (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId2, mainNft1);
-            assertEq(topUpERC20, 50_000_000 ether / uint256(3) - 100 ether, "mainNFT1 TopUp Balance Should be cost");
+            (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId2, mainNft1);
+            assertEq(topUpOutput, 50_000_000 ether / uint256(3) - 100 ether, "mainNFT1 TopUp Balance Should be cost");
             assertEq(
-                topUpETH, 0.01 ether - nftParam.flatPrice * 0.01 ether / (50_000_000 ether / uint256(3)), "Topup E"
+                topUpInput, 0.01 ether - nftParam.flatPrice * 0.01 ether / (50_000_000 ether / uint256(3)), "Topup E"
             );
         }
 
@@ -1096,17 +1095,17 @@ contract ProtoDaoTopUpTest is DeployHelper {
         }
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(daoCreator.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
 
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(daoCreator.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
 
         vm.startPrank(randomGuy.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
-        protocol.setDefaultTopUpErc20ToTreasuryRatio(daoId, 2000);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
-        protocol.setDaoTopUpErc20ToTreasuryRatio(daoId2, 8000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpOutputToTreasuryRatio(daoId, 2000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpOutputToTreasuryRatio(daoId2, 8000);
         //add external nft set to treasury
         protocol.setTreasurySetTopUpRatioPermission(daoId, address(_testERC721), 5);
         vm.stopPrank();
@@ -1114,21 +1113,21 @@ contract ProtoDaoTopUpTest is DeployHelper {
         _testERC721.mint(daoCreator3.addr, 5);
         vm.expectRevert(NotNftOwner.selector);
         vm.prank(randomGuy.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
 
         vm.prank(daoCreator3.addr);
-        protocol.setDaoTopUpEthToRedeemPoolRatio(daoId2, 8000);
+        protocol.setDaoTopUpInputToRedeemPoolRatio(daoId2, 8000);
         vm.prank(daoCreator3.addr);
-        protocol.setDaoTopUpErc20ToTreasuryRatio(daoId2, 8000);
+        protocol.setDaoTopUpOutputToTreasuryRatio(daoId2, 8000);
 
         vm.prank(randomGuy.addr);
         vm.expectRevert(NotNftOwner.selector);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
 
         vm.prank(daoCreator3.addr);
-        protocol.setDefaultTopUpEthToRedeemPoolRatio(daoId, 1000);
+        protocol.setDefaultTopUpInputToRedeemPoolRatio(daoId, 1000);
         vm.prank(daoCreator3.addr);
-        protocol.setDefaultTopUpErc20ToTreasuryRatio(daoId, 2000);
+        protocol.setDefaultTopUpOutputToTreasuryRatio(daoId, 2000);
 
         //1.6 check new create dao as new default ratio
         //forth step. deposit money to TopUp NFT by topup daoId
@@ -1149,15 +1148,15 @@ contract ProtoDaoTopUpTest is DeployHelper {
         super._mintNftWithParamChangeBal(nftParam, nftMinter.addr);
 
         vm.roll(3);
-        (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId, mainNft1);
+        (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId, mainNft1);
         assertApproxEqAbs(
-            topUpERC20,
+            topUpOutput,
             50_000_000 ether / uint256(3) + 50_000_000 ether / uint256(3) - 100 ether,
             10,
             "CHECK 1.6 t1 EE t2"
         );
         assertEq(
-            topUpETH,
+            topUpInput,
             0.01 ether * 2 + 0.01 ether - 100 ether * 0.01 ether / (50_000_000 ether / uint256(3)),
             "Top Up balance double 2"
         );
@@ -1170,7 +1169,7 @@ contract ProtoDaoTopUpTest is DeployHelper {
         param.noPermission = true;
         param.topUpMode = false;
         param.unifiedPrice = 200 ether;
-        param.erc20PaymentMode = true;
+        param.outputPaymentMode = true;
         param.daoUri = "continuous dao 3 uri";
         bytes32 daoId3 = super._createDaoForFunding(param, daoCreator2.addr);
 
@@ -1191,14 +1190,14 @@ contract ProtoDaoTopUpTest is DeployHelper {
             uint256 eth_after_account = nftMinter.addr.balance;
             assertApproxEqAbs(
                 eth_after_redeemPool - eth_before_redeemPool,
-                200 ether * topUpETH / topUpERC20 / 10,
+                200 ether * topUpInput / topUpOutput / 10,
                 10,
                 "ERC20 TopUp  Should not be  0 ERC20 For redeemPool A"
             );
 
             assertEq(
                 eth_after_account - eth_before_account,
-                200 ether * topUpETH / topUpERC20 * 9 / 10,
+                200 ether * topUpInput / topUpOutput * 9 / 10,
                 "ERC20 TopUp  Should not be  0 ERC20 for Account A"
             );
         }
@@ -1219,27 +1218,27 @@ contract ProtoDaoTopUpTest is DeployHelper {
             uint256 eth_after_account = nftMinter.addr.balance;
             assertApproxEqAbs(
                 eth_after_redeemPool - eth_before_redeemPool,
-                100 ether * topUpETH / topUpERC20 * 8 / 10,
+                100 ether * topUpInput / topUpOutput * 8 / 10,
                 10,
                 "ERC20 TopUp  Should not be  0 ERC20 For redeemPool A B"
             );
 
             assertEq(
                 eth_after_account - eth_before_account,
-                100 ether * topUpETH / topUpERC20 * 2 / 10,
+                100 ether * topUpInput / topUpOutput * 2 / 10,
                 "ERC20 TopUp  Should not be  0 ERC20 for Account A B"
             );
         }
         {
-            uint256 topUpERC20Before = topUpERC20;
-            uint256 topUpETHBefore = topUpETH;
-            (topUpERC20, topUpETH) = protocol.updateTopUpAccount(daoId3, mainNft1);
+            uint256 topUpOutputBefore = topUpOutput;
+            uint256 topUpInputBefore = topUpInput;
+            (topUpOutput, topUpInput) = protocol.updateTopUpAccount(daoId3, mainNft1);
             assertEq(
-                topUpERC20, topUpERC20Before - 100 ether - 200 ether, "mainNFT1 TopUp Balance Should be cost Check A"
+                topUpOutput, topUpOutputBefore - 100 ether - 200 ether, "mainNFT1 TopUp Balance Should be cost Check A"
             );
             assertEq(
-                topUpETH,
-                topUpETHBefore - (100 ether + 200 ether) * topUpETHBefore / topUpERC20Before,
+                topUpInput,
+                topUpInputBefore - (100 ether + 200 ether) * topUpInputBefore / topUpOutputBefore,
                 "Topup E Check A"
             );
         }

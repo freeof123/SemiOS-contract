@@ -24,11 +24,11 @@ contract ProtoDaoEventTest is DeployHelper {
     event ChildrenSet(
         bytes32 daoId,
         bytes32[] childrenDaoId,
-        uint256[] erc20Ratios,
-        uint256[] ethRatios,
-        uint256 redeemPoolRatioETH,
-        uint256 selfRewardRatioERC20,
-        uint256 selfRewardRatioETH
+        uint256[] outputRatios,
+        uint256[] inputRatios,
+        uint256 redeemPoolInputRatio,
+        uint256 selfRewardOutputRatio,
+        uint256 selfRewardInputRatio
     );
 
     event RatioSet(bytes32 daoId, AllRatioParam vars);
@@ -80,16 +80,18 @@ contract ProtoDaoEventTest is DeployHelper {
             needMintableWork: createDaoParam.needMintableWork,
             dailyMintCap: createDaoParam.dailyMintCap == 0 ? 100 : createDaoParam.dailyMintCap,
             childrenDaoId: createDaoParam.childrenDaoId,
-            childrenDaoRatiosERC20: createDaoParam.childrenDaoRatiosERC20,
-            childrenDaoRatiosETH: createDaoParam.childrenDaoRatiosETH,
-            redeemPoolRatioETH: createDaoParam.redeemPoolRatioETH,
-            selfRewardRatioERC20: createDaoParam.selfRewardRatioERC20,
-            selfRewardRatioETH: createDaoParam.selfRewardRatioETH,
+            childrenDaoOutputRatios: createDaoParam.childrenDaoOutputRatios,
+            childrenDaoInputRatios: createDaoParam.childrenDaoInputRatios,
+            redeemPoolInputRatio: createDaoParam.redeemPoolInputRatio,
+            treasuryOutputRatio: createDaoParam.treasuryOutputRatio,
+            treasuryInputRatio: createDaoParam.treasuryInputRatio,
+            selfRewardOutputRatio: createDaoParam.selfRewardOutputRatio,
+            selfRewardInputRatio: createDaoParam.selfRewardInputRatio,
             isAncestorDao: createDaoParam.isBasicDao ? true : false,
             daoToken: createDaoParam.thirdPartyToken,
             topUpMode: createDaoParam.topUpMode,
             infiniteMode: createDaoParam.infiniteMode,
-            erc20PaymentMode: createDaoParam.erc20PaymentMode,
+            outputPaymentMode: createDaoParam.outputPaymentMode,
             ownershipUri: createDaoParam.ownershipUri.eq("") ? "test ownership uri" : createDaoParam.ownershipUri,
             inputToken: createDaoParam.inputToken
         });
@@ -100,21 +102,23 @@ contract ProtoDaoEventTest is DeployHelper {
                 canvasCreatorMintFeeRatio: 750,
                 assetPoolMintFeeRatio: 2000,
                 redeemPoolMintFeeRatio: 7000,
+                treasuryMintFeeRatio: 0,
                 // * 1.3 add
                 // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatioFiatPrice: 250,
                 assetPoolMintFeeRatioFiatPrice: 3500,
                 redeemPoolMintFeeRatioFiatPrice: 6000,
-                // l.protocolERC20RewardRatio = 200
+                treasuryMintFeeRatioFiatPrice: 0,
+                // l.protocolOutputRewardRatio = 200
                 // sum = 9800
-                minterERC20RewardRatio: 800,
-                canvasCreatorERC20RewardRatio: 2000,
-                daoCreatorERC20RewardRatio: 7000,
+                minterOutputRewardRatio: 800,
+                canvasCreatorOutputRewardRatio: 2000,
+                daoCreatorOutputRewardRatio: 7000,
                 // sum = 9800
-                minterETHRewardRatio: 800,
-                canvasCreatorETHRewardRatio: 2000,
-                daoCreatorETHRewardRatio: 7000
+                minterInputRewardRatio: 800,
+                canvasCreatorInputRewardRatio: 2000,
+                daoCreatorInputRewardRatio: 7000
             });
         } else {
             vars.allRatioParam = AllRatioParam({
@@ -123,21 +127,23 @@ contract ProtoDaoEventTest is DeployHelper {
                 canvasCreatorMintFeeRatio: createDaoParam.canvasCreatorMintFeeRatio,
                 assetPoolMintFeeRatio: createDaoParam.assetPoolMintFeeRatio,
                 redeemPoolMintFeeRatio: createDaoParam.redeemPoolMintFeeRatio,
+                treasuryMintFeeRatio: createDaoParam.treasuryMintFeeRatio,
                 // * 1.3 add
                 // l.protocolMintFeeRatioInBps = 250
                 // sum = 9750
                 canvasCreatorMintFeeRatioFiatPrice: createDaoParam.canvasCreatorMintFeeRatioFiatPrice,
                 assetPoolMintFeeRatioFiatPrice: createDaoParam.assetPoolMintFeeRatioFiatPrice,
                 redeemPoolMintFeeRatioFiatPrice: createDaoParam.redeemPoolMintFeeRatioFiatPrice,
-                // l.protocolERC20RewardRatio = 200
+                treasuryMintFeeRatioFiatPrice: createDaoParam.treasuryMintFeeRatioFiatPrice,
+                // l.protocolOutputRewardRatio = 200
                 // sum = 9800
-                minterERC20RewardRatio: createDaoParam.minterERC20RewardRatio,
-                canvasCreatorERC20RewardRatio: createDaoParam.canvasCreatorERC20RewardRatio,
-                daoCreatorERC20RewardRatio: createDaoParam.daoCreatorERC20RewardRatio,
+                minterOutputRewardRatio: createDaoParam.minterOutputRewardRatio,
+                canvasCreatorOutputRewardRatio: createDaoParam.canvasCreatorOutputRewardRatio,
+                daoCreatorOutputRewardRatio: createDaoParam.daoCreatorOutputRewardRatio,
                 // sum = 9800
-                minterETHRewardRatio: createDaoParam.minterETHRewardRatio,
-                canvasCreatorETHRewardRatio: createDaoParam.canvasCreatorETHRewardRatio,
-                daoCreatorETHRewardRatio: createDaoParam.daoCreatorETHRewardRatio
+                minterInputRewardRatio: createDaoParam.minterInputRewardRatio,
+                canvasCreatorInputRewardRatio: createDaoParam.canvasCreatorInputRewardRatio,
+                daoCreatorInputRewardRatio: createDaoParam.daoCreatorInputRewardRatio
             });
         }
 
@@ -174,8 +180,8 @@ contract ProtoDaoEventTest is DeployHelper {
         param.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.topUpMode = true;
         bytes32 _daoId = _getDaoId(param);
@@ -183,44 +189,9 @@ contract ProtoDaoEventTest is DeployHelper {
         //vm.expectEmit(false, false, false, true);
         vm.expectEmit(address(protocol));
         emit ChildrenSet(_daoId, new bytes32[](0), new uint256[](0), new uint256[](0), 0, 10_000, 0);
-        emit RatioSet(_daoId, AllRatioParam(0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0));
+        emit RatioSet(_daoId, AllRatioParam(0, 0, 0, 0, 0, 0, 0, 0, 10_000, 0, 0, 0, 0, 0));
 
         bytes32 daoId = super._createDaoForFunding(param, daoCreator.addr);
         assertEq(daoId, _daoId);
     }
 }
-
-/*
-vars.allRatioForFundingParam = AllRatioForFundingParam({
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = true
-            canvasCreatorMintFeeRatio: 750,
-            assetPoolMintFeeRatio: 2000,
-            redeemPoolMintFeeRatio: 7000,
-
-
-            // * 1.3 add
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = false, default is false
-            canvasCreatorMintFeeRatioFiatPrice: 250,
-            assetPoolMintFeeRatioFiatPrice: 3500,
-            redeemPoolMintFeeRatioFiatPrice: 6000,
-
-
-            // l.protocolERC20RewardRatio = 200
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioERC20
-            minterERC20RewardRatio: 800,
-            canvasCreatorERC20RewardRatio: 2000,
-            daoCreatorERC20RewardRatio: 7000,
-
-
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioETH
-            minterETHRewardRatio: 800,
-            canvasCreatorETHRewardRatio: 2000,
-            daoCreatorETHRewardRatio: 7000
-        });
-*/

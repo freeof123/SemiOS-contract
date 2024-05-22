@@ -137,8 +137,8 @@ contract PDEditPermission is DeployHelper {
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
         vars.unifiedPrice = 1006;
-        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
-        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000);
         hoax(daoCreator.addr);
         protocol.setDaoParams(vars);
 
@@ -150,7 +150,7 @@ contract PDEditPermission is DeployHelper {
         vm.expectRevert(NotNftOwner.selector);
         protocol.setDaoParams(vars);
 
-        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 700, 2100, 7000);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 700, 2100, 7000);
         hoax(randomGuy.addr);
         protocol.setDaoParams(vars);
     }
@@ -177,12 +177,12 @@ contract PDEditPermission is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 5000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 5000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 5000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 5000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
 
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);
@@ -195,8 +195,8 @@ contract PDEditPermission is DeployHelper {
         vm.expectRevert(NotNftOwner.selector);
         protocol.setChildren(daoId, vars);
 
-        vars.erc20Ratios[0] = 6000;
-        vars.selfRewardRatioERC20 = 4000;
+        vars.outputRatios[0] = 6000;
+        vars.selfRewardOutputRatio = 4000;
         hoax(randomGuy.addr);
         protocol.setChildren(daoId, vars);
     }
@@ -211,7 +211,8 @@ contract PDEditPermission is DeployHelper {
         bytes32 daoId = _createDaoForFunding(param, daoCreator.addr);
         // daoCreator set
         // startHoax(daoCreator.addr);
-        AllRatioParam memory vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
+        AllRatioParam memory vars =
+            AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 5000, 2000, 2800, 5000, 2000, 2800);
         hoax(daoCreator.addr);
         protocol.setRatio(daoId, vars);
 
@@ -223,7 +224,7 @@ contract PDEditPermission is DeployHelper {
         vm.expectRevert(NotNftOwner.selector);
         protocol.setRatio(daoId, vars);
 
-        vars = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 1000, 3800);
+        vars = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 5000, 2000, 2800, 5000, 1000, 3800);
         hoax(randomGuy.addr);
         protocol.setRatio(daoId, vars);
     }
@@ -381,8 +382,8 @@ contract PDEditPermission is DeployHelper {
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
         vars.unifiedPrice = 1006;
-        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0);
-        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        vars.setChildrenParam = SetChildrenParam(zeroBytes32Array, zeroUintArray, zeroUintArray, 0, 0, 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000);
 
         hoax(daoCreator.addr);
         vm.expectRevert(NotNftOwner.selector);
@@ -400,12 +401,12 @@ contract PDEditPermission is DeployHelper {
         SetChildrenParam memory vars2;
         vars2.childrenDaoId = new bytes32[](1);
         vars2.childrenDaoId[0] = daoId2;
-        vars2.erc20Ratios = new uint256[](1);
-        vars2.erc20Ratios[0] = 5000;
-        vars2.ethRatios = new uint256[](1);
-        vars2.ethRatios[0] = 5000;
-        vars2.selfRewardRatioERC20 = 5000;
-        vars2.selfRewardRatioETH = 5000;
+        vars2.outputRatios = new uint256[](1);
+        vars2.outputRatios[0] = 5000;
+        vars2.inputRatios = new uint256[](1);
+        vars2.inputRatios[0] = 5000;
+        vars2.selfRewardOutputRatio = 5000;
+        vars2.selfRewardInputRatio = 5000;
 
         hoax(daoCreator2.addr);
         vm.expectRevert(NotNftOwner.selector);
@@ -415,7 +416,8 @@ contract PDEditPermission is DeployHelper {
         protocol.setChildren(daoId, vars2);
 
         //Forth Part: daoParameterSetControl_setRatioParam
-        AllRatioParam memory vars3 = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 5000, 2000, 2800, 5000, 2000, 2800);
+        AllRatioParam memory vars3 =
+            AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 5000, 2000, 2800, 5000, 2000, 2800);
         hoax(daoCreator.addr);
         vm.expectRevert(NotNftOwner.selector);
         protocol.setRatio(daoId, vars3);

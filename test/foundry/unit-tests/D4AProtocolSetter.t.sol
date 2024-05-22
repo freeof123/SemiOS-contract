@@ -36,8 +36,8 @@ contract D4AProtocolSetterTest is DeployHelper {
         vars.nftPriceFactor = 1000;
         vars.dailyMintCap = 100;
         vars.unifiedPrice = 1006;
-        vars.setChildrenParam = SetChildrenParam(new bytes32[](0), new uint256[](0), new uint256[](0), 0, 0, 0);
-        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 250, 3500, 6000, 800, 2000, 7000, 800, 2000, 7000);
+        vars.setChildrenParam = SetChildrenParam(new bytes32[](0), new uint256[](0), new uint256[](0), 0, 0, 0, 0, 0);
+        vars.allRatioParam = AllRatioParam(750, 2000, 7000, 0, 250, 3500, 6000, 0, 800, 2000, 7000, 800, 2000, 7000);
 
         // 修改MainDAO的参数
         vm.expectRevert(CannotUseZeroFloorPrice.selector);
@@ -895,7 +895,7 @@ contract D4AProtocolSetterTest is DeployHelper {
         createDaoParam.isBasicDao = true;
         createDaoParam.uniPriceModeOff = true;
         createDaoParam.noPermission = true;
-        createDaoParam.selfRewardRatioERC20 = 10_000;
+        createDaoParam.selfRewardOutputRatio = 10_000;
         createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId = createDaoParam.canvasId;
         bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
@@ -912,9 +912,9 @@ contract D4AProtocolSetterTest is DeployHelper {
         assertEq(protocol.getDaoActiveRounds(daoId).length, 2);
         assertEq(protocol.getDaoActiveRounds(daoId)[0], 1);
         assertEq(protocol.getDaoActiveRounds(daoId)[1], 2);
-        assertEq(protocol.getRoundERC20Reward(daoId, 1), 555_555_555_555_555_555_555_555);
-        assertEq(protocol.getRoundERC20Reward(daoId, 2), 415_499_533_146_591_970_121_381);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 2), 971_055_088_702_147_525_676_936);
+        assertEq(protocol.getRoundOutputReward(daoId, 1), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getRoundOutputReward(daoId, 2), 415_499_533_146_591_970_121_381);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 2), 971_055_088_702_147_525_676_936);
     }
 
     function test_setDaoMintableRound_MintThenSetInTheSameRound() public {
@@ -923,7 +923,7 @@ contract D4AProtocolSetterTest is DeployHelper {
         createDaoParam.isBasicDao = true;
         createDaoParam.uniPriceModeOff = true;
         createDaoParam.noPermission = true;
-        createDaoParam.selfRewardRatioERC20 = 10_000;
+        createDaoParam.selfRewardOutputRatio = 10_000;
         createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId = createDaoParam.canvasId;
         bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
@@ -940,9 +940,9 @@ contract D4AProtocolSetterTest is DeployHelper {
         assertEq(protocol.getDaoActiveRounds(daoId).length, 2);
         assertEq(protocol.getDaoActiveRounds(daoId)[0], 1);
         assertEq(protocol.getDaoActiveRounds(daoId)[1], 2);
-        assertEq(protocol.getRoundERC20Reward(daoId, 1), 555_555_555_555_555_555_555_555);
-        assertEq(protocol.getRoundERC20Reward(daoId, 2), 555_555_555_555_555_555_555_555);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 2), 1_111_111_111_111_111_111_111_110);
+        assertEq(protocol.getRoundOutputReward(daoId, 1), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getRoundOutputReward(daoId, 2), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 2), 1_111_111_111_111_111_111_111_110);
     }
 
     function test_setDaoMintableRound_DaoStartAtNextRoundAndMintThenSetInTheSameRound() public {
@@ -952,7 +952,7 @@ contract D4AProtocolSetterTest is DeployHelper {
         createDaoParam.isBasicDao = true;
         createDaoParam.uniPriceModeOff = true;
         createDaoParam.noPermission = true;
-        createDaoParam.selfRewardRatioERC20 = 10_000;
+        createDaoParam.selfRewardOutputRatio = 10_000;
         createDaoParam.canvasId = keccak256(abi.encode(daoCreator.addr, block.timestamp));
         bytes32 canvasId = createDaoParam.canvasId;
         bytes32 daoId = _createDaoForFunding(createDaoParam, daoCreator.addr);
@@ -965,7 +965,7 @@ contract D4AProtocolSetterTest is DeployHelper {
 
         assertEq(protocol.getDaoActiveRounds(daoId).length, 1);
         assertEq(protocol.getDaoActiveRounds(daoId)[0], 1);
-        assertEq(protocol.getRoundERC20Reward(daoId, 1), 555_555_555_555_555_555_555_555);
-        assertEq(protocol.getERC20RewardTillRound(daoId, 1), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getRoundOutputReward(daoId, 1), 555_555_555_555_555_555_555_555);
+        assertEq(protocol.getOutputRewardTillRound(daoId, 1), 555_555_555_555_555_555_555_555);
     }
 }

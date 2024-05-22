@@ -26,7 +26,7 @@ contract ProtoDaoRedeemTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.mintableRound = 10;
 
@@ -42,18 +42,18 @@ contract ProtoDaoRedeemTest is DeployHelper {
 
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 5000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 5000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 5000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 5000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
         protocol.setChildren(daoId, vars);
         vars.childrenDaoId[0] = daoId;
         //question
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId2, vars);
-        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId2));
 
         super._mintNft(
             daoId,
@@ -89,12 +89,12 @@ contract ProtoDaoRedeemTest is DeployHelper {
         assertEq(protocol.getDaoCirculateTokenAmount(daoId2), 3_125_000 ether);
 
         vm.prank(nftMinter.addr);
-        uint256 ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
+        uint256 inputAmount = protocol.exchangeOutputToInput(daoId, 100 ether, nftMinter2.addr);
         // 0.012/3125000 = ...384
-        assertEq(ethAmount, 384_000_000_000);
+        assertEq(inputAmount, 384_000_000_000);
         vm.prank(nftMinter.addr);
-        ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
-        assertEq(ethAmount, 384_000_000_000);
+        inputAmount = protocol.exchangeOutputToInput(daoId, 100 ether, nftMinter2.addr);
+        assertEq(inputAmount, 384_000_000_000);
     }
 
     function test_InputToken_circulateERC20Amount() public {
@@ -103,7 +103,7 @@ contract ProtoDaoRedeemTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.selfRewardRatioERC20 = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.mintableRound = 10;
         param.inputToken = address(_testERC20);
@@ -120,18 +120,18 @@ contract ProtoDaoRedeemTest is DeployHelper {
 
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.erc20Ratios = new uint256[](1);
-        vars.erc20Ratios[0] = 5000;
-        vars.ethRatios = new uint256[](1);
-        vars.ethRatios[0] = 5000;
-        vars.selfRewardRatioERC20 = 5000;
-        vars.selfRewardRatioETH = 5000;
+        vars.outputRatios = new uint256[](1);
+        vars.outputRatios[0] = 5000;
+        vars.inputRatios = new uint256[](1);
+        vars.inputRatios[0] = 5000;
+        vars.selfRewardOutputRatio = 5000;
+        vars.selfRewardInputRatio = 5000;
         protocol.setChildren(daoId, vars);
         vars.childrenDaoId[0] = daoId;
         //question
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId2, vars);
-        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri");
+        protocol.grantDaoAssetPool(daoId2, 10_000_000 ether, true, "uri", protocol.getDaoToken(daoId2));
 
         deal(address(_testERC20), nftMinter.addr, 100 ether);
         vm.prank(nftMinter.addr);
@@ -172,15 +172,15 @@ contract ProtoDaoRedeemTest is DeployHelper {
         assertEq(protocol.getDaoCirculateTokenAmount(daoId2), 3_125_000 ether);
 
         vm.prank(nftMinter.addr);
-        uint256 ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
+        uint256 inputAmount = protocol.exchangeOutputToInput(daoId, 100 ether, nftMinter2.addr);
         // 0.012/3125000 = ...384
-        assertEq(ethAmount, 384_000_000_000);
+        assertEq(inputAmount, 384_000_000_000);
         assertEq(IERC20(_testERC20).balanceOf(nftMinter.addr), 100 ether - 0.02 ether);
         assertEq(IERC20(_testERC20).balanceOf(nftMinter2.addr), 384_000_000_000);
 
         vm.prank(nftMinter.addr);
-        ethAmount = protocol.exchangeERC20ToETH(daoId, 100 ether, nftMinter2.addr);
-        assertEq(ethAmount, 384_000_000_000);
+        inputAmount = protocol.exchangeOutputToInput(daoId, 100 ether, nftMinter2.addr);
+        assertEq(inputAmount, 384_000_000_000);
     }
 
     // testcase 1.3-15
@@ -191,8 +191,8 @@ contract ProtoDaoRedeemTest is DeployHelper {
         bytes32 canvasId1 = param.canvasId;
         param.existDaoId = bytes32(0);
         param.isBasicDao = true;
-        param.redeemPoolRatioETH = 10_000;
-        param.selfRewardRatioERC20 = 10_000;
+        param.redeemPoolInputRatio = 10_000;
+        param.selfRewardOutputRatio = 10_000;
         param.noPermission = true;
         param.mintableRound = 10;
 
@@ -234,48 +234,13 @@ contract ProtoDaoRedeemTest is DeployHelper {
         assertEq(IERC20(token).balanceOf(nftMinter2.addr), 400_000 ether);
         //circulate erc20 = 10000000 ether, available eth = 0.02 ether * 0.6 = 0.012 ether + 0.0035 ether / 9
         vm.prank(nftMinter.addr);
-        uint256 a = protocol.exchangeERC20ToETH(daoId, 1 ether, nftMinter.addr);
+        uint256 a = protocol.exchangeOutputToInput(daoId, 1 ether, nftMinter.addr);
         assertEq(a, (0.012 ether + 0.0035 ether / uint256(9)) / 10_000_000);
 
         vm.prank(nftMinter.addr);
-        a = protocol.exchangeERC20ToETH(daoId, 1 ether, nftMinter.addr);
+        a = protocol.exchangeOutputToInput(daoId, 1 ether, nftMinter.addr);
         assertEq(a, (0.012 ether + 0.0035 ether / uint256(9)) / 10_000_000);
     }
 
     receive() external payable { }
 }
-
-/*
-vars.allRatioForFundingParam = AllRatioForFundingParam({
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = true
-            canvasCreatorMintFeeRatio: 750,
-            assetPoolMintFeeRatio: 2000,
-            redeemPoolMintFeeRatio: 7000,
-
-
-            // * 1.3 add
-            // l.protocolMintFeeRatioInBps = 250
-            // sum = 9750
-            // !!! enable when param.uniPriceModeOff = false, default is false
-            canvasCreatorMintFeeRatioFiatPrice: 250,
-            assetPoolMintFeeRatioFiatPrice: 3500,
-            redeemPoolMintFeeRatioFiatPrice: 6000,
-
-
-            // l.protocolERC20RewardRatio = 200
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioERC20
-            minterERC20RewardRatio: 800,
-            canvasCreatorERC20RewardRatio: 2000,
-            daoCreatorERC20RewardRatio: 7000,
-
-
-            // sum = 9800
-            // !!! ratio for param.selfRewardRatioETH
-            minterETHRewardRatio: 800,
-            canvasCreatorETHRewardRatio: 2000,
-            daoCreatorETHRewardRatio: 7000
-        });
-*/

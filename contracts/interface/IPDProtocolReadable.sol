@@ -18,37 +18,41 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
     function getCanvasCreatorMintFeeRatio(bytes32 daoId) external returns (uint256);
     function getAssetPoolMintFeeRatio(bytes32 daoId) external returns (uint256);
     function getRedeemPoolMintFeeRatio(bytes32 daoId) external returns (uint256);
+    function getTreasuryMintFeeRatio(bytes32 daoId) external returns (uint256);
     function getCanvasCreatorMintFeeRatioFiatPrice(bytes32 daoId) external returns (uint256);
     function getAssetPoolMintFeeRatioFiatPrice(bytes32 daoId) external view returns (uint256);
     function getRedeemPoolMintFeeRatioFiatPrice(bytes32 daoId) external view returns (uint256);
-    function getMinterERC20RewardRatio(bytes32 daoId) external view returns (uint256);
-    function getCanvasCreatorERC20RewardRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoCreatorERC20RewardRatio(bytes32 daoId) external view returns (uint256);
-    function getMinterETHRewardRatio(bytes32 daoId) external view returns (uint256);
-    function getCanvasCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoCreatorETHRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getTreasuryMintFeeRatioFiatPrice(bytes32 daoId) external view returns (uint256);
+    function getMinterOutputRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getCanvasCreatorOutputRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoCreatorOutputRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getMinterInputRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getCanvasCreatorInputRewardRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoCreatorInputRewardRatio(bytes32 daoId) external view returns (uint256);
     function getDaoAssetPool(bytes32 daoId) external view returns (address);
     function getIsAncestorDao(bytes32 daoId) external view returns (bool);
     function getDaoLastActiveRound(bytes32 daoId) external view returns (uint256);
     function getDaoPassedRound(bytes32 daoId) external view returns (uint256);
     function getDaoRemainingRound(bytes32 daoId) external view returns (uint256);
     function getDaoChildren(bytes32 daoId) external view returns (bytes32[] memory);
-    function getDaoChildrenRatiosERC20(bytes32 daoId) external view returns (uint256[] memory);
-    function getDaoChildrenRatiosETH(bytes32 daoId) external view returns (uint256[] memory);
-    function getDaoRedeemPoolRatioETH(bytes32 daoId) external view returns (uint256);
-    function getDaoSelfRewardRatioERC20(bytes32 daoId) external view returns (uint256);
-    function getDaoSelfRewardRatioETH(bytes32 daoId) external view returns (uint256);
+    function getDaoChildrenOutputRatios(bytes32 daoId) external view returns (uint256[] memory);
+    function getDaoChildrenInputRatios(bytes32 daoId) external view returns (uint256[] memory);
+    function getDaoRedeemPoolInputRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTreasuryOutputRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTreasuryInputRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoSelfRewardOutputRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoSelfRewardInputRatio(bytes32 daoId) external view returns (uint256);
     function getDaoTopUpMode(bytes32 daoId) external view returns (bool);
     function getDaoIsThirdPartyToken(bytes32 daoId) external view returns (bool);
-    function getRoundERC20Reward(bytes32 daoId, uint256 round) external view returns (uint256);
-    function getRoundETHReward(bytes32 daoId, uint256 round) external view returns (uint256);
-    function getERC20RewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
-    function getETHRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
+    function getRoundOutputReward(bytes32 daoId, uint256 round) external view returns (uint256);
+    function getRoundInputReward(bytes32 daoId, uint256 round) external view returns (uint256);
+    function getOutputRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
+    function getInputRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
     function royaltySplitters(bytes32 daoId) external view returns (address);
     function getCanvasNextPrice(bytes32 daoId, bytes32 canvasId) external view returns (uint256);
     function getDaoCirculateTokenAmount(bytes32 daoId) external view returns (uint256);
     function getDaoInfiniteMode(bytes32 daoId) external view returns (bool);
-    function getDaoERC20PaymentMode(bytes32 daoId) external view returns (bool);
+    function getDaoOutputPaymentMode(bytes32 daoId) external view returns (bool);
     function getDaoRoundDistributeAmount(
         bytes32 daoId,
         address token,
@@ -59,10 +63,10 @@ interface IPDProtocolReadable is ID4AProtocolReadable {
         view
         returns (uint256);
     //1.6 add ----------------------------------
-    function getDaoTopUpEthToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoDefaultTopUpEthToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
-    function getDaoDefaultTopUpErc20ToTreasuryRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTopUpInputToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoTopUpOutputToTreasuryRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoDefaultTopUpInputToRedeemPoolRatio(bytes32 daoId) external view returns (uint256);
+    function getDaoDefaultTopUpOutputToTreasuryRatio(bytes32 daoId) external view returns (uint256);
     function getDaoGrantAssetPoolNft(bytes32 daoId) external view returns (address);
     function getDaoTreasury(bytes32 daoId) external view returns (address);
     function getDaoEditInformationPermissionNft(bytes32 daoId) external view returns (address, uint256);
