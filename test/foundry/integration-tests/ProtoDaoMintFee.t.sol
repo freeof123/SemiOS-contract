@@ -19,8 +19,8 @@ contract ProtoDaoMintFee is DeployHelper {
     function setUp() public {
         super.setUpEnv();
     }
-
     // testcase 1.3-15
+
     function test_PDCreateFunding_1_3_59() public {
         // dao: daoCreator
         DeployHelper.CreateDaoParam memory param;

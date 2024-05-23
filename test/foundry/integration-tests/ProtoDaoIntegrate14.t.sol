@@ -133,10 +133,10 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.outputRatios = new uint256[](1);
-        vars.outputRatios[0] = 3000;
-        vars.inputRatios = new uint256[](1);
-        vars.inputRatios[0] = 3000;
+        vars.childrenDaoOutputRatios = new uint256[](1);
+        vars.childrenDaoOutputRatios[0] = 3000;
+        vars.childrenDaoInputRatios = new uint256[](1);
+        vars.childrenDaoInputRatios[0] = 3000;
         vars.selfRewardOutputRatio = 5000;
         vars.selfRewardInputRatio = 5000;
         vars.redeemPoolInputRatio = 1000;
@@ -251,10 +251,10 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
 
-        vars.outputRatios = new uint256[](1);
-        vars.outputRatios[0] = 3000;
-        vars.inputRatios = new uint256[](1);
-        vars.inputRatios[0] = 3000;
+        vars.childrenDaoOutputRatios = new uint256[](1);
+        vars.childrenDaoOutputRatios[0] = 3000;
+        vars.childrenDaoInputRatios = new uint256[](1);
+        vars.childrenDaoInputRatios[0] = 3000;
 
         vars.selfRewardOutputRatio = 5000;
         vars.selfRewardInputRatio = 5000;
@@ -282,9 +282,10 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         );
 
         assertEq(
-            IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)), mainOutputBalance * vars.outputRatios[0] / 10_000
+            IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId2)),
+            mainOutputBalance * vars.childrenDaoOutputRatios[0] / 10_000
         );
-        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainInputBalance * vars.inputRatios[0] / 10_000);
+        assertEq(protocol.getDaoAssetPool(daoId2).balance, mainInputBalance * vars.childrenDaoInputRatios[0] / 10_000);
 
         assertEq(protocol.getRoundOutputReward(daoId, 1), mainOutputBalance * vars.selfRewardOutputRatio / 10_000);
         assertEq(protocol.getRoundInputReward(daoId, 1), mainInputBalance * vars.selfRewardInputRatio / 10_000);
@@ -296,12 +297,13 @@ contract ProtoDaoIntergrate14 is DeployHelper {
 
         assertEq(
             protocol.getDaoAssetPool(daoId).balance,
-            mainInputBalance * (10_000 - vars.inputRatios[0] - vars.selfRewardInputRatio - vars.redeemPoolInputRatio)
-                / 10_000 + 0.01 ether * 0.35
+            mainInputBalance
+                * (10_000 - vars.childrenDaoInputRatios[0] - vars.selfRewardInputRatio - vars.redeemPoolInputRatio) / 10_000
+                + 0.01 ether * 0.35
         );
         assertEq(
             IERC20(token).balanceOf(protocol.getDaoAssetPool(daoId)),
-            mainOutputBalance * (10_000 - vars.outputRatios[0] - vars.selfRewardOutputRatio) / 10_000
+            mainOutputBalance * (10_000 - vars.childrenDaoOutputRatios[0] - vars.selfRewardOutputRatio) / 10_000
         );
     }
 
@@ -328,10 +330,10 @@ contract ProtoDaoIntergrate14 is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.outputRatios = new uint256[](1);
-        vars.outputRatios[0] = 10_000;
-        vars.inputRatios = new uint256[](1);
-        vars.inputRatios[0] = 10_000;
+        vars.childrenDaoOutputRatios = new uint256[](1);
+        vars.childrenDaoOutputRatios[0] = 10_000;
+        vars.childrenDaoInputRatios = new uint256[](1);
+        vars.childrenDaoInputRatios[0] = 10_000;
 
         vm.prank(daoCreator.addr);
         protocol.setChildren(daoId, vars);

@@ -87,7 +87,6 @@ contract D4AProtocolSetter is ID4AProtocolSetter {
             unchecked {
                 ++i;
             }
-            //console2.log("storage length:", DaoStorage.layout().daoInfos[daoId].nftMinterCapIdInfo.length);
         }
         emit MintCapSet(daoId, daoMintCap, userMintCapParams, nftMinterCapInfo, nftMinterCapIdInfo);
 

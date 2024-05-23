@@ -429,6 +429,15 @@ contract UniformDistributionRewardIssuance is IRewardTemplate {
                     rewardInfo.selfRoundInputReward[round] = selfRewardAmount;
                 }
             }
+            uint256 treasuryRewardRatio = isInput
+                ? IPDProtocolReadable(address(this)).getDaoTreasuryInputRatio(daoId)
+                : IPDProtocolReadable(address(this)).getDaoTreasuryOutputRatio(daoId);
+            if (treasuryRewardRatio > 0) {
+                uint256 treasuryRewardAmount = amount * treasuryRewardRatio / BASIS_POINT;
+                address treasury = PoolStorage.layout().poolInfos[daoInfo.daoFeePool].treasury;
+                D4AFeePool(payable(daoAssetPool)).transfer(token, payable(treasury), treasuryRewardAmount);
+                emit DaoBlockRewardDistributedToTreasury(daoId, treasury, token, treasuryRewardAmount, round);
+            }
         } else {
             rewardInfo.selfRoundOutputReward[round] = amount;
             D4AFeePool(payable(daoAssetPool)).transfer(token, payable(address(this)), amount);

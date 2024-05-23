@@ -799,7 +799,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, PlanUpdater, Initializable,
         }
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
-        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
+        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee - vars.treasuryFee;
 
         if (protocolFee > 0) _transferInputToken(vars.inputToken, vars.protocolFeePool, protocolFee);
         if (vars.redeemPoolFee > 0) _transferInputToken(vars.inputToken, vars.daoRedeemPool, vars.redeemPoolFee);
@@ -856,7 +856,7 @@ contract PDProtocol is IPDProtocol, ProtocolChecker, PlanUpdater, Initializable,
         }
 
         uint256 protocolFee = (vars.price * l.protocolMintFeeRatioInBps) / BASIS_POINT;
-        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee;
+        uint256 canvasCreatorFee = vars.price - vars.redeemPoolFee - protocolFee - vars.assetPoolFee - vars.treasuryFee;
         address token = DaoStorage.layout().daoInfos[vars.daoId].token;
 
         uint256 topUpAmountOutputToUse;

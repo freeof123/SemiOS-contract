@@ -50,7 +50,7 @@ import { LibString } from "solady/utils/LibString.sol";
 import { D4AERC20 } from "./D4AERC20.sol";
 import { D4AFeePool } from "./feepool/D4AFeePool.sol";
 
-import "forge-std/Test.sol";
+//import "forge-std/Test.sol";
 
 struct CreateProjectLocalVars {
     bytes32 existDaoId;
@@ -168,16 +168,16 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         //if (!continuousDaoParam.isAncestorDao) {
         IPDProtocolSetter(address(this)).setChildren(
             vars.daoId,
-            SetChildrenParam(
-                createDaoParam.continuousDaoParam.childrenDaoId,
-                createDaoParam.continuousDaoParam.childrenDaoOutputRatios,
-                createDaoParam.continuousDaoParam.childrenDaoInputRatios,
-                createDaoParam.continuousDaoParam.redeemPoolInputRatio,
-                createDaoParam.continuousDaoParam.treasuryOutputRatio,
-                createDaoParam.continuousDaoParam.treasuryInputRatio,
-                createDaoParam.continuousDaoParam.selfRewardOutputRatio,
-                createDaoParam.continuousDaoParam.selfRewardInputRatio
-            )
+            SetChildrenParam({
+                childrenDaoId: createDaoParam.continuousDaoParam.childrenDaoId,
+                childrenDaoOutputRatios: createDaoParam.continuousDaoParam.childrenDaoOutputRatios,
+                childrenDaoInputRatios: createDaoParam.continuousDaoParam.childrenDaoInputRatios,
+                redeemPoolInputRatio: createDaoParam.continuousDaoParam.redeemPoolInputRatio,
+                treasuryOutputRatio: createDaoParam.continuousDaoParam.treasuryOutputRatio,
+                treasuryInputRatio: createDaoParam.continuousDaoParam.treasuryInputRatio,
+                selfRewardOutputRatio: createDaoParam.continuousDaoParam.selfRewardOutputRatio,
+                selfRewardInputRatio: createDaoParam.continuousDaoParam.selfRewardInputRatio
+            })
         );
         //}
         // return vars.daoId;
@@ -405,7 +405,6 @@ contract PDCreate is IPDCreate, ProtocolChecker, ReentrancyGuard {
         ID4AChangeAdmin(treasury).changeAdmin(settingsStorage.assetOwner);
 
         if (daoToken == address(0)) {
-            console2.log("minting token");
             D4AERC20(daoInfo.token).mint(treasury, settingsStorage.tokenMaxSupply);
         }
 

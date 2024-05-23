@@ -14,6 +14,10 @@ interface IRewardTemplate {
 
     event DaoBlockRewardTotal(bytes32 daoId, address token, uint256 outputAmount, uint256 inputAmount, uint256 round);
 
+    event DaoBlockRewardDistributedToTreasury(
+        bytes32 daoId, address treasury, address token, uint256 amount, uint256 round
+    );
+
     event PDTopUpBalanceUpdated(bytes32 daoId, bytes32 nftHash, uint256 outputAmount, uint256 inputAmount);
 
     function updateReward(UpdateRewardParam memory param) external payable;

@@ -179,11 +179,11 @@ struct AllRatioParam {
 
 struct SetChildrenParam {
     bytes32[] childrenDaoId;
-    uint256[] outputRatios;
-    uint256[] inputRatios;
+    uint256[] childrenDaoOutputRatios;
+    uint256[] childrenDaoInputRatios;
     uint256 redeemPoolInputRatio;
-    uint256 treasuryInputRatio;
     uint256 treasuryOutputRatio;
+    uint256 treasuryInputRatio;
     uint256 selfRewardOutputRatio;
     uint256 selfRewardInputRatio;
 }

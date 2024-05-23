@@ -180,8 +180,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
     }
 
     function setChildren(bytes32 daoId, SetChildrenParam calldata vars) public {
-        require(vars.childrenDaoId.length == vars.outputRatios.length, "invalid length");
-        require(vars.childrenDaoId.length == vars.inputRatios.length, "invalid length");
+        require(vars.childrenDaoId.length == vars.childrenDaoOutputRatios.length, "invalid length");
+        require(vars.childrenDaoId.length == vars.childrenDaoInputRatios.length, "invalid length");
 
         // _checkSetAbility(daoId, true, true);
         _checkEditParamAbility(daoId);
@@ -197,8 +197,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
 
         for (uint256 i = 0; i < vars.childrenDaoId.length;) {
             _checkDaoMember(treeInfo.ancestor, vars.childrenDaoId[i]);
-            sumOutput += vars.outputRatios[i];
-            sumInput += vars.inputRatios[i];
+            sumOutput += vars.childrenDaoOutputRatios[i];
+            sumInput += vars.childrenDaoInputRatios[i];
             unchecked {
                 ++i;
             }
@@ -210,8 +210,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
         if (sumInput > BASIS_POINT) revert InvalidChildrenDaoRatio();
 
         treeInfo.children = vars.childrenDaoId;
-        treeInfo.childrenDaoOutputRatios = vars.outputRatios;
-        treeInfo.childrenDaoInputRatios = vars.inputRatios;
+        treeInfo.childrenDaoOutputRatios = vars.childrenDaoOutputRatios;
+        treeInfo.childrenDaoInputRatios = vars.childrenDaoInputRatios;
 
         treeInfo.redeemPoolInputRatio = vars.redeemPoolInputRatio;
         treeInfo.selfRewardOutputRatio = vars.selfRewardOutputRatio;
@@ -222,8 +222,8 @@ contract PDProtocolSetter is IPDProtocolSetter, D4AProtocolSetter, SetterChecker
         emit ChildrenSet(
             daoId,
             vars.childrenDaoId,
-            vars.outputRatios,
-            vars.inputRatios,
+            vars.childrenDaoOutputRatios,
+            vars.childrenDaoInputRatios,
             vars.redeemPoolInputRatio,
             vars.selfRewardOutputRatio,
             vars.selfRewardInputRatio

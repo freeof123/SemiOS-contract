@@ -36,10 +36,10 @@ contract PDInfiniteModeTest is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.outputRatios = new uint256[](1);
-        vars.outputRatios[0] = 5000;
-        vars.inputRatios = new uint256[](1);
-        vars.inputRatios[0] = 5000;
+        vars.childrenDaoOutputRatios = new uint256[](1);
+        vars.childrenDaoOutputRatios[0] = 5000;
+        vars.childrenDaoInputRatios = new uint256[](1);
+        vars.childrenDaoInputRatios[0] = 5000;
         vars.selfRewardOutputRatio = 5000;
         vars.selfRewardInputRatio = 5000;
         protocol.setChildren(daoId, vars);

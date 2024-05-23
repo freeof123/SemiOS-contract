@@ -177,10 +177,10 @@ contract PDEditPermission is DeployHelper {
         SetChildrenParam memory vars;
         vars.childrenDaoId = new bytes32[](1);
         vars.childrenDaoId[0] = daoId2;
-        vars.outputRatios = new uint256[](1);
-        vars.outputRatios[0] = 5000;
-        vars.inputRatios = new uint256[](1);
-        vars.inputRatios[0] = 5000;
+        vars.childrenDaoOutputRatios = new uint256[](1);
+        vars.childrenDaoOutputRatios[0] = 5000;
+        vars.childrenDaoInputRatios = new uint256[](1);
+        vars.childrenDaoInputRatios[0] = 5000;
         vars.selfRewardOutputRatio = 5000;
         vars.selfRewardInputRatio = 5000;
 
@@ -195,7 +195,7 @@ contract PDEditPermission is DeployHelper {
         vm.expectRevert(NotNftOwner.selector);
         protocol.setChildren(daoId, vars);
 
-        vars.outputRatios[0] = 6000;
+        vars.childrenDaoOutputRatios[0] = 6000;
         vars.selfRewardOutputRatio = 4000;
         hoax(randomGuy.addr);
         protocol.setChildren(daoId, vars);
@@ -401,10 +401,10 @@ contract PDEditPermission is DeployHelper {
         SetChildrenParam memory vars2;
         vars2.childrenDaoId = new bytes32[](1);
         vars2.childrenDaoId[0] = daoId2;
-        vars2.outputRatios = new uint256[](1);
-        vars2.outputRatios[0] = 5000;
-        vars2.inputRatios = new uint256[](1);
-        vars2.inputRatios[0] = 5000;
+        vars2.childrenDaoOutputRatios = new uint256[](1);
+        vars2.childrenDaoOutputRatios[0] = 5000;
+        vars2.childrenDaoInputRatios = new uint256[](1);
+        vars2.childrenDaoInputRatios[0] = 5000;
         vars2.selfRewardOutputRatio = 5000;
         vars2.selfRewardInputRatio = 5000;
 
