@@ -15,8 +15,6 @@ forge inspect D4AERC20 abi >deployed-contracts-info/frontend-abi/D4AERC20.json
 
 # event selector
 echo "{}" >deployed-contracts-info/selectors/selector.json
-# DRB
-forge inspect D4ADrb events | jq --slurpfile existing deployed-contracts-info/selectors/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/selector.json
 # Protocol
 forge inspect D4AProtocolSetter events | jq --slurpfile existing deployed-contracts-info/selectors/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/selector.json
 forge inspect D4AProtocolReadable events | jq --slurpfile existing deployed-contracts-info/selectors/selector.json '. + $existing[0]' >temp.json && mv temp.json deployed-contracts-info/selectors/selector.json

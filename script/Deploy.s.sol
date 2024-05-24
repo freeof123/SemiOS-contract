@@ -45,61 +45,61 @@ contract Deploy is Script, Test, D4AAddress {
     function run() public {
         vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        // _deployFeePoolFactory();
+        _deployFeePoolFactory();
 
         _deployRoyaltySplitterFactory();
 
         _deployERC20Factory();
 
-        // _deployERC721WithFilterFactory();
+        _deployERC721WithFilterFactory();
 
-        // _deployNaiveOwner();
-        // _deployNaiveOwnerProxy();
+        _deployNaiveOwner();
+        _deployNaiveOwnerProxy();
 
-        // _deployProxyAdmin();
+        _deployProxyAdmin();
 
-        // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocolProxy();
+        _deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet(DeployMethod.ADD);
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter(DeployMethod.ADD);
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.ADD);
 
         _deployPDCreate();
-        _cutFacetsPDCreate(DeployMethod.REPLACE);
+        _cutFacetsPDCreate(DeployMethod.ADD);
 
-        // _deployPDRound();
-        // _cutFacetsPDRound(DeployMethod.ADD);
+        _deployPDRound();
+        _cutFacetsPDRound(DeployMethod.ADD);
 
-        // _deployPDGrant();
-        // _cutFacetsPDGrant(DeployMethod.ADD);
+        _deployPDGrant();
+        _cutFacetsPDGrant(DeployMethod.ADD);
 
-        // _deployPDLock();
-        // _cutFacetsPDLock(DeployMethod.ADD);
+        _deployPDLock();
+        _cutFacetsPDLock(DeployMethod.ADD);
 
         _deployPDPlan();
-        _cutFacetsPDPlan(DeployMethod.REPLACE);
+        _cutFacetsPDPlan(DeployMethod.ADD);
 
-        // _deployPDBasicDao();
-        // _cutFacetsPDBasicDao(DeployMethod.ADD);
+        _deployPDBasicDao();
+        _cutFacetsPDBasicDao(DeployMethod.ADD);
 
         _deploySettings();
-        _cutSettingsFacet(DeployMethod.REPLACE);
+        _cutSettingsFacet(DeployMethod.ADD);
 
-        // _deployUniversalClaimer();
+        _deployUniversalClaimer();
 
-        // _deployPermissionControl();
-        // _deployPermissionControlProxy();
+        _deployPermissionControl();
+        _deployPermissionControlProxy();
 
-        // _initSettings();
+        _initSettings();
 
-        // _deployLinearPriceVariation();
-        // _deployExponentialPriceVariation();
-        // _deployDynamicPlan();
+        _deployLinearPriceVariation();
+        _deployExponentialPriceVariation();
+        _deployDynamicPlan();
 
-        // _deployUniformDistributionRewardIssuance();
+        _deployUniformDistributionRewardIssuance();
 
         vm.stopBroadcast();
     }
@@ -774,42 +774,6 @@ contract Deploy is Script, Test, D4AAddress {
         console2.log("DynamicPlan address: ", address(dynamicPlan));
         console2.log("================================================================================\n");
     }
-
-    // function _deployLinearRewardIssuance() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy LinearRewardIssuance");
-
-    //     linearRewardIssuance = new LinearRewardIssuance();
-    //     assertTrue(address(linearRewardIssuance) != address(0));
-
-    //     vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
-
-    //     D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
-    //         TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
-    //     );
-
-    //     console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
-    //     console2.log("================================================================================\n");
-    // }
-
-    // function _deployExponentialRewardIssuance() internal {
-    //     console2.log("\n================================================================================");
-    //     console2.log("Start deploy ExponentialRewardIssuance");
-
-    //     exponentialRewardIssuance = new ExponentialRewardIssuance();
-    //     assertTrue(address(exponentialRewardIssuance) != address(0));
-
-    //     vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
-
-    //     D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
-    //         TemplateChoice.REWARD,
-    //         uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-    //         address(exponentialRewardIssuance)
-    //     );
-
-    //     console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
-    //     console2.log("================================================================================\n");
-    // }
 
     function _deployUniformDistributionRewardIssuance() internal {
         console2.log("\n================================================================================");
