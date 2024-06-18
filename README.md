@@ -10,14 +10,16 @@ forge b
 forge t
 
 #### Deploy
-ENV=main/test forge script ./script/Deploy.s.sol --private-key=$PRIVATE_KEY --rpc-url=<your_rpc_url> --broadcast  --verify
+ENV=main forge script ./script/Deploy.s.sol --private-key=$PRIVATE_KEY --rpc-url=<your_rpc_url> --broadcast  --verify\
+or\
+ENV=test forge script ./script/Deploy.s.sol --private-key=$PRIVATE_KEY --rpc-url=<your_rpc_url> --broadcast  --verify\
 
 //requering the .env file with following environment variables
 
 ETHERSCAN_API_KEY=64TEZETKNQM79UU5WB2S9U9HRMFISESCBX\
 PRIVATE_KEY=<private-key-here>
 
-//requiring the address file with following path
+//requiring the address file with following path\
 ./deployed-contract-info/main-d4a.json     or\
 ./deployed-contract-info/test-d4a.json\
 with following contents:\
@@ -40,11 +42,11 @@ with following contents:\
     "UniformDistributionRewardIssuance": "0x27711F1cE67ddEeE8E31E7F90E8257C03551B320",\
     "DynamicPlan": "0xf2A862F017828487b52F2f439689aD3dC9AF2B09"\
   },\
-  "PermissionControl": {
+  "PermissionControl": {\
     "proxy": "0xB96Ab55CbA66834c92DD6d984F309a82a1c98b10",\
     "impl": "0x8f3C8420aC6bf36195970e361e0D2f0f17982855"\
   },\
-  "NaiveOwner": {
+  "NaiveOwner": {\
     "proxy": "0xD39C2aE17f39C0961851995Bc10c3d687Ebd8e39",\
     "impl": "0x12c687cb10DF6D37A876C567d8656F513e12d6d1"\
   },\
@@ -60,6 +62,11 @@ with following contents:\
   "OracleRegistry": "0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf",\
   "D4AUniversalClaimer": "0x5B212229F81eD324d197710c5cDD94dc9dbB817B",\
   "MultiSig1": "0x064D35db3f037149ed2c35c118a3bd79Fa4fE323"\
-}
+}\
+where the addresses can be any value.
 
 #### Generate abi and event/error selectors
+bash updateAbiAndSelector.sh\
+//file will be generated in\
+deployed-contract-info/frontend-abi\
+deployed-contract-info/selectors
