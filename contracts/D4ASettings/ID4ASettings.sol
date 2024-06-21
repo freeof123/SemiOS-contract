@@ -14,23 +14,17 @@ interface ID4ASettings {
 
     event ChangeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps);
 
-    event ChangeERC20TotalSupply(uint256 tokenMaxSupply);
-
-    event ChangeERC20Ratio(
-        uint256 protocolERC20RatioInBps, uint256 daoCreatorERC20RatioInBps, uint256 canvasCreatorERC20RatioInBps
-    );
+    event ChangeOutputTotalSupply(uint256 tokenMaxSupply);
 
     event ChangeMaxMintableRounds(uint256 oldMaxMintableRound, uint256 newMaxMintableRound);
 
     event MintableRoundsSet(uint256[] mintableRounds);
 
     event ChangeAddress(
-        address drb,
         address erc20Factory,
         address erc721Factory,
         address feePoolFactory,
         address ownerProxy,
-        address createProjectProxy,
         address permissionControl
     );
 
@@ -48,46 +42,28 @@ interface ID4ASettings {
 
     event MembershipTransferred(bytes32 indexed role, address indexed previousMember, address indexed newMember);
 
-    function changeCreateFee(uint256 createDaoFeeAmount, uint256 createCanvasFeeAmount) external;
+    event ChangeProtocolInputRewardRatio(uint256 protocolInputRewardRatio);
+
+    event ChangeProtocolOutputRewardRatio(uint256 protocolOutputRewardRatio);
+
+    event ChangeProtocolMintFeeRatio(uint256 protocolMintFeeRatio);
 
     function changeProtocolFeePool(address protocolFeePool) external;
 
-    function changeMintFeeRatio(
-        uint256 protocolFeeRatioInBps,
-        uint256 daoFeePoolMintFeeRatioInBps,
-        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice
-    )
-        external;
-
     function changeTradeFeeRatio(uint256 protocolRoyaltyFeeRatioInBps) external;
 
-    function changeERC20TotalSupply(uint256 tokenMaxSupply) external;
-
-    function changeERC20Ratio(
-        uint256 protocolERC20RatioInBps,
-        uint256 daoCreatorERC20RatioInBps,
-        uint256 canvasCreatorERC20RatioInBps
-    )
-        external;
-
-    function changeMaxMintableRounds(uint256 maxMintableRound) external;
-
-    function setMintableRounds(uint256[] calldata mintableRounds) external;
+    function changeOutputTotalSupply(uint256 tokenMaxSupply) external;
 
     function changeAddress(
-        address drb,
         address erc20Factory,
         address erc721Factory,
         address feePoolFactory,
         address ownerProxy,
-        address createProjectProxy,
         address permissionControl
     )
         external;
 
     function changeAssetPoolOwner(address assetOwner) external;
-
-    function changeFloorPrices(uint256[] memory daoFloorPrices) external;
 
     function changeMaxNFTAmounts(uint256[] memory nftMaxSupplies) external;
 
@@ -100,4 +76,18 @@ interface ID4ASettings {
     function transferMembership(bytes32 role, address previousMember, address newMember) external;
 
     function setTemplateAddress(TemplateChoice templateChoice, uint8 index, address template) external;
+
+    function setReservedDaoAmount(uint256 reservedDaoAmount) external;
+
+    function setRoyaltySplitterAndSwapFactoryAddress(
+        address newRoyaltySplitterFactory,
+        address newRoyaltySplitterOwner,
+        address newD4AswapFactory
+    )
+        external;
+    function changeProtocolInputRewardRatio(uint256 protocolInputRewardRatio) external;
+
+    function changeProtocolOutputRewardRatio(uint256 protocolOutputRewardRatio) external;
+
+    function changeProtocolMintFeeRatio(uint256 protocolMintFeeRatio) external;
 }

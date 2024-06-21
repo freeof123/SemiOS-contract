@@ -22,7 +22,7 @@ contract PermissionControlTest is DeployHelper {
     uint256 public counter;
 
     function _deployPermissionControlHarness() internal {
-        PermissionControlHarness harness = new PermissionControlHarness(address(protocol), address(daoProxy));
+        PermissionControlHarness harness = new PermissionControlHarness(address(protocol));
         vm.etch(address(permissionControlImpl), address(harness).code);
     }
 
@@ -641,7 +641,8 @@ contract PermissionControlTest is DeployHelper {
             bytes32[] memory proof = getMerkleProof(accounts, accounts[index]);
             assertEq(
                 permissionControl.inMinterWhitelist(daoId, accounts[index], proof),
-                true,
+                //permission control的inMinterWhitelist如今只会判断是否在merkel root中，不涉及无铸造上限nft白名单的判断逻辑，故此时应改为false
+                false,
                 "address should be in whitelist"
             );
         }

@@ -11,7 +11,7 @@ out
 lcov.info
 yarn.lock
 
-# broadcasts
+broadcasts
 !broadcast
 broadcast/*
 broadcast/*/31337/
@@ -26,3 +26,10 @@ deployed-contracts-info
 docs/
 
 Error.t.sol
+
+d26f76ae-311c-413b-92aa-452ef50f0b22
+
+test/tt
+
+
+contracts/build/

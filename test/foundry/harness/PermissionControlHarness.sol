@@ -5,7 +5,7 @@ import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
 
 contract PermissionControlHarness is PermissionControl {
-    constructor(address protocol_, address daoProxy_) PermissionControl(protocol_, daoProxy_) { }
+    constructor(address protocol_) PermissionControl(protocol) { }
 
     function exposed_verifySignature(
         bytes32 daoId,

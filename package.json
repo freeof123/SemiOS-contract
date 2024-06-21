@@ -3,8 +3,8 @@
   "description": "",
   "version": "1.0.0",
   "devDependencies": {
-    "@chainlink/contracts": "^0.6.1",
-    "@openzeppelin/contracts": "^4.8.2",
+    "@chainlink/contracts": "^0.8.0",
+    "@openzeppelin/contracts": "^4.9.3",
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@openzeppelin/merkle-tree": "^1.0.4",
     "@solidstate/contracts": "^0.0.57",
@@ -28,6 +28,12 @@
     "lint": "pnpm lint:sol && pnpm prettier:check",
     "lint:sol": "forge fmt --check && pnpm solhint \"{script,src,test}/**/*.sol\"",
     "prettier:check": "prettier --check \"**/*.{json,md,yml}\"",
-    "prettier:write": "prettier --write \"**/*.{json,md,yml}\""
+    "prettier:write": "prettier --write \"**/*.{json,md,yml}\"",
+    "resume-deploy-test": "source .env && ENV=test forge script script/Deploy.s.sol --rpc-url $GOERLI_RPC_URL -vvvv --resume --verify",
+    "deploy-test": "source .env && ENV=test forge script script/Deploy.s.sol --rpc-url $GOERLI_RPC_URL -vvvv --broadcast --verify"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1",
+    "solady": "^0.0.113"
   }
 }

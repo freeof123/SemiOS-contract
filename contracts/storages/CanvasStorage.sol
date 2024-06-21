@@ -1,8 +1,5 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-
-import { PriceTemplateType, RewardTemplateType } from "../interface/D4AEnums.sol";
-import { DaoMintInfo } from "contracts/interface/D4AStructs.sol";
 
 library CanvasStorage {
     struct CanvasInfo {

@@ -2,41 +2,31 @@
 
 pragma solidity >=0.8.10;
 
-import { ID4ADrb } from "../interface/ID4ADrb.sol";
 import { ID4AFeePoolFactory } from "../interface/ID4AFeePoolFactory.sol";
 import { ID4AERC20Factory } from "../interface/ID4AERC20Factory.sol";
 import { ID4AERC721Factory } from "../interface/ID4AERC721Factory.sol";
 import { ID4AOwnerProxy } from "../interface/ID4AOwnerProxy.sol";
 import { IPermissionControl } from "../interface/IPermissionControl.sol";
+import { ID4ARoyaltySplitterFactory } from "contracts/interface/ID4ARoyaltySplitterFactory.sol";
+import { IUniswapV2Factory } from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
 
 library SettingsStorage {
     struct Layout {
-        // fee related
-        uint256 createDaoFeeAmount;
-        uint256 createCanvasFeeAmount;
+        // protocol fee related
         uint256 protocolMintFeeRatioInBps;
-        uint256 daoFeePoolMintFeeRatioInBps;
-        uint256 daoFeePoolMintFeeRatioInBpsFlatPrice;
         uint256 protocolRoyaltyFeeRatioInBps;
         uint256 minRoyaltyFeeRatioInBps;
         uint256 maxRoyaltyFeeRatioInBps;
-        uint256 protocolERC20RatioInBps;
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvasCreatorERC20RatioInBps;
+        uint256 protocolOutputRewardRatio;
         // contract address
         address protocolFeePool;
-        ID4ADrb drb;
         ID4AERC20Factory erc20Factory;
         ID4AERC721Factory erc721Factory;
         ID4AFeePoolFactory feePoolFactory;
         ID4AOwnerProxy ownerProxy;
         IPermissionControl permissionControl;
-        address createProjectProxy;
         // params
         uint256 tokenMaxSupply;
-        uint256 maxMintableRound; //366
-        uint256[] mintableRounds;
-        uint256[] daoFloorPrices;
         uint256[] nftMaxSupplies;
         address assetOwner;
         bool isProtocolPaused;
@@ -44,6 +34,14 @@ library SettingsStorage {
         uint256 reservedDaoAmount;
         address[256] priceTemplates;
         address[256] rewardTemplates;
+        //-------1.3 add
+        ID4ARoyaltySplitterFactory royaltySplitterFactory;
+        IUniswapV2Factory d4aswapFactory;
+        mapping(bytes32 daoId => address royaltySplitter) royaltySplitters;
+        address royaltySplitterOwner;
+        uint256 protocolInputRewardRatio;
+        //-------1.8 add
+        address[256] planTemplates;
     }
 
     bytes32 internal constant STORAGE_SLOT = keccak256("D4Av2.contracts.storage.Settings");

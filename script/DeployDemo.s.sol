@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import { Script } from "forge-std/Script.sol";
 import { Test } from "forge-std/Test.sol";
 import { stdJson } from "forge-std/StdJson.sol";
-import { console2 } from "forge-std/Console2.sol";
+import { console2 } from "forge-std/console2.sol";
 
 import { IAccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -14,116 +14,131 @@ import {
 } from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
 import { IDiamondWritableInternal } from "@solidstate/contracts/proxy/diamond/writable/IDiamondWritableInternal.sol";
-
 import "contracts/interface/D4AEnums.sol";
-import "contracts/interface/D4AConstants.sol";
 import {
     getSettingsSelectors,
     getProtocolReadableSelectors,
-    getProtocolSetterSelectors
+    getProtocolSetterSelectors,
+    getD4ACreateSelectors,
+    getPDCreateSelectors,
+    getPDBasicDaoSelectors,
+    getPDRoundSelectors,
+    getPDLockSelectors,
+    getPDGrantSelectors,
+    getPDPlanSelectors
 } from "contracts/utils/CutFacetFunctions.sol";
-import { D4AFeePoolFactory } from "contracts/feepool/D4AFeePool.sol";
-import { D4ARoyaltySplitter } from "contracts/royalty-splitter/D4ARoyaltySplitter.sol";
-import { D4ARoyaltySplitterFactory } from "contracts/royalty-splitter/D4ARoyaltySplitterFactory.sol";
-import { D4AERC20Factory } from "contracts/D4AERC20.sol";
-import { D4AERC721WithFilterFactory } from "contracts/D4AERC721WithFilter.sol";
-import { D4ASettings } from "contracts/D4ASettings/D4ASettings.sol";
-import { NaiveOwner } from "contracts/NaiveOwner.sol";
-import { D4AProtocolReadable } from "contracts/D4AProtocolReadable.sol";
-import { D4AProtocolSetter } from "contracts/D4AProtocolSetter.sol";
-import { D4AProtocol } from "contracts/D4AProtocol.sol";
-import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
-import { D4ACreateProjectProxy } from "contracts/proxy/D4ACreateProjectProxy.sol";
+import "./utils/D4AAddress.sol";
 import { D4ADiamond } from "contracts/D4ADiamond.sol";
-import { D4ADrb } from "contracts/D4ADrb.sol";
-import { ID4AProtocolReadable } from "contracts/interface/ID4AProtocolReadable.sol";
-import { ID4AProtocolSetter } from "contracts/interface/ID4AProtocolSetter.sol";
-import { ID4ASettingsReadable } from "contracts/D4ASettings/ID4ASettingsReadable.sol";
-import { ID4ASettings } from "contracts/D4ASettings/ID4ASettings.sol";
-import { D4AAddress } from "./utils/D4AAddress.sol";
-import { D4AClaimer } from "contracts/D4AClaimer.sol";
-import { D4AUniversalClaimer } from "contracts/D4AUniversalClaimer.sol";
-import { LinearPriceVariation } from "contracts/templates/LinearPriceVariation.sol";
-import { ExponentialPriceVariation } from "contracts/templates/ExponentialPriceVariation.sol";
-import { LinearRewardIssuance } from "contracts/templates/LinearRewardIssuance.sol";
-import { ExponentialRewardIssuance } from "contracts/templates/ExponentialRewardIssuance.sol";
 
-contract DeployDemo is Script, Test, D4AAddress {
+import "contracts/interface/D4AStructs.sol";
+//-----------------------------interface for event----------------------------------
+import "contracts/interface/IPDCreate.sol";
+
+contract Deploy is Script, Test, D4AAddress {
     using stdJson for string;
 
-    uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+    // uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-    address public owner = vm.addr(deployerPrivateKey);
-
-    address multisig = json.readAddress(".MultiSig1");
-    address multisig2 = json.readAddress(".MultiSig2");
+    address public owner = 0xe6046371B729f23206a94DDCace89FEceBBD565c;
+    //= vm.addr(deployerPrivateKey);
 
     function run() public {
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast(0xe6046371B729f23206a94DDCace89FEceBBD565c);
 
-        // _deployDrb();
+        _deployFeePoolFactory();
 
-        // _deployFeePoolFactory();
+        _deployRoyaltySplitterFactory();
 
-        // _deployRoyaltySplitterFactory();
+        _deployERC20Factory();
 
-        // _deployERC20Factory();
+        _deployERC721WithFilterFactory();
 
-        // _deployERC721WithFilterFactory();
+        _deployNaiveOwner();
+        _deployNaiveOwnerProxy();
 
-        // _deployProxyAdmin();
+        _deployProxyAdmin();
 
-        // _deployProtocolProxy();
-        // _deployProtocol();
+        _deployProtocolProxy();
+        _deployProtocol();
 
-        // _deployProtocolReadable();
-        // _cutProtocolReadableFacet();
+        _deployProtocolReadable();
+        _cutProtocolReadableFacet(DeployMethod.ADD);
 
-        // _deployProtocolSetter();
-        // _cutFacetsProtocolSetter();
+        _deployProtocolSetter();
+        _cutFacetsProtocolSetter(DeployMethod.ADD);
 
-        // _deploySettings();
-        // _cutSettingsFacet();
+        _deployPDCreate();
+        _cutFacetsPDCreate(DeployMethod.ADD);
 
-        // _deployClaimer();
-        // _deployUniversalClaimer();
+        _deployPDRound();
+        _cutFacetsPDRound(DeployMethod.ADD);
 
-        // _deployCreateProjectProxy();
-        // _deployCreateProjectProxyProxy();
+        _deployPDGrant();
+        _cutFacetsPDGrant(DeployMethod.ADD);
 
-        // _deployPermissionControl();
-        // _deployPermissionControlProxy();
+        _deployPDLock();
+        _cutFacetsPDLock(DeployMethod.ADD);
 
-        // _initSettings();
+        _deployPDPlan();
+        _cutFacetsPDPlan(DeployMethod.ADD);
 
-        // _deployLinearPriceVariation();
-        // _deployExponentialPriceVariation();
-        // _deployLinearRewardIssuance();
-        // _deployExponentialRewardIssuance();
+        _deployPDBasicDao();
+        _cutFacetsPDBasicDao(DeployMethod.ADD);
 
-        // d4aProtocol_proxy.initialize();
+        _deploySettings();
+        _cutSettingsFacet(DeployMethod.ADD);
 
-        // _transferOwnership();
-        _checkStatus();
+        _deployUniversalClaimer();
+
+        _deployPermissionControl();
+        _deployPermissionControlProxy();
+
+        _initSettings();
+
+        _deployLinearPriceVariation();
+        _deployExponentialPriceVariation();
+        _deployDynamicPlan();
+
+        _deployUniformDistributionRewardIssuance();
 
         vm.stopBroadcast();
     }
 
-    function _deployDrb() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4ADrb");
+    function getMerkleRoot(address[] memory accounts) public returns (bytes32) {
+        string[] memory inputs = new string[](5);
+        inputs[0] = "pnpm";
+        inputs[1] = "exec";
+        inputs[2] = "node";
+        inputs[3] = "./test/helper/getMerkleRootFoundry.js";
+        inputs[4] = _arrayToString(accounts);
 
-        // start from block 8335355 which is Jan-19-2023 12:00:00 AM +UTC on Goerli testnet
-        // blockPerDrbE18 = 5737324520819563996120 which is calculated till block 9058736 on May-25-2023 02:00:00 AM
-        // +UTC
-        d4aDrb = new D4ADrb({startBlock: 8335355, blocksPerDrbE18: 5737324520819563996120});
-        assertTrue(address(d4aDrb) != address(0));
-
-        vm.toString(address(d4aDrb)).write(path, ".D4ADrb");
-
-        console2.log("D4ADrb address: ", address(d4aDrb));
-        console2.log("================================================================================\n");
+        bytes memory output = vm.ffi(inputs);
+        bytes32 res = abi.decode(output, (bytes32));
+        return res;
     }
+
+    function _arrayToString(address[] memory accounts) internal pure returns (string memory) {
+        uint256 length = accounts.length;
+        string memory res;
+        for (uint256 i = 0; i < length; i++) {
+            res = string.concat(res, vm.toString(accounts[i]));
+            if (i + 1 < length) res = string.concat(res, " ");
+        }
+        return res;
+    }
+
+    // function _eventEmiter() internal {
+    //     CreateDaoParam memory createDaoParam;
+    //     bytes32 canvasId = keccak256(abi.encode(address(this), block.timestamp));
+    //     createDaoParam.canvasId = canvasId;
+    //     //bytes32 daoId = _createBasicDao(createDaoParam);
+    //     bytes32 continuousDaoId = _createContinuousDao(
+    //         createDaoParam, 0x6d6e29b989aebea8e1ee5dc00f93150c9baad666f2b199c2fbc083c6047f9853, true, false
+    //     );
+    //     console2.log("subdao:");
+    //     console2.logBytes32(continuousDaoId);
+    //     //bytes32 subdao = 0xeee88695213bbf892778cfc35e64f30a8988ca4580d71ddaf4b4e12fea19ad60;
+    // }
 
     function _deployFeePoolFactory() internal {
         console2.log("\n================================================================================");
@@ -144,9 +159,9 @@ contract DeployDemo is Script, Test, D4AAddress {
 
         d4aRoyaltySplitterFactory = new D4ARoyaltySplitterFactory(address(WETH), uniswapV2Router, oracleRegistry);
         assertTrue(address(d4aRoyaltySplitterFactory) != address(0));
-        D4ACreateProjectProxy(payable(address(d4aCreateProjectProxy_proxy))).set(
-            address(d4aProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
-        );
+        // PDCreateProjectProxy(payable(address(pdCreateProjectProxy_proxy))).set(
+        //     address(pdProtocol_proxy), address(d4aRoyaltySplitterFactory), owner, uniswapV2Factory
+        // );
 
         vm.toString(address(d4aRoyaltySplitterFactory)).write(path, ".factories.D4ARoyaltySplitterFactory");
 
@@ -195,65 +210,483 @@ contract DeployDemo is Script, Test, D4AAddress {
 
     function _deployProtocolReadable() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocolReadable");
+        console2.log("Start deploy PDProtocolReadable");
 
-        d4aProtocolReadable = new D4AProtocolReadable();
-        assertTrue(address(d4aProtocolReadable) != address(0));
+        pdProtocolReadable = new PDProtocolReadable();
+        assertTrue(address(pdProtocolReadable) != address(0));
 
-        vm.toString(address(d4aProtocolReadable)).write(path, ".D4AProtocol.D4AProtocolReadable");
+        vm.toString(address(pdProtocolReadable)).write(path, ".PDProtocol.PDProtocolReadable");
 
-        console2.log("D4AProtocolReadable address: ", address(d4aProtocolReadable));
+        console2.log("PDProtocolReadable address: ", address(pdProtocolReadable));
         console2.log("================================================================================\n");
     }
 
-    function _cutProtocolReadableFacet() internal {
+    function _cutProtocolReadableFacet(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
-        console2.log("Start cut D4AProtocolRedable facet");
+        console2.log("Start cut PDProtocolReadable facet");
 
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolReadableSelectors();
-        console2.log("D4AProtocolReadable facet cut selectors number: ", selectors.length);
+        console2.log("PDProtocolReadable facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aProtocolReadable),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xcA4A0e9344969b36370BaB13fEd1E996c5C5D661
+                    )
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolReadable),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolReadable),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
 
         console2.log("================================================================================\n");
     }
 
     function _deployProtocolSetter() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocolSetter");
+        console2.log("Start deploy PDProtocolSetter");
 
-        d4aProtocolSetter = new D4AProtocolSetter();
-        assertTrue(address(d4aProtocolSetter) != address(0));
+        pdProtocolSetter = new PDProtocolSetter();
+        assertTrue(address(pdProtocolSetter) != address(0));
 
-        vm.toString(address(d4aProtocolSetter)).write(path, ".D4AProtocol.D4AProtocolSetter");
+        vm.toString(address(pdProtocolSetter)).write(path, ".PDProtocol.PDProtocolSetter");
 
-        console2.log("D4AProtocolSetter address: ", address(d4aProtocolSetter));
+        console2.log("PDProtocolSetter address: ", address(pdProtocolSetter));
         console2.log("================================================================================\n");
     }
 
-    function _cutFacetsProtocolSetter() internal {
+    function _cutFacetsProtocolSetter(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
-        console2.log("Start cut ProtocolSetter facet");
+        console2.log("Start cut PDProtocolSetter facet");
 
         //------------------------------------------------------------------------------------------------------
         // D4AProtoclReadable facet cut
         bytes4[] memory selectors = getProtocolSetterSelectors();
-        console2.log("D4AProtocolSetter facet cut selectors number: ", selectors.length);
+        console2.log("PDProtocolSetter facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aProtocolSetter),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xa5AB35cDeb00C40E22899B36Fd9A6743F8FC47dd
+                    )
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolSetter),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdProtocolSetter),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDCreate() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDCreate");
+
+        pdCreate = new PDCreate(address(WETH));
+        assertTrue(address(pdCreate) != address(0));
+
+        vm.toString(address(pdCreate)).write(path, ".PDProtocol.PDCreate");
+
+        console2.log("PDCreate address: ", address(pdCreate));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDCreate(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDCreate facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDCreateSelectors();
+        console2.log("PDCreate facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x52F00A3aDc6c8f878fb4dFf3786e51Be516780a7
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdCreate),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdCreate),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    // function _deployPDCreateFunding() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy PDCreate");
+
+    //     pdCreateFunding = new PDCreateFunding(address(WETH));
+    //     assertTrue(address(pdCreateFunding) != address(0));
+
+    //     vm.toString(address(pdCreateFunding)).write(path, ".PDProtocol.PDCreateFunding");
+
+    //     console2.log("PDCreate address: ", address(pdCreateFunding));
+    //     console2.log("================================================================================\n");
+    // }
+
+    // function _cutFacetsPDCreateFunding(DeployMethod deployMethod) internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start cut PDCreate facet");
+
+    //     //------------------------------------------------------------------------------------------------------
+    //     // D4AProtoclReadable facet cut
+    //     //_arrayToStringbytes4[] memory selectors = getPDCreateFundingSelectors();
+    //     //console2.log("PDCreateFunding facet cut selectors number: ", selectors.length);
+
+    //     IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+    //     if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+    //         facetCuts[0] = IDiamondWritableInternal.FacetCut({
+    //             target: address(0),
+    //             action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+    //             selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+    //                 0xCefAb7d0868B0DBEf7b9A2f4cEEFEeC64FbE3361
+    //                 ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+    //          });
+    //         D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+    //     }
+    //     // if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+    //     //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
+    //     //         target: address(pdCreateFunding),
+    //     //         action: IDiamondWritableInternal.FacetCutAction.ADD,
+    //     //         selectors: selectors
+    //     //     });
+    //     //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+    //     // }
+    //     // if (deployMethod == DeployMethod.REPLACE) {
+    //     //     facetCuts[0] = IDiamondWritableInternal.FacetCut({
+    //     //         target: address(pdCreateFunding),
+    //     //         action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+    //     //         selectors: selectors
+    //     //     });
+    //     //     D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+    //     // }
+
+    //     console2.log("================================================================================\n");
+    // }
+
+    function _deployPDBasicDao() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDBasicDao");
+
+        pdBasicDao = new PDBasicDao();
+        assertTrue(address(pdBasicDao) != address(0));
+
+        vm.toString(address(pdBasicDao)).write(path, ".PDProtocol.PDBasicDao");
+
+        console2.log("PDBasicDao address: ", address(pdBasicDao));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDBasicDao(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDBasicDao facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDBasicDaoSelectors();
+        console2.log("PDBasicDao facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdBasicDao),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdBasicDao),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdBasicDao),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDRound() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDRound");
+
+        pdRound = new PDRound();
+        assertTrue(address(pdRound) != address(0));
+
+        vm.toString(address(pdRound)).write(path, ".PDProtocol.PDRound");
+
+        console2.log("PDRound address: ", address(pdRound));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDRound(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDRound facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDRoundSelectors();
+        console2.log("PDRound facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdRound),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDLock() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDLock");
+
+        pdLock = new PDLock();
+        assertTrue(address(pdLock) != address(0));
+
+        vm.toString(address(pdLock)).write(path, ".PDProtocol.PDLock");
+
+        console2.log("PDLock address: ", address(pdLock));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDLock(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDLock facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDLockSelectors();
+        console2.log("PDLock facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdLock),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdLock),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDGrant() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDGrant");
+
+        pdGrant = new PDGrant();
+        assertTrue(address(pdGrant) != address(0));
+
+        vm.toString(address(pdGrant)).write(path, ".PDProtocol.PDGrant");
+
+        console2.log("PDGrant address: ", address(pdGrant));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDGrant(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDGrant facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDGrantSelectors();
+        console2.log("PDGrant facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xd788fAa86488D2E62cc4F4B66ac60Cf51dC94F8c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdGrant),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdGrant),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+
+        console2.log("================================================================================\n");
+    }
+
+    function _deployPDPlan() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy PDPlan");
+
+        pdPlan = new PDPlan();
+        assertTrue(address(pdPlan) != address(0));
+
+        vm.toString(address(pdPlan)).write(path, ".PDProtocol.PDPlan");
+
+        console2.log("PDPlan address: ", address(pdPlan));
+        console2.log("================================================================================\n");
+    }
+
+    function _cutFacetsPDPlan(DeployMethod deployMethod) internal {
+        console2.log("\n================================================================================");
+        console2.log("Start cut PDPlan facet");
+
+        //------------------------------------------------------------------------------------------------------
+        // D4AProtoclReadable facet cut
+        bytes4[] memory selectors = getPDPlanSelectors();
+        console2.log("PDPlan facet cut selectors number: ", selectors.length);
+
+        IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
+
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0x03156Ec19Ce912AFB34D99FdE7C2bdcB2Ea4662c
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdPlan),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(pdPlan),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
 
         console2.log("================================================================================\n");
     }
@@ -265,13 +698,13 @@ contract DeployDemo is Script, Test, D4AAddress {
         d4aSettings = new D4ASettings();
         assertTrue(address(d4aSettings) != address(0));
 
-        vm.toString(address(d4aSettings)).write(path, ".D4AProtocol.D4ASettings");
+        vm.toString(address(d4aSettings)).write(path, ".PDProtocol.D4ASettings");
 
         console2.log("D4ASettings address: ", address(d4aSettings));
         console2.log("================================================================================\n");
     }
 
-    function _cutSettingsFacet() internal {
+    function _cutSettingsFacet(DeployMethod deployMethod) internal {
         console2.log("\n================================================================================");
         console2.log("Start cut D4ASettings facet");
 
@@ -281,45 +714,66 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("D4ASettings facet cut selectors number: ", selectors.length);
 
         IDiamondWritableInternal.FacetCut[] memory facetCuts = new IDiamondWritableInternal.FacetCut[](1);
-        facetCuts[0] = IDiamondWritableInternal.FacetCut({
-            target: address(d4aSettings),
-            action: IDiamondWritableInternal.FacetCutAction.ADD,
-            selectors: selectors
-        });
 
-        // TODO: change 137 to different when deploying to mainnet
-        D4ADiamond(payable(address(d4aProtocol_proxy))).diamondCut(
-            facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 137)
-        );
+        if (deployMethod == DeployMethod.REMOVE || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(0),
+                action: IDiamondWritableInternal.FacetCutAction.REMOVE,
+                selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
+                    0xaF4E1c23cF4Bd2195943D1012B892dFFAeB3368b
+                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+             });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.ADD || deployMethod == DeployMethod.REMOVE_AND_ADD) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(d4aSettings),
+                action: IDiamondWritableInternal.FacetCutAction.ADD,
+                selectors: selectors
+            });
+            //only for first time
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(
+                facetCuts, address(d4aSettings), abi.encodeWithSelector(D4ASettings.initializeD4ASettings.selector, 111)
+            );
+            //D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
+        if (deployMethod == DeployMethod.REPLACE) {
+            facetCuts[0] = IDiamondWritableInternal.FacetCut({
+                target: address(d4aSettings),
+                action: IDiamondWritableInternal.FacetCutAction.REPLACE,
+                selectors: selectors
+            });
+            D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
+        }
 
         console2.log("================================================================================\n");
     }
 
     function _deployProtocolProxy() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocol proxy");
+        console2.log("Start deploy PDProtocol proxy");
 
-        d4aProtocol_proxy = D4AProtocol(payable(new D4ADiamond()));
-        assertTrue(address(d4aProtocol_proxy) != address(0));
+        pdProtocol_proxy = PDProtocol(payable(new D4ADiamond()));
+        assertTrue(address(pdProtocol_proxy) != address(0));
 
-        vm.toString(address(d4aProtocol_proxy)).write(path, ".D4AProtocol.proxy");
+        vm.toString(address(pdProtocol_proxy)).write(path, ".PDProtocol.proxy");
 
-        console2.log("D4AProtocol proxy address: ", address(d4aProtocol_proxy));
+        console2.log("PDProtocol proxy address: ", address(pdProtocol_proxy));
         console2.log("================================================================================\n");
     }
 
     function _deployProtocol() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy D4AProtocol");
+        console2.log("Start deploy PDProtocol");
 
-        d4aProtocol_impl = new D4AProtocol();
-        assertTrue(address(d4aProtocol_impl) != address(0));
-        // proxyAdmin.upgrade(d4aProtocol_proxy, address(d4aProtocol_impl));
-        // D4ADiamond(payable(address(d4aProtocol_proxy))).setFallbackAddress(address(d4aProtocol_impl));
+        pdProtocol_impl = new PDProtocol();
+        assertTrue(address(pdProtocol_impl) != address(0));
+        // proxyAdmin.upgrade(pdProtocol_proxy, address(pdProtocol_impl));
+        D4ADiamond(payable(address(pdProtocol_proxy))).setFallbackAddress(address(pdProtocol_impl));
 
-        vm.toString(address(d4aProtocol_impl)).write(path, ".D4AProtocol.impl");
+        vm.toString(address(pdProtocol_impl)).write(path, ".PDProtocol.impl");
 
-        console2.log("D4AProtocol implementation address: ", address(d4aProtocol_impl));
+        console2.log("PDProtocol implementation address: ", address(pdProtocol_impl));
         console2.log("================================================================================\n");
     }
 
@@ -330,11 +784,11 @@ contract DeployDemo is Script, Test, D4AAddress {
         linearPriceVariation = new LinearPriceVariation();
         assertTrue(address(linearPriceVariation) != address(0));
 
-        vm.toString(address(linearPriceVariation)).write(path, ".D4AProtocol.LinearPriceVariation");
+        vm.toString(address(linearPriceVariation)).write(path, ".PDProtocol.LinearPriceVariation");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
-        // );
+        D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PRICE, uint8(PriceTemplateType.LINEAR_PRICE_VARIATION), address(linearPriceVariation)
+        );
 
         console2.log("LinearPriceVariation address: ", address(linearPriceVariation));
         console2.log("================================================================================\n");
@@ -347,63 +801,88 @@ contract DeployDemo is Script, Test, D4AAddress {
         exponentialPriceVariation = new ExponentialPriceVariation();
         assertTrue(address(exponentialPriceVariation) != address(0));
 
-        vm.toString(address(exponentialPriceVariation)).write(path, ".D4AProtocol.ExponentialPriceVariation");
+        vm.toString(address(exponentialPriceVariation)).write(path, ".PDProtocol.ExponentialPriceVariation");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.PRICE,
-        //     uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
-        //     address(exponentialPriceVariation)
-        // );
+        D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PRICE,
+            uint8(PriceTemplateType.EXPONENTIAL_PRICE_VARIATION),
+            address(exponentialPriceVariation)
+        );
 
         console2.log("ExponentialPriceVariation address: ", address(exponentialPriceVariation));
         console2.log("================================================================================\n");
     }
 
-    function _deployLinearRewardIssuance() internal {
+    function _deployDynamicPlan() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy LinearRewardIssuance");
+        console2.log("Start deploy DynamicPlan");
 
-        linearRewardIssuance = new LinearRewardIssuance();
-        assertTrue(address(linearRewardIssuance) != address(0));
+        dynamicPlan = new DynamicPlan();
+        assertTrue(address(dynamicPlan) != address(0));
 
-        vm.toString(address(linearRewardIssuance)).write(path, ".D4AProtocol.LinearRewardIssuance");
+        vm.toString(address(dynamicPlan)).write(path, ".PDProtocol.DynamicPlan");
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
-        // );
-
-        console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
+        D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.PLAN, uint8(PlanTemplateType.DYNAMIC_PLAN), address(dynamicPlan)
+        );
+        console2.log("DynamicPlan address: ", address(dynamicPlan));
         console2.log("================================================================================\n");
     }
 
-    function _deployExponentialRewardIssuance() internal {
+    // function _deployLinearRewardIssuance() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy LinearRewardIssuance");
+
+    //     linearRewardIssuance = new LinearRewardIssuance();
+    //     assertTrue(address(linearRewardIssuance) != address(0));
+
+    //     vm.toString(address(linearRewardIssuance)).write(path, ".PDProtocol.LinearRewardIssuance");
+
+    //     D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+    //         TemplateChoice.REWARD, uint8(RewardTemplateType.LINEAR_REWARD_ISSUANCE), address(linearRewardIssuance)
+    //     );
+
+    //     console2.log("LinearRewardIssuance address: ", address(linearRewardIssuance));
+    //     console2.log("================================================================================\n");
+    // }
+
+    // function _deployExponentialRewardIssuance() internal {
+    //     console2.log("\n================================================================================");
+    //     console2.log("Start deploy ExponentialRewardIssuance");
+
+    //     exponentialRewardIssuance = new ExponentialRewardIssuance();
+    //     assertTrue(address(exponentialRewardIssuance) != address(0));
+
+    //     vm.toString(address(exponentialRewardIssuance)).write(path, ".PDProtocol.ExponentialRewardIssuance");
+
+    //     D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+    //         TemplateChoice.REWARD,
+    //         uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
+    //         address(exponentialRewardIssuance)
+    //     );
+
+    //     console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
+    //     console2.log("================================================================================\n");
+    // }
+
+    function _deployUniformDistributionRewardIssuance() internal {
         console2.log("\n================================================================================");
-        console2.log("Start deploy ExponentialRewardIssuance");
+        console2.log("Start deploy UniformDistributionRewardIssuance");
 
-        exponentialRewardIssuance = new ExponentialRewardIssuance();
-        assertTrue(address(exponentialRewardIssuance) != address(0));
+        uniformDistributionRewardIssuance = new UniformDistributionRewardIssuance();
+        assertTrue(address(uniformDistributionRewardIssuance) != address(0));
 
-        vm.toString(address(exponentialRewardIssuance)).write(path, ".D4AProtocol.ExponentialRewardIssuance");
+        vm.toString(address(uniformDistributionRewardIssuance)).write(
+            path, ".PDProtocol.UniformDistributionRewardIssuance"
+        );
 
-        // ID4ASettings(address(d4aProtocol_proxy)).setTemplateAddress(
-        //     TemplateChoice.REWARD,
-        //     uint8(RewardTemplateType.EXPONENTIAL_REWARD_ISSUANCE),
-        //     address(exponentialRewardIssuance)
-        // );
+        D4ASettings(address(pdProtocol_proxy)).setTemplateAddress(
+            TemplateChoice.REWARD,
+            uint8(RewardTemplateType.UNIFORM_DISTRIBUTION_REWARD),
+            address(uniformDistributionRewardIssuance)
+        );
 
-        console2.log("ExponentialRewardIssuance address: ", address(exponentialRewardIssuance));
-        console2.log("================================================================================\n");
-    }
-
-    function _deployClaimer() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4AClaimer");
-
-        d4aClaimer = new D4AClaimer(address(d4aProtocol_proxy));
-
-        vm.toString(address(d4aClaimer)).write(path, ".D4AClaimer");
-
-        console2.log("D4AClaimer address: ", address(d4aClaimer));
+        console2.log("UniformDistributionRewardIssuance address: ", address(uniformDistributionRewardIssuance));
         console2.log("================================================================================\n");
     }
 
@@ -419,57 +898,14 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
-    function _deployCreateProjectProxy() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4ACreateProjectProxy");
-
-        d4aCreateProjectProxy_impl = new D4ACreateProjectProxy(address(WETH));
-        assertTrue(address(d4aCreateProjectProxy_impl) != address(0));
-        // proxyAdmin.upgrade(
-        //     ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy)), address(d4aCreateProjectProxy_impl)
-        // );
-
-        vm.toString(address(d4aCreateProjectProxy_impl)).write(path, ".D4ACreateProjectProxy.impl");
-
-        console2.log("D4ACreateProjectProxy implementation address: ", address(d4aCreateProjectProxy_impl));
-        console2.log("================================================================================\n");
-    }
-
-    function _deployCreateProjectProxyProxy() internal {
-        console2.log("\n================================================================================");
-        console2.log("Start deploy D4ACreateProjectProxy proxy");
-
-        d4aCreateProjectProxy_proxy = D4ACreateProjectProxy(
-            payable(
-                address(
-                    new TransparentUpgradeableProxy(
-                        address(d4aCreateProjectProxy_impl),
-                        address(proxyAdmin),
-                        abi.encodeWithSignature(
-                            "initialize(address,address,address,address)",
-                            address(uniswapV2Factory),
-                            address(d4aProtocol_proxy),
-                            address(d4aRoyaltySplitterFactory), 
-                            address(owner) 
-                        )
-                    )
-                )
-            )
-        );
-        assertTrue(address(d4aCreateProjectProxy_proxy) != address(0));
-
-        vm.toString(address(d4aCreateProjectProxy_proxy)).write(path, ".D4ACreateProjectProxy.proxy");
-
-        console2.log("D4ACreateProjectProxy proxy address: ", address(d4aCreateProjectProxy_proxy));
-        console2.log("================================================================================\n");
-    }
-
     function _deployPermissionControl() internal {
         console2.log("\n================================================================================");
         console2.log("Start deploy PermissionControl");
 
-        permissionControl_impl = new PermissionControl(address(d4aProtocol_proxy), address(d4aCreateProjectProxy_proxy));
+        permissionControl_impl = new PermissionControl(address(pdProtocol_proxy));
         assertTrue(address(permissionControl_impl) != address(0));
+
+        // for non-first-time deploy
         // proxyAdmin.upgrade(
         //     ITransparentUpgradeableProxy(address(permissionControl_proxy)), address(permissionControl_impl)
         // );
@@ -487,12 +923,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         permissionControl_proxy = PermissionControl(
             address(
                 new TransparentUpgradeableProxy(
-                    address(permissionControl_impl), 
+                    address(permissionControl_impl),
                     address(proxyAdmin),
-                    abi.encodeWithSignature(
-                        "initialize(address)",
-                        address(naiveOwner_proxy)
-                    )
+                    abi.encodeWithSignature("initialize(address)", address(naiveOwner_proxy))
                 )
             )
         );
@@ -504,196 +937,98 @@ contract DeployDemo is Script, Test, D4AAddress {
         console2.log("================================================================================\n");
     }
 
+    function _deployNaiveOwner() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy NaiveOwner");
+
+        naiveOwner_impl = new NaiveOwner();
+        assertTrue(address(naiveOwner_impl) != address(0));
+
+        vm.toString(address(naiveOwner_impl)).write(path, ".NaiveOwner.impl");
+
+        console2.log("NaiveOwner implementation address: ", address(naiveOwner_impl));
+        console2.log("================================================================================\n");
+    }
+
+    function _deployNaiveOwnerProxy() internal {
+        console2.log("\n================================================================================");
+        console2.log("Start deploy NaiveOwner proxy");
+
+        naiveOwner_proxy = NaiveOwner(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(naiveOwner_impl), address(proxyAdmin), abi.encodeWithSignature("initialize()")
+                )
+            )
+        );
+        assertTrue(address(naiveOwner_proxy) != address(0));
+
+        vm.toString(address(naiveOwner_proxy)).write(path, ".NaiveOwner.proxy");
+
+        console2.log("NaiveOwner proxy address: ", address(naiveOwner_proxy));
+        console2.log("================================================================================\n");
+    }
+
     function _initSettings() internal {
         console2.log("\n================================================================================");
-        IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+        IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
         console2.log("Start initializing D4ASetting");
         {
             console2.log("Step 1: change address");
-            ID4ASettings(address(d4aProtocol_proxy)).changeAddress(
-                address(d4aDrb),
+            D4ASettings(address(pdProtocol_proxy)).changeAddress(
                 address(d4aERC20Factory),
                 address(d4aERC721WithFilterFactory),
                 address(d4aFeePoolFactory),
-                json.readAddress(".NaiveOwner.proxy"),
-                address(d4aCreateProjectProxy_proxy),
+                address(naiveOwner_proxy),
                 address(permissionControl_proxy)
             );
         }
         {
             console2.log("Step 2: change protocol fee pool");
-            ID4ASettings(address(d4aProtocol_proxy)).changeProtocolFeePool(owner);
+            D4ASettings(address(pdProtocol_proxy)).changeProtocolFeePool(owner);
         }
         {
             console2.log("Step 3: change ERC20 total supply");
-            ID4ASettings(address(d4aProtocol_proxy)).changeERC20TotalSupply(1e9 ether);
+            D4ASettings(address(pdProtocol_proxy)).changeOutputTotalSupply(1e9 ether);
         }
         {
             console2.log("Step 4: change asset pool owner");
-            ID4ASettings(address(d4aProtocol_proxy)).changeAssetPoolOwner(owner);
+            D4ASettings(address(pdProtocol_proxy)).changeAssetPoolOwner(owner);
         }
         {
-            console2.log("Step 5: set mintable rounds");
-            uint256[] memory mintableRounds = new uint256[](7);
-            mintableRounds[0] = 30;
-            mintableRounds[1] = 60;
-            mintableRounds[2] = 90;
-            mintableRounds[3] = 120;
-            mintableRounds[4] = 180;
-            mintableRounds[5] = 270;
-            mintableRounds[6] = 360;
-            ID4ASettings(address(d4aProtocol_proxy)).setMintableRounds(mintableRounds);
+            console2.log("Step 5 change address in dao proxy");
+            D4ASettings(address(pdProtocol_proxy)).setRoyaltySplitterAndSwapFactoryAddress(
+                address(d4aRoyaltySplitterFactory), owner, address(uniswapV2Factory)
+            );
         }
         {
-            console2.log("Step 6: change floor prices");
-            uint256[] memory floorPrices = new uint256[](13);
-            floorPrices[0] = 0.01 ether;
-            floorPrices[1] = 0.02 ether;
-            floorPrices[2] = 0.03 ether;
-            floorPrices[3] = 0.05 ether;
-            floorPrices[4] = 0.1 ether;
-            floorPrices[5] = 0.2 ether;
-            floorPrices[6] = 0.3 ether;
-            floorPrices[7] = 0.5 ether;
-            floorPrices[8] = 1 ether;
-            floorPrices[9] = 2 ether;
-            floorPrices[10] = 3 ether;
-            floorPrices[11] = 5 ether;
-            floorPrices[12] = 10 ether;
-            ID4ASettings(address(d4aProtocol_proxy)).changeFloorPrices(floorPrices);
-        }
-        {
-            console2.log("Step 7: change max NFT amounts");
+            console2.log("Step 6: change max NFT amounts");
             uint256[] memory maxNFTAmounts = new uint256[](5);
             maxNFTAmounts[0] = 1000;
             maxNFTAmounts[1] = 5000;
             maxNFTAmounts[2] = 10_000;
             maxNFTAmounts[3] = 50_000;
             maxNFTAmounts[4] = 100_000;
-            ID4ASettings(address(d4aProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
+            D4ASettings(address(pdProtocol_proxy)).changeMaxNFTAmounts(maxNFTAmounts);
         }
         {
-            console2.log("Step 8: grant INITIALIZER ROLE");
-            NaiveOwner naiveOwner_proxy = NaiveOwner(json.readAddress(".NaiveOwner.proxy"));
-            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(d4aProtocol_proxy));
+            console2.log("Step 7: grant INITIALIZER ROLE");
+            naiveOwner_proxy.grantRole(naiveOwner_proxy.INITIALIZER_ROLE(), address(pdProtocol_proxy));
         }
         {
-            console2.log("Step 9: grant role");
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
-            IAccessControl(address(d4aProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
+            console2.log("Step 8: grant role");
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("PROTOCOL_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("OPERATION_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("DAO_ROLE"), owner);
+            IAccessControl(address(pdProtocol_proxy)).grantRole(keccak256("SIGNER_ROLE"), owner);
         }
         {
-            console2.log("Step 10: change create DOA and Canvas Fee to 0");
-            ID4ASettings(address(d4aProtocol_proxy)).changeCreateFee(0 ether, 0 ether);
+            pdProtocol_proxy.initialize();
+            console2.log("Step 9: set special uri prefix and basic fiat price");
+            PDBasicDao(address(pdProtocol_proxy)).setSpecialTokenUriPrefix(
+                "https://test-protodao.s3.ap-southeast-1.amazonaws.com/meta/work/"
+            );
         }
         console2.log("================================================================================\n");
-    }
-
-    function _transferOwnership() internal {
-        // proxy admin
-        proxyAdmin.transferOwnership(multisig);
-
-        // create project proxy
-        d4aCreateProjectProxy_proxy.set(
-            address(d4aProtocol_proxy), address(d4aRoyaltySplitterFactory), multisig, uniswapV2Factory
-        );
-        d4aCreateProjectProxy_proxy.transferOwnership(multisig);
-
-        // protocol
-        D4ADiamond(payable(address(d4aProtocol_proxy))).transferOwnership(multisig);
-
-        // settings
-        D4ASettings(address(d4aProtocol_proxy)).changeProtocolFeePool(multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(DEFAULT_ADMIN_ROLE, multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(PROTOCOL_ROLE, multisig);
-        D4ASettings(address(d4aProtocol_proxy)).grantRole(OPERATION_ROLE, multisig2);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(DEFAULT_ADMIN_ROLE);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(PROTOCOL_ROLE);
-        D4ASettings(address(d4aProtocol_proxy)).renounceRole(OPERATION_ROLE);
-    }
-
-    function _checkStatus() internal {
-        // proxy admin
-        assertEq(proxyAdmin.owner(), multisig);
-        assertEq(
-            proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy))),
-            address(proxyAdmin)
-        );
-        assertEq(
-            proxyAdmin.getProxyAdmin(ITransparentUpgradeableProxy(address(permissionControl_proxy))),
-            address(proxyAdmin)
-        );
-        assertEq(
-            proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(d4aCreateProjectProxy_proxy))),
-            address(d4aCreateProjectProxy_impl)
-        );
-        assertEq(
-            proxyAdmin.getProxyImplementation(ITransparentUpgradeableProxy(address(permissionControl_proxy))),
-            address(permissionControl_impl)
-        );
-
-        // create project proxy
-        assertEq(d4aCreateProjectProxy_proxy.WETH(), address(WETH));
-        assertEq(address(d4aCreateProjectProxy_proxy.d4aswapFactory()), address(uniswapV2Factory));
-        assertEq(d4aCreateProjectProxy_proxy.owner(), multisig);
-        assertEq(address(d4aCreateProjectProxy_proxy.protocol()), address(d4aProtocol_proxy));
-        assertEq(address(d4aCreateProjectProxy_proxy.royaltySplitterFactory()), address(d4aRoyaltySplitterFactory));
-        assertEq(d4aCreateProjectProxy_proxy.royaltySplitterOwner(), multisig);
-
-        // protocol
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[0], address(d4aProtocol_proxy));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[1], address(d4aProtocolReadable));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[2], address(d4aProtocolSetter));
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).facetAddresses()[3], address(d4aSettings));
-        assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocol_proxy)).length,
-            12
-        );
-        assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocolReadable)).length,
-            59
-        );
-        assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aProtocolSetter)).length, 9
-        );
-        assertEq(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).facetFunctionSelectors(address(d4aSettings)).length, 34
-        );
-        assertEq(D4ADiamond(payable(address(d4aProtocol_proxy))).getFallbackAddress(), address(d4aProtocol_impl));
-        assertTrue(
-            D4ADiamond(payable(address(d4aProtocol_proxy))).owner() == multisig
-                || D4ADiamond(payable(address(d4aProtocol_proxy))).nomineeOwner() == multisig
-        );
-        (, string memory name, string memory version,,,,) = d4aProtocol_proxy.eip712Domain();
-        assertEq(name, "D4AProtocol");
-        assertEq(version, "2");
-
-        // settings
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).createCanvasFee(), 0);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).createProjectFee(), 0);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getPriceTemplates()[0], address(exponentialPriceVariation));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getPriceTemplates()[1], address(linearPriceVariation));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getRewardTemplates()[0], address(linearRewardIssuance));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).getRewardTemplates()[1], address(exponentialRewardIssuance));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(DEFAULT_ADMIN_ROLE, multisig));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(PROTOCOL_ROLE, multisig));
-        assertTrue(D4ASettings(address(d4aProtocol_proxy)).hasRole(OPERATION_ROLE, multisig2));
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProjectFeeRatio(), 3000);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProjectFeeRatioFlatPrice(), 3500);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).mintProtocolFeeRatio(), 250);
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).ownerProxy()), address(naiveOwner_proxy));
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).permissionControl()), address(permissionControl_proxy));
-        assertEq(address(D4ASettings(address(d4aProtocol_proxy)).protocolFeePool()), multisig);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).ratioBase(), BASIS_POINT);
-        assertEq(D4ASettings(address(d4aProtocol_proxy)).tradeProtocolFeeRatio(), 250);
-
-        // permission control
-        assertEq(address(permissionControl_proxy.createProjectProxy()), address(d4aCreateProjectProxy_proxy));
-        (, name, version,,,,) = permissionControl_proxy.eip712Domain();
-        assertEq(name, "D4APermissionControl");
-        assertEq(version, "2");
-        assertEq(address(permissionControl_proxy.ownerProxy()), address(naiveOwner_proxy));
-        assertEq(address(permissionControl_proxy.protocol()), address(d4aProtocol_proxy));
     }
 }

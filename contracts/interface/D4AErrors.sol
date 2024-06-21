@@ -11,13 +11,11 @@ error NotCaller(address caller);
 
 error RoyaltyFeeRatioOutOfRange();
 
-error UnauthorizedToExchangeRoyaltyTokenToETH();
-
 error Blacklisted();
 
 error NotInWhitelist();
 
-error InvalidETHRatio();
+error InvalidInputRatio();
 
 error ExceedMaxMintableRound();
 
@@ -59,6 +57,74 @@ error D4AProjectAlreadyExist(bytes32 daoId);
 
 error D4ACanvasAlreadyExist(bytes32 canvasId);
 
-error StartRoundAlreadyPassed();
+error StartBlockAlreadyPassed();
 
 error DaoNotStarted();
+
+error NotOperationRole();
+
+error UnableToUnlock();
+
+error BasicDaoLocked();
+
+error NotCanvasIdOfSpecialTokenUri();
+
+error NotBasicDaoNftFlatPrice();
+
+error SupplyOutOfRange();
+
+error ExceedDailyMintCap();
+
+error NotBasicDaoFloorPrice();
+
+error NotBasicDaoOwner();
+
+error ZeroNftReserveNumber();
+
+error NotBasicDao();
+
+error InvalidChildrenDaoRatio();
+
+error InvalidMintFeeRatio();
+
+error InvalidOutputRewardRatio();
+
+error InvalidInputRewardRatio();
+
+error NotAncestorDao();
+
+error NotDaoForFunding();
+
+error InvalidDaoAncestor(bytes32 childrenDaoId);
+
+error VersionDenied();
+
+error InvalidTemplate();
+
+error NotCanvasIdOfDao();
+
+error DurationIsZero();
+
+error CannotUseZeroFloorPrice();
+
+error TurnOffInfiniteModeWithZeroRemainingRound();
+
+error PaymentModeAndTopUpModeCannotBeBothOn();
+
+error NotNftOwner();
+
+error TopUpNftHadLocked();
+
+error TopUpNFTIsLocking();
+
+error OnlyProtocolCanSet();
+
+error InvalidLength();
+
+error NotEnoughInputToken();
+
+error SameInputAndOutputToken();
+
+error NotPlanOwner();
+
+error InvalidRewardTokenForTreasury();

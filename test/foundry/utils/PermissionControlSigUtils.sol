@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-
-import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
-import { PermissionControl } from "contracts/permission-control/PermissionControl.sol";
+import { Whitelist, Blacklist, NftIdentifier } from "contracts/interface/D4AStructs.sol";
 
 contract PermissionControlSigUtils {
     bytes32 private _HASHED_NAME = keccak256(bytes("D4APermissionControl"));
@@ -23,8 +20,10 @@ contract PermissionControlSigUtils {
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )
@@ -38,8 +37,10 @@ contract PermissionControlSigUtils {
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )

@@ -17,6 +17,7 @@ abstract contract PriceTemplateBase is IPriceTemplate {
         pure
         returns (uint256)
     {
+        // in 1.3, current round returns a large value, so pass startRound = 1 is ok.
         if (maxPrice.round == 0) {
             if (currentRound == startRound) return daoFloorPrice;
             else return daoFloorPrice >> 1;

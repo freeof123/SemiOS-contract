@@ -48,10 +48,21 @@ interface IPermissionControl {
         view
         returns (bool);
 
+    function inMinterNFTHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
+    function inMinterNFTIdHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
     function inCanvasCreatorWhitelist(
         bytes32 daoId,
         address _account,
         bytes32[] calldata _proof
+    )
+        external
+        view
+        returns (bool);
+
+    function inCanvasCreatorNFTHolderPasses(Whitelist memory whitelist, address account) external view returns (bool);
+    function inCanvasCreatorNFTIdHolderPasses(
+        Whitelist memory whitelist,
+        address account
     )
         external
         view

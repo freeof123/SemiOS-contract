@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import { RewardStorage } from "contracts/storages/RewardStorage.sol";
-
 interface ID4AProtocolReadable {
     // legacy functions
     function getProjectCanvasAt(bytes32 daoId, uint256 index) external view returns (bytes32);
@@ -18,7 +16,7 @@ interface ID4AProtocolReadable {
             uint96 royaltyFeeRatioInBps,
             uint256 index,
             string memory daoUri,
-            uint256 erc20TotalSupply
+            uint256 outputTotalSupply
         );
 
     function getProjectFloorPrice(bytes32 daoId) external view returns (uint256);
@@ -35,9 +33,9 @@ interface ID4AProtocolReadable {
 
     function getProjectCanvasCount(bytes32 daoId) external view returns (uint256);
 
-    // new functions
-    // DAO related functions
-    function getDaoStartRound(bytes32 daoId) external view returns (uint256 startRound);
+    // // new functions
+    // // DAO related functions
+    function getDaoStartBlock(bytes32 daoId) external view returns (uint256 startRound);
 
     function getDaoMintableRound(bytes32 daoId) external view returns (uint256 mintableRound);
 
@@ -71,6 +69,8 @@ interface ID4AProtocolReadable {
 
     function getDaoMintCap(bytes32 daoId) external view returns (uint32);
 
+    function getDaoNftHolderMintCap(bytes32 daoId) external view returns (uint32);
+
     function getUserMintInfo(
         bytes32 daoId,
         address account
@@ -79,9 +79,11 @@ interface ID4AProtocolReadable {
         view
         returns (uint32 minted, uint32 userMintCap);
 
-    function getDaoFeePoolETHRatio(bytes32 daoId) external view returns (uint256);
+    // function getDaoFeePoolETHRatio(bytes32 daoId) external view returns (uint256);
 
-    function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
+    // function getDaoFeePoolETHRatioFlatPrice(bytes32 daoId) external view returns (uint256);
+
+    function getDaoTag(bytes32 daoId) external view returns (string memory);
 
     // canvas related functions
     function getCanvasDaoId(bytes32 canvasId) external view returns (bytes32 daoId);
@@ -105,62 +107,57 @@ interface ID4AProtocolReadable {
 
     function getDaoFloorPrice(bytes32 daoId) external view returns (uint256 floorPrice);
 
+    function getDaoRoundMintCap(bytes32 daoId) external view returns (uint256);
+
+    function getDaoUnifiedPriceModeOff(bytes32 daoId) external view returns (bool);
+
+    function getDaoUnifiedPrice(bytes32 daoId) external view returns (uint256);
+
+    function getDaoReserveNftNumber(bytes32 daoId) external view returns (uint256);
+
     // reward related functions
-    function getDaoRewardStartRound(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 startRound);
+    // function getDaoRewardStartRound(
+    //     bytes32 daoId,
+    //     uint256 rewardCheckpointIndex
+    // )
+    //     external
+    //     view
+    //     returns (uint256 startRound);
 
-    function getDaoRewardTotalRound(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 totalRound);
+    // function getDaoRewardTotalRound(
+    //     bytes32 daoId,
+    //     uint256 rewardCheckpointIndex
+    // )
+    //     external
+    //     view
+    //     returns (uint256 totalRound);
 
-    function getDaoTotalReward(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 totalReward);
+    // function getDaoTotalReward(
+    //     bytes32 daoId,
+    //     uint256 rewardCheckpointIndex
+    // )
+    //     external
+    //     view
+    //     returns (uint256 totalReward);
 
-    function getDaoRewardDecayFactor(bytes32 daoId) external view returns (uint256 rewardDecayFactor);
+    // function getDaoRewardDecayFactor(bytes32 daoId) external view returns (uint256 rewardDecayFactor);
 
-    function getDaoRewardIsProgressiveJackpot(bytes32 daoId) external view returns (bool isProgressiveJackpot);
+    function getDaoIsProgressiveJackpot(bytes32 daoId) external view returns (bool isProgressiveJackpot);
 
-    function getDaoRewardLastActiveRound(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256 lastActiveRound);
+    // function getDaoRewardLastActiveRound(
+    //     bytes32 daoId,
+    //     uint256 rewardCheckpointIndex
+    // )
+    //     external
+    //     view
+    //     returns (uint256 lastActiveRound);
 
-    function getDaoRewardActiveRounds(
-        bytes32 daoId,
-        uint256 rewardCheckpointIndex
-    )
-        external
-        view
-        returns (uint256[] memory activeRounds);
+    function getDaoActiveRounds(bytes32 daoId) external view returns (uint256[] memory activeRounds);
 
-    function getDaoCreatorClaimableRound(
-        bytes32 daoId,
-        uint256 rewardCheckpointsIndex
-    )
-        external
-        view
-        returns (uint256 claimableRound);
+    function getDaoCreatorClaimableRound(bytes32 daoId) external view returns (uint256 claimableRound);
 
     function getCanvasCreatorClaimableRound(
         bytes32 daoId,
-        uint256 rewardCheckpointsIndex,
         bytes32 canvasId
     )
         external
@@ -169,7 +166,6 @@ interface ID4AProtocolReadable {
 
     function getNftMinterClaimableRound(
         bytes32 daoId,
-        uint256 rewardCheckpointsIndex,
         address nftMinter
     )
         external
@@ -178,35 +174,37 @@ interface ID4AProtocolReadable {
 
     function getTotalWeight(bytes32 daoId, uint256 round) external view returns (uint256 totalWeight);
 
-    function getProtocolWeight(bytes32 daoId, uint256 round) external view returns (uint256 protocolWeight);
+    function getProtocolWeights(
+        bytes32 daoId,
+        uint256 round
+    )
+        external
+        view
+        returns (uint256 protocolWeight, uint256 protocolWeightETH);
 
-    function getDaoCreatorWeight(bytes32 daoId, uint256 round) external view returns (uint256 creatorWeight);
+    function getDaoCreatorWeights(
+        bytes32 daoId,
+        uint256 round
+    )
+        external
+        view
+        returns (uint256 creatorWeight, uint256 creatorWeightETH);
 
-    function getCanvasCreatorWeight(
+    function getCanvasCreatorWeights(
         bytes32 daoId,
         uint256 round,
         bytes32 canvasId
     )
         external
         view
-        returns (uint256 creatorWeight);
+        returns (uint256 creatorWeight, uint256 creatorWeightETH);
 
-    function getNftMinterWeight(
+    function getNftMinterWeights(
         bytes32 daoId,
         uint256 round,
         address nftMinter
     )
         external
         view
-        returns (uint256 minterWeight);
-
-    function getDaoCreatorERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    function getCanvasCreatorERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    function getNftMinterERC20Ratio(bytes32 daoId) external view returns (uint256 ratioInBps);
-
-    function getRoundReward(bytes32 daoId, uint256 round) external view returns (uint256);
-
-    function getRewardTillRound(bytes32 daoId, uint256 round) external view returns (uint256);
+        returns (uint256 minterWeight, uint256 minterWeightETH);
 }

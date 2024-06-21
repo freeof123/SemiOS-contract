@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import { BASIS_POINT } from "contracts/D4AProtocol.sol";
+import { BASIS_POINT } from "contracts/interface/D4AConstants.sol";
 import { SettingsStorage } from "contracts/storages/SettingsStorage.sol";
 import { ID4ASettingsReadable } from "./ID4ASettingsReadable.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
@@ -28,24 +28,8 @@ contract D4ASettingsReadable is ID4ASettingsReadable {
         return SettingsStorage.layout().protocolRoyaltyFeeRatioInBps;
     }
 
-    function mintProjectFeeRatio() public view returns (uint256) {
-        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBps;
-    }
-
-    function mintProjectFeeRatioFlatPrice() public view returns (uint256) {
-        return SettingsStorage.layout().daoFeePoolMintFeeRatioInBpsFlatPrice;
-    }
-
     function ratioBase() public pure returns (uint256) {
         return BASIS_POINT;
-    }
-
-    function createProjectFee() public view returns (uint256) {
-        return SettingsStorage.layout().createDaoFeeAmount;
-    }
-
-    function createCanvasFee() public view returns (uint256) {
-        return SettingsStorage.layout().createCanvasFeeAmount;
     }
 
     function getPriceTemplates() public view returns (address[] memory priceTemplates) {

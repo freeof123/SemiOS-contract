@@ -2,31 +2,32 @@
 pragma solidity ^0.8.18;
 
 library RewardStorage {
-    struct RewardCheckpoint {
-        uint256 startRound;
-        uint256 totalRound;
-        uint256 totalReward;
-        uint256 lastActiveRound; // deprecated
-        uint256[] activeRounds;
-        // claimable round index
-        uint256 daoCreatorClaimableRoundIndex;
-        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
-        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
-    }
-
     struct RewardInfo {
-        RewardCheckpoint[] rewardCheckpoints;
         uint256 rewardIssuePendingRound;
         uint256 rewardDecayFactor;
         bool isProgressiveJackpot;
-        // weights
-        mapping(uint256 round => uint256 totalWeight) totalWeights; // also total ETH in DAO fee pool at given round
-        mapping(uint256 round => uint256 weight) protocolWeights;
-        mapping(uint256 round => uint256 weight) daoCreatorWeights;
-        mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorWeights;
-        mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterWeights;
-        uint256 daoCreatorERC20RatioInBps;
-        uint256 canvasCreatorERC20RatioInBps;
+        // weights for output
+        mapping(uint256 round => uint256 totalWeight) totalWeights; // also total input in DAO fee pool at given round
+        mapping(uint256 round => uint256 weight) protocolOutputWeight;
+        mapping(uint256 round => uint256 weight) daoCreatorOutputWeights;
+        mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorOutputWeights;
+        mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterOutputWeights;
+        //1.3add ------------------------------------
+        uint256[] activeRounds;
+        mapping(uint256 ronud => uint256 amount) selfRoundOutputReward;
+        mapping(uint256 ronud => uint256 amount) selfRoundInputReward;
+        // weights for input
+        mapping(uint256 round => uint256 weight) protocolInputWeight;
+        mapping(uint256 round => uint256 weight) daoCreatorInputWeights;
+        mapping(uint256 round => mapping(bytes32 canvasId => uint256 weight)) canvasCreatorInputWeights;
+        mapping(uint256 round => mapping(address nftMinter => uint256 weight)) nftMinterInputWeights;
+        uint256 daoCreatorClaimableRoundIndex;
+        mapping(bytes32 canvasId => uint256 claimableRoundIndex) canvasCreatorClaimableRoundIndexes;
+        mapping(address nftMinter => uint256 claimableRoundIndex) nftMinterClaimableRoundIndexes;
+        //1.5 add -------------------------------------
+        mapping(uint256 round => mapping(bytes32 nftHash => uint256 weight)) nftTopUpInvestorWeights;
+        mapping(uint256 round => mapping(bytes32 nftHash => uint256 amount)) nftTopUpInvestorPendingInput;
+        mapping(bytes32 nftHash => uint256 amount) nftTopUpClaimableRoundIndexes;
     }
 
     struct Layout {

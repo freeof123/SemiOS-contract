@@ -13,6 +13,8 @@ import { Whitelist, Blacklist } from "contracts/interface/D4AStructs.sol";
 import { IPermissionControl } from "contracts/interface/IPermissionControl.sol";
 import { ID4AOwnerProxy } from "contracts/interface/ID4AOwnerProxy.sol";
 
+//import "forge-std/Test.sol";
+
 contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeable {
     mapping(bytes32 => Whitelist) internal _whitelists;
     // 0th bit set to 1 when initialized to save gas
@@ -23,7 +25,6 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     address public immutable protocol;
-    address public immutable createProjectProxy;
 
     bytes32 internal constant ADDPERMISSION_TYPEHASH = keccak256(
         abi.encodePacked(
@@ -33,8 +34,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )
@@ -48,17 +51,18 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
                 "Whitelist(",
                 "bytes32 minterMerkleRoot,",
                 "address[] minterNFTHolderPasses,",
+                "NftIdentifer[] minterNFTIdHolderPasses,",
                 "bytes32 canvasCreatorMerkleRoot,",
-                "address[] canvasCreatorNFTHolderPasses",
+                "address[] canvasCreatorNFTHolderPasses,",
+                "NftIdentifier[] canvasCreatorNFTIdHolderPasses",
                 ")"
             )
         )
     );
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address protocol_, address createProjectProxy_) {
+    constructor(address protocol_) {
         protocol = protocol_;
-        createProjectProxy = createProjectProxy_;
         _disableInitializers();
     }
 
@@ -80,10 +84,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     }
 
     function addPermission(bytes32 daoId, Whitelist calldata whitelist, Blacklist calldata blacklist) external {
-        require(
-            msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == createProjectProxy,
-            "PermissionControl: not DAO owner"
-        );
+        require(msg.sender == ownerProxy.ownerOf(daoId) || msg.sender == protocol, "PermissionControl: not DAO owner");
         _addPermission(daoId, whitelist, blacklist);
     }
 
@@ -238,13 +239,6 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         return false;
     }
 
-    /**
-     * @dev If merkleRoot of DAO is set, throws if given _merkle proof is not correct
-     *      If NFTHolderPasses of DAO is set, throws if given _account is not the owner of the NFT
-     * @param daoId DAO id
-     * @param _account The address to check
-     * @param _proof The merkle proof
-     */
     function inMinterWhitelist(
         bytes32 daoId,
         address _account,
@@ -256,7 +250,7 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     {
         Whitelist memory whitelist = _whitelists[daoId];
 
-        if (whitelist.minterMerkleRoot == bytes32(0) && whitelist.minterNFTHolderPasses.length == 0) return true;
+        if (whitelist.minterMerkleRoot == bytes32(0)) return false;
         if (
             MerkleProofUpgradeable.verifyCalldata(
                 _proof, whitelist.minterMerkleRoot, keccak256(bytes.concat(keccak256(abi.encode(_account))))
@@ -264,10 +258,6 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         ) {
             return true;
         }
-        if (whitelist.minterNFTHolderPasses.length != 0 && inMinterNFTHolderPasses(whitelist, _account)) {
-            return true;
-        }
-
         return false;
     }
 
@@ -275,6 +265,23 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         uint256 length = whitelist.minterNFTHolderPasses.length;
         for (uint256 i = 0; i < length;) {
             if (IERC721Upgradeable(whitelist.minterNFTHolderPasses[i]).balanceOf(account) > 0) {
+                return true;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        return false;
+    }
+
+    function inMinterNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+        uint256 length = whitelist.minterNFTIdHolderPasses.length;
+        for (uint256 i = 0; i < length;) {
+            if (
+                IERC721Upgradeable(whitelist.minterNFTIdHolderPasses[i].erc721Address).ownerOf(
+                    whitelist.minterNFTIdHolderPasses[i].tokenId
+                ) == account
+            ) {
                 return true;
             }
             unchecked {
@@ -303,7 +310,10 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
     {
         Whitelist memory whitelist = _whitelists[daoId];
 
-        if (whitelist.canvasCreatorMerkleRoot == bytes32(0) && whitelist.canvasCreatorNFTHolderPasses.length == 0) {
+        if (
+            whitelist.canvasCreatorMerkleRoot == bytes32(0) && whitelist.canvasCreatorNFTHolderPasses.length == 0
+                && whitelist.canvasCreatorNFTIdHolderPasses.length == 0
+        ) {
             return true;
         }
         if (
@@ -316,7 +326,30 @@ contract PermissionControl is IPermissionControl, Initializable, EIP712Upgradeab
         if (whitelist.canvasCreatorNFTHolderPasses.length != 0 && inCanvasCreatorNFTHolderPasses(whitelist, _account)) {
             return true;
         }
+        if (
+            whitelist.canvasCreatorNFTIdHolderPasses.length != 0
+                && inCanvasCreatorNFTIdHolderPasses(whitelist, _account)
+        ) {
+            return true;
+        }
 
+        return false;
+    }
+
+    function inCanvasCreatorNFTIdHolderPasses(Whitelist memory whitelist, address account) public view returns (bool) {
+        uint256 length = whitelist.canvasCreatorNFTIdHolderPasses.length;
+        for (uint256 i = 0; i < length;) {
+            if (
+                IERC721Upgradeable(whitelist.canvasCreatorNFTIdHolderPasses[i].erc721Address).ownerOf(
+                    whitelist.canvasCreatorNFTIdHolderPasses[i].tokenId
+                ) == account
+            ) {
+                return true;
+            }
+            unchecked {
+                ++i;
+            }
+        }
         return false;
     }
 

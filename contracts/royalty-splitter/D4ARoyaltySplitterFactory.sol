@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { ID4ARoyaltySplitterFactory } from "../interface/ID4ARoyaltySplitterFactory.sol";
 import { D4ARoyaltySplitter } from "./D4ARoyaltySplitter.sol";
-import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 
 contract D4ARoyaltySplitterFactory is ID4ARoyaltySplitterFactory, AutomationCompatibleInterface {
     using Clones for address;

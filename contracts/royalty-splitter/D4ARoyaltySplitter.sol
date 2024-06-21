@@ -5,7 +5,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeTransferLib } from "solady/utils/SafeTransferLib.sol";
-import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
+import { AutomationCompatibleInterface } from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import { FeedRegistryInterface } from "@chainlink/contracts/src/v0.8/interfaces/FeedRegistryInterface.sol";
 import { Denominations } from "@chainlink/contracts/src/v0.8/Denominations.sol";
 import { IWETH } from "@uniswap/v2-periphery/contracts/interfaces/IWETH.sol";
@@ -176,7 +176,7 @@ contract D4ARoyaltySplitter is Initializable, OwnableUpgradeable, AutomationComp
         for (uint256 i; i < length;) {
             uint256 balance = IERC20(tokens[i]).balanceOf(address(this));
             paths[0] = tokens[i];
-            IERC20(tokens[i]).approve(address(router), balance);
+            SafeTransferLib.safeApprove(tokens[i], address(router), balance);
             uint256 amountOutMin = balance * getPrice(tokens[i], Denominations.ETH) * 995 / 1000 // 995 for 0.3% fee and
                 // more than 0.1% splippage
                 / 10 ** oracleRegistry.decimals(tokens[i], Denominations.ETH);
