@@ -17,6 +17,16 @@ pnpm install # install Solhint, Prettier, and other Node.js deps
 
 This is a list of the most frequently needed commands.
 
+
+
+### install package 
+
+Build the contracts:
+
+```sh
+$ npm install
+```
+
 ### Build
 
 Build the contracts:
