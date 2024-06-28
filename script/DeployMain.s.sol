@@ -219,7 +219,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
                     0x0ec06780f3Bfc81a843BEe0b0C7B9E4486b738C9
-                    )
+                )
             });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -273,7 +273,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
                     0x0B9c4b1536366Aba0D09ce6337fdeaE8Bdae0c60
-                    )
+                )
             });
             // console2.log("Remove PDProtocolSetter Facet Data:");
             // console2.logBytes(abi.encodeCall(DiamondWritable.diamondCut, (facetCuts, address(0), "")));
@@ -329,7 +329,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
                     0x4B5AD6AB9066662f704e79876B7b9C5EeC693DD6
-                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+                ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -403,7 +403,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
                     0x6027C2Ac203f12cf03e5FdeC098740FC393729BE
-                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+                ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -520,7 +520,7 @@ contract DeployDemo is Script, Test, D4AAddress {
                 action: IDiamondWritableInternal.FacetCutAction.REMOVE,
                 selectors: D4ADiamond(payable(address(pdProtocol_proxy))).facetFunctionSelectors(
                     0xD23eF845bCE634f4641DC9Cb5A3932A1B441767c
-                    ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
+                ) // 在目前的的流程中，使用remove后面要添加deploy-info中现有的合约地址，其他的Remove方法也要按照这个写法修改
              });
             D4ADiamond(payable(address(pdProtocol_proxy))).diamondCut(facetCuts, address(0), "");
         }
@@ -814,12 +814,9 @@ contract DeployDemo is Script, Test, D4AAddress {
         permissionControl_proxy = PermissionControl(
             address(
                 new TransparentUpgradeableProxy(
-                    address(permissionControl_impl), 
+                    address(permissionControl_impl),
                     address(proxyAdmin),
-                    abi.encodeWithSignature(
-                        "initialize(address)",
-                        address(naiveOwner_proxy)
-                    )
+                    abi.encodeWithSignature("initialize(address)", address(naiveOwner_proxy))
                 )
             )
         );

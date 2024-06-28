@@ -57,7 +57,7 @@ A project maintainer will review your pull request and may request changes befor
 - Use descriptive variable and function names.
 - Write comments to explain the purpose of complex code blocks.
 - Ensure your code is clean, readable, and maintainable.
-- Format your code using `forge fmt` to ensure consistency.
+- Format your code using `forge fmt` to ensure consistency
 
 ## Testing
 Thorough testing is crucial for the reliability of SemiOS-contract. Please include tests for any new features or bug fixes. We use [Foundry](https://getfoundry.sh/) for testing Solidity contracts.
