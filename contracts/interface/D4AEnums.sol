@@ -6,7 +6,9 @@ enum PriceTemplateType {
     LINEAR_PRICE_VARIATION
 }
 
-enum RewardTemplateType { UNIFORM_DISTRIBUTION_REWARD }
+enum RewardTemplateType {
+    UNIFORM_DISTRIBUTION_REWARD
+}
 
 enum TemplateChoice {
     PRICE,
@@ -27,4 +29,6 @@ enum DeployMethod {
     REMOVE_AND_ADD
 }
 
-enum PlanTemplateType { DYNAMIC_PLAN }
+enum PlanTemplateType {
+    DYNAMIC_PLAN
+}

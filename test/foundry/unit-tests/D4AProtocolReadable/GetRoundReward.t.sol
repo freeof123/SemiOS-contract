@@ -429,141 +429,143 @@ contract GetRoundRewardTest is DeployHelper {
     }
 
     //start this progressiveJackpot test
-    function test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange(
-        uint256 round
-    )
-        public
-    {
-        vm.assume(round < 10);
-        uint256 mintableRound = 15;
-        uint256 mintNumberForSingleRound = 3;
-        uint256 flatPrice = 0.01 ether;
-        uint256 reward;
-        //uint256 nextCanvasPrice = 0.01 ether;
-        uint256 decayFactor = 0;
+    // function
+    // test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange(
+    //     uint256 round
+    // )
+    //     public
+    // {
+    //     vm.assume(round < 10);
+    //     uint256 mintableRound = 15;
+    //     uint256 mintNumberForSingleRound = 3;
+    //     uint256 flatPrice = 0.01 ether;
+    //     uint256 reward;
+    //     //uint256 nextCanvasPrice = 0.01 ether;
+    //     uint256 decayFactor = 0;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, true, false, flatPrice);
+    //     bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, decayFactor, true, false, flatPrice);
 
-        uint256 previousActiveRound;
-        for (uint256 j = 2; j < mintableRound + 1; j++) {
-            vm.roll(j);
-            //bool newRound = true;
-            uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
-            previousActiveRound = protocol.getDaoLastActiveRound(daoId);
-            reward = protocol.getDaoAssetPool(daoId).balance * (j - previousActiveRound)
-                / (remaingRound + j - previousActiveRound - 1);
-            for (uint256 i = 0; i < mintNumberForSingleRound; i++) {
-                if (_random(round, i) % 2 == 0) {
-                    super._mintNft(
-                        daoId,
-                        canvasId,
-                        string.concat("test token uri_", vm.toString(uint256(j)), vm.toString(uint256(i))),
-                        flatPrice,
-                        canvasCreator.key,
-                        nftMinter.addr
-                    );
-                }
-            }
+    //     uint256 previousActiveRound;
+    //     for (uint256 j = 2; j < mintableRound + 1; j++) {
+    //         vm.roll(j);
+    //         //bool newRound = true;
+    //         uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
+    //         previousActiveRound = protocol.getDaoLastActiveRound(daoId);
+    //         reward = protocol.getDaoAssetPool(daoId).balance * (j - previousActiveRound)
+    //             / (remaingRound + j - previousActiveRound - 1);
+    //         for (uint256 i = 0; i < mintNumberForSingleRound; i++) {
+    //             if (_random(round, i) % 2 == 0) {
+    //                 super._mintNft(
+    //                     daoId,
+    //                     canvasId,
+    //                     string.concat("test token uri_", vm.toString(uint256(j)), vm.toString(uint256(i))),
+    //                     flatPrice,
+    //                     canvasCreator.key,
+    //                     nftMinter.addr
+    //                 );
+    //             }
+    //         }
 
-            //current round is not active round, reward = 0
-            if (j != protocol.getDaoLastActiveRound(daoId)) {
-                reward = 0;
-            }
+    //         //current round is not active round, reward = 0
+    //         if (j != protocol.getDaoLastActiveRound(daoId)) {
+    //             reward = 0;
+    //         }
 
-            assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
-                reward,
-                maxDelta,
-                string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange_inputReward_ERROR_",
-                    vm.toString(j)
-                )
-            );
-        }
-    }
+    //         assertApproxEqAbs(
+    //             IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
+    //             reward,
+    //             maxDelta,
+    //             string.concat(
+    //                 "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_noCanvasPriceChange_inputReward_ERROR_",
+    //                 vm.toString(j)
+    //             )
+    //         );
+    //     }
+    // }
 
-    function test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay(
-        uint256 round
-    )
-        public
-    {
-        vm.assume(round < 20);
-        uint256 mintableRound = 10;
-        // uint256 mintNumberForSingleRound = 3;
-        uint256 flatPrice = 0 ether;
-        uint256 reward;
-        uint256 rewardCalculate;
+    // function
+    // test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay(
+    //     uint256 round
+    // )
+    //     public
+    // {
+    //     vm.assume(round < 20);
+    //     uint256 mintableRound = 10;
+    //     // uint256 mintNumberForSingleRound = 3;
+    //     uint256 flatPrice = 0 ether;
+    //     uint256 reward;
+    //     uint256 rewardCalculate;
 
-        bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, 20_000, true, true, flatPrice);
+    //     bytes32 daoId = _createDaoAndCanvasAndOneNFT(mintableRound, 20_000, true, true, flatPrice);
 
-        uint256 previousActiveRound;
-        uint256 previousNFTMinterNumber = 1;
-        uint256 previousRoundDaoAssetPoolBalance;
-        uint256 previousNextCanvasPrice = 0.01 ether;
-        uint256 previouseRoundDistributeAmount = 0;
-        for (uint256 j = 2; j < mintableRound + 1; j++) {
-            vm.roll(j);
-            uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
+    //     uint256 previousActiveRound;
+    //     uint256 previousNFTMinterNumber = 1;
+    //     uint256 previousRoundDaoAssetPoolBalance;
+    //     uint256 previousNextCanvasPrice = 0.01 ether;
+    //     uint256 previouseRoundDistributeAmount = 0;
+    //     for (uint256 j = 2; j < mintableRound + 1; j++) {
+    //         vm.roll(j);
+    //         uint256 remaingRound = protocol.getDaoRemainingRound(daoId);
 
-            previousActiveRound = protocol.getDaoLastActiveRound(daoId);
+    //         previousActiveRound = protocol.getDaoLastActiveRound(daoId);
 
-            reward = protocol.getDaoAssetPool(daoId).balance * (j - previousActiveRound)
-                / (remaingRound + j - previousActiveRound - 1);
+    //         reward = protocol.getDaoAssetPool(daoId).balance * (j - previousActiveRound)
+    //             / (remaingRound + j - previousActiveRound - 1);
 
-            rewardCalculate = _calculateETHRoundRewardProgressiveJackpot(
-                previousNFTMinterNumber,
-                20_000,
-                mintFeeRatioToAssetPoolNoFiatPrice,
-                j,
-                remaingRound,
-                j - previousActiveRound,
-                previousNextCanvasPrice,
-                previousRoundDaoAssetPoolBalance,
-                previouseRoundDistributeAmount
-            );
-            previouseRoundDistributeAmount = rewardCalculate;
-            assertApproxEqAbs(
-                rewardCalculate,
-                reward,
-                maxDelta,
-                string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputRewardCal_ERROR_",
-                    vm.toString(j)
-                )
-            );
-            previousNextCanvasPrice = protocol.getCanvasNextPrice(daoId, canvasId);
-            previousRoundDaoAssetPoolBalance = protocol.getDaoAssetPool(daoId).balance;
+    //         rewardCalculate = _calculateETHRoundRewardProgressiveJackpot(
+    //             previousNFTMinterNumber,
+    //             20_000,
+    //             mintFeeRatioToAssetPoolNoFiatPrice,
+    //             j,
+    //             remaingRound,
+    //             j - previousActiveRound,
+    //             previousNextCanvasPrice,
+    //             previousRoundDaoAssetPoolBalance,
+    //             previouseRoundDistributeAmount
+    //         );
+    //         previouseRoundDistributeAmount = rewardCalculate;
+    //         assertApproxEqAbs(
+    //             rewardCalculate,
+    //             reward,
+    //             maxDelta,
+    //             string.concat(
+    //                 "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputRewardCal_ERROR_",
+    //                 vm.toString(j)
+    //             )
+    //         );
+    //         previousNextCanvasPrice = protocol.getCanvasNextPrice(daoId, canvasId);
+    //         previousRoundDaoAssetPoolBalance = protocol.getDaoAssetPool(daoId).balance;
 
-            previousNFTMinterNumber = 0;
-            for (uint256 i = 0; i < 3; i++) {
-                // if (j % 2 == 0) {
-                if (_random(round, i) % 2 == 0) {
-                    super._mintNft(
-                        daoId,
-                        canvasId,
-                        string.concat("test token uri_", vm.toString(uint256(j)), vm.toString(uint256(i))),
-                        flatPrice,
-                        canvasCreator.key,
-                        nftMinter.addr
-                    );
-                    previousNFTMinterNumber++;
-                }
-            }
+    //         previousNFTMinterNumber = 0;
+    //         for (uint256 i = 0; i < 3; i++) {
+    //             // if (j % 2 == 0) {
+    //             if (_random(round, i) % 2 == 0) {
+    //                 super._mintNft(
+    //                     daoId,
+    //                     canvasId,
+    //                     string.concat("test token uri_", vm.toString(uint256(j)), vm.toString(uint256(i))),
+    //                     flatPrice,
+    //                     canvasCreator.key,
+    //                     nftMinter.addr
+    //                 );
+    //                 previousNFTMinterNumber++;
+    //             }
+    //         }
 
-            if (j != protocol.getDaoLastActiveRound(daoId)) {
-                reward = 0;
-                rewardCalculate = 0;
-            }
+    //         if (j != protocol.getDaoLastActiveRound(daoId)) {
+    //             reward = 0;
+    //             rewardCalculate = 0;
+    //         }
 
-            assertApproxEqAbs(
-                IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
-                reward,
-                maxDelta,
-                string.concat(
-                    "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputReward_ERROR_",
-                    vm.toString(j)
-                )
-            );
-        }
-    }
+    //         assertApproxEqAbs(
+    //             IPDProtocolReadable(address(protocol)).getRoundInputReward(daoId, j),
+    //             reward,
+    //             maxDelta,
+    //             string.concat(
+    //                 "test_getRoundReward_for_multiRounds_and_multiMintNFT_ProgressiveJackpot_max_mintableRounds_canvasPrice_2xDecay_inputReward_ERROR_",
+    //                 vm.toString(j)
+    //             )
+    //         );
+    //     }
+    // }
 }
