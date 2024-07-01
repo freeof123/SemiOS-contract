@@ -1,4 +1,4 @@
-name: test
+name: main
 
 on: [push]
 
@@ -22,21 +22,19 @@ jobs:
         with:
           version: 8
           run_install: false
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Initialize npm
         run: npm i
-
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
 
       - name: Run Forge tests
         run: |
