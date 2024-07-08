@@ -1,4 +1,0 @@
-cast send 0xc8fC1A79f17f11C1CdCB261b759d9886b5fb868D --value=10ether --unlocked --from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 -r=$MF
-ENV=main forge script ./script/Deploy.s.sol --private-key=$PRIVATE_KEY --rpc-url=$MF --slow --broadcast
-
-✅ Sequence #1 on 897 | Total Paid: 0.000000197377007018 ETH (50938181 gas * avg 0.000002009 gwei)

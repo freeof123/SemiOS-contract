@@ -1,9 +1,0 @@
-//todo
-
-1.D4AFeePoolFactory 合约中记录的 ProxyAdmin 合约的 owner 有问题，应转给 multisig
-
-https://etherscan.io/address/0xDbfBBb786b8F338F9ECC5b7d6f7D05964b80D477#readContract
-
-//note: erc20 和 erc712 的 admin(default admin role)均为 multisig2 地址
-
-//合约中的assetOwner, 在Setting合约的changeAssetPoolOwner被设置，为multisig2地址，同时也是所有feepool的admin,能转钱
