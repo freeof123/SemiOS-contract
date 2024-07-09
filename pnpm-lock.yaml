@@ -22,8 +22,8 @@ importers:
         specifier: ^4.9.3
         version: 4.9.5
       '@openzeppelin/contracts-upgradeable':
-        specifier: ^4.8.2
-        version: 4.9.5
+        specifier: ^4.9.6
+        version: 4.9.6
       '@openzeppelin/merkle-tree':
         specifier: ^1.0.4
         version: 1.0.5
@@ -156,8 +156,8 @@ packages:
   '@openzeppelin/contracts-upgradeable@4.7.3':
     resolution: {integrity: sha512-+wuegAMaLcZnLCJIvrVUDzA9z/Wp93f0Dla/4jJvIhijRrPabjQbZe6fWiECLaJyfn5ci9fqf9vTw3xpQOad2A==}
 
-  '@openzeppelin/contracts-upgradeable@4.9.5':
-    resolution: {integrity: sha512-f7L1//4sLlflAN7fVzJLoRedrf5Na3Oal5PZfIq55NFcVZ90EpV1q5xOvL4lFvg3MNICSDr2hH0JUBxwlxcoPg==}
+  '@openzeppelin/contracts-upgradeable@4.9.6':
+    resolution: {integrity: sha512-m4iHazOsOCv1DgM7eD7GupTJ+NFVujRZt1wzddDPSVGpWdKq1SKkla5htKG7+IS4d2XOCtzkUNwRZ7Vq5aEUMA==}
 
   '@openzeppelin/contracts@3.4.2':
     resolution: {integrity: sha512-z0zMCjyhhp4y7XKAcDAi3Vgms4T2PstwBdahiO0+9NaGICQKjynK3wduSRplTgk4LXmoO1yfDGO5RbjKYxtuxA==}
@@ -355,6 +355,7 @@ packages:
   glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
@@ -380,6 +381,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -796,7 +798,7 @@ snapshots:
 
   '@openzeppelin/contracts-upgradeable@4.7.3': {}
 
-  '@openzeppelin/contracts-upgradeable@4.9.5': {}
+  '@openzeppelin/contracts-upgradeable@4.9.6': {}
 
   '@openzeppelin/contracts@3.4.2': {}
 
