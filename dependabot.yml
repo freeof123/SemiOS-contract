@@ -5,4 +5,5 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      - dependency-name: "@openzeppelin"
+      - dependency-name: "@openzeppelin/contracts"
+      - dependency-name: "@openzeppelin/contracts-upgradeable"
