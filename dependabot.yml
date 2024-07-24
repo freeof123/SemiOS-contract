@@ -1,9 +1,0 @@
-version: 2
-updates:
-  - package-ecosystem: "npm" # 例如，如果你使用的是 npm
-    directory: "/" # 项目根目录
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "@openzeppelin/contracts"
-      - dependency-name: "@openzeppelin/contracts-upgradeable"
