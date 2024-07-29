@@ -33,7 +33,7 @@
     "deploy-test": "source .env && ENV=test forge script script/Deploy.s.sol --rpc-url $GOERLI_RPC_URL -vvvv --broadcast --verify"
   },
   "dependencies": {
-    "ethers": "^6.8.1",
+    "ethers": "^6.13.2",
     "solady": "^0.0.113"
   }
 }
